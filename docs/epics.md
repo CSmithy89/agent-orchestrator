@@ -74,7 +74,17 @@ So that Epic 1 stories have a foundation to build upon.
    - Development commands (backend, dashboard, workspaces)
    - Documentation links (PRD, architecture, epics, UX design)
 6. Create `.env.example` with required environment variables:
-   - `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` (LLM providers)
+
+   # LLM Provider Authentication (multi-provider support)
+   - `CLAUDE_CODE_OAUTH_TOKEN` (Anthropic subscription - preferred method)
+   - `ANTHROPIC_API_KEY` (Anthropic pay-per-use - fallback if no OAuth token)
+   - `OPENAI_API_KEY` (OpenAI GPT/Codex models)
+   - `ZHIPU_API_KEY` (native Zhipu GLM access - optional)
+   - `ZAI_API_KEY` (GLM via z.ai Anthropic-compatible wrapper - optional)
+   - `ZAI_BASE_URL=https://api.z.ai/api/anthropic` (z.ai endpoint)
+   - `GOOGLE_API_KEY` (Google Gemini models - optional, future support)
+
+   # Git & Infrastructure
    - `GITHUB_TOKEN` (git operations)
    - `JWT_SECRET` (authentication)
    - `NODE_ENV`, `PORT`, `API_BASE_URL` (application config)
@@ -150,13 +160,50 @@ So that agents can be assigned optimal models per project configuration.
 
 **Acceptance Criteria:**
 1. Implement LLMFactory class with provider registry
-2. Support Anthropic provider (Claude Sonnet, Claude Haiku)
-3. Support OpenAI provider (GPT-4, GPT-4 Turbo)
-4. Load API keys from environment variables or secrets manager
-5. Validate model names (e.g., "claude-sonnet-4-5", "gpt-4-turbo")
-6. Create LLMClient interface with invoke() and stream() methods
-7. Include retry logic with exponential backoff for API failures
-8. Log all LLM requests/responses for debugging (exclude API keys)
+2. Support Anthropic provider (Claude Sonnet, Claude Haiku):
+   - Check for `CLAUDE_CODE_OAUTH_TOKEN` first (subscription auth - preferred)
+   - Fallback to `ANTHROPIC_API_KEY` if OAuth token not present (pay-per-use)
+   - Support `base_url` parameter in LLMConfig for Anthropic-compatible wrappers (e.g., z.ai for GLM)
+   - LLMConfig interface: `{ model: string, provider: string, base_url?: string, api_key?: string }`
+3. Support OpenAI provider (GPT-4, GPT-4 Turbo, Codex):
+   - Load `OPENAI_API_KEY` from environment
+   - Support models: `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo-instruct` (Codex replacement)
+4. Support Zhipu provider (GLM-4, GLM-4.6):
+   - Load `ZHIPU_API_KEY` from environment
+   - Native Zhipu API integration for GLM models
+   - Alternative to z.ai wrapper approach for GLM access
+5. (Optional) Support Google provider (Gemini):
+   - Load `GOOGLE_API_KEY` from environment
+   - Integrate `@google/generative-ai` SDK
+   - Support `gemini-1.5-pro`, `gemini-2.0-flash` models
+   - Can be deferred to future story if time-constrained
+6. Provider factory registration in constructor:
+   ```typescript
+   this.providers.set('anthropic', new AnthropicProvider());
+   this.providers.set('openai', new OpenAIProvider());
+   this.providers.set('zhipu', new ZhipuProvider());
+   // this.providers.set('google', new GoogleProvider()); // Optional
+   ```
+7. Validate model names for each provider:
+   - Anthropic: `claude-sonnet-4-5`, `claude-haiku`, `GLM-4.6` (via base_url wrapper)
+   - OpenAI: `gpt-4-turbo`, `gpt-4`, `gpt-3.5-turbo-instruct`
+   - Zhipu: `GLM-4`, `GLM-4.6`
+   - Google: `gemini-1.5-pro`, `gemini-2.0-flash` (if implemented)
+8. Create LLMClient interface with `invoke()` and `stream()` methods
+9. Include retry logic with exponential backoff for API failures
+10. Log all LLM requests/responses for debugging (exclude sensitive keys)
+11. Support per-agent LLM configuration via `.bmad/project-config.yaml`:
+    ```yaml
+    agent_assignments:
+      amelia:
+        model: "gpt-4-turbo"
+        provider: "openai"
+      winston:
+        model: "GLM-4.6"
+        provider: "anthropic"  # Using z.ai wrapper
+        base_url: "https://api.z.ai/api/anthropic"
+        api_key: "${ZAI_API_KEY}"
+    ```
 
 **Prerequisites:** Story 1.1
 
@@ -170,10 +217,14 @@ So that agents can be created with specific LLMs and contexts, then cleaned up a
 
 **Acceptance Criteria:**
 1. Implement AgentPool class that manages active agent instances
-2. createAgent(name, llmModel, context) creates agent with specified LLM
+2. createAgent(name, llmConfig, context) creates agent with project-configured LLM:
+   - llmConfig retrieved from `.bmad/project-config.yaml` agent_assignments section
+   - Supports any provider configured in LLMFactory (Anthropic, OpenAI, Zhipu, Google)
+   - Example: `config.agent_assignments['mary']` → `{ model: "claude-sonnet-4-5", provider: "anthropic" }`
+   - Enables per-agent provider assignment (Mary on Claude, Amelia on OpenAI, Bob on GLM, etc.)
 3. Load agent persona from bmad/bmm/agents/{name}.md
-4. Inject LLMClient, context (onboarding, docs, workflow state) into agent
-5. Track agent execution time and estimated cost
+4. Inject LLMClient (from LLMFactory), context (onboarding, docs, workflow state) into agent
+5. Track agent execution time and estimated cost per provider
 6. destroyAgent(id) cleans up resources within 30 seconds
 7. Support concurrent agent limits (configurable per project)
 8. Queue agent tasks if pool is at capacity
@@ -368,7 +419,10 @@ So that PRD workflows can extract and structure user requirements intelligently.
 
 **Acceptance Criteria:**
 1. Load Mary persona from bmad/bmm/agents/mary.md
-2. Configure with Claude Sonnet (strong reasoning model)
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for strong reasoning on requirements analysis
+   - See Story 1.3 for configuration examples with multiple providers
 3. Specialized prompts for: requirement extraction, user story writing, scope negotiation
 4. Context includes: user input, product brief (if exists), domain knowledge
 5. Methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope()
@@ -388,7 +442,10 @@ So that PRD workflows benefit from PM-level thinking.
 
 **Acceptance Criteria:**
 1. Load John persona from bmad/bmm/agents/john.md
-2. Configure with Claude Sonnet (strategic reasoning)
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for strategic reasoning and product decisions
+   - See Story 1.3 for configuration examples with multiple providers
 3. Specialized prompts for: product strategy, prioritization, roadmap planning
 4. Methods: defineProductVision(), prioritizeFeatures(), assessMarketFit()
 5. Validate Mary's requirements for business viability
@@ -490,7 +547,10 @@ So that architecture workflows can design systems autonomously.
 
 **Acceptance Criteria:**
 1. Load Winston persona from bmad/bmm/agents/winston.md
-2. Configure with Claude Sonnet (best reasoning model)
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for best reasoning on complex system design
+   - See Story 1.3 for configuration examples with multiple providers
 3. Specialized prompts for: system design, component architecture, API design
 4. Context includes: PRD, technical design document, domain knowledge
 5. Methods: designSystemArchitecture(), defineDataModels(), specifyAPIs()
@@ -511,7 +571,10 @@ So that architecture includes comprehensive test planning.
 
 **Acceptance Criteria:**
 1. Load Murat persona from bmad/bmm/agents/murat.md
-2. Configure with Claude Sonnet
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for test design reasoning and edge case analysis
+   - See Story 1.3 for configuration examples with multiple providers
 3. Specialized prompts for: test strategy, coverage analysis, quality gates
 4. Methods: defineTestStrategy(), planTestInfrastructure(), specifyQualityGates()
 5. Generate test pyramid recommendations
@@ -613,7 +676,10 @@ So that solutioning workflows can break requirements into implementable units.
 
 **Acceptance Criteria:**
 1. Load Bob persona from bmad/bmm/agents/bob.md
-2. Configure with Claude Haiku (cost-effective for formulaic work)
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Haiku or similar cost-effective model for formulaic story decomposition work
+   - See Story 1.3 for configuration examples with multiple providers
 3. Specialized prompts for: epic formation, story writing, dependency detection
 4. Context includes: PRD, architecture, BMAD story patterns
 5. Methods: formEpics(), decomposeIntoStories(), detectDependencies()
@@ -777,7 +843,10 @@ So that story development workflows can generate production-quality code.
 
 **Acceptance Criteria:**
 1. Load Amelia persona from bmad/bmm/agents/amelia.md
-2. Configure with GPT-4 Turbo (superior code generation)
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: OpenAI GPT-4 Turbo or Codex models for superior code generation capabilities
+   - See Story 1.3 for configuration examples with multiple providers
 3. Specialized prompts for: code implementation, test writing, documentation
 4. Context includes: story, architecture, onboarding, relevant code
 5. Methods: implementStory(), writeTests(), reviewCode(), createPR()
