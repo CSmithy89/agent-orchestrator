@@ -1,0 +1,37 @@
+# CodeRabbit Configuration (Optional)
+# This customizes CodeRabbit's behavior for your repo
+
+language: "en-US"
+tone_instructions: "Focus on TypeScript/Node.js best practices and test quality"
+early_access: true
+
+reviews:
+  profile: "chill"  # Options: assertive, chill (recommended for solo dev)
+  request_changes_workflow: false  # Don't block merges
+  high_level_summary: true
+  review_status: true
+  collapse_walkthrough: false
+  
+  auto_review:
+    enabled: true
+    drafts: false  # Don't review draft PRs
+
+  # Focus areas for Agent Orchestrator
+  path_filters:
+    - "!**/*.md"  # Skip markdown files (docs)
+    - "!**/*.yaml"  # Skip config files
+    - "backend/**/*.ts"  # Review TypeScript code
+    - "dashboard/**/*.tsx"  # Review React code
+    - "tests/**/*.spec.ts"  # Review test files
+
+chat:
+  auto_reply: true
+
+# Project-specific knowledge base
+# CodeRabbit will reference these docs when reviewing
+knowledge_base:
+  - "docs/architecture.md"
+  - "docs/PRD.md"
+  - "docs/epics.md"
+  - "docs/ci.md"
+  - "tests/README.md"
