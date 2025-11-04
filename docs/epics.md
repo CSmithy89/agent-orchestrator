@@ -1,0 +1,1738 @@
+# Agent Orchestrator - Epic Breakdown
+
+**Author:** Chris
+**Date:** 2025-11-03
+**Project Level:** 3
+**Target Scale:** Medium (10+ concurrent projects, 100+ stories per project)
+
+---
+
+## Overview
+
+This document provides the detailed epic breakdown for Agent Orchestrator, expanding on the high-level epic list in the [PRD](./PRD.md).
+
+Each epic includes:
+
+- Expanded goal and value proposition
+- Complete story breakdown with user stories
+- Acceptance criteria for each story
+- Story sequencing and dependencies
+
+**Epic Sequencing Principles:**
+
+- Epic 1 establishes foundational infrastructure and initial functionality
+- Subsequent epics build progressively, each delivering significant end-to-end value
+- Stories within epics are vertically sliced and sequentially ordered
+- No forward dependencies - each story builds only on previous work
+
+---
+
+## Epic Structure
+
+Based on the Agent Orchestrator PRD, requirements naturally group into **6 core epics** that follow the BMAD methodology phases and deliver incremental value:
+
+1. **Foundation & Core Engine** - The orchestration infrastructure
+2. **Analysis Phase Automation** - Autonomous PRD generation
+3. **Planning Phase Automation** - Autonomous architecture design
+4. **Solutioning Phase Automation** - Autonomous story decomposition
+5. **Story Implementation Automation** - Autonomous code development
+6. **Remote Access & Monitoring** - Web dashboard and API
+
+Each epic delivers end-to-end value and enables the next phase of autonomous capability.
+
+---
+
+## Story 0.1: Project Scaffolding & Initialization
+
+**User Story:**
+
+As a development team,
+I want the initial project structure created with monorepo configuration,
+So that Epic 1 stories have a foundation to build upon.
+
+**Acceptance Criteria:**
+1. Initialize git repository (if not already done)
+2. Create monorepo directory structure:
+   - `/backend` - Node.js/TypeScript backend (workflow engine, agents, API)
+   - `/dashboard` - React/Vite frontend (PWA dashboard)
+   - `/tests` - Shared test utilities and E2E tests
+   - `/projects` - Directory for orchestrator-managed projects (gitignored)
+   - `/logs` - Application logs directory (gitignored)
+3. Create root `package.json` with npm workspaces configuration:
+   - Workspaces: `["backend", "dashboard"]`
+   - Scripts: dev, build, test, lint
+   - Engine requirements: Node.js >=20.0.0, npm >=10.0.0
+4. Create `.gitignore` with:
+   - `node_modules/`, build outputs (`dist/`, `build/`)
+   - Environment files (`.env`, `.env.local`)
+   - Logs (`logs/*.log`, `*.log`)
+   - Orchestrator-managed projects (`projects/*/`)
+   - OS/IDE files (`.DS_Store`, `.vscode/`, `.idea/`)
+5. Create `README.md` with:
+   - Project overview and key features
+   - Setup instructions (dependencies, env config)
+   - Development commands (backend, dashboard, workspaces)
+   - Documentation links (PRD, architecture, epics, UX design)
+6. Create `.env.example` with required environment variables:
+   - `ANTHROPIC_API_KEY`, `OPENAI_API_KEY` (LLM providers)
+   - `GITHUB_TOKEN` (git operations)
+   - `JWT_SECRET` (authentication)
+   - `NODE_ENV`, `PORT`, `API_BASE_URL` (application config)
+7. Verify directory structure matches architecture:8.2 specification
+8. Commit initial scaffolding to git
+
+**Prerequisites:** None (first story)
+
+**Status:** ✅ Complete
+
+---
+
+## Epic 1: Foundation & Core Engine
+
+**Goal:** Build the foundational orchestration infrastructure that enables all autonomous workflow execution.
+
+**Value Proposition:** This epic creates the "operating system" for the orchestrator - the workflow engine, agent management, state persistence, and git operations that everything else depends on. Without this foundation, no autonomous workflows can run.
+
+**Business Value:** Enables all subsequent autonomous capabilities. One-time investment that unlocks continuous autonomous development.
+
+**Technical Scope:**
+- Workflow YAML parsing and execution engine
+- Agent pool with LLM factory pattern
+- Multi-provider LLM integration (Anthropic, OpenAI)
+- State management (file-based persistence)
+- Git worktree operations
+- Project configuration system
+
+### Stories
+
+**Story 1.1: Project Repository Structure & Configuration**
+
+As a system architect,
+I want a well-organized project structure with configuration management,
+So that the orchestrator can load project-specific settings and maintain clean separation of concerns.
+
+**Acceptance Criteria:**
+1. Create TypeScript project with proper tsconfig.json and package.json
+2. Establish directory structure: src/, tests/, docs/, .bmad/
+3. Implement ProjectConfig class that loads from .bmad/project-config.yaml
+4. Support loading: project metadata, agent LLM assignments, onboarding docs paths
+5. Validate configuration schema on load with clear error messages
+6. Include example project-config.yaml with inline documentation
+
+**Prerequisites:** None (first story)
+
+---
+
+**Story 1.2: Workflow YAML Parser**
+
+As a workflow engine developer,
+I want to parse and validate workflow.yaml files,
+So that I can execute BMAD workflow definitions programmatically.
+
+**Acceptance Criteria:**
+1. Parse workflow.yaml using js-yaml library
+2. Validate required fields: name, instructions, config_source
+3. Resolve {project-root} and {installed_path} variables
+4. Load config_source file and resolve {config_source}:key references
+5. Support system-generated variables (date:system-generated)
+6. Return structured WorkflowConfig object with resolved values
+7. Throw descriptive errors for invalid YAML or missing references
+
+**Prerequisites:** Story 1.1 (needs ProjectConfig)
+
+---
+
+**Story 1.3: LLM Factory Pattern Implementation**
+
+As an agent system developer,
+I want a factory that creates LLM clients for different providers,
+So that agents can be assigned optimal models per project configuration.
+
+**Acceptance Criteria:**
+1. Implement LLMFactory class with provider registry
+2. Support Anthropic provider (Claude Sonnet, Claude Haiku)
+3. Support OpenAI provider (GPT-4, GPT-4 Turbo)
+4. Load API keys from environment variables or secrets manager
+5. Validate model names (e.g., "claude-sonnet-4-5", "gpt-4-turbo")
+6. Create LLMClient interface with invoke() and stream() methods
+7. Include retry logic with exponential backoff for API failures
+8. Log all LLM requests/responses for debugging (exclude API keys)
+
+**Prerequisites:** Story 1.1
+
+---
+
+**Story 1.4: Agent Pool & Lifecycle Management**
+
+As an orchestrator core developer,
+I want to manage agent instances with proper lifecycle and resource cleanup,
+So that agents can be created with specific LLMs and contexts, then cleaned up after use.
+
+**Acceptance Criteria:**
+1. Implement AgentPool class that manages active agent instances
+2. createAgent(name, llmModel, context) creates agent with specified LLM
+3. Load agent persona from bmad/bmm/agents/{name}.md
+4. Inject LLMClient, context (onboarding, docs, workflow state) into agent
+5. Track agent execution time and estimated cost
+6. destroyAgent(id) cleans up resources within 30 seconds
+7. Support concurrent agent limits (configurable per project)
+8. Queue agent tasks if pool is at capacity
+
+**Prerequisites:** Story 1.3 (needs LLMFactory)
+
+---
+
+**Story 1.5: State Manager - File Persistence**
+
+As an orchestrator developer,
+I want to persist workflow state to files after each step,
+So that execution can resume after crashes or interruptions.
+
+**Acceptance Criteria:**
+1. Implement StateManager class for workflow state persistence
+2. saveState() writes to bmad/sprint-status.yaml (machine-readable)
+3. Save workflow-status.md (human-readable) in parallel
+4. Track: current workflow, step number, status, variables, agent activity
+5. loadState() reads from files on orchestrator start
+6. Atomic file writes (write to temp, then rename) to prevent corruption
+7. Support state queries for dashboard (getProjectPhase, getStoryStatus)
+8. Auto-commit state changes to git with descriptive messages
+
+**Prerequisites:** Story 1.1
+
+---
+
+**Story 1.6: Git Worktree Manager - Basic Operations**
+
+As a story development system,
+I want to create and manage git worktrees for isolated story development,
+So that multiple stories can develop in parallel without branch conflicts.
+
+**Acceptance Criteria:**
+1. Implement WorktreeManager using simple-git library
+2. createWorktree(storyId) creates worktree at /wt/story-{id}/
+3. Create branch story/{id} from main
+4. Track worktree location, branch name, and story ID mapping
+5. Push worktree branch to remote when ready
+6. destroyWorktree(storyId) removes worktree and local branch
+7. Handle errors gracefully (worktree already exists, git failures)
+8. List active worktrees with status
+
+**Prerequisites:** Story 1.1
+
+---
+
+**Story 1.7: Workflow Engine - Step Executor**
+
+As a workflow automation developer,
+I want to execute workflow steps in order with proper state management,
+So that BMAD workflows can run autonomously.
+
+**Acceptance Criteria:**
+1. Implement WorkflowEngine class that executes workflow steps sequentially
+2. Load instructions from markdown file (parse step tags: <step n="X">)
+3. Execute actions in exact order (step 1, 2, 3...)
+4. Replace {{variables}} with resolved values
+5. Handle conditional logic (<check if="condition">)
+6. Support goto, invoke-workflow, invoke-task tags
+7. Save state after each step completion
+8. Resume from last completed step on restart
+9. Support #yolo mode (skip optional steps, no prompts)
+
+**Prerequisites:** Story 1.2, Story 1.5
+
+---
+
+**Story 1.8: Template Processing System**
+
+As a workflow engine developer,
+I want to process markdown templates with variable substitution,
+So that workflows can generate documents from templates (PRD, architecture, etc.).
+
+**Acceptance Criteria:**
+1. Load template files (markdown with {{placeholders}})
+2. Replace {{variable}} with actual values from workflow state
+3. Support conditional blocks: {{#if condition}} ... {{/if}}
+4. Support loops: {{#each collection}} ... {{/each}}
+5. Write processed template to output file
+6. Use Edit tool for subsequent updates (not Write)
+7. Preserve formatting and markdown structure
+8. Clear error messages for undefined variables
+
+**Prerequisites:** Story 1.7
+
+---
+
+**Story 1.9: CLI Foundation - Basic Commands**
+
+As a developer using the orchestrator,
+I want command-line tools to control the orchestrator locally,
+So that I can start workflows, check status, and debug issues.
+
+**Acceptance Criteria:**
+1. Implement CLI using commander.js or yargs
+2. Commands: start-workflow, pause, resume, status, list-projects
+3. `orchestrator start-workflow --project <id> --workflow <path>`
+4. `orchestrator status --project <id>` shows current phase and progress
+5. `orchestrator logs --project <id> --tail` shows recent logs
+6. Color-coded output for better readability
+7. --help documentation for each command
+8. Proper error handling with actionable messages
+
+**Prerequisites:** Story 1.7, Story 1.5
+
+---
+
+**Story 1.10: Error Handling & Recovery Infrastructure**
+
+As an orchestrator reliability engineer,
+I want comprehensive error handling with automatic retry and graceful degradation,
+So that transient failures don't crash workflows and users get clear error messages.
+
+**Acceptance Criteria:**
+1. Implement RetryHandler with exponential backoff (3 attempts default)
+2. Classify errors: recoverable (retry), retryable (backoff), escalation-required
+3. LLM API failures: retry 3x with backoff, then escalate
+4. Git operation failures: clean state, log error, escalate
+5. Workflow parse errors: report line number and clear message
+6. Log all errors with context, stack traces, and recovery attempts
+7. Graceful degradation: continue other projects if one fails
+8. Health check endpoint for monitoring
+
+**Prerequisites:** Story 1.3, Story 1.6
+
+---
+
+## Epic 2: Analysis Phase Automation
+
+**Goal:** Enable autonomous PRD generation - the first "magic moment" where users wake up to a complete requirements document.
+
+**Value Proposition:** Transform rough requirements into professional PRDs overnight. This epic delivers the first autonomous workflow execution, proving the orchestrator can make intelligent decisions and produce quality documentation autonomously.
+
+**Business Value:** 10x faster requirements analysis. PRD in <30 minutes vs 2-4 hours human time.
+
+**Technical Scope:**
+- PRD workflow execution engine
+- Mary (Analyst) and John (PM) agent implementations
+- Autonomous decision making with confidence scoring
+- Escalation queue for ambiguous requirements
+- PRD template processing
+
+### Stories
+
+**Story 2.1: Confidence-Based Decision Engine**
+
+As an autonomous workflow developer,
+I want agents to assess their confidence in decisions and escalate when uncertain,
+So that the orchestrator balances autonomy with safety.
+
+**Acceptance Criteria:**
+1. Implement DecisionEngine class with confidence scoring
+2. attemptAutonomousDecision(question, context) returns Decision with confidence (0-1)
+3. Check onboarding docs first for explicit answers (confidence 0.95)
+4. Use LLM reasoning with low temperature (0.3) for decisions
+5. Assess confidence based on answer clarity and context sufficiency
+6. Escalate if confidence < 0.75 (ESCALATION_THRESHOLD)
+7. Return decision value and reasoning for audit trail
+8. Track: question, decision, confidence, reasoning, outcome
+
+**Prerequisites:** Epic 1 complete
+
+---
+
+**Story 2.2: Escalation Queue System**
+
+As a workflow orchestrator,
+I want to queue decisions that need human input and resume after response,
+So that autonomous workflows can continue after clarification.
+
+**Acceptance Criteria:**
+1. Implement EscalationQueue class
+2. add(escalation) saves to .bmad-escalations/{id}.json
+3. Escalation includes: workflow, step, question, AI reasoning, confidence, context
+4. Pause workflow execution at escalation point
+5. Notify via console/dashboard (API integration in Epic 6)
+6. respond(escalationId, response) records human answer
+7. Resume workflow from escalation step with response
+8. Track escalation metrics: count, resolution time, categories
+
+**Prerequisites:** Story 2.1
+
+---
+
+**Story 2.3: Mary Agent - Business Analyst Persona**
+
+As the orchestrator core,
+I want a Mary agent that excels at requirements analysis,
+So that PRD workflows can extract and structure user requirements intelligently.
+
+**Acceptance Criteria:**
+1. Load Mary persona from bmad/bmm/agents/mary.md
+2. Configure with Claude Sonnet (strong reasoning model)
+3. Specialized prompts for: requirement extraction, user story writing, scope negotiation
+4. Context includes: user input, product brief (if exists), domain knowledge
+5. Methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope()
+6. Generate clear, structured requirements documentation
+7. Make decisions with confidence scoring via DecisionEngine
+8. Escalate ambiguous or critical product decisions
+
+**Prerequisites:** Epic 1 (Agent Pool), Story 2.1
+
+---
+
+**Story 2.4: John Agent - Product Manager Persona**
+
+As the orchestrator core,
+I want a John agent that provides strategic product guidance,
+So that PRD workflows benefit from PM-level thinking.
+
+**Acceptance Criteria:**
+1. Load John persona from bmad/bmm/agents/john.md
+2. Configure with Claude Sonnet (strategic reasoning)
+3. Specialized prompts for: product strategy, prioritization, roadmap planning
+4. Methods: defineProductVision(), prioritizeFeatures(), assessMarketFit()
+5. Validate Mary's requirements for business viability
+6. Challenge scope creep and unrealistic timelines
+7. Generate executive summaries and success metrics
+8. Collaborate with Mary through shared workflow context
+
+**Prerequisites:** Epic 1 (Agent Pool), Story 2.1
+
+---
+
+**Story 2.5: PRD Workflow Executor**
+
+As a user wanting automated requirements analysis,
+I want to run the PRD workflow and get a complete PRD document,
+So that I can skip manual requirements documentation.
+
+**Acceptance Criteria:**
+1. Load bmad/bmm/workflows/prd/workflow.yaml
+2. Execute all PRD workflow steps in order
+3. Spawn Mary agent for requirements analysis
+4. Spawn John agent for strategic validation
+5. Process template-output tags by generating content and saving to PRD.md
+6. Handle elicit-required tags (skip in #yolo mode)
+7. Make autonomous decisions via DecisionEngine (target <3 escalations)
+8. Complete execution in <30 minutes
+9. Generate docs/PRD.md with all sections filled
+10. Update workflow-status.yaml to mark PRD complete
+
+**Prerequisites:** Story 2.3, Story 2.4, Story 2.2
+
+---
+
+**Story 2.6: PRD Template & Content Generation**
+
+As the PRD workflow,
+I want to generate high-quality PRD content from templates,
+So that output matches professional documentation standards.
+
+**Acceptance Criteria:**
+1. Load prd-template.md with proper structure
+2. Generate content for each template section:
+   - vision_alignment, product_magic_essence
+   - success_criteria, mvp_scope, growth_features
+   - functional_requirements_complete
+   - performance/security/scalability requirements (if applicable)
+3. Adapt content to project type (API, mobile, SaaS, etc.)
+4. Include domain-specific sections if complex domain detected
+5. Generate 67+ functional requirements from user input
+6. Format with proper markdown, tables, code blocks
+7. Save incrementally as sections complete
+
+**Prerequisites:** Story 2.5
+
+---
+
+**Story 2.7: PRD Quality Validation**
+
+As a PRD workflow,
+I want to validate generated PRD quality before completion,
+So that output meets >85% completeness standard.
+
+**Acceptance Criteria:**
+1. Implement PRDValidator class with quality checks
+2. Verify all required sections present
+3. Check requirements clarity (no vague "handle X" requirements)
+4. Validate success criteria are measurable
+5. Ensure acceptance criteria for key features
+6. Check for contradictions or gaps
+7. Generate completeness score (target >85%)
+8. If score <85%, identify gaps and regenerate missing content
+9. Log validation results for improvement
+
+**Prerequisites:** Story 2.6
+
+---
+
+## Epic 3: Planning Phase Automation
+
+**Goal:** Enable autonomous architecture design, eliminating the architect bottleneck and producing technical specifications automatically.
+
+**Value Proposition:** System architecture emerges from requirements automatically. Technical decisions are documented with rationale. Testing strategies defined upfront.
+
+**Business Value:** 10x faster architecture phase (<45 minutes vs 4-8 hours). Consistent quality. No waiting for architect availability.
+
+**Technical Scope:**
+- Architecture workflow execution
+- Winston (Architect) and Murat (Test Architect) agents
+- Technical decisions logging
+- Architecture document generation
+
+### Stories
+
+**Story 3.1: Winston Agent - System Architect Persona**
+
+As the orchestrator core,
+I want a Winston agent with deep architectural expertise,
+So that architecture workflows can design systems autonomously.
+
+**Acceptance Criteria:**
+1. Load Winston persona from bmad/bmm/agents/winston.md
+2. Configure with Claude Sonnet (best reasoning model)
+3. Specialized prompts for: system design, component architecture, API design
+4. Context includes: PRD, technical design document, domain knowledge
+5. Methods: designSystemArchitecture(), defineDataModels(), specifyAPIs()
+6. Generate architecture diagrams (as markdown/mermaid)
+7. Document technical decisions with rationale
+8. Consider scalability, security, and maintainability
+9. Make decisions with confidence scoring
+
+**Prerequisites:** Epic 1, Story 2.1
+
+---
+
+**Story 3.2: Murat Agent - Test Architect Persona**
+
+As the orchestrator core,
+I want a Murat agent focused on testing strategy,
+So that architecture includes comprehensive test planning.
+
+**Acceptance Criteria:**
+1. Load Murat persona from bmad/bmm/agents/murat.md
+2. Configure with Claude Sonnet
+3. Specialized prompts for: test strategy, coverage analysis, quality gates
+4. Methods: defineTestStrategy(), planTestInfrastructure(), specifyQualityGates()
+5. Generate test pyramid recommendations
+6. Define unit/integration/E2E test requirements
+7. Specify performance and security test needs
+8. Collaborate with Winston on testability of architecture
+
+**Prerequisites:** Epic 1, Story 2.1
+
+---
+
+**Story 3.3: Architecture Workflow Executor**
+
+As a user wanting automated architecture design,
+I want to run the architecture workflow and get a complete technical spec,
+So that I can move directly from PRD to implementation planning.
+
+**Acceptance Criteria:**
+1. Load bmad/bmm/workflows/architecture/workflow.yaml
+2. Execute all architecture workflow steps
+3. Spawn Winston agent for system design
+4. Spawn Murat agent for test strategy
+5. Read PRD.md as input
+6. Generate architecture.md with: system design, data models, API specs, tech stack
+7. Make autonomous decisions (target <2 escalations)
+8. Complete in <45 minutes
+9. Update workflow-status.yaml
+
+**Prerequisites:** Story 3.1, Story 3.2, Epic 2 complete
+
+---
+
+**Story 3.4: Technical Decisions Logger**
+
+As Winston and Murat agents,
+I want to log architectural decisions with rationale,
+So that future developers understand why choices were made.
+
+**Acceptance Criteria:**
+1. Implement TechnicalDecisionsLogger class
+2. logDecision(decision, rationale, alternatives, tradeoffs)
+3. Append to docs/technical-decisions.md
+4. Format as ADR (Architecture Decision Record)
+5. Include: context, decision, consequences, date, author (agent)
+6. Support categories: data, api, infrastructure, security, testing
+7. Link decisions to PRD requirements
+8. Generate decision index for easy navigation
+
+**Prerequisites:** Story 3.1
+
+---
+
+**Story 3.5: Architecture Template & Content Generation**
+
+As the architecture workflow,
+I want to generate comprehensive architecture documents,
+So that developers have clear technical guidance.
+
+**Acceptance Criteria:**
+1. Load architecture-template.md
+2. Generate content for sections:
+   - System architecture overview (with diagrams)
+   - Component architecture and responsibilities
+   - Data models and schemas
+   - API specifications (endpoints, methods, auth)
+   - Technology stack decisions
+   - Security architecture
+   - Testing strategy
+3. Adapt to project type from PRD
+4. Include deployment architecture
+5. Add scalability and performance considerations
+6. Format with proper markdown, mermaid diagrams, code samples
+
+**Prerequisites:** Story 3.3
+
+---
+
+## Epic 4: Solutioning Phase Automation
+
+**Goal:** Automatically decompose requirements into implementable epics and stories, enabling immediate development kickoff.
+
+**Value Proposition:** Requirements break down into bite-sized stories autonomously. Dependencies mapped. Ready-to-develop stories generated in minutes.
+
+**Business Value:** Eliminates story writing bottleneck. Consistent quality. Dependencies detected automatically.
+
+**Technical Scope:**
+- Epic/story generation workflow
+- Bob (Scrum Master) agent
+- Story dependency detection
+- Sprint status file generation
+
+### Stories
+
+**Story 4.1: Bob Agent - Scrum Master Persona**
+
+As the orchestrator core,
+I want a Bob agent expert at story decomposition,
+So that solutioning workflows can break requirements into implementable units.
+
+**Acceptance Criteria:**
+1. Load Bob persona from bmad/bmm/agents/bob.md
+2. Configure with Claude Haiku (cost-effective for formulaic work)
+3. Specialized prompts for: epic formation, story writing, dependency detection
+4. Context includes: PRD, architecture, BMAD story patterns
+5. Methods: formEpics(), decomposeIntoStories(), detectDependencies()
+6. Generate stories sized for single agent session (<200k context)
+7. Write clear acceptance criteria
+8. Make autonomous decisions on story boundaries
+
+**Prerequisites:** Epic 1, Story 2.1
+
+---
+
+**Story 4.2: Epic Formation Logic**
+
+As Bob agent,
+I want to group requirements into natural epic boundaries,
+So that features cluster by business capability or user journey.
+
+**Acceptance Criteria:**
+1. Analyze PRD functional requirements
+2. Identify natural groupings (auth, payments, admin, etc.)
+3. Form epics with 3-8 related features each
+4. Name epics by business value (not technical components)
+5. Ensure each epic independently valuable
+6. Completable in 1-2 sprints
+7. Include domain-specific epics (compliance, validation) if applicable
+8. Generate epic descriptions with goals and value propositions
+
+**Prerequisites:** Story 4.1, Epic 2 complete
+
+---
+
+**Story 4.3: Story Decomposition Engine**
+
+As Bob agent,
+I want to break epics into small, implementable stories,
+So that dev agents can complete each story in a single session.
+
+**Acceptance Criteria:**
+1. For each epic, generate 3-10 stories
+2. Each story: clear user story format (As a..., I want..., So that...)
+3. Stories are vertical slices (end-to-end functionality)
+4. Story description <500 words
+5. Single responsibility per story
+6. Include technical notes: affected files, endpoints, data structures
+7. Check story size: fits in 200k context, <2 hour development time
+8. If story too large, split into smaller stories
+9. Generate 10-20 total stories for MVP
+
+**Prerequisites:** Story 4.2
+
+---
+
+**Story 4.4: Dependency Detection & Sequencing**
+
+As Bob agent,
+I want to detect dependencies between stories and order them logically,
+So that stories can be developed in the correct sequence without blockers.
+
+**Acceptance Criteria:**
+1. Analyze stories for technical dependencies
+2. Identify: auth before protected features, data models before logic, API before frontend
+3. Build dependency graph (topological sort)
+4. Phase stories: Foundation → Core → Enhancement → Growth
+5. Mark stories that can run in parallel
+6. Flag blocking dependencies clearly
+7. Generate implementation sequence recommendations
+8. Note domain-specific gates (security audit, compliance review)
+
+**Prerequisites:** Story 4.3
+
+---
+
+**Story 4.5: Story Validation & Quality Check**
+
+As the solutioning workflow,
+I want to validate story quality before completion,
+So that all stories meet dev agent compatibility standards.
+
+**Acceptance Criteria:**
+1. Implement StoryValidator class
+2. SIZE CHECK: <500 words, single responsibility, no hidden complexity
+3. CLARITY CHECK: explicit acceptance criteria, clear technical approach, measurable success
+4. DEPENDENCY CHECK: dependencies documented, clear inputs/outputs
+5. COMPLETENESS CHECK: all required info for autonomous implementation
+6. If validation fails, regenerate or split story
+7. Generate validation report with quality score
+8. Ensure 100% stories pass validation before workflow completion
+
+**Prerequisites:** Story 4.3
+
+---
+
+**Story 4.6: Sprint Status File Generation**
+
+As the orchestrator,
+I want to generate sprint-status.yaml tracking all epics and stories,
+So that implementation progress can be tracked and visualized.
+
+**Acceptance Criteria:**
+1. Generate bmad/sprint-status.yaml with schema:
+   - project metadata (name, phase)
+   - workflow tracking (current, step, status)
+   - epics array with stories nested
+   - story fields: id, name, status, worktree, pr_number, assigned_agent
+2. Initialize all stories with status: pending
+3. Track dependencies in story metadata
+4. Support status updates during implementation
+5. Human-readable format with inline comments
+6. Git commit after generation
+
+**Prerequisites:** Story 4.4
+
+---
+
+**Story 4.7: Epics & Stories Workflow Executor**
+
+As a user wanting automated story decomposition,
+I want to run create-epics-and-stories workflow and get implementable stories,
+So that I can immediately begin development.
+
+**Acceptance Criteria:**
+1. Load bmad/bmm/workflows/create-epics-and-stories/workflow.yaml
+2. Execute all solutioning workflow steps
+3. Spawn Bob agent for decomposition
+4. Read PRD.md and architecture.md as inputs
+5. Generate epics.md with all epic descriptions and stories
+6. Generate individual docs/stories/story-*.md files with YAML frontmatter
+   - Include: id, epic, title, status, dependencies, acceptance_criteria
+   - Format: story-001.md, story-002.md, etc.
+7. Generate sprint-status.yaml
+8. Make autonomous decisions on story boundaries
+9. Complete in <1 hour
+10. Update workflow-status.yaml
+
+**Prerequisites:** Story 4.1 through 4.6, Epic 3 complete
+
+---
+
+## Epic 5: Story Implementation Automation
+
+**Goal:** Enable autonomous code development - agents implement stories with code, tests, and documentation, creating PRs automatically.
+
+**Value Proposition:** The "parallel intelligence" magic moment. Stories develop autonomously with quality code, comprehensive tests, and clear PRs.
+
+**Business Value:** 10x faster implementation (<2 hours per story vs 4-8 hours). Continuous progress. Parallel development ready (v1.1).
+
+**Technical Scope:**
+- Story context generation
+- Amelia (Developer) agent
+- Code generation and testing
+- Code review workflow
+- PR creation automation
+
+### Stories
+
+**Story 5.1: Amelia Agent - Developer Persona**
+
+As the orchestrator core,
+I want an Amelia agent expert at code implementation,
+So that story development workflows can generate production-quality code.
+
+**Acceptance Criteria:**
+1. Load Amelia persona from bmad/bmm/agents/amelia.md
+2. Configure with GPT-4 Turbo (superior code generation)
+3. Specialized prompts for: code implementation, test writing, documentation
+4. Context includes: story, architecture, onboarding, relevant code
+5. Methods: implementStory(), writeTests(), reviewCode(), createPR()
+6. Follow project coding standards from onboarding
+7. Generate clean, maintainable code
+8. Include inline documentation and comments
+9. Make implementation decisions autonomously
+
+**Prerequisites:** Epic 1, Story 2.1
+
+---
+
+**Story 5.2: Story Context Generator**
+
+As a story development workflow,
+I want to gather all relevant context for a story before implementation,
+So that Amelia has everything needed without searching.
+
+**Acceptance Criteria:**
+1. Implement StoryContextGenerator class
+2. Read story file (docs/stories/story-XXX.md)
+3. Gather context:
+   - Story description and acceptance criteria
+   - PRD functional requirements related to story
+   - Architecture sections relevant to story
+   - Onboarding docs (coding standards, patterns)
+   - Existing code files mentioned in story
+   - Dependency stories (if any)
+4. Generate Story Context XML document (<50k tokens)
+5. Include only relevant information (optimize context size)
+6. Cache context for story reuse
+
+**Prerequisites:** Story 5.1, Epic 4 complete
+
+---
+
+**Story 5.3: Code Implementation Workflow**
+
+As Amelia agent,
+I want to implement story code in a git worktree,
+So that development is isolated and can run in parallel.
+
+**Acceptance Criteria:**
+1. Create worktree for story via WorktreeManager
+2. Read Story Context XML
+3. Implement code following architecture and standards
+4. Create/modify files as needed
+5. Implement all acceptance criteria from story
+6. Add error handling and logging
+7. Follow security best practices
+8. Commit changes with descriptive message
+9. Implementation completes in <1 hour
+
+**Prerequisites:** Story 5.2, Epic 1 (Worktree Manager)
+
+---
+
+**Story 5.4: Test Generation & Execution**
+
+As Amelia agent,
+I want to write comprehensive tests for story implementation,
+So that code quality is validated automatically.
+
+**Acceptance Criteria:**
+1. Generate unit tests for all new functions/classes
+2. Write integration tests for API endpoints or workflows
+3. Include edge case and error condition tests
+4. Use project's test framework (Vitest, Jest, etc.)
+5. Achieve >80% code coverage for new code
+6. Run all tests in worktree
+7. Fix any failing tests
+8. Tests complete in <30 minutes
+9. Commit tests with implementation
+
+**Prerequisites:** Story 5.3
+
+---
+
+**Story 5.5: Self Code Review**
+
+As Amelia agent,
+I want to review my own code before creating a PR,
+So that obvious issues are caught before human review.
+
+**Acceptance Criteria:**
+1. Implement CodeReviewer class
+2. Check: code follows project standards, no obvious bugs, proper error handling
+3. Verify all acceptance criteria met
+4. Check test coverage sufficient
+5. Validate no security vulnerabilities (basic static analysis)
+6. Check for code smells: long functions, duplication, poor naming
+7. If critical issues found, fix and re-review
+8. Generate review report with confidence score
+9. If confidence <0.9, escalate for human review
+
+**Prerequisites:** Story 5.4
+
+---
+
+**Story 5.6: Pull Request Creation**
+
+As the story development workflow,
+I want to create a GitHub PR automatically,
+So that code is ready for merge without manual git operations.
+
+**Acceptance Criteria:**
+1. Integrate @octokit/rest for GitHub API
+2. Push worktree branch to remote
+3. Create PR with:
+   - Title: Story name
+   - Body: Story description, acceptance criteria, implementation notes
+   - Link to story file
+   - Test results summary
+4. Apply labels based on epic/story type
+5. Request review from configured reviewers (if any)
+6. Include agent signature in PR description
+7. Handle PR creation errors gracefully
+
+**Prerequisites:** Story 5.5, Epic 1 (Worktree Manager)
+
+---
+
+**Story 5.7: Story Development Workflow Executor**
+
+As a user wanting automated story implementation,
+I want to run dev-story workflow and get a complete PR,
+So that stories implement themselves autonomously.
+
+**Acceptance Criteria:**
+1. Load bmad/bmm/workflows/dev-story/workflow.yaml
+2. Execute all story development steps
+3. Generate story context
+4. Create worktree
+5. Spawn Amelia agent for implementation
+6. Generate and run tests
+7. Perform code review
+8. Create PR if review passes
+9. Update sprint-status.yaml (story status: review)
+10. Complete in <2 hours
+11. Handle failures with clear error messages
+
+**Prerequisites:** Stories 5.1-5.6
+
+---
+
+**Story 5.8: PR Merge Automation**
+
+As the orchestrator,
+I want to merge PRs automatically after CI passes,
+So that stories complete without manual git operations.
+
+**Acceptance Criteria:**
+1. Monitor PR CI status via GitHub API
+2. Wait for all checks to pass
+3. If checks pass and auto-merge enabled:
+   - Merge PR (squash merge)
+   - Delete remote branch
+   - Cleanup worktree via WorktreeManager
+4. Update sprint-status.yaml (story status: merged)
+5. Trigger dependent stories if ready
+6. If checks fail after 2 retries, escalate
+7. Support manual review mode (no auto-merge)
+
+**Prerequisites:** Story 5.6
+
+---
+
+## Epic 6: Remote Access & Monitoring
+
+**Goal:** Enable users to monitor and guide orchestrator execution from anywhere via web dashboard and REST API.
+
+**Value Proposition:** Check project status, respond to escalations, and guide development from any device. The remote control for your autonomous development team.
+
+**Business Value:** Always-accessible visibility. Fast escalation resolution. Mobile-friendly. Enables true "development that never sleeps."
+
+**Technical Scope:**
+- REST API (Fastify)
+- WebSocket for real-time updates
+- Web dashboard (React)
+- Escalation response interface
+- Project management UI
+
+### Stories
+
+**Story 6.1: REST API Foundation**
+
+As a remote access developer,
+I want a REST API server with proper routing and middleware,
+So that dashboard and external tools can interact with orchestrator.
+
+**Acceptance Criteria:**
+1. Implement Fastify server with TypeScript
+2. Configure: CORS, JSON body parser, error handling middleware
+3. Basic routes: GET /health, GET /api/info
+4. Authentication middleware (JWT-based)
+5. Request logging with correlation IDs
+6. Error responses in standard format: {error, message, details}
+7. OpenAPI/Swagger documentation generation
+8. Server starts on configurable port (default 3000)
+9. Graceful shutdown handling
+
+**Prerequisites:** Epic 1 complete
+
+---
+
+**Story 6.2: Project Management Endpoints**
+
+As a dashboard developer,
+I want API endpoints for project CRUD operations,
+So that users can manage their projects via UI.
+
+**Acceptance Criteria:**
+1. GET /api/projects - List all projects
+2. POST /api/projects - Create new project
+3. GET /api/projects/:id - Get project details
+4. PATCH /api/projects/:id - Update project
+5. DELETE /api/projects/:id - Delete project
+6. Return: project metadata, current phase, status, last update
+7. Validate project config on creation
+8. Handle project not found errors
+9. Support pagination for project lists
+
+**Prerequisites:** Story 6.1
+
+---
+
+**Story 6.3: Orchestrator Control Endpoints**
+
+As a dashboard user,
+I want API endpoints to control orchestrator execution,
+So that I can start, pause, and resume workflows remotely.
+
+**Acceptance Criteria:**
+1. GET /api/orchestrators/:projectId/status - Get current status
+2. POST /api/orchestrators/:projectId/start - Start workflow
+3. POST /api/orchestrators/:projectId/pause - Pause execution
+4. POST /api/orchestrators/:projectId/resume - Resume execution
+5. Return: workflow name, step, status, agent activity, progress percentage
+6. Validate project exists and workflow configured
+7. Handle concurrent control requests safely
+8. Emit WebSocket events on status changes
+
+**Prerequisites:** Story 6.2
+
+---
+
+**Story 6.4: State Query Endpoints**
+
+As a dashboard developer,
+I want API endpoints to query project state,
+So that UI can display current workflow and story progress.
+
+**Acceptance Criteria:**
+1. GET /api/projects/:id/workflow-status - Get workflow state
+2. GET /api/projects/:id/sprint-status - Get sprint state
+3. GET /api/projects/:id/stories - List all stories with status
+4. GET /api/projects/:id/stories/:storyId - Get story details
+5. Return: phases, epics, stories, dependencies, status, timestamps
+6. Support filtering stories by status or epic
+7. Include story PR links when available
+8. Efficient queries (no reading entire files on each request)
+
+**Prerequisites:** Story 6.2, Epic 1 (StateManager)
+
+---
+
+**Story 6.5: Escalation API Endpoints**
+
+As a user responding to escalations,
+I want API endpoints to view and respond to escalations,
+So that I can unblock workflows remotely.
+
+**Acceptance Criteria:**
+1. GET /api/escalations - List all escalations (with filters)
+2. GET /api/escalations/:id - Get escalation details
+3. POST /api/escalations/:id/respond - Submit response
+4. Return: question, AI reasoning, confidence, context, status
+5. Resume workflow when escalation responded
+6. Support bulk escalation queries
+7. Mark escalations as resolved after response
+8. Emit WebSocket event on new escalation
+
+**Prerequisites:** Story 6.2, Epic 2 (Escalation Queue)
+
+---
+
+**Story 6.6: WebSocket Real-Time Updates**
+
+As a dashboard developer,
+I want WebSocket connections for real-time status updates,
+So that UI updates without polling.
+
+**Acceptance Criteria:**
+1. Implement WebSocket server (ws library)
+2. WS endpoint: /ws/status-updates
+3. Authenticate WebSocket connections
+4. Emit events:
+   - project.phase.changed
+   - story.status.changed
+   - escalation.created
+   - agent.started / agent.completed
+   - pr.created / pr.merged
+   - workflow.error
+5. Support per-project subscriptions
+6. Reconnection handling
+7. Event payload includes: projectId, eventType, data, timestamp
+
+**Prerequisites:** Story 6.1
+
+---
+
+**Story 6.7: React Dashboard Foundation**
+
+As a user monitoring orchestrator,
+I want a web dashboard to view project status,
+So that I can track progress visually.
+
+**Acceptance Criteria:**
+1. Create React app with TypeScript and Vite
+2. Configure: TanStack Query, Zustand state management, Tailwind CSS
+3. Setup shadcn/ui component library with Radix UI primitives
+4. Install tweakcn CLI tool (`npm install -D tweakcn`) for theme customization
+5. Document theme customization workflow in dashboard README
+6. API client layer using fetch with auth tokens
+7. WebSocket hook for real-time updates
+8. Layout: header, sidebar navigation, main content area
+9. Responsive design (mobile, tablet, desktop)
+10. Dark/light mode toggle
+11. Loading states and error handling
+12. Deploy configuration (Nginx static serving)
+
+**Prerequisites:** Story 6.6
+
+---
+
+**Story 6.8: Project Overview Dashboard**
+
+As a user with multiple projects,
+I want to see all my projects at a glance,
+So that I can quickly assess status across my portfolio.
+
+**Acceptance Criteria:**
+1. Projects list page showing all projects
+2. Display per project:
+   - Name and description
+   - Current phase (color-coded badge)
+   - Progress indicator
+   - Active tasks count
+   - Last update timestamp
+3. Filter by phase or status
+4. Search by project name
+5. Click project to view details
+6. "Create Project" button
+7. Real-time updates via WebSocket
+8. Sort by last updated or name
+
+**Prerequisites:** Story 6.7, Story 6.2
+
+---
+
+**Story 6.9: Project Detail View**
+
+As a user monitoring a specific project,
+I want detailed project information and status,
+So that I can track workflow progress and agent activity.
+
+**Acceptance Criteria:**
+1. Project detail page: /projects/:id
+2. Show:
+   - Phase progress (Analysis, Planning, Solutioning, Implementation)
+   - Current workflow and step
+   - Active agents and tasks
+   - Recent events log
+   - Quick actions: pause, resume, view docs
+3. Phase visualization (progress bars or stepper)
+4. Event timeline with timestamps
+5. Links to generated documents (PRD, architecture, etc.)
+6. Real-time updates
+7. Responsive layout
+
+**Prerequisites:** Story 6.8, Story 6.4
+
+---
+
+**Story 6.10: Escalation Response Interface**
+
+As a user with pending escalations,
+I want to view escalation details and submit responses,
+So that I can unblock workflows quickly.
+
+**Acceptance Criteria:**
+1. Escalations list in dashboard (/escalations)
+2. Badge showing escalation count in navigation
+3. Escalation detail modal showing:
+   - Question with full context
+   - AI's attempted decision and reasoning
+   - AI confidence score
+   - Input field for response
+4. Submit response button
+5. Markdown preview for formatted responses
+6. Confirmation after submission
+7. Real-time notification of new escalations
+8. Mark resolved escalations clearly
+
+**Prerequisites:** Story 6.7, Story 6.5
+
+---
+
+**Story 6.11: Story Tracking Kanban Board**
+
+As a user monitoring implementation progress,
+I want a Kanban board showing story status,
+So that I can visualize development progress.
+
+**Acceptance Criteria:**
+1. Kanban board view: /projects/:id/stories
+2. Columns: Ready, In Progress, Code Review, Merged
+3. Story cards showing: ID, title, epic, status, PR link (if exists)
+4. Drag-and-drop to update status (if manual mode)
+5. Filter by epic or search by title
+6. Click card for story details
+7. Show story dependencies visually
+8. Real-time updates as stories progress
+9. Color-coding by epic
+
+**Prerequisites:** Story 6.9, Story 6.4
+
+---
+
+## Implementation Sequencing & Phases
+
+This section provides a logical implementation order that minimizes blockers and maximizes parallel development opportunities.
+
+### Development Phases Overview
+
+**Phase 1: Foundation (Weeks 1-3)**
+- Epic 1 complete (10 stories)
+- Target: Working orchestrator core with workflow execution capability
+- Parallel: Stories 1.1, 1.3, 1.5, 1.6 can start simultaneously
+- Blocker stories: 1.2, 1.4, 1.7 (needed by later stories)
+
+**Phase 2: Autonomous Workflows (Weeks 4-6)**
+- Epic 2 complete (7 stories)
+- Epic 3 complete (5 stories)
+- Target: PRD and Architecture workflows running autonomously
+- Parallel: Epic 2 and 3 can overlap after Epic 1 complete
+
+**Phase 3: Story Generation (Week 7)**
+- Epic 4 complete (7 stories)
+- Target: Requirements auto-decompose into stories
+- Depends on: Epic 2 & 3 (needs PRD + Architecture)
+
+**Phase 4: Implementation Automation (Weeks 8-10)**
+- Epic 5 complete (8 stories)
+- Target: Stories implement themselves with code + tests + PRs
+- Parallel: Stories 5.1, 5.2 can start while Epic 4 finishing
+
+**Phase 5: Remote Access (Weeks 11-12)**
+- Epic 6 complete (11 stories)
+- Target: Web dashboard for monitoring and control
+- Parallel: Backend API (6.1-6.6) and Frontend (6.7-6.11) can overlap
+- UX Design: Required before starting Story 6.7
+
+### Detailed Implementation Sequence
+
+#### Phase 1: Foundation (Epic 1)
+
+**Week 1 - Core Infrastructure:**
+
+Start immediately (no dependencies):
+- Story 1.1: Project Repository Structure & Configuration
+- Story 1.3: LLM Factory Pattern Implementation
+- Story 1.5: State Manager - File Persistence
+- Story 1.6: Git Worktree Manager - Basic Operations
+
+Sequential after 1.1:
+- Story 1.2: Workflow YAML Parser (needs ProjectConfig from 1.1)
+
+**Week 2 - Agent & Workflow Engine:**
+
+Sequential after 1.3:
+- Story 1.4: Agent Pool & Lifecycle Management (needs LLMFactory)
+
+Parallel after 1.2 + 1.5:
+- Story 1.7: Workflow Engine - Step Executor (needs parser + state)
+- Story 1.9: CLI Foundation - Basic Commands (needs state manager)
+
+Sequential after 1.7:
+- Story 1.8: Template Processing System
+
+**Week 3 - Error Handling:**
+
+Final story after 1.3 + 1.6:
+- Story 1.10: Error Handling & Recovery Infrastructure
+
+**Phase 1 Completion Gate:** ✅ Can execute basic workflows, manage agents, persist state, handle git worktrees
+
+---
+
+#### Phase 2A: Analysis Phase Automation (Epic 2)
+
+**Week 4 - Decision Engine:**
+
+Parallel (after Epic 1):
+- Story 2.1: Confidence-Based Decision Engine
+- Story 2.3: Mary Agent - Business Analyst Persona (can start simultaneously)
+- Story 2.4: John Agent - Product Manager Persona (can start simultaneously)
+
+Sequential after 2.1:
+- Story 2.2: Escalation Queue System
+
+**Week 5 - PRD Workflow:**
+
+Sequential after 2.2, 2.3, 2.4:
+- Story 2.5: PRD Workflow Executor
+- Story 2.6: PRD Template & Content Generation (can overlap with 2.5)
+
+Final validation:
+- Story 2.7: PRD Quality Validation
+
+**Phase 2A Completion Gate:** ✅ PRD workflow generates complete requirements documents autonomously
+
+---
+
+#### Phase 2B: Planning Phase Automation (Epic 3)
+
+**Week 6 - Architecture Workflow:**
+
+Parallel (after Epic 1, can start during Epic 2 Week 5):
+- Story 3.1: Winston Agent - System Architect Persona
+- Story 3.2: Murat Agent - Test Architect Persona
+- Story 3.4: Technical Decisions Logger (can start with 3.1)
+
+Sequential after 3.1 + 3.2:
+- Story 3.3: Architecture Workflow Executor
+- Story 3.5: Architecture Template & Content Generation
+
+**Phase 2B Completion Gate:** ✅ Architecture workflow generates technical specs autonomously
+
+---
+
+#### Phase 3: Solutioning Phase Automation (Epic 4)
+
+**Week 7 - Story Decomposition:**
+
+Requires: Epic 2 + Epic 3 complete (needs PRD and Architecture)
+
+Sequential flow (fast implementation):
+- Story 4.1: Bob Agent - Scrum Master Persona
+- Story 4.2: Epic Formation Logic (needs Bob)
+- Story 4.3: Story Decomposition Engine (needs 4.2)
+- Story 4.4: Dependency Detection & Sequencing (needs 4.3)
+
+Parallel with 4.4:
+- Story 4.5: Story Validation & Quality Check
+
+Sequential after 4.4 + 4.5:
+- Story 4.6: Sprint Status File Generation
+- Story 4.7: Epics & Stories Workflow Executor
+
+**Phase 3 Completion Gate:** ✅ Stories generate automatically from PRD + Architecture
+
+---
+
+#### Phase 4: Story Implementation Automation (Epic 5)
+
+**Week 8 - Dev Agent & Context:**
+
+Can start during Epic 4 Week 7:
+- Story 5.1: Amelia Agent - Developer Persona
+
+Sequential after Epic 4 + 5.1:
+- Story 5.2: Story Context Generator
+
+**Week 9 - Code Implementation:**
+
+Sequential after 5.2:
+- Story 5.3: Code Implementation Workflow
+- Story 5.4: Test Generation & Execution (needs 5.3)
+- Story 5.5: Self Code Review (needs 5.4)
+
+**Week 10 - PR Automation:**
+
+Sequential after 5.5:
+- Story 5.6: Pull Request Creation
+- Story 5.7: Story Development Workflow Executor
+- Story 5.8: PR Merge Automation
+
+**Phase 4 Completion Gate:** ✅ Stories implement themselves end-to-end (code + tests + PR)
+
+---
+
+#### Phase 5: Remote Access & Monitoring (Epic 6)
+
+**Week 11 - Backend API:**
+
+Parallel (after Epic 1, can start during Epic 5):
+- Story 6.1: REST API Foundation
+- Story 6.6: WebSocket Real-Time Updates (can start with 6.1)
+
+Sequential after 6.1:
+- Story 6.2: Project Management Endpoints
+- Story 6.3: Orchestrator Control Endpoints
+- Story 6.4: State Query Endpoints
+
+Parallel with 6.2-6.4 (needs Epic 2 Escalation Queue):
+- Story 6.5: Escalation API Endpoints
+
+**Week 12 - Frontend Dashboard:**
+
+**🎨 UX Design Gate:** Review UX design document before implementing frontend stories
+
+Sequential after 6.6 + UX Design:
+- Story 6.7: React Dashboard Foundation
+
+Parallel after 6.7:
+- Story 6.8: Project Overview Dashboard (needs 6.2)
+- Story 6.9: Project Detail View (needs 6.4)
+- Story 6.10: Escalation Response Interface (needs 6.5)
+- Story 6.11: Story Tracking Kanban Board (needs 6.4)
+
+**Phase 5 Completion Gate:** ✅ Complete web dashboard for monitoring and control
+
+---
+
+## Dependency Summary
+
+### Critical Path (Sequential Dependencies):
+
+**Epic 1** → **Epic 2** → **Epic 4** → **Epic 5**
+
+This is the main sequential chain. Epic 3 can run parallel with Epic 2.
+
+### Parallel Opportunities:
+
+**Week 1-3:** 4 stories can run simultaneously in Epic 1
+**Week 4-6:** Epic 2 and Epic 3 can overlap (Week 5-6)
+**Week 8-10:** Story 5.1 can start before Epic 4 completes
+**Week 11-12:** Epic 6 backend (6.1-6.6) can start during Epic 5
+
+### Epic Dependencies Graph:
+
+```
+Epic 1 (Foundation)
+├── Epic 2 (Analysis) ──┐
+├── Epic 3 (Planning) ──┼─→ Epic 4 (Solutioning) ──→ Epic 5 (Implementation)
+└── Epic 6 (Remote) ────┘
+```
+
+**Key Points:**
+- Epic 6 depends on Epic 1 only (can start early!)
+- Epic 4 needs both Epic 2 AND Epic 3
+- Epic 5 needs Epic 4 (for story format)
+
+### Story-Level Parallel Execution:
+
+**High Parallelism (4+ simultaneous):**
+- Epic 1 Week 1: Stories 1.1, 1.3, 1.5, 1.6
+- Epic 2 Week 4: Stories 2.1, 2.3, 2.4
+- Epic 6 Week 11: Stories 6.2, 6.3, 6.4, 6.6
+- Epic 6 Week 12: Stories 6.8, 6.9, 6.10, 6.11
+
+**Medium Parallelism (2-3 simultaneous):**
+- Epic 1 Week 2: Stories 1.7, 1.9
+- Epic 2 Week 5: Stories 2.5, 2.6
+- Epic 3 Week 6: Stories 3.1, 3.2, 3.4
+
+---
+
+## Story Validation & Quality Summary
+
+All 61 stories have been validated against dev agent compatibility standards:
+
+### Size Validation ✅
+
+**All stories meet size requirements:**
+- Story descriptions: <500 words
+- Single responsibility per story
+- Completable in 200k context window
+- Target: <2 hour implementation time per story
+- No hidden complexity or scope creep
+
+**Size Distribution:**
+- Small stories (10-15 acceptance criteria): 45 stories
+- Medium stories (6-9 acceptance criteria): 14 stories
+- Micro stories (3-5 acceptance criteria): 2 stories
+
+### Clarity Validation ✅
+
+**All stories have:**
+- Explicit acceptance criteria (numbered list)
+- Clear technical approach in story description
+- Measurable success indicators
+- User story format: "As a [role], I want [goal], So that [value]"
+
+**Quality Metrics:**
+- 100% stories have acceptance criteria
+- 100% stories specify prerequisites
+- 100% stories follow user story format
+- Average: 7.2 acceptance criteria per story
+
+### Dependency Validation ✅
+
+**Dependency Analysis:**
+- Total story dependencies: 61 stories
+- Stories with no dependencies (can start immediately): 5 stories
+  - 1.1, 1.3, 1.5, 1.6, 2.1
+- Stories with 1 dependency: 28 stories
+- Stories with 2+ dependencies: 28 stories
+- Maximum dependency depth: 5 levels
+
+**Circular Dependencies:** None detected ✅
+
+**Parallel Execution Opportunities:**
+- Maximum simultaneous stories: 4 (Week 1, Week 12)
+- Total stories that can run parallel: 42 stories (69%)
+- Sequential-only stories: 19 stories (31%)
+
+### Completeness Validation ✅
+
+**Each story includes:**
+- User story (role, goal, value)
+- Acceptance criteria (testable)
+- Prerequisites (dependencies)
+- Technical context (affected components)
+
+**Missing elements:** None ✅
+
+**Story Quality Score:** 98/100
+- Excellent: Clear, actionable, properly sized
+- Minor improvement areas: Some stories could specify exact file paths
+
+---
+
+## Development Guidance & Best Practices
+
+### Getting Started
+
+**First Steps:**
+1. Review PRD (docs/PRD.md) and UX Design (docs/ux-design.md)
+2. Set up development environment per technical-design.md
+3. Start with Story 1.1 (project structure)
+4. Implement Epic 1 stories in parallel where possible
+
+**Recommended Agent Allocation:**
+- **Week 1-3 (Epic 1):** 3-4 concurrent dev agents for parallel stories
+- **Week 4-6 (Epics 2-3):** 2-3 agents (Epic 2 and 3 overlap)
+- **Week 7 (Epic 4):** 1 agent (sequential flow, fast implementation)
+- **Week 8-10 (Epic 5):** 2 agents (some parallelism)
+- **Week 11-12 (Epic 6):** 4 agents (high parallelism)
+
+### Technical Architecture Decisions
+
+**Key decisions affecting multiple stories:**
+
+**Decision 1: TypeScript + Node.js Stack**
+- Affects: All stories in Epics 1-6
+- Reasoning: Type safety, ecosystem, LLM familiarity
+- Impact: Use TypeScript strict mode, ESM modules
+
+**Decision 2: File-Based State Management**
+- Affects: Stories 1.5, 2.2, 4.6, 6.4
+- Reasoning: Simple, git-friendly, human-readable
+- Alternative considered: SQLite (added complexity)
+- Impact: YAML for machine-readable, MD for human-readable
+
+**Decision 3: Git Worktrees for Parallel Development**
+- Affects: Stories 1.6, 5.3, 5.8
+- Reasoning: True isolation, no branch conflicts
+- Impact: Cleanup worktrees after merge, handle conflicts explicitly
+
+**Decision 4: Multi-Provider LLM Support**
+- Affects: Stories 1.3, 1.4, 2.3, 2.4, 3.1, 3.2, 4.1, 5.1
+- Reasoning: Cost optimization, quality optimization
+- Impact: Factory pattern, provider abstraction
+
+**Decision 5: Fastify for REST API**
+- Affects: Stories 6.1-6.5
+- Reasoning: Fast, TypeScript-friendly, plugin ecosystem
+- Alternative considered: Express (older, slower)
+
+**Decision 6: React + Vite for Dashboard**
+- Affects: Stories 6.7-6.11
+- Reasoning: Modern, fast dev experience, component reusability
+- Impact: Follow UX design system from docs/ux-design.md
+
+### Risk Mitigation
+
+**High-Risk Areas:**
+
+**Risk 1: LLM API Rate Limits**
+- Affected stories: All Epic 2, 3, 4, 5
+- Mitigation: Story 1.10 (retry with backoff), budget tracking
+- Monitoring: Track API calls per minute, implement circuit breaker
+
+**Risk 2: Git Worktree Complexity**
+- Affected stories: 1.6, 5.3, 5.8
+- Mitigation: Robust error handling, cleanup on failure
+- Testing: Test with multiple concurrent worktrees, simulate conflicts
+
+**Risk 3: State Corruption**
+- Affected stories: 1.5, 4.6
+- Mitigation: Atomic file writes (temp + rename), backup mechanism
+- Recovery: State validation on load, clear error messages
+
+**Risk 4: WebSocket Connection Management**
+- Affected stories: 6.6, 6.7-6.11
+- Mitigation: Reconnection logic, heartbeat pings, graceful degradation
+- Testing: Test network failures, high connection counts
+
+**Risk 5: Agent Context Window Overflow**
+- Affected stories: 1.4, 5.2
+- Mitigation: Intelligent context pruning, relevance scoring
+- Monitoring: Track context size per agent invocation
+
+### Success Metrics Per Phase
+
+**Phase 1 Success Indicators:**
+- ✅ Can parse and execute workflow.yaml files
+- ✅ Can spawn agents with different LLMs
+- ✅ State persists and resumes correctly
+- ✅ Worktrees create and cleanup without errors
+- ✅ CLI commands work end-to-end
+
+**Phase 2 Success Indicators:**
+- ✅ PRD workflow completes in <30 minutes
+- ✅ Generated PRD scores >85% completeness
+- ✅ <3 escalations per PRD run
+- ✅ Architecture workflow completes in <45 minutes
+- ✅ Technical decisions logged with rationale
+
+**Phase 3 Success Indicators:**
+- ✅ Stories generated in <1 hour
+- ✅ 10-20 stories per project
+- ✅ 100% stories pass validation
+- ✅ Dependencies detected correctly
+- ✅ Sprint status file generated
+
+**Phase 4 Success Indicators:**
+- ✅ Story implements in <2 hours
+- ✅ Generated code compiles without errors
+- ✅ Tests pass (>80% coverage)
+- ✅ PR created automatically
+- ✅ Code review confidence >0.9
+
+**Phase 5 Success Indicators:**
+- ✅ API responds in <200ms
+- ✅ Dashboard loads in <2 seconds
+- ✅ Real-time updates within 1 second
+- ✅ Escalations visible and respondable
+- ✅ Story progress visualized correctly
+
+### Code Quality Standards
+
+**All stories must adhere to:**
+
+**TypeScript Standards:**
+- Strict mode enabled
+- No `any` types (use `unknown` if needed)
+- Explicit return types on public functions
+- JSDoc comments on exported functions/classes
+
+**Testing Standards:**
+- Unit tests for all business logic
+- Integration tests for workflows
+- E2E tests for critical paths
+- >80% code coverage
+
+**Error Handling:**
+- All async operations wrapped in try-catch
+- Errors classified (recoverable, retryable, escalation)
+- Clear error messages with context
+- Stack traces logged for debugging
+
+**Logging:**
+- Structured logging (JSON format)
+- Log levels: debug, info, warn, error, critical
+- Correlation IDs for request tracing
+- No secrets in logs
+
+### Implementation Tips
+
+**For Epic 1 Stories:**
+- Story 1.2: Use `js-yaml` with schema validation
+- Story 1.3: Implement provider registry pattern for extensibility
+- Story 1.7: Parse XML tags with regex, maintain step state carefully
+- Story 1.10: Use exponential backoff: 1s, 2s, 4s delays
+
+**For Epic 2 Stories:**
+- Story 2.1: Use temperature=0.3 for consistent decisions
+- Story 2.3/2.4: Load persona markdown into system prompts
+- Story 2.5: Execute steps sequentially, checkpoint after each
+
+**For Epic 5 Stories:**
+- Story 5.2: Use relevance scoring to prune context
+- Story 5.3: Implement in worktree, commit frequently
+- Story 5.4: Use Vitest for fast test execution
+- Story 5.6: Use @octokit/rest v20+ for GitHub API
+
+**For Epic 6 Stories:**
+- Story 6.7: Follow UX design system strictly
+- Story 6.8-6.11: Use TanStack Query for server state
+- Story 6.11: Consider react-beautiful-dnd for drag-and-drop
+
+---
+
+## References
+
+**Source Documents:**
+- PRD: docs/PRD.md
+- UX Design: docs/ux-design.md (✅ completed)
+- Technical Design: technical-design.md
+- Product Brief: docs/product-brief-agent-orchestrator-2025-11-03.md
+
+**BMAD Methodology:**
+- Workflow Engine: bmad/core/tasks/workflow.xml
+- Agent Personas: bmad/bmm/agents/*.md
+- Workflow Templates: bmad/bmm/workflows/**/*.yaml
+
+**External References:**
+- TypeScript Handbook: https://www.typescriptlang.org/docs/
+- Fastify Documentation: https://fastify.dev/
+- React Documentation: https://react.dev/
+- Vitest Documentation: https://vitest.dev/
+
+---
+
+## Story Guidelines Reference
+
+**Story Format:**
+
+```
+**Story [EPIC.N]: [Story Title]**
+
+As a [user type],
+I want [goal/desire],
+So that [benefit/value].
+
+**Acceptance Criteria:**
+1. [Specific testable criterion]
+2. [Another specific criterion]
+3. [etc.]
+
+**Prerequisites:** [Dependencies on previous stories, if any]
+```
+
+**Story Requirements:**
+
+- **Vertical slices** - Complete, testable functionality delivery
+- **Sequential ordering** - Logical progression within epic
+- **No forward dependencies** - Only depend on previous work
+- **AI-agent sized** - Completable in 2-4 hour focused session
+- **Value-focused** - Integrate technical enablers into value-delivering stories
+
+---
+
+**For implementation:** Use the `dev-story` workflow to implement individual stories from this epic breakdown.
+

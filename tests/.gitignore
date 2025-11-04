@@ -1,0 +1,23 @@
+# Test Reports
+reports/
+*.html
+*.json
+*.xml
+
+# Playwright artifacts
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Screenshots & Videos
+screenshots/
+videos/
+traces/
+
+# Auth state files
+auth.json
+*.state.json
+
+# Temporary test data
+temp/
+.tmp/

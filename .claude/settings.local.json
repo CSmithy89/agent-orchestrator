@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__jina-ai__read_url",
+      "mcp__deepwiki__read_wiki_contents",
+      "mcp__deepwiki__ask_question",
+      "WebFetch(domain:github.com)",
+      "WebSearch",
+      "mcp__serena__write_memory",
+      "mcp__serena__list_dir"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

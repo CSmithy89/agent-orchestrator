@@ -1,0 +1,37 @@
+{
+  "name": "agent-orchestrator",
+  "version": "1.0.0",
+  "description": "Autonomous BMAD workflow execution system for 24/7 software development",
+  "private": true,
+  "workspaces": [
+    "backend",
+    "dashboard"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:report": "playwright show-report tests/reports/html",
+    "test:e2e:debug": "playwright test --debug",
+    "lint": "npm run lint --workspaces"
+  },
+  "keywords": [
+    "bmad",
+    "agent",
+    "orchestrator",
+    "autonomous",
+    "workflow"
+  ],
+  "author": "Chris",
+  "license": "UNLICENSED",
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.40.0",
+    "typescript": "^5.3.0"
+  }
+}

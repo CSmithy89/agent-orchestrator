@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agent Orchestrator - Design Direction Showcase</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0F172A;
+            color: #F8FAFC;
+            overflow-x: hidden;
+        }
+
+        /* Navigation Controls */
+        .controls {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.1);
+        }
+
+        .controls-inner {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .controls h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        .nav-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .nav-btn {
+            padding: 0.5rem 1rem;
+            background: rgba(37, 99, 235, 0.1);
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            color: #3B82F6;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: rgba(37, 99, 235, 0.2);
+            border-color: rgba(37, 99, 235, 0.5);
+        }
+
+        .nav-btn.active {
+            background: #2563EB;
+            color: white;
+            border-color: #2563EB;
+        }
+
+        /* Screen Container */
+        .screen-container {
+            padding-top: 5rem;
+            min-height: 100vh;
+        }
+
+        .screen {
+            display: none;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        .screen-header {
+            margin-bottom: 2rem;
+        }
+
+        .screen-title {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .screen-desc {
+            color: #94A3B8;
+            font-size: 1rem;
+        }
+
+        /* PWA Frame */
+        .pwa-frame {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        /* Top Bar */
+        .top-bar {
+            background: white;
+            border-bottom: 1px solid #E2E8F0;
+            padding: 1rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .top-bar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .logo {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #2563EB;
+        }
+
+        .project-selector {
+            padding: 0.5rem 1rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            background: white;
+            color: #0F172A;
+            font-size: 0.875rem;
+            cursor: pointer;
+        }
+
+        .top-bar-right {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 6px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748B;
+            font-size: 1.25rem;
+            transition: all 0.2s;
+        }
+
+        .icon-btn:hover {
+            background: #F1F5F9;
+            color: #0F172A;
+        }
+
+        .notification-badge {
+            position: relative;
+        }
+
+        .notification-badge::after {
+            content: '2';
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #EF4444;
+            color: white;
+            font-size: 0.625rem;
+            font-weight: 600;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            padding: 2rem;
+            background: #F8FAFC;
+            min-height: 600px;
+        }
+
+        /* Portfolio Grid */
+        .portfolio-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .project-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .project-card.healthy {
+            border-left-color: #10B981;
+        }
+
+        .project-card.attention {
+            border-left-color: #F59E0B;
+        }
+
+        .project-card.critical {
+            border-left-color: #EF4444;
+        }
+
+        .project-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .project-name {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .project-menu {
+            color: #64748B;
+            font-size: 1.25rem;
+            cursor: pointer;
+        }
+
+        .project-status {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .badge {
+            padding: 0.25rem 0.625rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-phase {
+            background: #DBEAFE;
+            color: #1E40AF;
+        }
+
+        .badge-status {
+            background: #D1FAE5;
+            color: #065F46;
+        }
+
+        .attention-badge {
+            background: #FEF3C7;
+            color: #92400E;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
+        .project-meta {
+            color: #64748B;
+            font-size: 0.875rem;
+        }
+
+        /* Kanban Board */
+        .kanban-board {
+            display: flex;
+            gap: 1.5rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+        }
+
+        .kanban-column {
+            flex: 0 0 300px;
+            background: white;
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .column-header {
+            font-weight: 600;
+            font-size: 0.875rem;
+            color: #0F172A;
+            margin-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .column-count {
+            background: #F1F5F9;
+            color: #64748B;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+
+        .story-card {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .story-card:hover {
+            border-color: #2563EB;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, 0.1);
+        }
+
+        .story-id {
+            font-size: 0.75rem;
+            color: #64748B;
+            margin-bottom: 0.25rem;
+        }
+
+        .story-title {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #0F172A;
+            margin-bottom: 0.5rem;
+        }
+
+        .story-meta {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .confidence-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            color: #10B981;
+        }
+
+        .confidence-circle {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid #10B981;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.625rem;
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 2rem;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 12px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid #E2E8F0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #0F172A;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #64748B;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+        }
+
+        .modal-close:hover {
+            background: #F1F5F9;
+        }
+
+        .modal-body {
+            padding: 1.5rem;
+            color: #0F172A;
+        }
+
+        .modal-section {
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-section h3 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748B;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .escalation-question {
+            background: #F8FAFC;
+            padding: 1rem;
+            border-radius: 6px;
+            border-left: 3px solid #F59E0B;
+            margin-bottom: 1rem;
+            font-size: 0.9375rem;
+            line-height: 1.6;
+        }
+
+        .ai-reasoning {
+            font-size: 0.875rem;
+            color: #64748B;
+            line-height: 1.5;
+            padding: 1rem;
+            background: #F8FAFC;
+            border-radius: 6px;
+        }
+
+        .modal-actions {
+            padding: 1.5rem;
+            border-top: 1px solid #E2E8F0;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+        }
+
+        .btn {
+            padding: 0.625rem 1.25rem;
+            border-radius: 6px;
+            font-weight: 500;
+            font-size: 0.875rem;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: #2563EB;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #1E40AF;
+        }
+
+        .btn-secondary {
+            background: white;
+            color: #64748B;
+            border: 1px solid #E2E8F0;
+        }
+
+        .btn-secondary:hover {
+            background: #F8FAFC;
+        }
+
+        /* Chat Sidebar */
+        .with-sidebar {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .main-area {
+            flex: 1;
+        }
+
+        .sidebar {
+            width: 350px;
+            background: white;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            height: fit-content;
+            max-height: 600px;
+        }
+
+        .sidebar-header {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #0F172A;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #E2E8F0;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 1rem;
+        }
+
+        .chat-message {
+            margin-bottom: 1rem;
+        }
+
+        .message-user {
+            text-align: right;
+        }
+
+        .message-bubble {
+            display: inline-block;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            max-width: 85%;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .message-user .message-bubble {
+            background: #2563EB;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message-ai .message-bubble {
+            background: #F1F5F9;
+            color: #0F172A;
+            border-bottom-left-radius: 4px;
+        }
+
+        .chat-input-area {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-family: inherit;
+        }
+
+        .chat-input:focus {
+            outline: none;
+            border-color: #2563EB;
+        }
+
+        .send-btn {
+            padding: 0.75rem 1rem;
+            background: #2563EB;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1.25rem;
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                padding: 0.75rem 1rem;
+            }
+
+            .controls h1 {
+                font-size: 1rem;
+            }
+
+            .nav-buttons {
+                flex-wrap: wrap;
+            }
+
+            .nav-btn {
+                font-size: 0.75rem;
+                padding: 0.375rem 0.75rem;
+            }
+
+            .screen {
+                padding: 1rem;
+            }
+
+            .portfolio-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .kanban-board {
+                flex-direction: column;
+            }
+
+            .kanban-column {
+                flex: 1 1 auto;
+            }
+
+            .with-sidebar {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Controls -->
+    <div class="controls">
+        <div class="controls-inner">
+            <h1>Agent Orchestrator - Design Showcase</h1>
+            <div class="nav-buttons">
+                <button class="nav-btn active" onclick="showScreen('portfolio')">Portfolio</button>
+                <button class="nav-btn" onclick="showScreen('project')">Project Detail</button>
+                <button class="nav-btn" onclick="showScreen('escalation')">Escalation</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screen 1: Portfolio View -->
+    <div class="screen-container">
+        <div class="screen active" id="portfolio">
+            <div class="screen-header">
+                <h2 class="screen-title">Portfolio View - Multi-Project Overview</h2>
+                <p class="screen-desc">Quick status check across all projects in under 3 seconds</p>
+            </div>
+
+            <div class="pwa-frame">
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <div class="logo">Agent Orchestrator</div>
+                        <select class="project-selector">
+                            <option>All Projects (3)</option>
+                            <option>Agent Orchestrator</option>
+                            <option>E-commerce Platform</option>
+                            <option>Analytics Dashboard</option>
+                        </select>
+                    </div>
+                    <div class="top-bar-right">
+                        <button class="icon-btn notification-badge">🔔</button>
+                        <button class="icon-btn">⚙️</button>
+                        <button class="icon-btn">👤</button>
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <div class="portfolio-grid">
+                        <!-- Project 1 - Healthy -->
+                        <div class="project-card healthy">
+                            <div class="project-card-header">
+                                <div class="project-name">Agent Orchestrator</div>
+                                <div class="project-menu">⋮</div>
+                            </div>
+                            <div class="project-status">
+                                <span class="badge badge-phase">Phase 2 - Planning</span>
+                                <span class="badge badge-status">Healthy</span>
+                            </div>
+                            <div class="project-meta">
+                                Last activity: 5 minutes ago • PRD generated
+                            </div>
+                        </div>
+
+                        <!-- Project 2 - Needs Attention -->
+                        <div class="project-card attention">
+                            <div class="project-card-header">
+                                <div class="project-name">E-commerce Platform</div>
+                                <div class="project-menu">⋮</div>
+                            </div>
+                            <div class="project-status">
+                                <span class="badge badge-phase">Phase 4 - Implementation</span>
+                                <span class="attention-badge">
+                                    ⚠️ 1 Escalation
+                                </span>
+                            </div>
+                            <div class="project-meta">
+                                Last activity: 12 minutes ago • Story 003 needs approval
+                            </div>
+                        </div>
+
+                        <!-- Project 3 - Critical -->
+                        <div class="project-card critical">
+                            <div class="project-card-header">
+                                <div class="project-name">Analytics Dashboard</div>
+                                <div class="project-menu">⋮</div>
+                            </div>
+                            <div class="project-status">
+                                <span class="badge badge-phase">Phase 3 - Solutioning</span>
+                                <span class="badge" style="background: #FEE2E2; color: #991B1B;">Gate Approval Required</span>
+                            </div>
+                            <div class="project-meta">
+                                Last activity: 2 hours ago • Architecture complete
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 2: Project Detail with Kanban -->
+        <div class="screen" id="project">
+            <div class="screen-header">
+                <h2 class="screen-title">Project Detail - Two-Level Kanban + AI Chat</h2>
+                <p class="screen-desc">Monitor parallel story development with conversational AI context</p>
+            </div>
+
+            <div class="pwa-frame">
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <div class="logo">Agent Orchestrator</div>
+                        <div style="color: #64748B; font-size: 0.875rem;">Portfolio > Agent Orchestrator</div>
+                    </div>
+                    <div class="top-bar-right">
+                        <button class="icon-btn notification-badge">🔔</button>
+                        <button class="icon-btn">⚙️</button>
+                        <button class="icon-btn">👤</button>
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <div class="with-sidebar">
+                        <div class="main-area">
+                            <div style="margin-bottom: 1.5rem;">
+                                <h2 style="font-size: 1.5rem; font-weight: 600; color: #0F172A; margin-bottom: 0.5rem;">Agent Orchestrator</h2>
+                                <p style="color: #64748B; font-size: 0.875rem;">Phase 4: Implementation • 3 stories in progress</p>
+                            </div>
+
+                            <div class="kanban-board">
+                                <!-- Column 1: Analysis (Complete) -->
+                                <div class="kanban-column" style="opacity: 0.6;">
+                                    <div class="column-header">
+                                        <span>✓ Analysis</span>
+                                        <span class="column-count">Done</span>
+                                    </div>
+                                    <div style="color: #64748B; font-size: 0.875rem; text-align: center;">
+                                        Completed
+                                    </div>
+                                </div>
+
+                                <!-- Column 2: Planning (Complete) -->
+                                <div class="kanban-column" style="opacity: 0.6;">
+                                    <div class="column-header">
+                                        <span>✓ Planning</span>
+                                        <span class="column-count">Done</span>
+                                    </div>
+                                    <div style="color: #64748B; font-size: 0.875rem; text-align: center;">
+                                        Completed
+                                    </div>
+                                </div>
+
+                                <!-- Column 3: Solutioning (Complete) -->
+                                <div class="kanban-column" style="opacity: 0.6;">
+                                    <div class="column-header">
+                                        <span>✓ Solutioning</span>
+                                        <span class="column-count">Done</span>
+                                    </div>
+                                    <div style="color: #64748B; font-size: 0.875rem; text-align: center;">
+                                        Completed
+                                    </div>
+                                </div>
+
+                                <!-- Column 4: Implementation (Active) -->
+                                <div class="kanban-column">
+                                    <div class="column-header">
+                                        <span>⚡ Implementation</span>
+                                        <span class="column-count">3</span>
+                                    </div>
+
+                                    <div class="story-card">
+                                        <div class="story-id">STORY-001</div>
+                                        <div class="story-title">Workflow Engine Core</div>
+                                        <div class="story-meta">
+                                            <div class="confidence-indicator">
+                                                <div class="confidence-circle">✓</div>
+                                                <span>95%</span>
+                                            </div>
+                                            <span class="badge badge-status">In Progress</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="story-card" style="border-color: #F59E0B;">
+                                        <div class="story-id">STORY-002</div>
+                                        <div class="story-title">Agent Pool Management</div>
+                                        <div class="story-meta">
+                                            <div class="confidence-indicator" style="color: #F59E0B;">
+                                                <div class="confidence-circle" style="border-color: #F59E0B;">⚠</div>
+                                                <span>78%</span>
+                                            </div>
+                                            <span class="attention-badge">1 test failing</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="story-card">
+                                        <div class="story-id">STORY-003</div>
+                                        <div class="story-title">Git Worktree Manager</div>
+                                        <div class="story-meta">
+                                            <div class="confidence-indicator">
+                                                <div class="confidence-circle">✓</div>
+                                                <span>92%</span>
+                                            </div>
+                                            <span class="badge" style="background: #DBEAFE; color: #1E40AF;">PR Ready</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Chat Sidebar -->
+                        <div class="sidebar">
+                            <div class="sidebar-header">💬 AI Project Assistant</div>
+                            <div class="chat-messages">
+                                <div class="chat-message message-user">
+                                    <div class="message-bubble">Why is test failing in Story 002?</div>
+                                </div>
+                                <div class="chat-message message-ai">
+                                    <div class="message-bubble">
+                                        The test in Story 002 expects the API endpoint from Story 001, which isn't merged yet. Story 002 will auto-retry tests after Story 001 merges. The dependency is tracked in the system.
+                                    </div>
+                                </div>
+                                <div class="chat-message message-user">
+                                    <div class="message-bubble">When will Story 001 be ready?</div>
+                                </div>
+                                <div class="chat-message message-ai">
+                                    <div class="message-bubble">
+                                        Story 001 is currently in code review. Based on current progress, it should be merged in approximately 30-45 minutes. Would you like me to notify you when it's merged?
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: #94A3B8; margin-bottom: 0.75rem; text-align: center;">
+                                AI can make mistakes. Verify important info.
+                            </div>
+                            <div class="chat-input-area">
+                                <input type="text" class="chat-input" placeholder="Ask about this project..." />
+                                <button class="send-btn">→</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen 3: Escalation Modal -->
+        <div class="screen" id="escalation">
+            <div class="screen-header">
+                <h2 class="screen-title">Escalation Modal - AI Needs Your Input</h2>
+                <p class="screen-desc">Transparent AI decision-making with confidence scoring</p>
+            </div>
+
+            <div class="pwa-frame">
+                <div class="top-bar">
+                    <div class="top-bar-left">
+                        <div class="logo">Agent Orchestrator</div>
+                        <div style="color: #64748B; font-size: 0.875rem;">Portfolio > E-commerce Platform</div>
+                    </div>
+                    <div class="top-bar-right">
+                        <button class="icon-btn notification-badge">🔔</button>
+                        <button class="icon-btn">⚙️</button>
+                        <button class="icon-btn">👤</button>
+                    </div>
+                </div>
+
+                <div class="main-content">
+                    <div style="background: white; border-radius: 8px; padding: 2rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; color: #0F172A; margin-bottom: 1rem;">
+                            Recent Activity
+                        </h3>
+                        <div style="color: #64748B; font-size: 0.875rem;">
+                            Winston (Architect) is designing the system architecture...
+                        </div>
+                    </div>
+
+                    <!-- Modal Overlay -->
+                    <div class="modal-overlay">
+                        <div class="modal">
+                            <div class="modal-header">
+                                <div>
+                                    <div class="modal-title">⚠️ Escalation Required</div>
+                                    <div style="font-size: 0.75rem; color: #64748B; margin-top: 0.25rem;">
+                                        Confidence: 68% • Workflow: Architecture • Step 3
+                                    </div>
+                                </div>
+                                <button class="modal-close">×</button>
+                            </div>
+
+                            <div class="modal-body">
+                                <div class="modal-section">
+                                    <h3>AI's Question</h3>
+                                    <div class="escalation-question">
+                                        Should we use REST or GraphQL for the API architecture? The PRD mentions "flexible data querying" which could favor GraphQL, but the team's familiarity with REST might reduce development time.
+                                    </div>
+                                </div>
+
+                                <div class="modal-section">
+                                    <h3>AI's Reasoning</h3>
+                                    <div class="ai-reasoning">
+                                        <strong>GraphQL Advantages:</strong>
+                                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                            <li>Flexible queries match PRD requirements</li>
+                                            <li>Reduces over-fetching for mobile clients</li>
+                                            <li>Strong typing and introspection</li>
+                                        </ul>
+                                        <strong>REST Advantages:</strong>
+                                        <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                            <li>Team has existing expertise</li>
+                                            <li>Simpler caching strategies</li>
+                                            <li>Faster initial development</li>
+                                        </ul>
+                                        <p style="margin-top: 0.5rem;">
+                                            I'm not confident enough (68%) to make this architectural decision without your input, as it significantly impacts the project.
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="modal-section">
+                                    <h3>Your Response</h3>
+                                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                        <label style="display: flex; align-items: center; padding: 0.75rem; background: #F8FAFC; border-radius: 6px; cursor: pointer;">
+                                            <input type="radio" name="api-choice" style="margin-right: 0.75rem;" />
+                                            <div>
+                                                <strong>REST API</strong>
+                                                <div style="font-size: 0.875rem; color: #64748B; margin-top: 0.25rem;">
+                                                    Prioritize team velocity and existing expertise
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label style="display: flex; align-items: center; padding: 0.75rem; background: #F8FAFC; border-radius: 6px; cursor: pointer;">
+                                            <input type="radio" name="api-choice" style="margin-right: 0.75rem;" />
+                                            <div>
+                                                <strong>GraphQL</strong>
+                                                <div style="font-size: 0.875rem; color: #64748B; margin-top: 0.25rem;">
+                                                    Prioritize PRD requirements and long-term flexibility
+                                                </div>
+                                            </div>
+                                        </label>
+                                        <label style="display: flex; align-items: center; padding: 0.75rem; background: #F8FAFC; border-radius: 6px; cursor: pointer;">
+                                            <input type="radio" name="api-choice" style="margin-right: 0.75rem;" />
+                                            <div>
+                                                <strong>Hybrid Approach</strong>
+                                                <div style="font-size: 0.875rem; color: #64748B; margin-top: 0.25rem;">
+                                                    REST for simple endpoints, GraphQL for complex queries
+                                                </div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button class="btn btn-secondary">Skip for Now</button>
+                                <button class="btn btn-primary">Submit Response</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showScreen(screenId) {
+            // Hide all screens
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+
+            // Remove active from all buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Show selected screen
+            document.getElementById(screenId).classList.add('active');
+
+            // Add active to clicked button
+            event.target.classList.add('active');
+        }
+    </script>
+</body>
+</html>
