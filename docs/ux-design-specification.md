@@ -482,6 +482,34 @@ graph LR
     - Pulsing border indicates active work
 11. **Success**: Sprint planned with clear parallel work strategy, <5 minutes total
 
+**Journey 6: Implementation Readiness Gate (Desktop)**
+
+**Goal**: Ensure solutioning phase output is complete before coding begins
+
+**Flow:**
+1. **Notification**: Toast "Solutioning complete - Running readiness gate..."
+2. **Gate Execution**: Automated validation (invisible to user, <3 minutes)
+3. **Scenario A - Gate Passes**:
+   - Toast: "Implementation readiness gate passed ✅"
+   - Badge: "Ready for Development" appears on project card
+   - Phase 4 (Implementation) becomes available
+   - User confidence: Stories are ready, no blockers
+4. **Scenario B - Gate Fails**:
+   - Modal: "Implementation Readiness Gate Failed"
+   - Blocker list displayed:
+     - "Story 005: Only 3 acceptance criteria (minimum 8)"
+     - "Story 012: Circular dependency with Story 015"
+     - "Epic 2: No test strategy defined"
+   - Recommendations provided:
+     - "Add 5 more acceptance criteria to Story 005"
+     - "Remove dependency from Story 012 to 015"
+     - "Re-run architecture workflow to generate test strategy"
+   - Action: "Fix Blockers" button → Returns to solutioning phase
+   - Implementation phase blocked until gate passes
+5. **Remediation**: User or Bob agent fixes blockers
+6. **Re-run Gate**: Validation executes again automatically
+7. **Gate Passes**: Implementation phase unlocked
+
 ---
 
 ## 6. Component Library
