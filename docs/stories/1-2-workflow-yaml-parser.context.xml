@@ -1,0 +1,348 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>2</storyId>
+    <title>Workflow YAML Parser</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-2-workflow-yaml-parser.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>workflow engine developer</asA>
+    <iWant>to parse and validate workflow.yaml files</iWant>
+    <soThat>I can execute BMAD workflow definitions programmatically</soThat>
+    <tasks>
+      <task id="1" priority="high">
+        <title>Implement WorkflowParser class structure (AC: #1, #2)</title>
+        <subtasks>
+          <subtask>Create backend/src/core/WorkflowParser.ts</subtask>
+          <subtask>Define WorkflowConfig TypeScript interface matching tech spec schema</subtask>
+          <subtask>Implement parseYAML(filePath: string): WorkflowConfig method</subtask>
+          <subtask>Use js-yaml library for YAML parsing</subtask>
+          <subtask>Validate required fields: name, description, instructions, config_source</subtask>
+          <subtask>Throw ValidationError with descriptive messages for missing fields</subtask>
+          <subtask>Return structured WorkflowConfig object</subtask>
+        </subtasks>
+      </task>
+      <task id="2" priority="high">
+        <title>Variable resolution system (AC: #3, #4, #5)</title>
+        <subtasks>
+          <subtask>Implement resolveVariables(config: WorkflowConfig, projectConfig: ProjectConfig): WorkflowConfig method</subtask>
+          <subtask>Resolve path variables: {project-root}, {installed_path}</subtask>
+          <subtask>Resolve config references: {config_source}:key</subtask>
+          <subtask>Resolve system variables: date:system-generated</subtask>
+          <subtask>Apply variable substitution recursively</subtask>
+          <subtask>Throw clear errors for undefined variable references</subtask>
+        </subtasks>
+      </task>
+      <task id="3" priority="high">
+        <title>Config source loading and integration (AC: #4)</title>
+        <subtasks>
+          <subtask>Load external config file specified in config_source field</subtask>
+          <subtask>Parse config file using js-yaml</subtask>
+          <subtask>Extract key-value pairs for substitution</subtask>
+          <subtask>Support nested config paths</subtask>
+          <subtask>Handle missing config file with descriptive error</subtask>
+          <subtask>Cache loaded config to avoid redundant file reads</subtask>
+        </subtasks>
+      </task>
+      <task id="4" priority="medium">
+        <title>Validation and error handling (AC: #7)</title>
+        <subtasks>
+          <subtask>Implement validateWorkflow(config: WorkflowConfig): ValidationResult method</subtask>
+          <subtask>Check required fields present and non-empty</subtask>
+          <subtask>Validate file paths exist</subtask>
+          <subtask>Validate variable references resolve successfully</subtask>
+          <subtask>Return ValidationResult with isValid, errors, warnings</subtask>
+          <subtask>Throw errors with line numbers where possible</subtask>
+          <subtask>Include helpful error messages</subtask>
+        </subtasks>
+      </task>
+      <task id="5" priority="medium">
+        <title>Instructions parsing preparation (AC: #6)</title>
+        <subtasks>
+          <subtask>Implement parseInstructions(markdownFile: string): Step[] method</subtask>
+          <subtask>Read instructions markdown file</subtask>
+          <subtask>Parse step tags: &lt;step n="X" goal="..."&gt;</subtask>
+          <subtask>Extract step number, goal, and content</subtask>
+          <subtask>Return array of Step objects</subtask>
+          <subtask>Note: Full XML tag parsing enhanced in Story 1.7</subtask>
+        </subtasks>
+      </task>
+      <task id="6" priority="high">
+        <title>Testing and integration</title>
+        <subtasks>
+          <subtask>Write unit tests for WorkflowParser class</subtask>
+          <subtask>Test valid workflow.yaml parsing</subtask>
+          <subtask>Test variable resolution (all types)</subtask>
+          <subtask>Test validation with missing/invalid fields</subtask>
+          <subtask>Test error messages clarity</subtask>
+          <subtask>Test integration with ProjectConfig from Story 1.1</subtask>
+          <subtask>Test edge cases: circular variables, deeply nested configs</subtask>
+          <subtask>Document WorkflowParser API in code comments</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" priority="critical">
+      <description>Parse workflow.yaml using js-yaml library</description>
+      <testability>Unit test with sample workflow.yaml files</testability>
+    </criterion>
+    <criterion id="2" priority="critical">
+      <description>Validate required fields: name, instructions, config_source</description>
+      <testability>Unit test with missing field scenarios</testability>
+    </criterion>
+    <criterion id="3" priority="critical">
+      <description>Resolve {project-root} and {installed_path} variables</description>
+      <testability>Unit test verifying path resolution</testability>
+    </criterion>
+    <criterion id="4" priority="critical">
+      <description>Load config_source file and resolve {config_source}:key references</description>
+      <testability>Integration test with actual config files</testability>
+    </criterion>
+    <criterion id="5" priority="high">
+      <description>Support system-generated variables (date:system-generated)</description>
+      <testability>Unit test verifying date generation</testability>
+    </criterion>
+    <criterion id="6" priority="critical">
+      <description>Return structured WorkflowConfig object with resolved values</description>
+      <testability>Unit test asserting object structure</testability>
+    </criterion>
+    <criterion id="7" priority="critical">
+      <description>Throw descriptive errors for invalid YAML or missing references</description>
+      <testability>Unit tests for error scenarios with message validation</testability>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>2.1.1 Workflow Engine - WorkflowParser component</section>
+        <snippet>Defines WorkflowParser class with parseYAML, parseInstructions, resolveVariables, and validateWorkflow methods. Specifies WorkflowConfig interface with all required fields including name, instructions, config_source, variables, etc.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>2.1.1 Workflow Engine</section>
+        <snippet>Workflow Engine parses workflow.yaml and instructions.md to execute BMAD workflows. Parser validates required fields and resolves variables before execution. Uses microkernel pattern with workflow plugins.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.2: Workflow YAML Parser</section>
+        <snippet>Parse and validate workflow.yaml files to enable programmatic execution of BMAD workflows. Requires ProjectConfig from Story 1.1 for config_source resolution. Feeds into WorkflowEngine (Story 1.7).</snippet>
+      </doc>
+      <doc>
+        <path>bmad/bmm/workflows/4-implementation/story-context/workflow.yaml</path>
+        <title>Example Workflow Configuration</title>
+        <section>Real workflow.yaml structure</section>
+        <snippet>Demonstrates config_source, variables, installed_path, template, instructions, default_output_file fields. Shows variable resolution patterns like {project-root}, {config_source}:key, system-generated dates.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/src/config/ProjectConfig.ts</path>
+        <kind>service</kind>
+        <symbol>ProjectConfig class</symbol>
+        <lines>1-299</lines>
+        <reason>Reference implementation for YAML parsing, validation, and environment variable expansion. WorkflowParser will follow similar patterns for config loading and error handling.</reason>
+      </file>
+      <file>
+        <path>backend/src/types/ProjectConfig.ts</path>
+        <kind>types</kind>
+        <symbol>ProjectConfigSchema, ConfigValidationError</symbol>
+        <lines>1-104</lines>
+        <reason>Example TypeScript interface patterns and custom error class. WorkflowParser will define similar WorkflowConfig interface and WorkflowParseError class.</reason>
+      </file>
+      <file>
+        <path>backend/src/core/</path>
+        <kind>directory</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Target directory for WorkflowParser.ts implementation. Will also contain WorkflowEngine.ts (Story 1.7).</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="js-yaml" version="^4.1.0">YAML parsing library</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler with strict mode</package>
+        <package name="@types/node" version="^20.0.0">Node.js type definitions</package>
+      </node>
+      <standard-library>
+        <module>fs/promises</module>
+        <module>path</module>
+      </standard-library>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      <rule>Use TypeScript strict mode with explicit return types on public methods</rule>
+      <rationale>Ensures type safety and prevents runtime errors</rationale>
+      <source>docs/tech-spec-epic-1.md#Code-Quality-Standards</source>
+    </constraint>
+    <constraint type="error-handling">
+      <rule>Create custom WorkflowParseError class extending Error with field/context info</rule>
+      <rationale>Provides clear, actionable error messages with context for debugging</rationale>
+      <source>docs/tech-spec-epic-1.md#Error-Handling</source>
+    </constraint>
+    <constraint type="validation">
+      <rule>Fail fast on validation errors - throw immediately on first error</rule>
+      <rationale>Prevents cascading failures and provides clear feedback</rationale>
+      <source>docs/tech-spec-epic-1.md#Non-Functional-Requirements</source>
+    </constraint>
+    <constraint type="file-operations">
+      <rule>Use async/await with fs/promises for all file I/O operations</rule>
+      <rationale>Non-blocking operations, better error handling, cleaner code</rationale>
+      <source>backend/src/config/ProjectConfig.ts:38-40</source>
+    </constraint>
+    <constraint type="testing">
+      <rule>Minimum 80% code coverage with unit and integration tests</rule>
+      <rationale>Ensures parser reliability and prevents regression</rationale>
+      <source>docs/tech-spec-epic-1.md#Test-Strategy-Summary</source>
+    </constraint>
+    <constraint type="dependencies">
+      <rule>Only depends on Story 1.1 (ProjectConfig) - no forward dependencies</rule>
+      <rationale>Sequential story execution, no circular dependencies</rationale>
+      <source>docs/epics.md#Story-Dependencies-Within-Epic-1</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ProjectConfig.getRawConfig()</name>
+      <kind>method</kind>
+      <signature>getRawConfig(): ProjectConfigSchema</signature>
+      <path>backend/src/config/ProjectConfig.ts:295-297</path>
+      <usage>WorkflowParser uses this to access config values for {config_source}:key resolution</usage>
+    </interface>
+    <interface>
+      <name>ProjectConfig.loadConfig()</name>
+      <kind>static-method</kind>
+      <signature>static async loadConfig(configPath?: string): Promise&lt;ProjectConfig&gt;</signature>
+      <path>backend/src/config/ProjectConfig.ts:34-69</path>
+      <usage>WorkflowParser calls this to load project config when resolving config_source references</usage>
+    </interface>
+    <interface>
+      <name>WorkflowConfig (to be defined)</name>
+      <kind>interface</kind>
+      <signature>
+interface WorkflowConfig {
+  name: string;
+  description: string;
+  author: string;
+  config_source: string;
+  output_folder: string;
+  user_name: string;
+  communication_language: string;
+  date: string;
+  installed_path: string;
+  template?: string;
+  instructions: string;
+  validation?: string;
+  default_output_file?: string;
+  variables?: Record&lt;string, any&gt;;
+  standalone: boolean;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts (to be created)</path>
+      <usage>Return type for WorkflowParser.parseYAML() and resolveVariables()</usage>
+    </interface>
+    <interface>
+      <name>Step (to be defined)</name>
+      <kind>interface</kind>
+      <signature>
+interface Step {
+  number: number;
+  goal: string;
+  content: string;
+  optional?: boolean;
+  condition?: string;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts (to be created)</path>
+      <usage>Return type for WorkflowParser.parseInstructions()</usage>
+    </interface>
+    <interface>
+      <name>ValidationResult (to be defined)</name>
+      <kind>interface</kind>
+      <signature>
+interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts (to be created)</path>
+      <usage>Return type for WorkflowParser.validateWorkflow()</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      The project uses Vitest for unit testing with TypeScript support. Tests should be placed in backend/tests/core/ directory mirroring the source structure. Follow AAA (Arrange, Act, Assert) pattern. Use describe blocks for test organization and it/test for individual cases. Mock file system operations and external dependencies. Target 80% code coverage minimum with focus on critical parsing and validation paths. Integration tests should verify actual workflow.yaml files from bmad/bmm/workflows directory.
+    </standards>
+    <locations>
+      <location>backend/tests/core/WorkflowParser.test.ts - Unit tests</location>
+      <location>backend/tests/integration/ - Integration tests with real files</location>
+    </locations>
+    <ideas>
+      <testCase ac="1">
+        <name>Parse valid workflow.yaml with all required fields</name>
+        <setup>Create sample workflow.yaml with name, instructions, config_source</setup>
+        <assertion>Returns WorkflowConfig object with parsed values</assertion>
+      </testCase>
+      <testCase ac="2">
+        <name>Throw error when required fields missing</name>
+        <setup>Create workflow.yaml missing 'name' field</setup>
+        <assertion>Throws WorkflowParseError with descriptive message</assertion>
+      </testCase>
+      <testCase ac="3">
+        <name>Resolve {project-root} variable correctly</name>
+        <setup>Workflow with installed_path: "{project-root}/bmad"</setup>
+        <assertion>Resolves to absolute project path</assertion>
+      </testCase>
+      <testCase ac="4">
+        <name>Load config_source and resolve references</name>
+        <setup>Workflow with user_name: "{config_source}:user_name"</setup>
+        <assertion>Loads config file and substitutes actual user name</assertion>
+      </testCase>
+      <testCase ac="5">
+        <name>Generate system date variable</name>
+        <setup>Workflow with date: system-generated</setup>
+        <assertion>Replaces with current ISO date (YYYY-MM-DD)</assertion>
+      </testCase>
+      <testCase ac="6">
+        <name>Return complete WorkflowConfig structure</name>
+        <setup>Parse valid workflow with all fields</setup>
+        <assertion>Object has all required properties with correct types</assertion>
+      </testCase>
+      <testCase ac="7">
+        <name>Handle YAML syntax errors gracefully</name>
+        <setup>Invalid YAML with unmatched brackets</setup>
+        <assertion>Throws error with line number and syntax issue</assertion>
+      </testCase>
+      <testCase edge="circular-variables">
+        <name>Detect and report circular variable references</name>
+        <setup>Variable A references B, B references A</setup>
+        <assertion>Throws error preventing infinite loop</assertion>
+      </testCase>
+      <testCase edge="nested-configs">
+        <name>Support deeply nested config paths</name>
+        <setup>{config_source}:project.metadata.owner</setup>
+        <assertion>Correctly traverses nested object structure</assertion>
+      </testCase>
+      <testCase integration="real-workflow">
+        <name>Parse actual BMAD workflow files</name>
+        <setup>Load bmad/bmm/workflows/story-context/workflow.yaml</setup>
+        <assertion>Parses successfully with all variables resolved</assertion>
+      </testCase>
+    </ideas>
+  </tests>
+</story-context>

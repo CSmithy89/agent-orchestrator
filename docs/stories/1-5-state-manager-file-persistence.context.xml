@@ -1,0 +1,420 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>5</storyId>
+    <title>State Manager - File Persistence</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-5-state-manager-file-persistence.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>orchestrator developer</asA>
+    <iWant>to persist workflow state to files after each step</iWant>
+    <soThat>execution can resume after crashes or interruptions</soThat>
+    <tasks>
+      <task id="1" priority="high">
+        <title>Implement StateManager class structure (AC: #1, #4)</title>
+        <subtasks>
+          <subtask>Create backend/src/core/StateManager.ts</subtask>
+          <subtask>Define WorkflowState TypeScript interface matching architecture spec</subtask>
+          <subtask>Define AgentActivity interface for tracking agent execution</subtask>
+          <subtask>Define StoryStatus interface for story state tracking</subtask>
+          <subtask>Implement StateManager class with private state cache</subtask>
+          <subtask>Add in-memory cache for parsed state (invalidate on write)</subtask>
+          <subtask>Document StateManager API with JSDoc comments</subtask>
+        </subtasks>
+      </task>
+      <task id="2" priority="high">
+        <title>Implement saveState() with dual-format persistence (AC: #2, #3, #6)</title>
+        <subtasks>
+          <subtask>Implement saveState(state: WorkflowState): Promise&lt;void&gt; method</subtask>
+          <subtask>Write to bmad/sprint-status.yaml (YAML format)</subtask>
+          <subtask>Write to bmad/workflow-status.md (Markdown format) in parallel</subtask>
+          <subtask>Implement atomic write pattern (temp file + rename)</subtask>
+          <subtask>Ensure both files stay synchronized</subtask>
+          <subtask>Validate state structure before writing</subtask>
+          <subtask>Update in-memory cache after successful write</subtask>
+        </subtasks>
+      </task>
+      <task id="3" priority="high">
+        <title>Implement loadState() for crash recovery (AC: #5)</title>
+        <subtasks>
+          <subtask>Implement loadState(projectId: string): Promise&lt;WorkflowState | null&gt; method</subtask>
+          <subtask>Read from bmad/sprint-status.yaml</subtask>
+          <subtask>Parse YAML using js-yaml library</subtask>
+          <subtask>Validate loaded state structure</subtask>
+          <subtask>Handle missing file (return null for new projects)</subtask>
+          <subtask>Handle corrupted YAML (log error, attempt recovery)</subtask>
+          <subtask>Cache loaded state in memory</subtask>
+        </subtasks>
+      </task>
+      <task id="4" priority="medium">
+        <title>Dashboard query methods (AC: #7)</title>
+        <subtasks>
+          <subtask>Implement getProjectPhase(projectId: string): Promise&lt;string&gt; method</subtask>
+          <subtask>Parse workflow status to determine phase</subtask>
+          <subtask>Implement getStoryStatus(projectId: string, storyId: string): Promise&lt;StoryStatus&gt; method</subtask>
+          <subtask>Extract story status from sprint-status.yaml</subtask>
+          <subtask>Support efficient queries using cached state</subtask>
+        </subtasks>
+      </task>
+      <task id="5" priority="medium">
+        <title>Git auto-commit integration (AC: #8)</title>
+        <subtasks>
+          <subtask>Implement commitStateChange(message: string): Promise&lt;void&gt; method</subtask>
+          <subtask>Auto-commit after each saveState() call</subtask>
+          <subtask>Generate descriptive commit messages</subtask>
+          <subtask>Use simple-git library for git operations</subtask>
+          <subtask>Handle git errors gracefully (log warning, don't fail workflow)</subtask>
+          <subtask>Skip commit if git not available (dev mode)</subtask>
+        </subtasks>
+      </task>
+      <task id="6" priority="high">
+        <title>Atomic write implementation (AC: #6)</title>
+        <subtasks>
+          <subtask>Implement atomicWrite(filePath: string, content: string): Promise&lt;void&gt; private method</subtask>
+          <subtask>Generate temp file path (add .tmp suffix)</subtask>
+          <subtask>Write content to temp file</subtask>
+          <subtask>Verify write succeeded</subtask>
+          <subtask>Rename temp file to final name (atomic operation)</subtask>
+          <subtask>Clean up temp file on error</subtask>
+        </subtasks>
+      </task>
+      <task id="7" priority="medium">
+        <title>State format generation (AC: #2, #3)</title>
+        <subtasks>
+          <subtask>Implement generateYAMLFormat(state: WorkflowState): string method</subtask>
+          <subtask>Format WorkflowState as YAML structure</subtask>
+          <subtask>Implement generateMarkdownFormat(state: WorkflowState): string method</subtask>
+          <subtask>Format WorkflowState as human-readable Markdown</subtask>
+          <subtask>Ensure both formats contain same information</subtask>
+        </subtasks>
+      </task>
+      <task id="8" priority="high">
+        <title>Testing and integration</title>
+        <subtasks>
+          <subtask>Write unit tests for StateManager class</subtask>
+          <subtask>Test saveState() writes both formats correctly</subtask>
+          <subtask>Test loadState() reads and parses state</subtask>
+          <subtask>Test atomic write pattern (simulate interruptions)</subtask>
+          <subtask>Test state cache invalidation</subtask>
+          <subtask>Test query methods</subtask>
+          <subtask>Test git auto-commit integration</subtask>
+          <subtask>Test crash recovery scenario</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" priority="critical">
+      <description>Implement StateManager class for workflow state persistence</description>
+      <testability>Unit test StateManager class instantiation and methods</testability>
+    </criterion>
+    <criterion id="2" priority="critical">
+      <description>saveState() writes to bmad/sprint-status.yaml (machine-readable)</description>
+      <testability>Unit test verifying YAML file creation and format</testability>
+    </criterion>
+    <criterion id="3" priority="critical">
+      <description>Save workflow-status.md (human-readable) in parallel</description>
+      <testability>Unit test verifying Markdown file creation and format</testability>
+    </criterion>
+    <criterion id="4" priority="critical">
+      <description>Track: current workflow, step number, status, variables, agent activity</description>
+      <testability>Unit test asserting WorkflowState structure contains all required fields</testability>
+    </criterion>
+    <criterion id="5" priority="critical">
+      <description>loadState() reads from files on orchestrator start</description>
+      <testability>Integration test with actual state files</testability>
+    </criterion>
+    <criterion id="6" priority="critical">
+      <description>Atomic file writes (write to temp, then rename) to prevent corruption</description>
+      <testability>Unit test with mocked fs operations, verify temp file creation + rename</testability>
+    </criterion>
+    <criterion id="7" priority="high">
+      <description>Support state queries for dashboard (getProjectPhase, getStoryStatus)</description>
+      <testability>Unit tests for query methods with cached state</testability>
+    </criterion>
+    <criterion id="8" priority="medium">
+      <description>Auto-commit state changes to git with descriptive messages</description>
+      <testability>Integration test verifying git commits created with correct messages</testability>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>2.1.3 State Manager</section>
+        <snippet>StateManager persists workflow state for crash recovery and monitoring. Implements dual-format storage (YAML + Markdown) with atomic writes. Provides dashboard query methods: getProjectPhase, getStoryStatus. Git auto-commit enables state history.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>State Manager - Detailed Design</section>
+        <snippet>StateManager saves to bmad/sprint-status.yaml (machine) and bmad/workflow-status.md (human). Atomic write pattern prevents corruption. In-memory cache reduces I/O for dashboard queries. WorkflowState tracks project, workflow, step, status, variables, agent activity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.5: State Manager - File Persistence</section>
+        <snippet>Persist workflow state after each step for crash recovery. saveState() writes YAML and Markdown in parallel. loadState() enables resume after interruption. Auto-commit state changes to git.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-status.yaml</path>
+        <title>Example State File Structure</title>
+        <section>Current sprint status tracking</section>
+        <snippet>Real-world example of sprint-status.yaml format. Shows development_status mapping with story keys and statuses. Demonstrates structure that StateManager will read/write.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/src/config/ProjectConfig.ts</path>
+        <kind>service</kind>
+        <symbol>ProjectConfig.loadConfig(), expandEnvironmentVariables()</symbol>
+        <lines>34-97</lines>
+        <reason>Reference implementation for file loading, YAML parsing with js-yaml, validation patterns, and error handling. StateManager will follow similar patterns for state file I/O.</reason>
+      </file>
+      <file>
+        <path>backend/src/types/ProjectConfig.ts</path>
+        <kind>types</kind>
+        <symbol>ProjectConfigSchema, ConfigValidationError</symbol>
+        <lines>75-103</lines>
+        <reason>Example TypeScript interface patterns and custom error class. StateManager will define similar WorkflowState interface and StateManagerError class with field context.</reason>
+      </file>
+      <file>
+        <path>backend/src/core/</path>
+        <kind>directory</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Target directory for StateManager.ts implementation. Will be alongside WorkflowParser.ts and future WorkflowEngine.ts</reason>
+      </file>
+      <file>
+        <path>bmad/sprint-status.yaml</path>
+        <kind>data</kind>
+        <symbol>N/A</symbol>
+        <lines>1-133</lines>
+        <reason>Example of machine-readable state format. StateManager will read/write this file structure with workflow state, story tracking, and timestamps.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="js-yaml" version="^4.1.0">YAML parsing and serialization (already installed)</package>
+        <package name="simple-git" version="^3.20.0">Git operations for auto-commit (NEW - needs installation)</package>
+        <package name="@types/js-yaml" version="^4.0.0">TypeScript definitions for js-yaml (already installed)</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler with strict mode (already installed)</package>
+        <package name="@types/node" version="^20.0.0">Node.js type definitions (already installed)</package>
+      </node>
+      <standard-library>
+        <module>fs/promises</module>
+        <module>path</module>
+      </standard-library>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      <rule>Use TypeScript strict mode with explicit return types on public methods</rule>
+      <rationale>Ensures type safety and prevents runtime errors in state management</rationale>
+      <source>docs/tech-spec-epic-1.md#Code-Quality-Standards</source>
+    </constraint>
+    <constraint type="reliability">
+      <rule>Implement atomic write pattern for all state file operations</rule>
+      <rationale>Prevents state corruption from crashes during file writes. Write to temp, then rename (atomic OS operation).</rationale>
+      <source>docs/architecture.md#Storage-Strategy</source>
+    </constraint>
+    <constraint type="persistence">
+      <rule>Dual-format persistence: YAML for machines, Markdown for humans</rule>
+      <rationale>YAML enables programmatic queries. Markdown provides human-readable status for debugging and monitoring.</rationale>
+      <source>docs/architecture.md#Storage-Strategy</source>
+    </constraint>
+    <constraint type="error-handling">
+      <rule>Git commit failures must not block workflow execution</rule>
+      <rationale>State changes are critical, git commits are audit/history. Log warning on git failure but continue workflow.</rationale>
+      <source>docs/architecture.md#Git-Integration</source>
+    </constraint>
+    <constraint type="performance">
+      <rule>Use in-memory cache for state queries, invalidate on write</rule>
+      <rationale>Dashboard queries frequent (1-10/sec). Cache reduces file I/O from milliseconds to microseconds.</rationale>
+      <source>docs/architecture.md#State-Queries</source>
+    </constraint>
+    <constraint type="testing">
+      <rule>Minimum 80% code coverage with focus on crash recovery scenarios</rule>
+      <rationale>StateManager is critical for reliability. Must thoroughly test atomic writes, corruption handling, resume logic.</rationale>
+      <source>docs/tech-spec-epic-1.md#Test-Strategy-Summary</source>
+    </constraint>
+    <constraint type="file-operations">
+      <rule>Create bmad directory if it doesn't exist on first save</rule>
+      <rationale>New projects may not have state directory. Auto-create prevents errors.</rationale>
+      <source>docs/architecture.md#Storage-Strategy</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>StateManager.saveState()</name>
+      <kind>method</kind>
+      <signature>async saveState(state: WorkflowState): Promise&lt;void&gt;</signature>
+      <path>backend/src/core/StateManager.ts (to be created)</path>
+      <usage>Called by WorkflowEngine after each step completion to persist state. Writes both YAML and Markdown formats atomically.</usage>
+    </interface>
+    <interface>
+      <name>StateManager.loadState()</name>
+      <kind>method</kind>
+      <signature>async loadState(projectId: string): Promise&lt;WorkflowState | null&gt;</signature>
+      <path>backend/src/core/StateManager.ts (to be created)</path>
+      <usage>Called by orchestrator on startup to resume from previous state. Returns null if no state file exists (new project).</usage>
+    </interface>
+    <interface>
+      <name>StateManager.getProjectPhase()</name>
+      <kind>method</kind>
+      <signature>async getProjectPhase(projectId: string): Promise&lt;string&gt;</signature>
+      <path>backend/src/core/StateManager.ts (to be created)</path>
+      <usage>Called by dashboard and CLI to display current workflow phase: "Analysis", "Planning", "Solutioning", "Implementation".</usage>
+    </interface>
+    <interface>
+      <name>StateManager.getStoryStatus()</name>
+      <kind>method</kind>
+      <signature>async getStoryStatus(projectId: string, storyId: string): Promise&lt;StoryStatus&gt;</signature>
+      <path>backend/src/core/StateManager.ts (to be created)</path>
+      <usage>Called by dashboard to display story progress in kanban board. Returns story metadata, status, timestamps, assigned agent.</usage>
+    </interface>
+    <interface>
+      <name>WorkflowState (to be defined)</name>
+      <kind>interface</kind>
+      <signature>
+interface WorkflowState {
+  project: {
+    id: string;
+    name: string;
+    level: number;
+  };
+  currentWorkflow: string;
+  currentStep: number;
+  status: 'running' | 'paused' | 'completed' | 'error';
+  variables: Record&lt;string, any&gt;;
+  agentActivity: AgentActivity[];
+  startTime: Date;
+  lastUpdate: Date;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+      <usage>Primary state structure persisted to YAML and Markdown. Tracks all workflow execution context.</usage>
+    </interface>
+    <interface>
+      <name>AgentActivity (to be defined)</name>
+      <kind>interface</kind>
+      <signature>
+interface AgentActivity {
+  agentId: string;
+  agentName: string;
+  action: string;
+  timestamp: Date;
+  duration?: number;
+  status: 'started' | 'completed' | 'failed';
+  output?: string;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+      <usage>Tracks agent execution history within WorkflowState. Used for debugging and dashboard timeline.</usage>
+    </interface>
+    <interface>
+      <name>StoryStatus (to be defined)</name>
+      <kind>interface</kind>
+      <signature>
+interface StoryStatus {
+  storyId: string;
+  title: string;
+  status: 'backlog' | 'drafted' | 'ready-for-dev' | 'in-progress' | 'review' | 'done';
+  assignedAgent?: string;
+  startTime?: Date;
+  endTime?: Date;
+  progressPercent: number;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+      <usage>Story metadata returned by getStoryStatus(). Displayed in dashboard kanban board.</usage>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      The project uses Vitest for unit testing with TypeScript support. Tests should be placed in backend/tests/core/ directory mirroring the source structure. Follow AAA (Arrange, Act, Assert) pattern. Use describe blocks for test organization. Mock file system operations (fs/promises) for unit tests. Use actual files for integration tests. Focus heavily on atomic write pattern and crash recovery scenarios. Target 80% code coverage minimum with critical paths (saveState, loadState, atomic writes) at 100% coverage.
+    </standards>
+    <locations>
+      <location>backend/tests/core/StateManager.test.ts - Unit tests</location>
+      <location>backend/tests/integration/state-recovery.test.ts - Crash recovery integration tests</location>
+      <location>backend/tests/integration/git-commit.test.ts - Git auto-commit integration tests</location>
+    </locations>
+    <ideas>
+      <testCase ac="1">
+        <name>Instantiate StateManager and verify API</name>
+        <setup>Create StateManager instance</setup>
+        <assertion>Verify saveState, loadState, query methods exist with correct signatures</assertion>
+      </testCase>
+      <testCase ac="2">
+        <name>saveState() writes YAML file correctly</name>
+        <setup>Create WorkflowState, call saveState()</setup>
+        <assertion>Verify bmad/sprint-status.yaml exists with correct structure</assertion>
+      </testCase>
+      <testCase ac="3">
+        <name>saveState() writes Markdown file in parallel</name>
+        <setup>Create WorkflowState, call saveState()</setup>
+        <assertion>Verify bmad/workflow-status.md exists with human-readable format</assertion>
+      </testCase>
+      <testCase ac="4">
+        <name>WorkflowState tracks all required fields</name>
+        <setup>Create WorkflowState with all fields</setup>
+        <assertion>Verify structure contains project, workflow, step, status, variables, agentActivity, timestamps</assertion>
+      </testCase>
+      <testCase ac="5">
+        <name>loadState() reads and parses YAML correctly</name>
+        <setup>Write state file, call loadState()</setup>
+        <assertion>Returns WorkflowState object matching written data</assertion>
+      </testCase>
+      <testCase ac="6">
+        <name>Atomic write prevents corruption on crash</name>
+        <setup>Mock fs.rename to throw after temp file write</setup>
+        <assertion>Original file unchanged, temp file cleaned up</assertion>
+      </testCase>
+      <testCase ac="7">
+        <name>getProjectPhase() returns correct phase</name>
+        <setup>Load state with currentWorkflow: "prd/workflow.yaml"</setup>
+        <assertion>Returns "Analysis" phase</assertion>
+      </testCase>
+      <testCase ac="8">
+        <name>Auto-commit creates git commit on state change</name>
+        <setup>Mock simple-git, call saveState()</setup>
+        <assertion>Git commit called with descriptive message</assertion>
+      </testCase>
+      <testCase edge="corrupted-yaml">
+        <name>Handle corrupted YAML gracefully</name>
+        <setup>Write invalid YAML syntax to state file</setup>
+        <assertion>loadState() logs error and returns null, doesn't crash</assertion>
+      </testCase>
+      <testCase edge="missing-directory">
+        <name>Create bmad directory on first save</name>
+        <setup>Delete bmad directory, call saveState()</setup>
+        <assertion>Directory created, files written successfully</assertion>
+      </testCase>
+      <testCase edge="concurrent-saves">
+        <name>Handle concurrent saveState() calls</name>
+        <setup>Call saveState() twice in parallel</setup>
+        <assertion>Both complete successfully, no race condition</assertion>
+      </testCase>
+      <testCase integration="crash-recovery">
+        <name>Full crash recovery workflow</name>
+        <setup>Save state → simulate crash → restart → load state</setup>
+        <assertion>Loaded state matches saved state, workflow can resume</assertion>
+      </testCase>
+      <testCase integration="git-failure">
+        <name>Git commit failure doesn't block workflow</name>
+        <setup>Mock git.commit to throw error, call saveState()</setup>
+        <assertion>State saved successfully, warning logged, no exception thrown</assertion>
+      </testCase>
+    </ideas>
+  </tests>
+</story-context>
