@@ -1,0 +1,265 @@
+<story-context id="1-8-template-processing-system" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>8</storyId>
+    <title>Template Processing System</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-8-template-processing-system.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a workflow engine developer</asA>
+    <iWant>to process markdown templates with variable substitution</iWant>
+    <soThat>workflows can generate documents from templates (PRD, architecture, etc.)</soThat>
+    <tasks>
+      - Implement TemplateProcessor class structure (AC: #1)
+      - Template loading and parsing (AC: #1, #7)
+      - Variable substitution (AC: #2, #8)
+      - Conditional block support (AC: #3)
+      - Loop support (AC: #4)
+      - File output operations (AC: #5, #6)
+      - Incremental template updates (AC: #6)
+      - Custom helpers and filters
+      - Error handling and validation (AC: #8)
+      - Integration with WorkflowEngine (AC: #5)
+      - Testing and validation
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Load template files (markdown with {{placeholders}})
+    2. Replace {{variable}} with actual values from workflow state
+    3. Support conditional blocks: {{#if condition}} ... {{/if}}
+    4. Support loops: {{#each collection}} ... {{/each}}
+    5. Write processed template to output file
+    6. Use Edit tool for subsequent updates (not Write)
+    7. Preserve formatting and markdown structure
+    8. Clear error messages for undefined variables
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation & Core Engine</title>
+        <section>TemplateProcessor (Section 2.1: Services and Modules)</section>
+        <snippet>TemplateProcessor processes markdown templates with variable substitution, conditionals, and loops to generate documents from templates using Handlebars syntax.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Workflow Plugins</section>
+        <snippet>Each BMAD workflow includes template.md for output document generation. Templates use {{variable}} placeholders processed by TemplateProcessor.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Story 1.8: Template Processing System</section>
+        <snippet>Process markdown templates with variable substitution, conditionals, and loops for document generation in all BMAD workflows.</snippet>
+      </doc>
+      <doc>
+        <path>bmad/bmm/workflows/**/template.md</path>
+        <title>BMAD Workflow Templates</title>
+        <section>Template Examples</section>
+        <snippet>Reference templates showing {{variable}}, {{#if}}, {{#each}} syntax patterns used across PRD, architecture, and story workflows.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-7-workflow-engine-step-executor.md</path>
+        <title>Story 1.7: Workflow Engine - Step Executor</title>
+        <section>Template Integration</section>
+        <snippet>WorkflowEngine invokes TemplateProcessor for &lt;template-output&gt; tags, passing workflow variables for document generation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/core/WorkflowEngine.ts</path>
+        <kind>service</kind>
+        <symbol>WorkflowEngine</symbol>
+        <lines>N/A</lines>
+        <reason>Story 1.7 - TemplateProcessor is invoked by WorkflowEngine when processing &lt;template-output&gt; tags in workflow steps.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/template.types.ts</path>
+        <kind>types</kind>
+        <symbol>TemplateOptions, TemplateContext</symbol>
+        <lines>N/A</lines>
+        <reason>TypeScript interfaces for TemplateProcessor configuration and template rendering context.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/TemplateProcessor.test.ts</path>
+        <kind>test</kind>
+        <symbol>TemplateProcessor tests</symbol>
+        <lines>N/A</lines>
+        <reason>Unit and integration tests for TemplateProcessor - to be created following Vitest patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>bmad/bmm/workflows/prd/template.md</path>
+        <kind>template</kind>
+        <symbol>PRD template</symbol>
+        <lines>N/A</lines>
+        <reason>Example template showing real-world usage of {{variable}}, {{#if}}, {{#each}} patterns for PRD generation.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="handlebars" version="^4.7.8" type="production">
+          Template engine supporting {{variable}}, {{#if}}, {{#each}} syntax with custom helpers
+        </package>
+        <package name="marked" version="^9.0.0" type="production">
+          Markdown parsing for validation (optional)
+        </package>
+        <package name="vitest" version="^1.0.0" type="development">
+          Unit test framework (already installed)
+        </package>
+        <package name="@types/node" version="^20.0.0" type="development">
+          Node.js type definitions (already installed)
+        </package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use Handlebars.js as templating engine for {{}} syntax support
+    - Support {{variable}}, {{#if condition}}, {{#each collection}} syntax
+    - Preserve markdown formatting (whitespace, newlines, code blocks)
+    - Use Write for new files, Edit for updating existing files
+    - Provide custom helpers: uppercase, lowercase, capitalize, date, join, default
+    - Throw descriptive errors for undefined variables (unless default provided)
+    - Cache parsed templates for performance
+    - Integrate cleanly with WorkflowEngine &lt;template-output&gt; tags
+    - Support incremental section updates in existing documents
+    - Follow TypeScript strict mode and ESM module standards
+    - Provide JSDoc comments for all public methods
+    - Handle errors gracefully with clear messages and resolutions
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>TemplateProcessor</name>
+      <kind>TypeScript class</kind>
+      <signature>
+class TemplateProcessor {
+  constructor(options?: TemplateOptions);
+  async loadTemplate(path: string): Promise&lt;string&gt;;
+  processTemplate(template: string, vars: Record&lt;string, any&gt;): string;
+  async renderTemplate(templatePath: string, vars: Record&lt;string, any&gt;): Promise&lt;string&gt;;
+  async writeOutput(content: string, outputPath: string): Promise&lt;void&gt;;
+  async updateSection(filePath: string, sectionName: string, content: string): Promise&lt;void&gt;;
+  registerHelper(name: string, fn: Function): void;
+  private validateTemplate(template: string): void;
+  private resolveTemplatePath(path: string): string;
+}
+      </signature>
+      <path>backend/src/core/TemplateProcessor.ts</path>
+    </interface>
+    <interface>
+      <name>TemplateOptions</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface TemplateOptions {
+  helpers?: Record&lt;string, Function&gt;;
+  strictMode?: boolean;  // Throw error on undefined variables
+  preserveWhitespace?: boolean;
+}
+      </signature>
+      <path>backend/src/types/template.types.ts</path>
+    </interface>
+    <interface>
+      <name>TemplateContext</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface TemplateContext {
+  variables: Record&lt;string, any&gt;;
+  helpers: Record&lt;string, Function&gt;;
+  templatePath?: string;
+}
+      </signature>
+      <path>backend/src/types/template.types.ts</path>
+    </interface>
+    <interface>
+      <name>Template Syntax</name>
+      <kind>Handlebars syntax</kind>
+      <signature>
+Variables: {{variable}}, {{nested.var}}, {{var|default}}
+Conditionals: {{#if condition}}...{{else}}...{{/if}}, {{#unless condition}}...{{/unless}}
+Loops: {{#each collection}}{{this}}{{/each}}, {{@index}}, {{@first}}, {{@last}}
+Helpers: {{uppercase text}}, {{date "YYYY-MM-DD"}}, {{join array ", "}}
+      </signature>
+      <path>Template files (*.md)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest framework for unit and integration tests. Follow test pyramid: 60% unit tests, 30% integration tests, 10% E2E tests. Achieve >80% code coverage for new code. Test files located at backend/tests/ matching source structure. Mock file I/O for unit tests, use real files for integration tests.
+    </standards>
+    <locations>
+      backend/tests/core/TemplateProcessor.test.ts
+      backend/tests/**/*.test.ts
+    </locations>
+    <ideas>
+      <idea ac="1,7">
+        - Test loadTemplate() with valid template path
+        - Test loadTemplate() throws error for missing file
+        - Test template caching (load twice, read file once)
+        - Test markdown formatting preservation (code blocks, lists, headers)
+        - Test whitespace preservation
+      </idea>
+      <idea ac="2,8">
+        - Test simple variable substitution: {{name}}
+        - Test nested variables: {{user.email}}
+        - Test default values: {{optional|default}}
+        - Test error thrown for undefined variables without defaults
+        - Test special characters in variable values
+        - Test empty string vs undefined handling
+      </idea>
+      <idea ac="3">
+        - Test {{#if}} with boolean condition
+        - Test {{#if}} with comparison: {{#if count &gt; 5}}
+        - Test {{#unless}} negation
+        - Test {{else}} blocks
+        - Test nested conditionals
+        - Test removal of false conditional blocks
+      </idea>
+      <idea ac="4">
+        - Test {{#each}} with array of objects
+        - Test loop with {{this.property}} access
+        - Test {{@index}}, {{@first}}, {{@last}} metadata
+        - Test nested loops
+        - Test empty collection handling
+        - Test object iteration
+      </idea>
+      <idea ac="5,6">
+        - Test writeOutput() creates new file with Write
+        - Test writeOutput() updates existing file with Edit
+        - Test atomic write operations (temp + rename)
+        - Test error handling for write failures
+        - Test parent directory creation
+      </idea>
+      <idea ac="6">
+        - Test updateSection() replaces specific section
+        - Test section boundary detection (## Section)
+        - Test preservation of surrounding content
+        - Test error for non-existent section
+        - Test multiple section updates
+      </idea>
+      <idea ac="8">
+        - Test TemplateNotFoundError with clear message
+        - Test TemplateSyntaxError with line number
+        - Test VariableUndefinedError with available variables list
+        - Test error message includes resolution suggestions
+        - Test validation before processing
+      </idea>
+      <idea ac="all">
+        - Integration test: Generate complete PRD from template
+        - Integration test: Update existing architecture.md sections
+        - Integration test: WorkflowEngine &lt;template-output&gt; integration
+        - Test custom helpers (uppercase, date, join)
+        - Performance test: Process 1MB template in &lt;200ms
+        - Test template with all features combined
+      </idea>
+    </ideas>
+  </tests>
+</story-context>

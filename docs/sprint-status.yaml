@@ -52,7 +52,7 @@ development_status:
   1-5-state-manager-file-persistence: ready-for-dev
   1-6-git-worktree-manager-basic-operations: ready-for-dev
   1-7-workflow-engine-step-executor: ready-for-dev
-  1-8-template-processing-system: backlog
+  1-8-template-processing-system: ready-for-dev
   1-9-cli-foundation-basic-commands: backlog
   1-10-error-handling-recovery-infrastructure: backlog
   1-11-test-framework-setup-infrastructure: backlog
