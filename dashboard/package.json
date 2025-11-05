@@ -4,7 +4,8 @@
   "description": "Dashboard UI for the Agent Orchestrator",
   "private": true,
   "scripts": {
-    "lint": "echo 'Dashboard linting not yet implemented'"
+    "lint": "echo 'Dashboard linting not yet implemented'",
+    "test": "echo 'Dashboard testing not yet implemented'"
   },
   "keywords": [
     "bmad",
