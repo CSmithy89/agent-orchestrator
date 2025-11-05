@@ -405,7 +405,15 @@ Each BMAD workflow is a **plugin** to the core kernel. Workflows are self-contai
 
 **Example Workflows:**
 - **PRD Workflow** (Epic 2): Spawns Mary + John → Generates docs/PRD.md
-- **Architecture Workflow** (Epic 3): Spawns Winston + Murat → Generates docs/architecture.md
+- **Architecture Workflow** (Epic 3):
+  - Winston (Architect) defines system design
+  - **Murat (Test Architect - REQUIRED)** defines test strategy
+    - Test framework selection
+    - Test pyramid definition (unit, integration, E2E ratios)
+    - CI/CD pipeline specification
+    - Quality gates definition
+  - Security gate validation → Validates architecture completeness
+  - Generates docs/architecture.md with system design + test strategy
 - **Story Decomposition Workflow** (Epic 4): Spawns Bob → Generates docs/epics.md
 - **Story Development Workflow** (Epic 5): Spawns Amelia → Creates PR
 - **Code Review Workflow** (Epic 5): Spawns Alex agent → Reviews implementation against standards
@@ -1662,6 +1670,30 @@ fastify.register(cors, {
 
 ## 7. Testing Strategy
 
+**Philosophy: Acceptance Test-Driven Development (ATDD) - Required**
+
+All stories follow ATDD methodology:
+1. **Define Tests First** (before implementation):
+   - Extract test cases from acceptance criteria
+   - Write failing tests (RED phase)
+2. **Implement Code** (make tests pass):
+   - Write minimum code to pass tests (GREEN phase)
+3. **Refactor** (improve code quality):
+   - Refactor with confidence (tests ensure correctness)
+
+**Test Architecture Phase (Required):**
+
+Before Epic 1 implementation begins, Murat (Test Architect) defines:
+- Test framework choices (Vitest for backend, Playwright for E2E)
+- Test infrastructure setup
+- Test data management strategy
+- CI/CD pipeline integration
+- Quality gates and coverage targets
+
+This ensures test infrastructure is ready before first story begins.
+
+---
+
 ### 7.1 Test Pyramid
 
 ```
@@ -2509,6 +2541,35 @@ jobs:
 - Show worktree status with badge overlay
 - Calculate critical path using topological sort
 - Export to SVG/PNG for offline viewing
+
+**Status:** Accepted
+
+---
+
+### TD-010: Test Architecture as Required (Not Optional)
+
+**Decision:** Make Murat (Test Architect) workflows required, not optional
+
+**Context:** Early projects skipped test planning, leading to inconsistent test coverage and quality issues
+
+**Alternatives:**
+1. **Optional test workflows**: Flexible (rejected: tests often skipped, quality suffers)
+2. **Test planning during implementation**: Just-in-time (rejected: infrastructure issues block development)
+3. **Required test architecture phase**: Upfront planning (chosen)
+
+**Consequences:**
+- ✅ Pro: Test infrastructure ready before implementation begins
+- ✅ Pro: Consistent test quality across all projects
+- ✅ Pro: ATDD enforced (tests written before code)
+- ✅ Pro: Reduced bugs in production
+- ❌ Con: Adds 15-20 minutes to architecture phase
+- ❌ Con: Cannot skip tests even for prototypes (mitigation: provide "test-light" workflow path)
+
+**Implementation:**
+- Murat workflows execute automatically after Winston in architecture phase
+- Test strategy section required in architecture.md
+- Sprint planning validates test stories exist for each epic
+- CI/CD enforces test execution before merge
 
 **Status:** Accepted
 

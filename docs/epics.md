@@ -525,18 +525,20 @@ So that output meets >85% completeness standard.
 
 ## Epic 3: Planning Phase Automation
 
-**Goal:** Enable autonomous architecture design with **mandatory security validation**, eliminating the architect bottleneck and producing **secure** technical specifications automatically.
+**Goal:** Enable autonomous architecture design **and test strategy planning** with mandatory security validation, eliminating the architect bottleneck and producing secure, testable technical specifications automatically.
 
-**Value Proposition:** System architecture emerges from requirements automatically. Technical decisions documented with rationale. Testing strategies defined upfront. **Security gate ensures compliance before solutioning**.
+**Value Proposition:** System architecture emerges from requirements automatically. **Test infrastructure defined upfront.** Technical decisions documented with rationale. Testing strategies defined before implementation. Security gate ensures compliance before solutioning.
 
-**Business Value:** 10x faster architecture phase (<45 minutes vs 4-8 hours). Consistent quality. **Reduced security vulnerabilities through early validation**. No waiting for architect availability.
+**Business Value:** 10x faster architecture phase (<45 minutes vs 4-8 hours). **Test quality baked in from the start.** Consistent quality. Reduced security vulnerabilities through early validation. No waiting for architect availability.
 
 **Technical Scope:**
 - Architecture workflow execution
-- Winston (Architect) and Murat (Test Architect) agents
-- **Security gate validation**
+- Winston (Architect) agent
+- **Murat (Test Architect) agent - REQUIRED**
+- Security gate validation
 - Technical decisions logging
 - Architecture document generation
+- **Test strategy document generation**
 
 ### Stories
 
@@ -564,11 +566,11 @@ So that architecture workflows can design systems autonomously.
 
 ---
 
-**Story 3.2: Murat Agent - Test Architect Persona**
+**Story 3.2: Murat Agent - Test Architect Persona (REQUIRED)**
 
 As the orchestrator core,
-I want a Murat agent focused on testing strategy,
-So that architecture includes comprehensive test planning.
+I want a Murat agent focused on comprehensive testing strategy **executed in every architecture workflow**,
+So that all projects have solid test infrastructure and quality foundations.
 
 **Acceptance Criteria:**
 1. Load Murat persona from bmad/bmm/agents/murat.md
@@ -576,35 +578,48 @@ So that architecture includes comprehensive test planning.
    - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
    - Recommended: Claude Sonnet for test design reasoning and edge case analysis
    - See Story 1.3 for configuration examples with multiple providers
-3. Specialized prompts for: test strategy, coverage analysis, quality gates
-4. Methods: defineTestStrategy(), planTestInfrastructure(), specifyQualityGates()
-5. Generate test pyramid recommendations
-6. Define unit/integration/E2E test requirements
+3. Specialized prompts for: test strategy, coverage analysis, quality gates, ATDD methodology
+4. Methods: defineTestStrategy(), planTestInfrastructure(), specifyQualityGates(), designATDDWorkflow()
+5. Generate test pyramid recommendations (unit, integration, E2E ratios)
+6. Define unit/integration/E2E test requirements per epic
 7. Specify performance and security test needs
-8. Collaborate with Winston on testability of architecture
+8. **Collaborate with Winston on testability of architecture (required step)**
+9. **Execute automatically after Winston in architecture workflow (not optional)**
+10. Escalate if architecture has testability issues (e.g., tightly coupled components)
 
-**Prerequisites:** Epic 1, Story 2.1
+**Prerequisites:** Epic 1, Story 2.1, Story 3.1 (Winston)
+
+**Estimated Time:** 2-3 hours
 
 ---
 
 **Story 3.3: Architecture Workflow Executor**
 
 As a user wanting automated architecture design,
-I want to run the architecture workflow and get a complete technical spec,
-So that I can move directly from PRD to implementation planning.
+I want to run the architecture workflow and get a complete technical spec **with test strategy**,
+So that I can move directly from PRD to implementation planning with quality baked in.
 
 **Acceptance Criteria:**
 1. Load bmad/bmm/workflows/architecture/workflow.yaml
-2. Execute all architecture workflow steps
-3. Spawn Winston agent for system design
-4. Spawn Murat agent for test strategy
-5. Read PRD.md as input
-6. Generate architecture.md with: system design, data models, API specs, tech stack
-7. Make autonomous decisions (target <2 escalations)
-8. Complete in <45 minutes
-9. Update workflow-status.yaml
+2. Execute all architecture workflow steps **sequentially**
+3. **Step 1**: Spawn Winston agent for system design
+4. **Step 2**: Spawn Murat agent for test strategy (REQUIRED, not optional)
+5. **Step 3**: Execute security gate validation
+6. Read PRD.md as input
+7. Generate architecture.md with:
+   - System design, data models, API specs, tech stack (Winston)
+   - **Test strategy, infrastructure, quality gates (Murat)**
+   - Security architecture validation results
+8. Make autonomous decisions (target <2 escalations)
+9. Complete in <50 minutes (was <45, increased to accommodate test planning)
+10. Update workflow-status.yaml with:
+    - architecture_complete: true
+    - **test_strategy_defined: true**
+    - security_gate_passed: true
 
-**Prerequisites:** Story 3.1, Story 3.2, Epic 2 complete
+**Prerequisites:** Story 3.1, Story 3.2, Story 3.6 (Security Gate), Epic 2 complete
+
+**Estimated Time:** 3-4 hours
 
 ---
 
@@ -1527,6 +1542,39 @@ This section provides a logical implementation order that minimizes blockers and
 - Target: Web dashboard for monitoring and control
 - Parallel: Backend API (6.1-6.6) and Frontend (6.7-6.11) can overlap
 - UX Design: Required before starting Story 6.7
+
+### Test Story Requirements
+
+**Every Epic Must Include Test Stories:**
+
+Following ATDD methodology, each epic includes dedicated test stories:
+
+**Epic 1 (Foundation):**
+- Story 1.11: Test Framework Setup & Infrastructure
+- Story 1.12: CI/CD Pipeline Configuration
+
+**Epic 2 (Analysis):**
+- Story 2.8: PRD Validation Tests
+
+**Epic 3 (Planning):**
+- Story 3.7: Architecture Validation Tests
+
+**Epic 4 (Solutioning):**
+- Story 4.9: Story Decomposition Quality Tests
+
+**Epic 5 (Implementation):**
+- Test stories embedded in each implementation story (ATDD)
+- Story 5.11: Integration Test Suite
+- Story 5.12: E2E Test Suite
+
+**Epic 6 (Remote Access):**
+- Story 6.13: API Integration Tests
+- Story 6.14: Dashboard E2E Tests
+
+**Test Coverage Validation:**
+- CI/CD enforces 80% minimum coverage
+- Pull requests blocked if coverage drops
+- Test execution required before merge
 
 ### Detailed Implementation Sequence
 

@@ -80,6 +80,13 @@ This is a novel approach combining:
 - ✅ **Code Quality**: Generated code passes tests and review >90% on first attempt
 - ✅ **PRD Quality**: PRD completeness score >85% using standardized checklist
 
+**Testing & Quality**
+- ✅ Test strategy defined in architecture phase (required, not optional)
+- ✅ All stories include test acceptance criteria
+- ✅ 80%+ code coverage for new code
+- ✅ Automated test execution in CI/CD
+- ✅ Zero critical bugs in production
+
 **Cost Efficiency:**
 - ✅ **Project Budget**: Complete project for <$200 in LLM fees
 - ✅ **Per-Phase Costs**: PRD <$5, Architecture <$10, Story <$2-5
@@ -135,11 +142,12 @@ This is a novel approach combining:
    - **Success**: Complete PRD in <30 minutes with <3 escalations
 
 2. **Planning Phase Automation**
-   - ✅ Architecture workflow with Winston (Architect) and Murat (Test Architect)
+   - ✅ Architecture workflow with Winston (Architect) and **Murat (Test Architect - required)**
    - ✅ **Security gate validation before solutioning**
    - ✅ Technical decisions documentation
+   - ✅ **Test strategy and infrastructure planning (required)**
    - ✅ System design and data models
-   - **Success**: Complete architecture in <45 minutes, **security gate passes**, <2 escalations
+   - **Success**: Complete architecture in <45 minutes, security gate passes, **test strategy defined**, <2 escalations
 
 3. **Solutioning Phase Automation**
    - ✅ Epic and story generation with Bob (Scrum Master)
@@ -966,6 +974,18 @@ Events:
   - Data encryption strategy specified
 - Human escalation if gaps detected
 - Audit trail of security gate decisions
+
+### Testing
+
+**NFR-TEST-007: Test Architecture Required**
+- Test strategy must be defined during architecture phase
+- Test infrastructure (frameworks, patterns) specified before implementation
+- All epics must include test planning stories
+- ATDD (Acceptance Test-Driven Development) enforced:
+  - Tests written before implementation
+  - Acceptance criteria mapped to test cases
+  - CI/CD pipeline validates all tests pass
+- Minimum test coverage: 80% for new code
 
 ### Usability
 

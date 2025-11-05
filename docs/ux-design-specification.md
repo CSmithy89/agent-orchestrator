@@ -967,6 +967,32 @@ graph LR
 - **Timezone Handling**: User local time (detected from browser)
 - **Pickers**: Calendar popup for date selection, dropdown for time selection
 
+**Test Quality Indicators (New UX Pattern):**
+
+Display test status and coverage metrics throughout the dashboard:
+
+**Test Coverage Badge:**
+- Location: Story cards, Project detail view
+- Display: "[X]% coverage" with color coding
+  - Green (≥80%): Excellent
+  - Amber (60-79%): Acceptable
+  - Red (<60%): Needs attention
+- Tooltip: "Unit: [X]%, Integration: [Y]%, E2E: [Z]%"
+
+**Test Execution Status:**
+- Location: PR cards, Story detail panel
+- States:
+  - ✅ "All tests passing ([N]/[N])"
+  - ⚠️ "[N] tests failing"
+  - 🔄 "Tests running..."
+  - ❌ "Tests failed ([N]/[M])"
+- Click → View test report details
+
+**Test Strategy Indicator:**
+- Location: Project detail, Phase progress
+- Badge: "Test Strategy Defined ✅" after Planning phase
+- Missing indicator if strategy not defined (blocks solutioning)
+
 ---
 
 ## 8. Responsive Design & Accessibility
