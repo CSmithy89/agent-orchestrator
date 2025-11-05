@@ -1,0 +1,203 @@
+<story-context id="1-4-agent-pool-lifecycle-management" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>4</storyId>
+    <title>Agent Pool & Lifecycle Management</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-4-agent-pool-lifecycle-management.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>an orchestrator core developer</asA>
+    <iWant>to manage agent instances with proper lifecycle and resource cleanup</iWant>
+    <soThat>agents can be created with specific LLMs and contexts, then cleaned up after use</soThat>
+    <tasks>
+      - Task 1: Define Agent and AgentContext interfaces (AC: #1, #3)
+      - Task 2: Implement AgentPool class skeleton (AC: #1)
+      - Task 3: Implement createAgent method (AC: #2, #3)
+      - Task 4: Implement agent queueing logic (AC: #1, #6)
+      - Task 5: Implement invokeAgent method (AC: #4)
+      - Task 6: Implement destroyAgent method (AC: #5)
+      - Task 7: Implement resource limits enforcement (AC: #6)
+      - Task 8: Implement query methods (AC: #7)
+      - Task 9: Implement cost tracking (AC: #8)
+      - Task 10: Write unit tests (AC: All)
+      - Task 11: Write integration tests (AC: All)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. AgentPool Class Implementation - Implement AgentPool class that manages active agent instances, tracks agents in Map structure, supports configurable max concurrent agents limit (default: 3), implements agent task queue for requests when pool at capacity
+    2. Agent Creation (createAgent) - createAgent(name, llmConfig, context) method creates agent with project-configured LLM, llmConfig retrieved from .bmad/project-config.yaml agent_assignments section, supports any provider configured in LLMFactory (Anthropic, OpenAI, Zhipu), loads agent persona from bmad/bmm/agents/{name}.md, injects LLMClient, context (onboarding, docs, workflow state) into agent, generates unique agent ID for tracking, emits agent.started event on creation
+    3. Agent Context Injection - Build AgentContext with onboarding docs, previous phase outputs, current task description, optimize context size to minimize tokens (&lt;200k token limit), exclude irrelevant history and excessive prior conversations
+    4. Agent Invocation - invokeAgent(agentId, prompt) invokes agent with prompt and returns LLM response, tracks agent execution time (startTime to endTime), estimates and tracks cost per provider pricing, logs all LLM requests/responses for debugging (exclude API keys)
+    5. Agent Cleanup (destroyAgent) - destroyAgent(id) method cleans up agent resources within 30 seconds, saves execution logs before cleanup, releases LLM client connections, removes agent from activeAgents map, updates cost tracking with final numbers, emits agent.completed event on cleanup
+    6. Resource Management - Enforce concurrent agent limits per project, queue agent tasks when pool at capacity, implement fair scheduling for queued tasks, monitor agent health and track potential hung agents
+    7. Query Operations - getActiveAgents() returns list of currently active agents, includes agent details: id, name, persona, startTime, estimatedCost, supports queries for dashboard integration
+    8. Cost Tracking - Track execution time per agent, estimate cost based on provider pricing and token usage, aggregate costs by agent, by workflow, by project, expose cost metrics for Cost-Quality Optimizer integration
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-1.md" title="Epic Technical Specification: Foundation & Core Engine" section="AgentPool Public API">
+        AgentPool class provides: createAgent(name, context) creates agent with project-configured LLM, invokeAgent(agentId, prompt) invokes agent, destroyAgent(agentId) cleans up resources, getActiveAgents() returns active agents list. Agent lifecycle: load persona → get LLM config → inject context → ready for invocation → cleanup within 30s.
+      </doc>
+      <doc path="docs/tech-spec-epic-1.md" title="Epic Technical Specification: Foundation & Core Engine" section="Non-Functional Requirements">
+        NFR-PERF-003: Configurable concurrent agents per project (default: 3), agent task queue if pool at capacity, fair scheduling across projects. NFR-PERF-002: Agent cleanup releases resources within 30 seconds.
+      </doc>
+      <doc path="docs/tech-spec-epic-1.md" title="Epic Technical Specification: Foundation & Core Engine" section="Acceptance Criteria AC-E1-003">
+        Agent pool can create agents with specified LLM, invoke agents with prompts, destroy agents and cleanup resources. Concurrent agent limits enforced (configurable). Cost tracking per agent functional.
+      </doc>
+      <doc path="docs/architecture.md" title="System Architecture" section="2.1.2 Agent Pool">
+        Responsibility: Manage AI agent lifecycle, LLM assignment, and resource limits. Key classes: AgentPool with activeAgents Map, agentQueue array, maxConcurrentAgents config. Agent Lifecycle: Create (load persona → initialize LLM client → inject context), Active (process tasks, track cost, emit events), Destroy (save logs → release LLM connection → cleanup within 30s).
+      </doc>
+      <doc path="docs/architecture.md" title="System Architecture" section="2.1.2 Agent Pool - Concurrency Control">
+        Max concurrent agents configurable per project (default: 3). Queue additional agent tasks if pool at capacity. Prioritize critical agents. Cost tracking: Estimate tokens (prompt + response), calculate cost per LLM provider pricing, aggregate by project, agent, workflow.
+      </doc>
+      <doc path="docs/architecture.md" title="System Architecture" section="3.2.3 Event Bus">
+        Event types for agent lifecycle: agent.started (on creation), agent.completed (on cleanup). Emit events to event bus for WebSocket/dashboard consumption.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="FR-AGENT-001: Agent Lifecycle Management">
+        Create agent instance with specified LLM. Provide agent with context (onboarding, previous docs, workflow state). Execute agent task. Clean up agent resources after completion. Track agent execution time and cost.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="FR-AGENT-002: Agent Pool Management">
+        Maintain pool of active agents per project. Limit concurrent agents to prevent resource exhaustion. Queue agent tasks if pool full. Monitor agent health and restart if hung.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="FR-AGENT-003: Agent Context Management">
+        Build relevant context for each agent invocation. Include: onboarding docs, previous phase outputs, current task description. Exclude: irrelevant history, excessive prior conversations. Optimize context size to minimize tokens.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="NFR-PERF-004: Resource Efficiency">
+        Orchestrator memory usage: &lt;512MB per project. Agent cleanup: release resources within 30 seconds.
+      </doc>
+    </docs>
+    <code>
+      <artifact path="backend/src/types/ProjectConfig.ts" kind="types" symbol="AgentLLMConfig" lines="15-30" reason="AgentPool needs AgentLLMConfig interface to retrieve LLM configuration per agent from ProjectConfig">
+        export interface AgentLLMConfig {
+          model: string;              // e.g., "claude-sonnet-4-5", "gpt-4o"
+          provider: LLMProvider;      // 'anthropic' | 'openai' | 'zhipu' | 'google'
+          base_url?: string;          // Optional for API wrappers
+          api_key?: string;           // Optional API key override
+          reasoning: string;          // Why this model/agent pairing
+        }
+      </artifact>
+      <artifact path="backend/src/config/ProjectConfig.ts" kind="class" symbol="ProjectConfig" lines="26-298" reason="AgentPool will use ProjectConfig.getAgentConfig(agentName) to retrieve LLM assignments for agents">
+        Key methods AgentPool will use:
+        - getAgentConfig(agentName: string): AgentLLMConfig | undefined
+        - getCostManagement(): CostManagementConfig (for budget tracking)
+        - getOnboardingDocs(): OnboardingPaths (for agent context injection)
+      </artifact>
+      <artifact path="backend/tests/config/ProjectConfig.test.ts" kind="test" symbol="ProjectConfig tests" reason="Reference for testing patterns - unit tests with mocks, validation error testing, schema testing">
+        Existing test patterns to follow: schema validation tests, error handling tests, environment variable expansion tests, mock configuration loading
+      </artifact>
+    </code>
+    <dependencies>
+      <ecosystem name="Node.js">
+        <package name="js-yaml" version="^4.1.0" purpose="YAML parsing for workflow.yaml and config files" />
+        <package name="dotenv" version="^16.0.0" purpose="Environment variable loading for API keys" />
+        <package name="uuid" version="^9.0.0" purpose="Generate unique agent IDs" recommended="true" />
+      </ecosystem>
+      <ecosystem name="TypeScript">
+        <package name="typescript" version="^5.0.0" purpose="Type safety and strict mode" />
+        <package name="@types/node" version="^20.0.0" purpose="Node.js type definitions" />
+      </ecosystem>
+      <ecosystem name="Testing">
+        <package name="vitest" version="^1.0.0" purpose="Unit test framework" />
+        <package name="@vitest/ui" version="^1.0.0" purpose="Test UI" />
+        <package name="c8" version="^8.0.0" purpose="Code coverage" />
+      </ecosystem>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Max concurrent agents per project: 3 (configurable via ProjectConfig)
+    - Agent cleanup timeout: 30 seconds maximum
+    - Memory limit per project: &lt;512MB
+    - Context size optimization: &lt;200k tokens per agent
+    - Fair scheduling required for queued agent tasks (FIFO by default)
+    - Event emission required: agent.started on creation, agent.completed on cleanup
+    - Cost tracking required: track tokens, execution time, cost per provider pricing
+    - Error handling: LLM API failures handled by retry logic in LLMClient (Story 1.3)
+    - Agent health monitoring: detect and cleanup hung agents
+    - Dependencies: Requires LLMFactory (Story 1.3) and ProjectConfig (Story 1.1)
+  </constraints>
+  <interfaces>
+    <interface name="Agent" kind="TypeScript interface">
+      interface Agent {
+        id: string;
+        name: string;           // "mary", "winston", "amelia", etc.
+        persona: string;        // Loaded from bmad/bmm/agents/{name}.md
+        llmClient: LLMClient;
+        context: AgentContext;
+        startTime: Date;
+        estimatedCost: number;
+      }
+    </interface>
+    <interface name="AgentContext" kind="TypeScript interface">
+      interface AgentContext {
+        onboardingDocs: string[];
+        workflowState: any;
+        taskDescription: string;
+        previousPhaseOutputs?: any;
+      }
+    </interface>
+    <interface name="AgentPool.createAgent" kind="method signature" path="backend/src/core/AgentPool.ts">
+      async createAgent(name: string, llmConfig: LLMConfig, context: AgentContext): Promise&lt;Agent&gt;
+    </interface>
+    <interface name="AgentPool.invokeAgent" kind="method signature" path="backend/src/core/AgentPool.ts">
+      async invokeAgent(agentId: string, prompt: string): Promise&lt;string&gt;
+    </interface>
+    <interface name="AgentPool.destroyAgent" kind="method signature" path="backend/src/core/AgentPool.ts">
+      async destroyAgent(agentId: string): Promise&lt;void&gt;
+    </interface>
+    <interface name="AgentPool.getActiveAgents" kind="method signature" path="backend/src/core/AgentPool.ts">
+      getActiveAgents(): Agent[]
+    </interface>
+    <interface name="LLMFactory.createClient" kind="method signature" path="backend/src/core/LLMFactory.ts">
+      createClient(llmConfig: LLMConfig): LLMClient
+    </interface>
+    <interface name="LLMClient" kind="TypeScript interface" path="backend/src/types/llm.ts">
+      interface LLMClient {
+        provider: string;       // "anthropic", "openai", "zhipu"
+        model: string;
+        invoke(prompt: string, options?: InvokeOptions): Promise&lt;string&gt;;
+        stream(prompt: string, options?: StreamOptions): AsyncIterator&lt;string&gt;;
+        estimateCost(prompt: string, response: string): number;
+      }
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>
+      Testing framework: Vitest (unit tests) with c8 for code coverage. Test pyramid: 60% unit tests, 30% integration tests, 10% E2E tests. Coverage target: &gt;80% code coverage for Epic 1 components. Critical paths (AgentPool, StateManager, ErrorHandler) require 100% coverage. Test patterns: Mock external dependencies (LLMFactory, LLMClient) for unit tests, use descriptive test names (should X when Y pattern), test edge cases and error conditions, use test fixtures for consistency. Integration tests: Test with real LLMFactory instance but mocked LLM API calls, use VCR or similar for API mocking. Acceptance Test-Driven Development (ATDD): Write acceptance criteria as executable tests first, implement to pass tests, verify all ACs pass at story completion.
+    </standards>
+    <locations>
+      backend/tests/unit/AgentPool.test.ts - Unit tests for AgentPool class
+      backend/tests/integration/AgentPool.integration.test.ts - Integration tests for agent lifecycle
+      backend/tests/fixtures/ - Test fixtures and mock data
+    </locations>
+    <ideas>
+      <test-idea ac="1" description="Test AgentPool class initialization with default and custom concurrent agent limits" />
+      <test-idea ac="1" description="Test agent task queue behavior: add tasks when at capacity, process queue on agent destruction" />
+      <test-idea ac="2" description="Test createAgent with valid agent name from config, should load persona from bmad/bmm/agents/{name}.md and create LLMClient via factory" />
+      <test-idea ac="2" description="Test createAgent with invalid agent name not in config, should throw clear error message" />
+      <test-idea ac="2" description="Test createAgent emits agent.started event with correct agent metadata" />
+      <test-idea ac="3" description="Test agent context injection: verify onboarding docs, workflow state, and task description are properly injected" />
+      <test-idea ac="3" description="Test context size optimization: ensure context &lt; 200k tokens, exclude irrelevant history" />
+      <test-idea ac="4" description="Test invokeAgent with valid agent ID, should call llmClient.invoke and return response" />
+      <test-idea ac="4" description="Test invokeAgent with invalid agent ID, should throw error" />
+      <test-idea ac="4" description="Test cost tracking during invocation: verify token count and cost calculation per provider" />
+      <test-idea ac="5" description="Test destroyAgent cleans up resources within 30 seconds: save logs, release LLM client, remove from map" />
+      <test-idea ac="5" description="Test destroyAgent emits agent.completed event with cost/time metrics" />
+      <test-idea ac="5" description="Test destroyAgent processes next queued task if queue not empty" />
+      <test-idea ac="6" description="Test concurrent agent limits: verify max agents enforced, additional requests queued" />
+      <test-idea ac="6" description="Test fair scheduling: FIFO order for queued tasks" />
+      <test-idea ac="7" description="Test getActiveAgents returns correct list with all agent details" />
+      <test-idea ac="7" description="Test getActiveAgents filtering by name and start time" />
+      <test-idea ac="8" description="Test cost aggregation: by agent, by workflow, by project" />
+      <test-idea ac="8" description="Test integration with Cost-Quality Optimizer: expose getCostMetrics()" />
+      <test-idea ac="all" description="Integration test: end-to-end flow create → invoke → destroy with real LLMFactory" />
+      <test-idea ac="all" description="Integration test: multiple agents in parallel, verify isolation and resource limits" />
+    </ideas>
+  </tests>
+</story-context>

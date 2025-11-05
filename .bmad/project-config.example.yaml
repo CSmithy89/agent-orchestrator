@@ -1,0 +1,109 @@
+# Agent Orchestrator - Project Configuration
+# This file defines project metadata, agent LLM assignments, and cost management settings
+# Copy this file to .bmad/project-config.yaml and customize for your project
+
+# =============================================================================
+# Project Metadata
+# =============================================================================
+project:
+  # Project name (used in logs, reports, and dashboards)
+  name: "Agent Orchestrator"
+  
+  # Brief project description
+  description: "Autonomous BMAD workflow execution system for 24/7 software development"
+  
+  # Repository URL or path
+  repository: "https://github.com/your-org/agent-orchestrator"
+
+# =============================================================================
+# Onboarding Documentation Paths
+# =============================================================================
+onboarding:
+  # Technology stack documentation files (relative to project root)
+  tech_stack:
+    - "docs/architecture.md"
+    - "docs/tech-spec-epic-1.md"
+    - "docs/PRD.md"
+  
+  # Coding standards document path
+  coding_standards: "docs/coding-standards.md"
+  
+  # Architecture patterns document path
+  architecture_patterns: "docs/architecture.md"
+
+# =============================================================================
+# Agent LLM Assignments
+# Per-agent model configuration enables cost/quality optimization
+# =============================================================================
+agent_assignments:
+  # Mary - Business Analyst (requires strong reasoning)
+  mary:
+    model: "claude-sonnet-4-5"
+    provider: "anthropic"
+    # Optional: override API key (defaults to ANTHROPIC_API_KEY env var)
+    # api_key: "${ANTHROPIC_API_KEY}"
+    reasoning: "Claude Sonnet 4.5 excels at business analysis and requirements gathering"
+
+  # Winston - System Architect (requires deep technical reasoning)
+  winston:
+    model: "claude-sonnet-4-5"
+    provider: "anthropic"
+    reasoning: "Claude Sonnet 4.5 best for system design and architectural decisions"
+
+  # Murat - Test Architect (requires test strategy expertise)
+  murat:
+    model: "claude-sonnet-4-5"
+    provider: "anthropic"
+    reasoning: "Claude Sonnet 4.5 provides comprehensive test coverage strategies"
+
+  # Amelia - Developer (requires code generation quality)
+  amelia:
+    model: "gpt-4o"
+    provider: "openai"
+    # api_key: "${OPENAI_API_KEY}"
+    reasoning: "GPT-4o offers fast, high-quality code generation for implementation"
+
+  # Bob - Scrum Master (cost-optimized for story management)
+  bob:
+    model: "glm-4-plus"
+    provider: "zhipu"
+    # For using z.ai wrapper:
+    # base_url: "https://api.z.ai/v1"
+    # api_key: "${Z_AI_API_KEY}"
+    reasoning: "GLM-4-Plus via z.ai provides cost-effective story decomposition"
+
+  # Alex - Code Reviewer (requires critical analysis)
+  alex:
+    model: "claude-sonnet-4-5"
+    provider: "anthropic"
+    reasoning: "Claude Sonnet 4.5 provides thorough code review with security focus"
+
+# =============================================================================
+# Cost Management Configuration
+# =============================================================================
+cost_management:
+  # Maximum monthly budget in USD
+  max_monthly_budget: 1000
+  
+  # Alert threshold (0-1) - warn when reaching this % of budget
+  alert_threshold: 0.8
+  
+  # Fallback model when budget exceeded (must be cost-effective)
+  fallback_model: "claude-haiku-3-5"
+
+# =============================================================================
+# Supported LLM Providers
+# =============================================================================
+# - anthropic: Claude models (claude-sonnet-4-5, claude-haiku-3-5, etc.)
+# - openai: GPT models (gpt-4o, gpt-4-turbo, etc.)
+# - zhipu: GLM models (glm-4-plus, glm-4-flash, etc.)
+# - google: Gemini models (gemini-2.0-flash, etc.)
+#
+# For API wrappers like z.ai, specify base_url in agent config
+#
+# Environment Variables (define in .env):
+# - ANTHROPIC_API_KEY: Anthropic API key
+# - OPENAI_API_KEY: OpenAI API key
+# - ZHIPU_API_KEY: Zhipu AI API key
+# - GOOGLE_API_KEY: Google AI API key
+# - Z_AI_API_KEY: z.ai wrapper API key (optional)
