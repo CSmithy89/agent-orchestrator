@@ -44,7 +44,7 @@ development_status:
   0-1-project-scaffolding-initialization: done
 
   # Epic 1: Foundation & Core Engine
-  epic-1: backlog
+  epic-1: contexted  # Tech spec: docs/tech-spec-epic-1.md
   1-1-project-repository-structure-configuration: backlog
   1-2-workflow-yaml-parser: backlog
   1-3-llm-factory-pattern-implementation: backlog
