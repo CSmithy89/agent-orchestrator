@@ -77,7 +77,7 @@ describe('StateManager', () => {
     it('should write YAML state file', async () => {
       await stateManager.saveState(mockState);
 
-      const yamlPath = path.join(BMAD_DIR, 'sprint-status.yaml');
+      const yamlPath = path.join(BMAD_DIR, 'test-project', 'sprint-status.yaml');
       const exists = await fs.access(yamlPath).then(() => true).catch(() => false);
       expect(exists).toBe(true);
 
@@ -93,7 +93,7 @@ describe('StateManager', () => {
     it('should write Markdown state file', async () => {
       await stateManager.saveState(mockState);
 
-      const mdPath = path.join(BMAD_DIR, 'workflow-status.md');
+      const mdPath = path.join(BMAD_DIR, 'test-project', 'workflow-status.md');
       const exists = await fs.access(mdPath).then(() => true).catch(() => false);
       expect(exists).toBe(true);
 
@@ -110,11 +110,11 @@ describe('StateManager', () => {
     it('should write both files with matching data', async () => {
       await stateManager.saveState(mockState);
 
-      const yamlPath = path.join(BMAD_DIR, 'sprint-status.yaml');
+      const yamlPath = path.join(BMAD_DIR, 'test-project', 'sprint-status.yaml');
       const yamlContent = await fs.readFile(yamlPath, 'utf-8');
       const parsedYaml = yaml.load(yamlContent) as any;
 
-      const mdPath = path.join(BMAD_DIR, 'workflow-status.md');
+      const mdPath = path.join(BMAD_DIR, 'test-project', 'workflow-status.md');
       const mdContent = await fs.readFile(mdPath, 'utf-8');
 
       // Verify data consistency
@@ -268,7 +268,7 @@ describe('StateManager', () => {
     it('should write file atomically', async () => {
       await stateManager.saveState(mockState);
 
-      const yamlPath = path.join(BMAD_DIR, 'sprint-status.yaml');
+      const yamlPath = path.join(BMAD_DIR, 'test-project', 'sprint-status.yaml');
       const content = await fs.readFile(yamlPath, 'utf-8');
 
       expect(content).toBeTruthy();
@@ -278,8 +278,8 @@ describe('StateManager', () => {
     it('should not leave temp files after successful write', async () => {
       await stateManager.saveState(mockState);
 
-      const yamlTempPath = path.join(BMAD_DIR, 'sprint-status.yaml.tmp');
-      const mdTempPath = path.join(BMAD_DIR, 'workflow-status.md.tmp');
+      const yamlTempPath = path.join(BMAD_DIR, 'test-project', 'sprint-status.yaml.tmp');
+      const mdTempPath = path.join(BMAD_DIR, 'test-project', 'workflow-status.md.tmp');
 
       const yamlTempExists = await fs.access(yamlTempPath).then(() => true).catch(() => false);
       const mdTempExists = await fs.access(mdTempPath).then(() => true).catch(() => false);
@@ -400,7 +400,7 @@ describe('StateManager', () => {
       expect(loaded1).not.toBeNull();
 
       // Modify file
-      const yamlPath = path.join(BMAD_DIR, 'sprint-status.yaml');
+      const yamlPath = path.join(BMAD_DIR, 'test-project', 'sprint-status.yaml');
       const modifiedState = { ...mockState, currentStep: 999 };
       const yamlContent = yaml.dump({
         ...modifiedState,
@@ -513,6 +513,122 @@ describe('StateManager', () => {
       const loaded = await stateManager.loadState('test-project');
       expect(loaded?.agentActivity).toHaveLength(20);
       expect(loaded?.agentActivity[10].agentName).toBe('Agent 10');
+    });
+  });
+
+  describe('Multi-Project Support', () => {
+    it('should not overwrite state files for different projects', async () => {
+      // Create state for project A
+      const stateA = {
+        ...mockState,
+        project: {
+          id: 'project-a',
+          name: 'Project A',
+          level: 3
+        },
+        currentStep: 1
+      };
+
+      // Create state for project B
+      const stateB = {
+        ...mockState,
+        project: {
+          id: 'project-b',
+          name: 'Project B',
+          level: 2
+        },
+        currentStep: 5
+      };
+
+      // Save both states
+      await stateManager.saveState(stateA);
+      await stateManager.saveState(stateB);
+
+      // Clear cache to force file reads
+      stateManager.clearCache();
+
+      // Load both states
+      const loadedA = await stateManager.loadState('project-a');
+      const loadedB = await stateManager.loadState('project-b');
+
+      // Verify project A state is intact
+      expect(loadedA).not.toBeNull();
+      expect(loadedA?.project.id).toBe('project-a');
+      expect(loadedA?.project.name).toBe('Project A');
+      expect(loadedA?.currentStep).toBe(1);
+
+      // Verify project B state is intact
+      expect(loadedB).not.toBeNull();
+      expect(loadedB?.project.id).toBe('project-b');
+      expect(loadedB?.project.name).toBe('Project B');
+      expect(loadedB?.currentStep).toBe(5);
+    });
+
+    it('should create separate directories for each project', async () => {
+      const stateA = {
+        ...mockState,
+        project: {
+          id: 'project-x',
+          name: 'Project X',
+          level: 3
+        }
+      };
+
+      const stateB = {
+        ...mockState,
+        project: {
+          id: 'project-y',
+          name: 'Project Y',
+          level: 2
+        }
+      };
+
+      await stateManager.saveState(stateA);
+      await stateManager.saveState(stateB);
+
+      // Verify both project directories exist
+      const projectXYaml = path.join(BMAD_DIR, 'project-x', 'sprint-status.yaml');
+      const projectYYaml = path.join(BMAD_DIR, 'project-y', 'sprint-status.yaml');
+
+      const projectXExists = await fs.access(projectXYaml).then(() => true).catch(() => false);
+      const projectYExists = await fs.access(projectYYaml).then(() => true).catch(() => false);
+
+      expect(projectXExists).toBe(true);
+      expect(projectYExists).toBe(true);
+    });
+
+    it('should maintain separate cache entries for each project', async () => {
+      const stateA = {
+        ...mockState,
+        project: {
+          id: 'cache-test-a',
+          name: 'Cache Test A',
+          level: 3
+        },
+        currentStep: 10
+      };
+
+      const stateB = {
+        ...mockState,
+        project: {
+          id: 'cache-test-b',
+          name: 'Cache Test B',
+          level: 2
+        },
+        currentStep: 20
+      };
+
+      // Save both states (populates cache)
+      await stateManager.saveState(stateA);
+      await stateManager.saveState(stateB);
+
+      // Load from cache (should not read files)
+      const cachedA = await stateManager.loadState('cache-test-a');
+      const cachedB = await stateManager.loadState('cache-test-b');
+
+      // Verify correct cached values
+      expect(cachedA?.currentStep).toBe(10);
+      expect(cachedB?.currentStep).toBe(20);
     });
   });
 });

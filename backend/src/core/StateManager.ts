@@ -25,17 +25,19 @@ export class StateManager {
   }
 
   /**
-   * Get the path to the YAML state file
+   * Get the path to the YAML state file for a specific project
+   * @param projectId Project identifier
    */
-  private getYamlPath(): string {
-    return path.join(this.stateDir, 'sprint-status.yaml');
+  private getYamlPath(projectId: string): string {
+    return path.join(this.stateDir, projectId, 'sprint-status.yaml');
   }
 
   /**
-   * Get the path to the Markdown state file
+   * Get the path to the Markdown state file for a specific project
+   * @param projectId Project identifier
    */
-  private getMarkdownPath(): string {
-    return path.join(this.stateDir, 'workflow-status.md');
+  private getMarkdownPath(projectId: string): string {
+    return path.join(this.stateDir, projectId, 'workflow-status.md');
   }
 
   /**
@@ -272,17 +274,18 @@ export class StateManager {
     const markdownContent = this.generateMarkdownFormat(state);
 
     // Write both files atomically in parallel
+    const projectId = state.project.id;
     await Promise.all([
-      this.atomicWrite(this.getYamlPath(), yamlContent),
-      this.atomicWrite(this.getMarkdownPath(), markdownContent)
+      this.atomicWrite(this.getYamlPath(projectId), yamlContent),
+      this.atomicWrite(this.getMarkdownPath(projectId), markdownContent)
     ]);
 
     // Update cache
-    this.stateCache.set(state.project.id, state);
+    this.stateCache.set(projectId, state);
 
     // Auto-commit state changes (non-blocking)
     const commitMessage = this.generateCommitMessage(state);
-    this.commitStateChange(commitMessage).catch(error => {
+    this.commitStateChange(projectId, commitMessage).catch(error => {
       console.warn(`Failed to auto-commit state changes: ${error.message}`);
     });
   }
@@ -299,7 +302,7 @@ export class StateManager {
       return cached;
     }
 
-    const yamlPath = this.getYamlPath();
+    const yamlPath = this.getYamlPath(projectId);
 
     try {
       // Read YAML file
@@ -436,9 +439,10 @@ export class StateManager {
 
   /**
    * Auto-commit state changes to git
+   * @param projectId Project identifier
    * @param message Commit message
    */
-  private async commitStateChange(message: string): Promise<void> {
+  private async commitStateChange(projectId: string, message: string): Promise<void> {
     try {
       // Dynamic import of simple-git
       const { simpleGit } = await import('simple-git');
@@ -453,8 +457,8 @@ export class StateManager {
 
       // Stage state files
       await git.add([
-        this.getYamlPath(),
-        this.getMarkdownPath()
+        this.getYamlPath(projectId),
+        this.getMarkdownPath(projectId)
       ]);
 
       // Commit with descriptive message
