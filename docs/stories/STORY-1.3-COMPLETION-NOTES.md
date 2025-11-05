@@ -130,7 +130,7 @@ Successfully implemented the LLM Factory Pattern with full multi-provider suppor
 
 ## Files Created
 
-```
+```text
 backend/src/
 ├── llm/
 │   ├── index.ts                          # Main export with createLLMFactory()
@@ -194,7 +194,7 @@ Story 1.4 (Agent Pool & Lifecycle Management) can now:
 
 ## Build & Test Results
 
-```
+```text
 ✅ TypeScript build: SUCCESS
 ✅ Unit tests: 61/61 PASSING
 ✅ Test coverage: >80% for new code
