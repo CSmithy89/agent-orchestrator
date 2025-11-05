@@ -698,6 +698,73 @@ graph LR
 - **Format**: "Alex completed code review for Story 5.3 (Score: 87/100)"
 - **Behavior**: Link to full report modal
 
+**9. Security Gate Interface Components**
+- **Purpose**: Display security gate validation results with clear pass/fail status and actionable gap analysis
+- **Components**:
+
+**Security Gate Status Badge**
+- **Location**: Project detail view, Phase progress indicator
+- **States**:
+  - 🟡 "Security Validation In Progress"
+  - ✅ "Security Gate Passed (98/100)"
+  - ⚠️ "Security Gate Failed - Review Required"
+- **Styling**: Color-coded for quick status check
+
+**Security Gate Report Modal**
+- **Trigger**: Click "View Security Report" in project detail
+- **Layout Structure**:
+  ```
+  ┌────────────────────────────────────────────┐
+  │ Security Gate Validation Report            │
+  │ Project: Agent Orchestrator                 │
+  │ Date: 2025-11-05 | Score: 98/100 ✅        │
+  ├────────────────────────────────────────────┤
+  │ Overall Status: PASSED                      │
+  │ All critical security requirements met      │
+  ├────────────────────────────────────────────┤
+  │ Security Checks:                            │
+  │                                             │
+  │ ✅ Authentication & Authorization           │
+  │    Strategy: JWT-based authentication       │
+  │    Evidence: Section 6.2 (Auth & Auth)     │
+  │                                             │
+  │ ✅ Secrets Management                       │
+  │    Strategy: Environment variables + Vault  │
+  │    Evidence: Section 6.2 (Secrets Mgmt)    │
+  │                                             │
+  │ ✅ Input Validation                         │
+  │    Strategy: Zod schema validation          │
+  │    Evidence: Section 6.2 (Input Validation)│
+  │                                             │
+  │ ✅ API Security                             │
+  │    Measures: Rate limiting, CORS, CSP       │
+  │    Evidence: Section 6.2 (Network Security)│
+  │                                             │
+  │ ✅ Data Encryption                          │
+  │    Strategy: TLS 1.2+, encrypted env vars   │
+  │    Evidence: Section 6.2 (Network Security)│
+  │                                             │
+  │ ⚠️ Threat Model (Minor Gap)                 │
+  │    Status: OWASP Top 10 addressed (90%)    │
+  │    Gap: SSRF mitigation not fully detailed  │
+  │    Recommendation: Add URL validation spec  │
+  ├────────────────────────────────────────────┤
+  │ [View Full Architecture] [Continue to Solutioning] │
+  └────────────────────────────────────────────┘
+  ```
+- **Features**:
+  - Expandable check cards showing evidence
+  - Links to architecture sections
+  - For failed gates: Gap report with recommendations
+
+**Failed Gate Escalation**
+- **Alert**: "Security Gate Failed - Action Required"
+- **Content**: List missing/incomplete security specifications
+- **Actions**:
+  - Provide recommendations and examples
+  - "Update Architecture" button → Re-opens architecture workflow
+  - Block "Start Solutioning" until gate passes
+
 ---
 
 ## 7. UX Pattern Decisions

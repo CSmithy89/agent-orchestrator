@@ -136,9 +136,10 @@ This is a novel approach combining:
 
 2. **Planning Phase Automation**
    - ✅ Architecture workflow with Winston (Architect) and Murat (Test Architect)
+   - ✅ **Security gate validation before solutioning**
    - ✅ Technical decisions documentation
    - ✅ System design and data models
-   - **Success**: Complete architecture in <45 minutes with <2 escalations
+   - **Success**: Complete architecture in <45 minutes, **security gate passes**, <2 escalations
 
 3. **Solutioning Phase Automation**
    - ✅ Epic and story generation with Bob (Scrum Master)
@@ -674,6 +675,26 @@ FR-ERR-003: **Error Logging**
 - Clean up orphaned worktrees
 - Report any corrupted state for manual intervention
 
+### Security Gate Validation
+
+**FR-SEC-006: Mandatory Security Gate**
+- **Input**: Completed architecture.md document
+- **Process**:
+  - Validate security architecture section completeness
+  - Check authentication/authorization specifications
+  - Verify data encryption strategy defined
+  - Validate input validation approach documented
+  - Check API security (rate limiting, CORS, CSP)
+  - Assess threat model coverage
+  - Review secrets management strategy
+- **Output**: Security gate approval or escalation with gaps identified
+- **Acceptance Criteria**:
+  - Security gate executes after architecture workflow, before solutioning phase
+  - All required security sections present and detailed
+  - Threat model addresses OWASP Top 10
+  - <1 escalation per project (clear security requirements)
+  - Gate completion in <5 minutes (automated checks)
+
 ### Git Worktree Operations
 
 **FR-WORKTREE-001: Worktree Creation**
@@ -889,6 +910,18 @@ Events:
 - Project filesystem isolation (chroot-like)
 - Git operations restricted to project repository
 - No cross-project data access
+
+**NFR-SEC-006: Security Gate Compliance**
+- Mandatory security validation checkpoint after architecture phase
+- Block progression to solutioning if security requirements incomplete
+- Automated checks for:
+  - Authentication & authorization specified
+  - Secrets management strategy defined
+  - Input validation approach documented
+  - API security measures defined (rate limiting, CORS, CSP)
+  - Data encryption strategy specified
+- Human escalation if gaps detected
+- Audit trail of security gate decisions
 
 ### Usability
 

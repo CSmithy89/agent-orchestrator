@@ -613,6 +613,88 @@ class CodeReviewEngine {
 5. **Confidence Check**: If confidence <0.85 or critical issues found → escalate
 6. **Pass/Fail Decision**: Determine if code ready for PR creation
 
+#### 2.3.5 Security Gate Validator
+
+**Responsibility:** Validate architecture security completeness before solutioning phase
+
+**Key Classes:**
+```typescript
+interface SecurityGateCheck {
+  category: string;
+  requirement: string;
+  satisfied: boolean;
+  evidence?: string;
+  recommendation?: string;
+}
+
+interface SecurityGateResult {
+  passed: boolean;
+  overallScore: number; // 0-100
+  checks: SecurityGateCheck[];
+  gaps: string[];
+  escalationRequired: boolean;
+  timestamp: Date;
+}
+
+class SecurityGateValidator {
+  async validateArchitecture(
+    architecturePath: string
+  ): Promise<SecurityGateResult>;
+
+  private checkAuthenticationSpec(): SecurityGateCheck;
+  private checkSecretsManagement(): SecurityGateCheck;
+  private checkInputValidation(): SecurityGateCheck;
+  private checkAPISecurityMeasures(): SecurityGateCheck;
+  private checkDataEncryption(): SecurityGateCheck;
+  private checkThreatModel(): SecurityGateCheck;
+
+  private generateGapReport(checks: SecurityGateCheck[]): string[];
+  private determineEscalation(gaps: string[]): boolean;
+}
+```
+
+**Validation Workflow:**
+1. **Trigger**: After architecture workflow completes (Story 3.5)
+2. **Load Architecture**: Read docs/architecture.md
+3. **Execute Checks**: Validate each security category
+4. **Score Calculation**: (Satisfied checks / Total checks) × 100
+5. **Pass/Fail Decision**:
+   - Score ≥95%: Pass (proceed to solutioning)
+   - Score <95%: Fail (escalate with gap report)
+6. **Audit Trail**: Log gate decision and evidence
+
+**Security Check Categories:**
+- **Authentication & Authorization** (Required):
+  - Strategy specified (JWT, OAuth, session-based)
+  - User permissions model defined
+  - API authentication mechanism documented
+- **Secrets Management** (Required):
+  - Storage strategy specified (env vars, vault, secrets manager)
+  - Rotation policy documented
+  - No secrets in code policy enforced
+- **Input Validation** (Required):
+  - Validation approach specified (schema validation, sanitization)
+  - SQL injection prevention documented
+  - XSS prevention documented
+- **API Security** (Required):
+  - Rate limiting strategy defined
+  - CORS configuration specified
+  - CSP (Content Security Policy) defined
+- **Data Encryption** (Required):
+  - At-rest encryption strategy
+  - In-transit encryption (HTTPS/TLS)
+  - Sensitive data handling specified
+- **Threat Modeling** (Required):
+  - OWASP Top 10 addressed
+  - Attack surface analysis documented
+  - Risk mitigation strategies defined
+
+**Escalation Criteria:**
+- Any required category unsatisfied
+- Evidence insufficient for validation
+- Conflicting security specifications
+- Missing threat model for high-risk project
+
 ---
 
 ## 3. Data Models
@@ -1680,6 +1762,56 @@ test('should display project status and escalations', async ({ page }) => {
 - **Node.js profiler** (--prof) for CPU profiling
 - **heapdump** for memory leak detection
 
+### 7.7 Security Testing
+
+**Scope:** Validate security controls and identify vulnerabilities
+
+**Tools:** OWASP ZAP, npm audit, Snyk, ESLint security plugins
+
+**Security Test Types:**
+
+**1. Static Application Security Testing (SAST)**
+```typescript
+// Example: ESLint security scan
+describe('Security - Static Analysis', () => {
+  it('should have no high-severity vulnerabilities', async () => {
+    const scanResults = await runStaticSecurityScan('src/');
+    const highSeverity = scanResults.filter(v => v.severity === 'high');
+    expect(highSeverity).toHaveLength(0);
+  });
+});
+```
+
+**2. Dependency Vulnerability Scanning**
+- Run `npm audit` in CI/CD
+- Fail build if high/critical vulnerabilities
+- Track exceptions with justification
+
+**3. Security Gate Integration Tests**
+```typescript
+describe('Security Gate Validator', () => {
+  it('should pass architecture with complete security specs', async () => {
+    const result = await securityGate.validateArchitecture('test-fixtures/secure-arch.md');
+    expect(result.passed).toBe(true);
+    expect(result.overallScore).toBeGreaterThan(95);
+  });
+
+  it('should fail architecture missing authentication spec', async () => {
+    const result = await securityGate.validateArchitecture('test-fixtures/incomplete-arch.md');
+    expect(result.passed).toBe(false);
+    expect(result.gaps).toContain('Authentication strategy not specified');
+  });
+});
+```
+
+**4. API Security Tests**
+- Test rate limiting enforcement
+- Validate CORS configuration
+- Check CSP headers
+- Test authentication bypass attempts
+
+**Coverage Target:** 100% security gate checks covered by tests
+
 ---
 
 ## 8. Deployment Architecture
@@ -2213,6 +2345,36 @@ jobs:
 **LLM Assignment:**
 - Amelia (Developer): GPT-4 Turbo (superior code generation)
 - Alex (Reviewer): Claude Sonnet (superior analytical reasoning)
+
+**Status:** Accepted
+
+---
+
+### TD-008: Mandatory Security Gate After Architecture
+
+**Decision:** Require security gate validation before proceeding to solutioning phase
+
+**Context:** Architecture documents often lack sufficient security detail, leading to vulnerabilities discovered late
+
+**Alternatives:**
+1. **Optional security review**: Fast (rejected: security often skipped)
+2. **Security review during implementation**: Catches issues (rejected: too late, expensive fixes)
+3. **Mandatory security gate after architecture**: Early validation (chosen)
+
+**Consequences:**
+- ✅ Pro: Security considered upfront, not afterthought
+- ✅ Pro: Clear security requirements before implementation
+- ✅ Pro: Reduced vulnerability discovery in production
+- ✅ Pro: Compliance readiness (SOC 2, ISO 27001)
+- ❌ Con: Adds 5-10 minutes to architecture phase
+- ❌ Con: May escalate if security not well-defined initially
+
+**Validation Criteria:**
+- OWASP Top 10 addressed
+- Authentication & authorization specified
+- Secrets management strategy defined
+- Data encryption approach documented
+- API security measures defined
 
 **Status:** Accepted
 

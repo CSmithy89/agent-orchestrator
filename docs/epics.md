@@ -525,15 +525,16 @@ So that output meets >85% completeness standard.
 
 ## Epic 3: Planning Phase Automation
 
-**Goal:** Enable autonomous architecture design, eliminating the architect bottleneck and producing technical specifications automatically.
+**Goal:** Enable autonomous architecture design with **mandatory security validation**, eliminating the architect bottleneck and producing **secure** technical specifications automatically.
 
-**Value Proposition:** System architecture emerges from requirements automatically. Technical decisions are documented with rationale. Testing strategies defined upfront.
+**Value Proposition:** System architecture emerges from requirements automatically. Technical decisions documented with rationale. Testing strategies defined upfront. **Security gate ensures compliance before solutioning**.
 
-**Business Value:** 10x faster architecture phase (<45 minutes vs 4-8 hours). Consistent quality. No waiting for architect availability.
+**Business Value:** 10x faster architecture phase (<45 minutes vs 4-8 hours). Consistent quality. **Reduced security vulnerabilities through early validation**. No waiting for architect availability.
 
 **Technical Scope:**
 - Architecture workflow execution
 - Winston (Architect) and Murat (Test Architect) agents
+- **Security gate validation**
 - Technical decisions logging
 - Architecture document generation
 
@@ -649,6 +650,44 @@ So that developers have clear technical guidance.
 6. Format with proper markdown, mermaid diagrams, code samples
 
 **Prerequisites:** Story 3.3
+
+---
+
+**Story 3.6: Security Gate Validation Workflow**
+
+As an autonomous orchestrator prioritizing security,
+I want mandatory security validation after architecture design,
+So that security requirements are complete before proceeding to solutioning.
+
+**Acceptance Criteria:**
+1. Implement SecurityGateValidator class with comprehensive security checks
+2. Execute automatically after Story 3.5 (Architecture Template generation)
+3. Validate required security sections in architecture.md:
+   - Authentication & Authorization strategy
+   - Secrets Management approach
+   - Input Validation strategy
+   - API Security measures (rate limiting, CORS, CSP)
+   - Data Encryption (at-rest and in-transit)
+   - Threat Model (OWASP Top 10 coverage)
+4. Generate SecurityGateResult with:
+   - Pass/fail status (≥95% score to pass)
+   - Detailed check results per category
+   - Gap analysis for failed checks
+   - Actionable recommendations
+5. If gate fails (score <95%):
+   - Generate gap report with specific missing elements
+   - Escalate to user with recommendations
+   - Block progression to solutioning phase
+6. If gate passes:
+   - Update workflow-status.yaml (security_gate: passed)
+   - Proceed to Epic 4 (Solutioning)
+7. Log security gate decision with evidence for audit trail
+8. Complete gate validation in <5 minutes
+9. Track metrics: pass rate, common gaps, escalation frequency
+
+**Prerequisites:** Story 3.5 (Architecture Template Generation)
+
+**Estimated Time:** 2-3 hours
 
 ---
 
@@ -1450,7 +1489,7 @@ Sequential after 3.1 + 3.2:
 - Story 3.3: Architecture Workflow Executor
 - Story 3.5: Architecture Template & Content Generation
 
-**Phase 2B Completion Gate:** ✅ Architecture workflow generates technical specs autonomously
+**Phase 2B Completion Gate:** ✅ Architecture workflow generates technical specs autonomously **AND security gate passes validation**
 
 ---
 
