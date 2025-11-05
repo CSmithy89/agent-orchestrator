@@ -89,48 +89,88 @@ class OpenAIClient implements LLMClient {
     return this.retryHandler.executeWithRetry(
       async () => {
         try {
-          const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+          // gpt-3.5-turbo-instruct uses the completions endpoint, not chat
+          const isInstruct = this.config.model.includes('instruct');
 
-          if (options?.system_prompt) {
-            messages.push({
-              role: 'system',
-              content: options.system_prompt
+          if (isInstruct) {
+            // Use completions endpoint for instruct models
+            const instructPrompt = options?.system_prompt
+              ? `${options.system_prompt}\n\n${prompt}`
+              : prompt;
+
+            const response = await this.openai.completions.create({
+              model: this.config.model,
+              prompt: instructPrompt,
+              max_tokens: options?.max_tokens,
+              temperature: options?.temperature ?? 0.7,
+              stop: options?.stop_sequences
             });
+
+            // Store token usage
+            if (response.usage) {
+              this.lastTokenUsage = {
+                input_tokens: response.usage.prompt_tokens,
+                output_tokens: response.usage.completion_tokens,
+                total_tokens: response.usage.total_tokens
+              };
+            }
+
+            const content = response.choices[0]?.text;
+            if (!content) {
+              throw new LLMError(
+                'No content in OpenAI response',
+                LLMErrorType.PERMANENT,
+                this.provider,
+                this.config.model
+              );
+            }
+
+            return content;
+          } else {
+            // Use chat completions endpoint for chat models
+            const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+
+            if (options?.system_prompt) {
+              messages.push({
+                role: 'system',
+                content: options.system_prompt
+              });
+            }
+
+            messages.push({
+              role: 'user',
+              content: prompt
+            });
+
+            const response = await this.openai.chat.completions.create({
+              model: this.config.model,
+              messages,
+              max_tokens: options?.max_tokens,
+              temperature: options?.temperature ?? 0.7,
+              stop: options?.stop_sequences
+            });
+
+            // Store token usage
+            if (response.usage) {
+              this.lastTokenUsage = {
+                input_tokens: response.usage.prompt_tokens,
+                output_tokens: response.usage.completion_tokens,
+                total_tokens: response.usage.total_tokens
+              };
+            }
+
+            const content = response.choices[0]?.message?.content;
+            if (!content) {
+              throw new LLMError(
+                'No content in OpenAI response',
+                LLMErrorType.PERMANENT,
+                this.provider,
+                this.config.model
+              );
+            }
+
+            return content;
           }
-
-          messages.push({
-            role: 'user',
-            content: prompt
-          });
-
-          const response = await this.openai.chat.completions.create({
-            model: this.config.model,
-            messages,
-            max_tokens: options?.max_tokens,
-            temperature: options?.temperature ?? 0.7,
-            stop: options?.stop_sequences
-          });
-
-          // Store token usage
-          if (response.usage) {
-            this.lastTokenUsage = {
-              input_tokens: response.usage.prompt_tokens,
-              output_tokens: response.usage.completion_tokens,
-              total_tokens: response.usage.total_tokens
-            };
-          }
-
-          const content = response.choices[0]?.message?.content;
-          if (!content) {
-            throw new LLMError(
-              'No content in OpenAI response',
-              LLMErrorType.PERMANENT,
-              this.provider,
-              this.config.model
-            );
-          }
-
-          return content;
         } catch (error: any) {
           throw this.handleError(error);
         }
@@ -144,45 +184,67 @@ class OpenAIClient implements LLMClient {
    */
   async *stream(prompt: string, options?: StreamOptions): AsyncIterableIterator<string> {
     try {
-      const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
-
-      if (options?.system_prompt) {
-        messages.push({
-          role: 'system',
-          content: options.system_prompt
-        });
-      }
-
-      messages.push({
-        role: 'user',
-        content: prompt
-      });
-
-      const stream = await this.openai.chat.completions.create({
-        model: this.config.model,
-        messages,
-        max_tokens: options?.max_tokens,
-        temperature: options?.temperature ?? 0.7,
-        stream: true
-      });
+      // gpt-3.5-turbo-instruct uses the completions endpoint, not chat
+      const isInstruct = this.config.model.includes('instruct');
 
       let totalTokens = 0;
+      const inputTokens = Math.ceil(prompt.length / 4);
 
-      for await (const chunk of stream) {
-        const content = chunk.choices[0]?.delta?.content;
-        if (content) {
-          yield content;
+      if (isInstruct) {
+        // Use completions endpoint for instruct models
+        const instructPrompt = options?.system_prompt
+          ? `${options.system_prompt}\n\n${prompt}`
+          : prompt;
+
+        const stream = await this.openai.completions.create({
+          model: this.config.model,
+          prompt: instructPrompt,
+          max_tokens: options?.max_tokens,
+          temperature: options?.temperature ?? 0.7,
+          stream: true
+        });
+
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.text;
+          if (content) {
+            yield content;
+            totalTokens += Math.ceil(content.length / 4);
+          }
+        }
+      } else {
+        // Use chat completions endpoint for chat models
+        const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [];
+
+        if (options?.system_prompt) {
+          messages.push({
+            role: 'system',
+            content: options.system_prompt
+          });
         }
 
-        // OpenAI streaming doesn't provide usage in chunks
-        // We'll estimate tokens based on content length
-        if (content) {
-          totalTokens += Math.ceil(content.length / 4);
+        messages.push({
+          role: 'user',
+          content: prompt
+        });
+
+        const stream = await this.openai.chat.completions.create({
+          model: this.config.model,
+          messages,
+          max_tokens: options?.max_tokens,
+          temperature: options?.temperature ?? 0.7,
+          stream: true
+        });
+
+        for await (const chunk of stream) {
+          const content = chunk.choices[0]?.delta?.content;
+          if (content) {
+            yield content;
+            totalTokens += Math.ceil(content.length / 4);
+          }
         }
       }
 
       // Store estimated token usage
-      const inputTokens = Math.ceil(prompt.length / 4);
       this.lastTokenUsage = {
         input_tokens: inputTokens,
         output_tokens: totalTokens,

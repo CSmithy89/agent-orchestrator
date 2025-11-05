@@ -61,6 +61,7 @@ describe('LLMFactory', () => {
     it('should validate OpenAI models correctly', () => {
       expect(factory.validateModel('gpt-4-turbo', 'openai')).toBe(true);
       expect(factory.validateModel('gpt-4', 'openai')).toBe(true);
+      expect(factory.validateModel('gpt-3.5-turbo-instruct', 'openai')).toBe(true);
       expect(factory.validateModel('invalid-model', 'openai')).toBe(false);
     });
 
