@@ -257,8 +257,10 @@ class OpenAIClient implements LLMClient {
 
   /**
    * Estimate cost based on token usage
-   * Pricing (as of 2024):
+   * Pricing (as of 2025):
    * - GPT-4 Turbo: $10/M input, $30/M output
+   * - GPT-4o: $5/M input, $20/M output
+   * - GPT-4o Mini: $0.15/M input, $0.60/M output
    * - GPT-4: $30/M input, $60/M output
    * - GPT-3.5 Turbo: $0.50/M input, $1.50/M output
    */
@@ -293,9 +295,16 @@ class OpenAIClient implements LLMClient {
     let inputCostPerM: number;
     let outputCostPerM: number;
 
-    if (model.includes('gpt-4-turbo') || model.includes('gpt-4o')) {
+    // Check specific models first (most specific to least specific)
+    if (model.includes('gpt-4o-mini')) {
+      inputCostPerM = 0.15;
+      outputCostPerM = 0.60;
+    } else if (model.includes('gpt-4-turbo')) {
       inputCostPerM = 10;
       outputCostPerM = 30;
+    } else if (model.includes('gpt-4o')) {
+      inputCostPerM = 5;
+      outputCostPerM = 20;
     } else if (model.includes('gpt-4')) {
       inputCostPerM = 30;
       outputCostPerM = 60;

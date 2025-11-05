@@ -69,6 +69,11 @@ export class LLMFactory {
     try {
       return await provider.createClient(config);
     } catch (error) {
+      // Preserve existing LLMError types (AUTH, TRANSIENT, etc.)
+      if (error instanceof LLMError) {
+        throw error;
+      }
+      // Only wrap unexpected errors as CONFIG
       throw new LLMError(
         `Failed to create LLM client for provider "${config.provider}": ${(error as Error).message}`,
         LLMErrorType.CONFIG,
