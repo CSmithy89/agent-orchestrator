@@ -1,0 +1,315 @@
+<story-context id="1-7-workflow-engine-step-executor" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>7</storyId>
+    <title>Workflow Engine - Step Executor</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-7-workflow-engine-step-executor.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a workflow automation developer</asA>
+    <iWant>to execute workflow steps in order with proper state management</iWant>
+    <soThat>BMAD workflows can run autonomously</soThat>
+    <tasks>
+      - Implement WorkflowEngine class structure (AC: #1)
+      - Parse instructions.md and extract steps (AC: #2)
+      - Implement step execution loop (AC: #1, #3)
+      - Variable substitution system (AC: #4)
+      - Conditional logic handling (AC: #5)
+      - Special tag support (AC: #6)
+      - State persistence integration (AC: #7)
+      - Crash recovery and resume (AC: #8)
+      - #yolo mode implementation (AC: #9)
+      - Error handling and logging
+      - Testing and validation
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Implement WorkflowEngine class that executes workflow steps sequentially
+    2. Load instructions from markdown file (parse step tags: &lt;step n="X"&gt;)
+    3. Execute actions in exact order (step 1, 2, 3...)
+    4. Replace {{variables}} with resolved values
+    5. Handle conditional logic (&lt;check if="condition"&gt;)
+    6. Support goto, invoke-workflow, invoke-task tags
+    7. Save state after each step completion
+    8. Resume from last completed step on restart
+    9. Support #yolo mode (skip optional steps, no prompts)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation & Core Engine</title>
+        <section>WorkflowEngine (Section 2.1: Services and Modules)</section>
+        <snippet>WorkflowEngine parses and executes BMAD workflows by loading instructions.md, executing steps sequentially, managing variables, handling conditionals, and persisting state after each step for crash recovery.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Workflow Engine (Core Kernel)</section>
+        <snippet>The Workflow Engine is the heart of the orchestrator, executing BMAD workflows autonomously through XML-style tag parsing in markdown instructions with full state management.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Story 1.7: Workflow Engine - Step Executor</section>
+        <snippet>Core workflow execution engine enabling autonomous BMAD workflow execution with sequential steps, variable substitution, conditional logic, state persistence, and crash recovery.</snippet>
+      </doc>
+      <doc>
+        <path>bmad/core/tasks/workflow.xml</path>
+        <title>BMAD Workflow Execution Instructions</title>
+        <section>Complete workflow execution specification</section>
+        <snippet>Reference implementation showing all supported XML tags, variable resolution, conditional logic patterns, and execution flow that WorkflowEngine must implement.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-2-workflow-yaml-parser.md</path>
+        <title>Story 1.2: Workflow YAML Parser</title>
+        <section>Learnings and Patterns</section>
+        <snippet>Use js-yaml for parsing, resolve variables in multiple passes, provide clear error messages with context, return structured TypeScript interfaces.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-5-state-manager-file-persistence.md</path>
+        <title>Story 1.5: State Manager - File Persistence</title>
+        <section>Learnings and Patterns</section>
+        <snippet>Use atomic writes for persistence, save state after every critical operation, validate data structure, handle corrupted files gracefully, auto-commit to git.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/core/WorkflowParser.ts</path>
+        <kind>service</kind>
+        <symbol>WorkflowParser</symbol>
+        <lines>N/A</lines>
+        <reason>Story 1.2 - WorkflowEngine depends on WorkflowParser to parse workflow.yaml and resolve variables before execution.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>service</kind>
+        <symbol>StateManager</symbol>
+        <lines>N/A</lines>
+        <reason>Story 1.5 - WorkflowEngine uses StateManager to save state after each step and load state for crash recovery.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/workflow.types.ts</path>
+        <kind>types</kind>
+        <symbol>Step, WorkflowState, Action, Check</symbol>
+        <lines>N/A</lines>
+        <reason>TypeScript interfaces for WorkflowEngine: Step structure, execution state, actions, and conditional checks.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/WorkflowEngine.test.ts</path>
+        <kind>test</kind>
+        <symbol>WorkflowEngine tests</symbol>
+        <lines>N/A</lines>
+        <reason>Unit and integration tests for WorkflowEngine - to be created following Vitest patterns.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="js-yaml" version="^4.1.0" type="production">
+          YAML parsing library (already installed, used by WorkflowParser)
+        </package>
+        <package name="vitest" version="^1.0.0" type="development">
+          Unit test framework (already installed)
+        </package>
+        <package name="@types/node" version="^20.0.0" type="development">
+          Node.js type definitions (already installed)
+        </package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - WorkflowEngine MUST execute steps sequentially (1, 2, 3...) in exact order
+    - Save state after EVERY step completion for crash recovery
+    - Parse instructions.md using XML-style tags: &lt;step&gt;, &lt;action&gt;, &lt;check&gt;, etc.
+    - Variable substitution MUST handle {{variable}}, {{nested.var}}, {{var|default}}
+    - Conditional logic MUST support: ==, !=, &lt;, &gt;, &lt;=, &gt;=, AND, OR, NOT
+    - Support special tags: &lt;goto&gt;, &lt;invoke-workflow&gt;, &lt;invoke-task&gt;
+    - Resume from last completed step on restart (crash recovery)
+    - #yolo mode MUST skip: optional steps, &lt;ask&gt; prompts, &lt;elicit-required&gt;
+    - Integrate with WorkflowParser (Story 1.2) and StateManager (Story 1.5)
+    - Follow TypeScript strict mode and ESM module standards
+    - Provide JSDoc comments for all public methods
+    - Handle errors gracefully with clear messages and line numbers
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>WorkflowEngine</name>
+      <kind>TypeScript class</kind>
+      <signature>
+class WorkflowEngine {
+  constructor(workflowPath: string, options?: EngineOptions);
+  async execute(): Promise&lt;void&gt;;
+  async resumeFromState(state: WorkflowState): Promise&lt;void&gt;;
+  async executeStep(step: Step): Promise&lt;void&gt;;
+  private async parseInstructions(path: string): Promise&lt;Step[]&gt;;
+  private replaceVariables(text: string, vars: Record&lt;string, any&gt;): string;
+  private evaluateCondition(condition: string, context: any): boolean;
+  private handleGoto(stepNumber: number): void;
+  private async invokeWorkflow(path: string, inputs: any): Promise&lt;void&gt;;
+  private async invokeTask(path: string, params: any): Promise&lt;void&gt;;
+}
+      </signature>
+      <path>backend/src/core/WorkflowEngine.ts</path>
+    </interface>
+    <interface>
+      <name>Step</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface Step {
+  number: number;
+  goal: string;
+  content: string;
+  optional?: boolean;
+  actions: Action[];
+  checks: Check[];
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+    </interface>
+    <interface>
+      <name>Action</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface Action {
+  type: 'action' | 'ask' | 'output' | 'template-output' | 'elicit-required';
+  content: string;
+  condition?: string;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+    </interface>
+    <interface>
+      <name>Check</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface Check {
+  condition: string;
+  actions: Action[];
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+    </interface>
+    <interface>
+      <name>WorkflowState</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface WorkflowState {
+  project: { id: string; name: string; level: number };
+  currentWorkflow: string;
+  currentStep: number;
+  status: 'running' | 'paused' | 'completed' | 'error';
+  variables: Record&lt;string, any&gt;;
+  agentActivity: any[];
+  startTime: number;
+  lastUpdate: number;
+}
+      </signature>
+      <path>backend/src/types/workflow.types.ts</path>
+    </interface>
+    <interface>
+      <name>XML Tags Supported</name>
+      <kind>Markdown/XML tags</kind>
+      <signature>
+&lt;step n="1" goal="Description"&gt;...&lt;/step&gt;
+&lt;action&gt;Do something&lt;/action&gt;
+&lt;action if="condition"&gt;Conditional action&lt;/action&gt;
+&lt;check if="condition"&gt;...&lt;/check&gt;
+&lt;ask&gt;Prompt user&lt;/ask&gt;
+&lt;output&gt;Display message&lt;/output&gt;
+&lt;template-output file="path"&gt;Generate content&lt;/template-output&gt;
+&lt;elicit-required&gt;Show menu&lt;/elicit-required&gt;
+&lt;goto step="N"&gt;Jump to step N&lt;/goto&gt;
+&lt;invoke-workflow path="..."&gt;Execute nested workflow&lt;/invoke-workflow&gt;
+&lt;invoke-task path="..."&gt;Execute task&lt;/invoke-task&gt;
+      </signature>
+      <path>instructions.md files</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest framework for unit and integration tests. Follow test pyramid: 60% unit tests, 30% integration tests, 10% E2E tests. Achieve >80% code coverage for new code. Test files located at backend/tests/ matching source structure. Mock external dependencies (file I/O, StateManager) for unit tests, use real dependencies for integration tests.
+    </standards>
+    <locations>
+      backend/tests/core/WorkflowEngine.test.ts
+      backend/tests/**/*.test.ts
+    </locations>
+    <ideas>
+      <idea ac="1">
+        - Test WorkflowEngine class instantiation with valid workflow path
+        - Test constructor throws error for invalid workflow path
+        - Test options parameter (yoloMode, stateManager, workflowParser)
+      </idea>
+      <idea ac="2">
+        - Test parseInstructions() extracts steps from valid instructions.md
+        - Test step parsing with nested actions and checks
+        - Test error handling for malformed XML (missing closing tags)
+        - Test step number validation (must be sequential 1, 2, 3...)
+        - Test extraction of step attributes: n, goal, optional
+      </idea>
+      <idea ac="3">
+        - Test execute() runs all steps in order (1 → 2 → 3)
+        - Test executeStep() processes actions sequentially
+        - Test step execution skips steps when condition is false
+        - Test execution halts on critical error
+      </idea>
+      <idea ac="4">
+        - Test replaceVariables() with simple variables: {{name}}
+        - Test nested variables: {{user.email}}
+        - Test default values: {{optional|default}}
+        - Test error thrown for undefined variables without defaults
+        - Test special variables: {{date}}, {{project-root}}
+      </idea>
+      <idea ac="5">
+        - Test evaluateCondition() with comparison operators: ==, !=, &lt;, &gt;
+        - Test logical operators: AND, OR, NOT
+        - Test boolean checks: "variable is true"
+        - Test file checks: "file exists"
+        - Test &lt;check if="condition"&gt; blocks execute conditionally
+      </idea>
+      <idea ac="6">
+        - Test handleGoto() jumps to correct step number
+        - Test invokeWorkflow() loads and executes nested workflow
+        - Test invokeTask() executes task and returns output
+        - Test error handling for invalid step number in goto
+        - Test error handling for missing workflow/task file
+      </idea>
+      <idea ac="7">
+        - Test state saved after each step completion
+        - Test StateManager.saveState() called with correct parameters
+        - Test state includes: currentWorkflow, currentStep, status, variables
+        - Test error handling when state save fails
+      </idea>
+      <idea ac="8">
+        - Test resumeFromState() loads state and resumes from next step
+        - Test execution continues from state.currentStep + 1
+        - Test variables restored from state
+        - Test error handling for corrupted state
+        - Test validation that state matches current workflow
+      </idea>
+      <idea ac="9">
+        - Test #yolo mode skips optional steps
+        - Test #yolo mode skips &lt;ask&gt; prompts
+        - Test #yolo mode skips &lt;elicit-required&gt; tags
+        - Test #yolo mode auto-approves &lt;template-output&gt; checkpoints
+        - Test critical steps NOT skipped in #yolo mode
+      </idea>
+      <idea ac="all">
+        - Integration test: Complete workflow execution end-to-end
+        - Integration test: Crash recovery (save → crash → load → resume)
+        - Integration test: Nested workflow invocation
+        - Test concurrent workflow execution (multiple projects)
+        - Test edge cases: empty workflow, single step, 100 steps
+        - Performance test: Workflow with 50+ steps completes in &lt;10s
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
