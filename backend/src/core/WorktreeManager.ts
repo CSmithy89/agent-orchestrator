@@ -426,17 +426,54 @@ export class WorktreeManager {
       const output = await this.git.raw(['worktree', 'list', '--porcelain']);
       const gitWorktrees = this.parseWorktreeList(output);
 
+      const trackedPaths = new Set(
+        Array.from(this.worktrees.values()).map(wt => path.resolve(wt.path))
+      );
+
       // Check each tracked worktree
       for (const [storyId, worktree] of this.worktrees.entries()) {
-        const exists = gitWorktrees.some(gw => gw.path === worktree.path);
+        const exists = gitWorktrees.some(
+          gw => path.resolve(gw.path) === path.resolve(worktree.path)
+        );
         if (!exists) {
           // Worktree was removed externally
           console.warn(`Removing stale worktree tracking for ${storyId} (path: ${worktree.path})`);
           this.worktrees.delete(storyId);
+          trackedPaths.delete(path.resolve(worktree.path));
         }
       }
 
-      // Persist cleaned up state
+      // Register git worktrees that are not yet tracked
+      for (const gitWorktree of gitWorktrees) {
+        const resolvedPath = path.resolve(gitWorktree.path);
+        if (resolvedPath === path.resolve(this.projectRoot) || trackedPaths.has(resolvedPath)) {
+          continue;
+        }
+
+        const folderMatch = path.basename(gitWorktree.path).match(/^story-(.+)$/);
+        if (!folderMatch) {
+          continue;
+        }
+
+        const storyId = folderMatch[1];
+        if (this.worktrees.has(storyId)) {
+          continue;
+        }
+
+        const branchName = (gitWorktree.branch || '').replace(/^refs\/heads\//, '');
+
+        this.worktrees.set(storyId, {
+          storyId,
+          path: gitWorktree.path,
+          branch: branchName,
+          baseBranch: this.baseBranch,
+          createdAt: new Date(),
+          status: 'active'
+        });
+        trackedPaths.add(resolvedPath);
+      }
+
+      // Persist cleaned up/discovered state
       await this.persistWorktrees();
     } catch (error) {
       // Log warning but don't fail - sync is best-effort

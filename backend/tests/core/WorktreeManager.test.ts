@@ -411,6 +411,28 @@ describe('WorktreeManager', () => {
       expect(newManager.getWorktree('1-6')).toBeUndefined();
     });
 
+    it('should discover and register unmanaged worktrees on initialization', async () => {
+      // Create a worktree manually using git (bypassing the manager)
+      const git = simpleGit(TEST_PROJECT_ROOT);
+      const worktreePath = path.join(TEST_WORKTREE_PATH, 'story-2-5');
+      await git.raw(['worktree', 'add', worktreePath, '-b', 'story/2-5', 'main']);
+
+      // Create new manager and initialize (should discover and register the worktree)
+      const newManager = new WorktreeManager(TEST_PROJECT_ROOT);
+      await newManager.initialize();
+
+      // The manually created worktree should now be tracked
+      const discovered = newManager.getWorktree('2-5');
+      expect(discovered).toBeDefined();
+      expect(discovered?.storyId).toBe('2-5');
+      expect(discovered?.branch).toBe('story/2-5');
+      expect(discovered?.path).toBe(worktreePath);
+      expect(discovered?.status).toBe('active');
+
+      // Verify createWorktree() now properly detects the existing worktree
+      await expect(newManager.createWorktree('2-5')).rejects.toThrow(WorktreeExistsError);
+    });
+
     it('should handle corrupted persistence file gracefully', async () => {
       // Create invalid JSON in persistence file
       await fs.mkdir(path.dirname(TEST_PERSISTENCE_PATH), { recursive: true });

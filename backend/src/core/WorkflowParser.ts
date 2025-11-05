@@ -158,17 +158,58 @@ export class WorkflowParser {
   ): WorkflowConfig {
     const configSourcePattern = /\{config_source\}:([a-zA-Z0-9_\.]+)/g;
 
-    return this.replaceVariablesWithRegex(config, configSourcePattern, (match, key) => {
-      const value = this.getNestedValue(configData, key);
-      if (value === undefined) {
-        throw new WorkflowParseError(
-          `Config reference '{config_source}:${key}' not found in config file`,
-          key,
-          'defined config key'
+    const resolveValue = (value: unknown): unknown => {
+      if (typeof value === 'string') {
+        // Check if this is a full-string placeholder (exact match)
+        const fullMatch = value.match(/^(\{config_source\}:([a-zA-Z0-9_\.]+))$/);
+        if (fullMatch) {
+          const resolved = this.getNestedValue(configData, fullMatch[2]);
+          if (resolved === undefined) {
+            throw new WorkflowParseError(
+              `Config reference '${fullMatch[1]}' not found in config file`,
+              fullMatch[2],
+              'defined config key'
+            );
+          }
+          // Return the original value (preserving objects/arrays/primitives)
+          return resolved;
+        }
+
+        // Handle placeholders mixed with other text
+        return value.replace(configSourcePattern, (_match, key) => {
+          const resolved = this.getNestedValue(configData, key);
+          if (resolved === undefined) {
+            throw new WorkflowParseError(
+              `Config reference '{config_source}:${key}' not found in config file`,
+              key,
+              'defined config key'
+            );
+          }
+          // For inline replacements, only allow primitives
+          if (resolved !== null && typeof resolved === 'object') {
+            throw new WorkflowParseError(
+              `Config reference '{config_source}:${key}' resolves to a non-primitive value; embed it as a standalone field instead`,
+              key
+            );
+          }
+          return String(resolved);
+        });
+      }
+
+      if (Array.isArray(value)) {
+        return value.map(item => resolveValue(item));
+      }
+
+      if (value && typeof value === 'object') {
+        return Object.fromEntries(
+          Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, resolveValue(v)])
         );
       }
+
       return value;
-    });
+    };
+
+    return resolveValue(config) as WorkflowConfig;
   }
 
   /**
