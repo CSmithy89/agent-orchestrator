@@ -27,11 +27,20 @@ reviews:
 chat:
   auto_reply: true
 
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+
 # Project-specific knowledge base
 # CodeRabbit will reference these docs when reviewing
 knowledge_base:
-  - "docs/architecture.md"
-  - "docs/PRD.md"
-  - "docs/epics.md"
-  - "docs/ci.md"
-  - "tests/README.md"
+  enabled: true
+  sources:
+    - type: "file"
+      path: "docs/architecture.md"
+    - type: "file"
+      path: "docs/PRD.md"
+    - type: "file"
+      path: "docs/epics.md"
+    - type: "file"
+      path: "docs/ci.md"
+    - type: "file"
+      path: "tests/README.md"
