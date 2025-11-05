@@ -162,7 +162,14 @@ This is a novel approach combining:
    - ✅ Git worktree manager for isolated development
    - ✅ Basic CLI for local orchestrator control
 
-6. **MVP Remote Access**
+6. **Code Review Automation**
+   - ✅ Alex agent with dedicated LLM for unbiased review
+   - ✅ Automated code review workflow integrated with dev-story
+   - ✅ Review report generation with actionable feedback
+   - ✅ Security and quality gate enforcement
+   - **Success**: >90% code quality score, <5% critical issues in production
+
+7. **MVP Remote Access**
    - ✅ REST API for project status and escalation management
    - ✅ Simple web dashboard for project monitoring
    - ✅ Escalation response interface
@@ -323,6 +330,26 @@ The Agent Orchestrator introduces several groundbreaking patterns in software de
 - Compare output quality: BMAD experts evaluate generated artifacts
 - Methodology compliance: Do generated docs follow BMAD standards?
 - User validation: Can users continue in BMAD after orchestrator work?
+
+### 6. Dedicated Code Review Agent
+
+**Innovation**: Separate AI agent (Alex) with different LLM for code review, preventing confirmation bias.
+
+**Why Novel**:
+- Developer agent (Amelia) uses GPT-4 for code generation
+- Review agent (Alex) uses Claude Sonnet for analytical review
+- Different models = different perspectives = better quality
+- Eliminates "reviewing own work" bias in AI systems
+
+**Validation Approach**:
+- Compare: Single-agent review vs dual-agent review
+- Measure: Bug detection rate, code quality scores
+- Track: False positive rate, review relevance
+
+**Business Impact**:
+- Higher code quality through unbiased review
+- Reduced production bugs (target: 50% reduction)
+- Competitive advantage through multi-model orchestration
 
 ---
 
@@ -597,6 +624,15 @@ FR-ERR-003: **Error Logging**
 - Include: onboarding docs, previous phase outputs, current task description
 - Exclude: irrelevant history, excessive prior conversations
 - Optimize context size to minimize tokens
+
+**FR-AGENT-004: Code Review Agent (Alex)**
+- Dedicated agent for unbiased, thorough code review
+- Separate LLM assignment from developer agent (Amelia)
+- Review code against: project standards, security best practices, test coverage, code smells
+- Generate review report with severity levels (critical, important, minor)
+- Integration with Story Development Workflow after self-review
+- Confidence scoring for review quality
+- Escalate if critical issues found or confidence <0.85
 
 ### Decision & Escalation Management
 

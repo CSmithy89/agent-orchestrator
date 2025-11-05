@@ -820,17 +820,18 @@ So that I can immediately begin development.
 
 ## Epic 5: Story Implementation Automation
 
-**Goal:** Enable autonomous code development - agents implement stories with code, tests, and documentation, creating PRs automatically.
+**Goal:** Enable autonomous code development - agents implement stories with code, tests, and **thorough independent code review**, creating PRs automatically.
 
-**Value Proposition:** The "parallel intelligence" magic moment. Stories develop autonomously with quality code, comprehensive tests, and clear PRs.
+**Value Proposition:** The "parallel intelligence" magic moment. Stories develop autonomously with quality code, comprehensive tests, **unbiased code review from separate agent**, and clear PRs.
 
-**Business Value:** 10x faster implementation (<2 hours per story vs 4-8 hours). Continuous progress. Parallel development ready (v1.1).
+**Business Value:** 10x faster implementation (<2 hours per story vs 4-8 hours). Continuous progress. **Higher code quality through dual-agent review**. Parallel development ready (v1.1).
 
 **Technical Scope:**
 - Story context generation
 - Amelia (Developer) agent
 - Code generation and testing
-- Code review workflow
+- **Alex (Code Reviewer) agent** ← NEW
+- **Automated code review workflow** ← NEW
 - PR creation automation
 
 ### Stories
@@ -946,7 +947,72 @@ So that obvious issues are caught before human review.
 
 ---
 
-**Story 5.6: Pull Request Creation**
+**Story 5.6: Alex Agent - Code Review Specialist Persona**
+
+As the orchestrator core,
+I want an Alex agent expert at unbiased code review,
+So that story implementations receive thorough, independent quality assessment.
+
+**Acceptance Criteria:**
+1. Load Alex persona from bmad/bmm/agents/alex.md
+2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for superior analytical reasoning and code review capabilities
+   - Different LLM from Amelia to ensure diverse perspective (e.g., Amelia on GPT-4, Alex on Claude)
+   - See Story 1.3 for configuration examples with multiple providers
+3. Specialized prompts for: security review, code quality analysis, test coverage validation
+4. Context includes: story requirements, project standards, Amelia's implementation, test results
+5. Methods: reviewSecurity(), analyzeQuality(), validateTests(), generateReport()
+6. Check against: OWASP top 10, code smells, complexity metrics, naming conventions
+7. Generate structured review report with severity levels
+8. Provide actionable recommendations for each finding
+9. Make pass/fail decisions with confidence scoring
+
+**Prerequisites:** Story 5.5 (Self Code Review), Epic 1 (Agent Pool)
+
+**Estimated Time:** 2-3 hours
+
+---
+
+**Story 5.7: Code Review Workflow Integration**
+
+As the story development workflow,
+I want Alex agent to review code after self-review,
+So that implementations receive independent quality validation before PR creation.
+
+**Acceptance Criteria:**
+1. Integrate Alex review step between Story 5.5 (Self Review) and Story 5.8 (PR Creation)
+2. Spawn Alex agent with configured LLM (different from Amelia)
+3. Provide Alex with:
+   - Story context and acceptance criteria
+   - Amelia's implementation code
+   - Self-review report
+   - Test results and coverage
+   - Project coding standards
+4. Execute multi-faceted review:
+   - Security scan (static analysis, vulnerability detection)
+   - Code quality check (complexity, duplication, maintainability)
+   - Test coverage validation (>80% target)
+   - Architecture compliance verification
+5. Generate structured review report with findings categorized by severity
+6. If critical issues found OR confidence <0.85:
+   - Escalate to human for review
+   - Provide detailed context and recommendations
+7. If review passes:
+   - Proceed to PR creation
+   - Include review summary in PR description
+8. If review fails but fixable:
+   - Return to Amelia for fixes
+   - Re-review after fixes
+9. Track review metrics: time, findings count, pass/fail rate
+
+**Prerequisites:** Story 5.6 (Alex Agent), Story 5.5 (Self Review)
+
+**Estimated Time:** 3-4 hours
+
+---
+
+**Story 5.8: Pull Request Creation**
 
 As the story development workflow,
 I want to create a GitHub PR automatically,
@@ -969,7 +1035,7 @@ So that code is ready for merge without manual git operations.
 
 ---
 
-**Story 5.7: Story Development Workflow Executor**
+**Story 5.9: Story Development Workflow Executor**
 
 As a user wanting automated story implementation,
 I want to run dev-story workflow and get a complete PR,
@@ -982,17 +1048,17 @@ So that stories implement themselves autonomously.
 4. Create worktree
 5. Spawn Amelia agent for implementation
 6. Generate and run tests
-7. Perform code review
+7. Perform code review (Amelia self-review + Alex independent review)
 8. Create PR if review passes
 9. Update sprint-status.yaml (story status: review)
 10. Complete in <2 hours
 11. Handle failures with clear error messages
 
-**Prerequisites:** Stories 5.1-5.6
+**Prerequisites:** Stories 5.1-5.8
 
 ---
 
-**Story 5.8: PR Merge Automation**
+**Story 5.10: PR Merge Automation**
 
 As the orchestrator,
 I want to merge PRs automatically after CI passes,

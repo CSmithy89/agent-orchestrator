@@ -408,6 +408,7 @@ Each BMAD workflow is a **plugin** to the core kernel. Workflows are self-contai
 - **Architecture Workflow** (Epic 3): Spawns Winston + Murat → Generates docs/architecture.md
 - **Story Decomposition Workflow** (Epic 4): Spawns Bob → Generates docs/epics.md
 - **Story Development Workflow** (Epic 5): Spawns Amelia → Creates PR
+- **Code Review Workflow** (Epic 5): Spawns Alex agent → Reviews implementation against standards
 
 **Workflow Dependencies:**
 - Workflows can invoke other workflows via `<invoke-workflow>` tag
@@ -559,6 +560,58 @@ interface RetryOptions {
 - Expose `/health` endpoint for monitoring
 - Report: uptime, active projects, agent pool status, recent errors
 - Alert if error rate exceeds threshold
+
+#### 2.3.4 Code Review Engine
+
+**Responsibility:** Provide automated, unbiased code review with actionable feedback
+
+**Key Classes:**
+```typescript
+interface CodeReview {
+  storyId: string;
+  reviewedBy: string; // "alex"
+  reviewDate: Date;
+  overallScore: number; // 0-100
+  findings: ReviewFinding[];
+  recommendations: string[];
+  confidence: number; // 0-1
+  criticalIssuesFound: boolean;
+}
+
+interface ReviewFinding {
+  severity: 'critical' | 'important' | 'minor';
+  category: 'security' | 'quality' | 'performance' | 'maintainability';
+  file: string;
+  line?: number;
+  issue: string;
+  recommendation: string;
+}
+
+class CodeReviewEngine {
+  async reviewCode(
+    storyId: string,
+    worktreePath: string,
+    standards: ProjectStandards
+  ): Promise<CodeReview>;
+
+  private async runSecurityScan(): Promise<ReviewFinding[]>;
+  private async analyzeCodeQuality(): Promise<ReviewFinding[]>;
+  private async checkTestCoverage(): Promise<ReviewFinding[]>;
+  private assessOverallQuality(findings: ReviewFinding[]): number;
+}
+```
+
+**Review Workflow:**
+1. **Trigger**: After Amelia's self-review (Story 5.5)
+2. **Alex Agent Invocation**: Spawn with Claude Sonnet LLM
+3. **Multi-Faceted Review**:
+   - Security scan (OWASP top 10, injection vulnerabilities)
+   - Code quality (complexity, duplication, naming)
+   - Test coverage (>80% target)
+   - Architecture compliance
+4. **Generate Report**: Structured findings with severity levels
+5. **Confidence Check**: If confidence <0.85 or critical issues found → escalate
+6. **Pass/Fail Decision**: Determine if code ready for PR creation
 
 ---
 
@@ -1036,6 +1089,7 @@ Response 200 OK:
 | **Testing** | Vitest | Fast, Vite-based, great TypeScript support |
 | **Logging** | pino | Fast structured logging, JSON output |
 | **Validation** | zod | TypeScript-first schema validation |
+| **Code Review** | ESLint + security plugins | Static analysis for code quality and security |
 
 **Dependencies:**
 ```json
@@ -2133,6 +2187,32 @@ jobs:
 - ✅ Pro: Accessible (Radix UI primitives)
 - ✅ Pro: Customizable (copy-paste components)
 - ❌ Con: Manual component setup (mitigated: CLI tool)
+
+**Status:** Accepted
+
+---
+
+### TD-007: Dedicated Code Review Agent (Alex)
+
+**Decision:** Use separate AI agent with different LLM for code review instead of same agent
+
+**Context:** Need unbiased, thorough code review without confirmation bias
+
+**Alternatives:**
+1. **Same agent reviews own code**: Fast (rejected: confirmation bias)
+2. **Human-only review**: High quality (rejected: slow, bottleneck)
+3. **Separate AI agent with different LLM**: Unbiased, fast (chosen)
+
+**Consequences:**
+- ✅ Pro: Different LLM perspective reduces bias
+- ✅ Pro: Amelia (GPT-4) codes, Alex (Claude Sonnet) reviews = diverse analysis
+- ✅ Pro: Automated yet thorough review
+- ❌ Con: Additional LLM costs (~$1-2 per review)
+- ❌ Con: Slightly longer review time (<10 minutes)
+
+**LLM Assignment:**
+- Amelia (Developer): GPT-4 Turbo (superior code generation)
+- Alex (Reviewer): Claude Sonnet (superior analytical reasoning)
 
 **Status:** Accepted
 

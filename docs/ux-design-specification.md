@@ -637,6 +637,67 @@ graph LR
   - Keyboard: Tab through nodes, Enter to open
   - Screen reader: List dependencies textually
 
+**8. Code Review Interface Components**
+- **Purpose**: Display Alex agent's code review results with clear severity indicators and actionable feedback
+- **Components**:
+
+**Review Status Badge**
+- **Location**: Story card in Kanban board, Project detail view
+- **States**:
+  - 🟡 "In Review" (Alex reviewing)
+  - ✅ "Review Passed" (no critical issues)
+  - ⚠️ "Review Failed" (critical issues found)
+  - 🔴 "Review Escalated" (human review needed)
+- **Styling**: Color-coded for quick visual scan
+
+**Review Report Modal**
+- **Trigger**: Click "View Review" button on story card
+- **Layout Structure**:
+  ```
+  ┌─────────────────────────────────────────┐
+  │ Code Review Report - Story 5.3          │
+  │ Reviewed by: Alex | Date: 2025-11-05    │
+  ├─────────────────────────────────────────┤
+  │ Overall Score: 87/100 ✅                │
+  │ Confidence: 0.92                         │
+  │                                          │
+  │ Summary: 2 important issues, 3 minor    │
+  ├─────────────────────────────────────────┤
+  │ Findings by Severity:                    │
+  │                                          │
+  │ ⚠️ Important (2)                         │
+  │ ├─ [Security] SQL injection risk        │
+  │ │  File: backend/src/api/users.ts:42    │
+  │ │  Issue: Unsanitized user input        │
+  │ │  Fix: Use parameterized queries       │
+  │ └─ [Quality] High complexity function   │
+  │    File: backend/src/core/engine.ts:156 │
+  │    Issue: Cyclomatic complexity: 18     │
+  │    Fix: Extract smaller functions       │
+  │                                          │
+  │ ℹ️ Minor (3)                             │
+  │ ├─ [Style] Inconsistent naming          │
+  │ ├─ [Performance] Unoptimized loop       │
+  │ └─ [Maintainability] Missing JSDoc      │
+  │                                          │
+  │ ✅ Recommendations:                      │
+  │ • Add input validation layer            │
+  │ • Refactor executeStep() method         │
+  │ • Update documentation                  │
+  ├─────────────────────────────────────────┤
+  │ [View Full Report] [Accept & Continue]  │
+  └─────────────────────────────────────────┘
+  ```
+- **Features**:
+  - Expandable finding cards with file links
+  - "View in GitHub" links to specific lines
+  - Actions: Accept review, Request re-review, Escalate
+
+**Review Timeline Entry**
+- **Location**: Project Detail → Events log
+- **Format**: "Alex completed code review for Story 5.3 (Score: 87/100)"
+- **Behavior**: Link to full report modal
+
 ---
 
 ## 7. UX Pattern Decisions
