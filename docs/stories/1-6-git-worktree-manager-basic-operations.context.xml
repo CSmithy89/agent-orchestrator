@@ -1,0 +1,220 @@
+<story-context id="1-6-git-worktree-manager-basic-operations" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>6</storyId>
+    <title>Git Worktree Manager - Basic Operations</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-6-git-worktree-manager-basic-operations.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a story development system</asA>
+    <iWant>to create and manage git worktrees for isolated story development</iWant>
+    <soThat>multiple stories can develop in parallel without branch conflicts</soThat>
+    <tasks>
+      - Implement WorktreeManager class structure (AC: #1, #4)
+      - Implement createWorktree() method (AC: #2, #3, #4)
+      - Implement pushBranch() method (AC: #5)
+      - Implement destroyWorktree() method (AC: #6)
+      - Implement listActiveWorktrees() method (AC: #8)
+      - Error handling and validation (AC: #7)
+      - Worktree persistence and recovery (AC: #4)
+      - Integration with project configuration (AC: #1)
+      - Testing and validation
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Implement WorktreeManager using simple-git library
+    2. createWorktree(storyId) creates worktree at /wt/story-{id}/
+    3. Create branch story/{id} from main
+    4. Track worktree location, branch name, and story ID mapping
+    5. Push worktree branch to remote when ready
+    6. destroyWorktree(storyId) removes worktree and local branch
+    7. Handle errors gracefully (worktree already exists, git failures)
+    8. List active worktrees with status
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic Technical Specification: Foundation & Core Engine</title>
+        <section>Worktree Manager (Section 2.1.4)</section>
+        <snippet>WorktreeManager creates/manages git worktrees for parallel story development with isolated working directories at /wt/story-{id}/, branches named story/{id}, and atomic operations with proper cleanup.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Worktree Manager</section>
+        <snippet>Worktree workflow: create worktree from main, develop in isolation, commit changes, push branch, create PR, cleanup after merge. Provides parallel development without branch conflicts.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Story 1.6: Git Worktree Manager - Basic Operations</section>
+        <snippet>Enable autonomous code development with agents implementing stories using isolated git worktrees, preventing branch conflicts and supporting parallel development.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/1-5-state-manager-file-persistence.md</path>
+        <title>Story 1.5: State Manager - File Persistence</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Use atomic writes for persistence (temp + rename pattern), validate data structure before saving, provide clear error messages with context, sync in-memory state with file storage on startup.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/core/WorkflowParser.ts</path>
+        <kind>service</kind>
+        <symbol>WorkflowParser</symbol>
+        <lines>N/A</lines>
+        <reason>Reference pattern from Story 1.2 - shows TypeScript class structure, configuration loading, and error handling patterns to follow for WorktreeManager implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/worktree.types.ts</path>
+        <kind>types</kind>
+        <symbol>Worktree, WorktreeManager</symbol>
+        <lines>N/A</lines>
+        <reason>TypeScript interfaces to be created for Worktree data model and WorktreeManager class definition.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/WorktreeManager.test.ts</path>
+        <kind>test</kind>
+        <symbol>WorktreeManager tests</symbol>
+        <lines>N/A</lines>
+        <reason>Unit and integration tests for WorktreeManager class - to be created following Vitest patterns.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="simple-git" version="^3.20.0" type="production">
+          Git operations library for worktree management (add, remove, push, list)
+        </package>
+        <package name="js-yaml" version="^4.1.0" type="production">
+          YAML parsing for configuration files (already installed)
+        </package>
+        <package name="vitest" version="^1.0.0" type="development">
+          Unit test framework (already installed)
+        </package>
+        <package name="@types/node" version="^20.0.0" type="development">
+          Node.js type definitions (already installed)
+        </package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - Use simple-git library for all git operations (required dependency)
+    - Worktrees MUST be created at /wt/story-{id}/ path for consistency
+    - Branch names MUST follow story/{id} naming convention
+    - Implement atomic operations with proper error handling and rollback
+    - Track worktrees in .bmad/worktrees.json for persistence
+    - Sync tracked worktrees with actual git worktrees on startup
+    - Handle errors gracefully with clear messages and resolution steps
+    - Follow TypeScript strict mode and ESM module standards
+    - Provide JSDoc comments for all public methods
+    - Support concurrent worktree operations safely
+    - Clean up orphaned worktrees on initialization
+    - Validate repository is a valid git repo before operations
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Worktree</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface Worktree {
+  storyId: string;           // e.g., "1-6", "2-3"
+  path: string;              // /wt/story-{id}/
+  branch: string;            // story/{id}
+  baseBranch: string;        // main (or configured base)
+  createdAt: Date;           // Timestamp of creation
+  status: 'active' | 'pr-created' | 'merged' | 'abandoned';
+}
+      </signature>
+      <path>backend/src/types/worktree.types.ts</path>
+    </interface>
+    <interface>
+      <name>WorktreeManager</name>
+      <kind>TypeScript class</kind>
+      <signature>
+class WorktreeManager {
+  async createWorktree(storyId: string, baseBranch?: string): Promise&lt;Worktree&gt;;
+  async destroyWorktree(storyId: string): Promise&lt;void&gt;;
+  async pushBranch(storyId: string): Promise&lt;void&gt;;
+  async listActiveWorktrees(): Promise&lt;Worktree[]&gt;;
+  private validateWorktreeNotExists(storyId: string): void;
+}
+      </signature>
+      <path>backend/src/core/WorktreeManager.ts</path>
+    </interface>
+    <interface>
+      <name>Git Commands</name>
+      <kind>CLI operations</kind>
+      <signature>
+git worktree add /wt/story-{id}/ -b story/{id} main
+git worktree list --porcelain
+git worktree remove /wt/story-{id}/
+git branch -D story/{id}
+git push -u origin story/{id}
+      </signature>
+      <path>N/A - external git commands</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest framework for unit and integration tests. Follow test pyramid: 60% unit tests, 30% integration tests, 10% E2E tests. Achieve >80% code coverage for new code. Test files located at backend/tests/ matching source structure. Mock git operations for unit tests, use real git for integration tests.
+    </standards>
+    <locations>
+      backend/tests/core/WorktreeManager.test.ts
+      backend/tests/**/*.test.ts
+    </locations>
+    <ideas>
+      <idea ac="1">
+        - Test WorktreeManager class instantiation
+        - Test simple-git library initialization
+        - Test tracking Map initialization
+      </idea>
+      <idea ac="2,3,4">
+        - Test createWorktree() with valid storyId creates correct path
+        - Test branch created with correct name (story/{id})
+        - Test Worktree object stored in tracking Map
+        - Test validation throws error if worktree already exists
+        - Test error handling for invalid storyId format
+      </idea>
+      <idea ac="5">
+        - Test pushBranch() executes git push with correct parameters
+        - Test worktree status updated to 'pr-created'
+        - Test error handling for push failures (network, permissions)
+      </idea>
+      <idea ac="6">
+        - Test destroyWorktree() removes worktree directory
+        - Test local branch deleted after worktree removal
+        - Test worktree removed from tracking Map
+        - Test error handling for missing worktree
+      </idea>
+      <idea ac="7">
+        - Test validateWorktreeNotExists() detects existing worktrees
+        - Test error messages provide clear resolution steps
+        - Test handling of git command failures
+        - Test WorktreeExistsError, WorktreeNotFoundError custom errors
+      </idea>
+      <idea ac="8">
+        - Test listActiveWorktrees() returns all tracked worktrees
+        - Test filtering by status (active, pr-created)
+        - Test sorting by createdAt timestamp
+        - Test sync with git worktree list command
+      </idea>
+      <idea ac="all">
+        - Integration test: create → push → destroy full workflow
+        - Test concurrent worktree operations (3 stories in parallel)
+        - Test worktree persistence (save → restart → load)
+        - Test orphaned worktree cleanup on startup
+        - Test edge cases: special characters, disk full, git errors
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
