@@ -1,0 +1,311 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>3</storyId>
+    <title>LLM Factory Pattern Implementation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-3-llm-factory-pattern-implementation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>an agent system developer</asA>
+    <iWant>a factory that creates LLM clients for different providers</iWant>
+    <soThat>agents can be assigned optimal models per project configuration</soThat>
+    <tasks>
+      <task id="1" name="Implement LLMFactory class structure">
+        <subtasks>
+          <subtask>Create backend/src/llm/LLMFactory.ts</subtask>
+          <subtask>Define provider registry: Map&lt;string, LLMProvider&gt;</subtask>
+          <subtask>Implement registerProvider() and createClient() methods</subtask>
+          <subtask>Register default providers (Anthropic, OpenAI, Zhipu)</subtask>
+          <subtask>Support provider-specific configuration (base_url, api_key overrides)</subtask>
+        </subtasks>
+      </task>
+      <task id="2" name="Define LLMClient interface and types">
+        <subtasks>
+          <subtask>Create backend/src/llm/LLMClient.interface.ts</subtask>
+          <subtask>Define LLMClient interface: invoke(), stream(), estimateCost()</subtask>
+          <subtask>Create backend/src/types/llm.types.ts with LLMConfig, InvokeOptions, StreamOptions</subtask>
+        </subtasks>
+      </task>
+      <task id="3" name="Implement Anthropic Provider">
+        <subtasks>
+          <subtask>Create backend/src/llm/providers/AnthropicProvider.ts</subtask>
+          <subtask>Install @anthropic-ai/sdk ^0.20.0</subtask>
+          <subtask>OAuth token priority: CLAUDE_CODE_OAUTH_TOKEN first, ANTHROPIC_API_KEY fallback</subtask>
+          <subtask>Support base_url parameter for wrappers (z.ai for GLM)</subtask>
+          <subtask>Implement invoke(), stream(), estimateCost() methods</subtask>
+        </subtasks>
+      </task>
+      <task id="4" name="Implement OpenAI Provider">
+        <subtasks>
+          <subtask>Create backend/src/llm/providers/OpenAIProvider.ts</subtask>
+          <subtask>Install openai ^4.20.0</subtask>
+          <subtask>Load OPENAI_API_KEY from environment</subtask>
+          <subtask>Support models: gpt-4-turbo, gpt-4, gpt-3.5-turbo-instruct</subtask>
+          <subtask>Implement invoke(), stream(), estimateCost() methods</subtask>
+        </subtasks>
+      </task>
+      <task id="5" name="Implement Zhipu Provider">
+        <subtasks>
+          <subtask>Create backend/src/llm/providers/ZhipuProvider.ts</subtask>
+          <subtask>Load ZHIPU_API_KEY from environment</subtask>
+          <subtask>Implement native Zhipu API integration (axios/fetch)</subtask>
+          <subtask>Support models: GLM-4, GLM-4.6</subtask>
+          <subtask>Implement invoke(), stream(), estimateCost() methods</subtask>
+        </subtasks>
+      </task>
+      <task id="6" name="(Optional) Implement Google Provider">
+        <subtasks>
+          <subtask>Create backend/src/llm/providers/GoogleProvider.ts</subtask>
+          <subtask>Install @google/generative-ai SDK</subtask>
+          <subtask>Support models: gemini-1.5-pro, gemini-2.0-flash</subtask>
+          <subtask>Note: Deferrable if time-constrained</subtask>
+        </subtasks>
+      </task>
+      <task id="7" name="Implement model validation">
+        <subtasks>
+          <subtask>Create validateModel() method in LLMFactory</subtask>
+          <subtask>Define allowed models per provider</subtask>
+          <subtask>Throw InvalidModelError with suggestions</subtask>
+        </subtasks>
+      </task>
+      <task id="8" name="Implement retry logic and error handling">
+        <subtasks>
+          <subtask>Create RetryHandler utility with exponential backoff</subtask>
+          <subtask>Implement backoff delays: [1s, 2s, 4s] for 3 retries</subtask>
+          <subtask>Classify errors: transient, auth, permanent</subtask>
+          <subtask>Log retry attempts with context</subtask>
+        </subtasks>
+      </task>
+      <task id="9" name="Implement request/response logging">
+        <subtasks>
+          <subtask>Create LLMLogger utility class</subtask>
+          <subtask>Log requests: provider, model, prompt (truncated), options, timestamp</subtask>
+          <subtask>Log responses: text (truncated), token usage, cost, latency</subtask>
+          <subtask>CRITICAL: Redact API keys and OAuth tokens in logs</subtask>
+          <subtask>Use structured logging (JSON format)</subtask>
+          <subtask>Log to logs/llm-requests.log</subtask>
+        </subtasks>
+      </task>
+      <task id="10" name="Integrate per-agent LLM configuration">
+        <subtasks>
+          <subtask>Load agent_assignments from .bmad/project-config.yaml via ProjectConfig</subtask>
+          <subtask>Use ProjectConfig.getAgentConfig(agentName) method</subtask>
+          <subtask>Support environment variable substitution (${VAR})</subtask>
+          <subtask>Throw error if agent not found in config</subtask>
+        </subtasks>
+      </task>
+      <task id="11" name="Testing and integration">
+        <subtasks>
+          <subtask>Write unit tests for LLMFactory class</subtask>
+          <subtask>Test provider registration and client creation</subtask>
+          <subtask>Test model validation (valid and invalid models)</subtask>
+          <subtask>Test error handling and retry logic</subtask>
+          <subtask>Test request/response logging (verify API key redaction)</subtask>
+          <subtask>Write integration tests with actual API calls (dev keys)</subtask>
+          <subtask>Mock external LLM APIs in unit tests</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Implement LLMFactory class with provider registry</criterion>
+    <criterion id="2">Support Anthropic provider (Claude Sonnet, Claude Haiku) with OAuth token priority (CLAUDE_CODE_OAUTH_TOKEN first, ANTHROPIC_API_KEY fallback) and base_url parameter for Anthropic-compatible wrappers (e.g., z.ai for GLM)</criterion>
+    <criterion id="3">Support OpenAI provider (GPT-4, GPT-4 Turbo, Codex): Load OPENAI_API_KEY from environment, support models gpt-4-turbo, gpt-4, gpt-3.5-turbo-instruct</criterion>
+    <criterion id="4">Support Zhipu provider (GLM-4, GLM-4.6): Load ZHIPU_API_KEY from environment, native Zhipu API integration</criterion>
+    <criterion id="5">(Optional) Support Google provider (Gemini): Load GOOGLE_API_KEY, integrate @google/generative-ai SDK, support gemini-1.5-pro and gemini-2.0-flash models (can be deferred)</criterion>
+    <criterion id="6">Provider factory registration in constructor with Anthropic, OpenAI, and Zhipu providers</criterion>
+    <criterion id="7">Validate model names for each provider: Anthropic (claude-sonnet-4-5, claude-haiku, GLM-4.6 via wrapper), OpenAI (gpt-4-turbo, gpt-4, gpt-3.5-turbo-instruct), Zhipu (GLM-4, GLM-4.6), Google (gemini-1.5-pro, gemini-2.0-flash if implemented)</criterion>
+    <criterion id="8">Create LLMClient interface with invoke() and stream() methods</criterion>
+    <criterion id="9">Include retry logic with exponential backoff for API failures (backoff delays: 1s, 2s, 4s for 3 retries)</criterion>
+    <criterion id="10">Log all LLM requests/responses for debugging (exclude sensitive keys - redact API keys and OAuth tokens)</criterion>
+    <criterion id="11">Support per-agent LLM configuration via .bmad/project-config.yaml with agent_assignments section</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Section 2.1.2 - LLM Factory Pattern</section>
+        <snippet>The LLM Factory is a Core Kernel component that enables multi-provider LLM support (Anthropic, OpenAI, Zhipu, Google) with per-agent model assignment from project configuration. Factory pattern provides extensibility for adding new providers. Supports OAuth token authentication (CLAUDE_CODE_OAUTH_TOKEN) with API key fallbacks, and base_url configuration for Anthropic-compatible wrappers (z.ai for GLM).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Section 2.1.2 - Agent Pool & LLM Factory</section>
+        <snippet>LLM Factory abstracts provider differences and enables cost-quality optimization. Agent Pool uses factory to create agents with configured LLMs. Supports provider registry pattern for dynamic provider registration. Retry logic with exponential backoff handles transient API failures.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.3: LLM Factory Pattern Implementation</section>
+        <snippet>Complete story specification with 11 acceptance criteria covering multi-provider support (Anthropic, OpenAI, Zhipu, optional Google), OAuth token authentication, base_url wrappers, retry logic, request/response logging, and per-agent LLM configuration from project config.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Essential Infrastructure - Multi-Provider LLM Support</section>
+        <snippet>Agent pool with LLM factory pattern enables per-project agent LLM assignment from config. Cost-quality optimization through flexible provider selection. Supports Anthropic (Claude), OpenAI (GPT-4), Zhipu (GLM), and Google (Gemini) providers.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/config/ProjectConfig.ts</path>
+        <kind>class</kind>
+        <symbol>ProjectConfig</symbol>
+        <lines>26-298</lines>
+        <reason>Provides getAgentConfig(agentName) method to load agent_assignments from .bmad/project-config.yaml. LLMFactory will use this to retrieve per-agent LLM configurations.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/ProjectConfig.ts</path>
+        <kind>interface</kind>
+        <symbol>AgentLLMConfig</symbol>
+        <lines>15-30</lines>
+        <reason>Defines the schema for per-agent LLM configuration including model, provider, base_url, api_key, and reasoning fields. LLMFactory createClient() will accept this config type.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/ProjectConfig.ts</path>
+        <kind>type</kind>
+        <symbol>LLMProvider</symbol>
+        <lines>9</lines>
+        <reason>Defines valid LLM providers: 'anthropic' | 'openai' | 'zhipu' | 'google'. LLMFactory must validate against these provider names.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <existing>
+          <package name="js-yaml" version="^4.1.0" />
+          <package name="dotenv" version="^16.0.0" />
+          <package name="cosmiconfig" version="^8.3.0" />
+        </existing>
+        <toAdd>
+          <package name="@anthropic-ai/sdk" version="^0.20.0" reason="Claude API (Sonnet, Haiku)" />
+          <package name="openai" version="^4.20.0" reason="OpenAI GPT-4/GPT-3.5/Codex" />
+          <package name="@google/generative-ai" version="latest" reason="Google Gemini models (optional)" />
+        </toAdd>
+      </node>
+      <devDependencies>
+        <existing>
+          <package name="vitest" version="^1.0.0" />
+          <package name="@vitest/coverage-v8" version="^1.0.0" />
+          <package name="typescript" version="^5.3.0" />
+        </existing>
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="integration">Must integrate with ProjectConfig.getAgentConfig(agentName) to load per-agent LLM assignments from .bmad/project-config.yaml</constraint>
+    <constraint type="validation">Must validate providers against: 'anthropic' | 'openai' | 'zhipu' | 'google'</constraint>
+    <constraint type="authentication">Anthropic OAuth token priority: Check CLAUDE_CODE_OAUTH_TOKEN first, fallback to ANTHROPIC_API_KEY</constraint>
+    <constraint type="wrapper-support">Must support base_url parameter for Anthropic-compatible wrappers (e.g., z.ai for GLM access)</constraint>
+    <constraint type="error-handling">Must implement retry logic with exponential backoff: [1s, 2s, 4s] for 3 retry attempts</constraint>
+    <constraint type="error-classification">Classify errors: transient (retry), auth errors (no retry, escalate), permanent errors (no retry, escalate)</constraint>
+    <constraint type="logging">Must log all LLM requests/responses to logs/llm-requests.log</constraint>
+    <constraint type="security">CRITICAL: Must redact API keys and OAuth tokens in all logs</constraint>
+    <constraint type="logging-format">Use structured logging (JSON format) with correlation IDs for request tracing</constraint>
+    <constraint type="environment-vars">Support environment variable substitution using ${VAR} syntax (already implemented in ProjectConfig)</constraint>
+    <constraint type="typescript">TypeScript strict mode enabled - no 'any' types, explicit return types required</constraint>
+    <constraint type="pattern">Use factory pattern for extensibility - new providers can be added without core changes</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>LLMClient</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface LLMClient {
+  provider: string;       // "anthropic", "openai", "zhipu", "google"
+  model: string;          // e.g., "claude-sonnet-4-5", "gpt-4-turbo"
+  invoke(prompt: string, options?: InvokeOptions): Promise&lt;string&gt;;
+  stream(prompt: string, options?: StreamOptions): AsyncIterator&lt;string&gt;;
+  estimateCost(prompt: string, response: string): number;
+}
+      </signature>
+      <path>backend/src/llm/LLMClient.interface.ts</path>
+    </interface>
+    <interface>
+      <name>LLMConfig</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface LLMConfig {
+  model: string;
+  provider: string;
+  base_url?: string;        // For Anthropic-compatible wrappers
+  api_key?: string;         // Override default API key
+  reasoning?: string;       // Why this model/agent pairing
+}
+      </signature>
+      <path>backend/src/types/llm.types.ts</path>
+    </interface>
+    <interface>
+      <name>InvokeOptions</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface InvokeOptions {
+  temperature?: number;     // 0-1, default 0.7
+  max_tokens?: number;      // Max response tokens
+  system_prompt?: string;   // System message for context
+  stop_sequences?: string[]; // Stop generation at these strings
+}
+      </signature>
+      <path>backend/src/types/llm.types.ts</path>
+    </interface>
+    <interface>
+      <name>ProjectConfig.getAgentConfig</name>
+      <kind>Method signature</kind>
+      <signature>getAgentConfig(agentName: string): AgentLLMConfig | undefined</signature>
+      <path>backend/src/config/ProjectConfig.ts</path>
+    </interface>
+    <interface>
+      <name>AgentLLMConfig</name>
+      <kind>TypeScript interface (existing)</kind>
+      <signature>
+interface AgentLLMConfig {
+  model: string;
+  provider: LLMProvider;
+  base_url?: string;
+  api_key?: string;
+  reasoning: string;
+}
+      </signature>
+      <path>backend/src/types/ProjectConfig.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing framework: Vitest with @vitest/coverage-v8 for code coverage reporting.
+Unit tests: Mock external LLM APIs using test doubles. Focus on LLMFactory provider registration, client creation, model validation, retry logic, and logging.
+Integration tests: Use actual API calls with dev keys (ANTHROPIC_API_KEY, OPENAI_API_KEY, ZHIPU_API_KEY). Test OAuth token authentication, API key fallback, base_url wrappers (z.ai).
+Coverage target: >80% code coverage for new code.
+Test structure: backend/tests/llm/ directory with LLMFactory.test.ts and providers/ subdirectory for provider-specific tests.
+Edge cases: Missing environment variables, invalid model names, network failures, malformed API responses, circular retry loops, Unicode handling.
+    </standards>
+    <locations>backend/tests/llm/LLMFactory.test.ts
+backend/tests/llm/providers/AnthropicProvider.test.ts
+backend/tests/llm/providers/OpenAIProvider.test.ts
+backend/tests/llm/providers/ZhipuProvider.test.ts
+backend/tests/llm/providers/GoogleProvider.test.ts (optional)
+    </locations>
+    <ideas>
+      <idea ac="1">Test LLMFactory provider registration: registerProvider() adds provider to registry, createClient() retrieves correct provider</idea>
+      <idea ac="2">Test Anthropic OAuth token priority: CLAUDE_CODE_OAUTH_TOKEN used first, fallback to ANTHROPIC_API_KEY if not present</idea>
+      <idea ac="2">Test Anthropic base_url wrapper: z.ai endpoint with GLM-4.6 model uses Anthropic provider with custom base_url</idea>
+      <idea ac="3">Test OpenAI provider: Load OPENAI_API_KEY, create client with gpt-4-turbo model, invoke() returns response</idea>
+      <idea ac="4">Test Zhipu provider: Load ZHIPU_API_KEY, create client with GLM-4 model, native API integration</idea>
+      <idea ac="7">Test model validation: Valid models pass, invalid models throw InvalidModelError with suggestions</idea>
+      <idea ac="9">Test retry logic: Transient errors (429, 503) retry with exponential backoff [1s, 2s, 4s], auth errors (401) escalate immediately</idea>
+      <idea ac="10">Test logging: Verify all requests/responses logged to logs/llm-requests.log, API keys redacted in logs</idea>
+      <idea ac="11">Test per-agent config: ProjectConfig.getAgentConfig('amelia') returns correct LLMConfig, environment variables expanded</idea>
+      <idea general="Edge case">Test missing environment variables: ANTHROPIC_API_KEY undefined throws clear error</idea>
+      <idea general="Edge case">Test network failures: Connection timeout triggers retry, max retries exceeded throws error</idea>
+      <idea general="Edge case">Test malformed API responses: Invalid JSON from LLM API handled gracefully</idea>
+    </ideas>
+  </tests>
+</story-context>
