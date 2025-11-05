@@ -1,0 +1,22 @@
+# Test temporary directories
+test-*/
+
+# Node modules
+node_modules/
+
+# Build output
+dist/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Temporary files
+*.tmp
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
