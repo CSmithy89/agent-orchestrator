@@ -1,0 +1,19 @@
+project:
+  id: test-project
+  name: Test Project
+  level: 3
+currentWorkflow: bmad/bmm/workflows/prd/workflow.yaml
+currentStep: 2
+status: running
+variables:
+  user_name: Test User
+  output_folder: docs
+agentActivity:
+  - agentId: mary-001
+    agentName: Mary
+    action: PRD creation
+    timestamp: '2025-11-05T10:00:00.000Z'
+    duration: 5000
+    status: completed
+startTime: '2025-11-05T09:00:00.000Z'
+lastUpdate: '2025-11-05T10:05:00.000Z'
