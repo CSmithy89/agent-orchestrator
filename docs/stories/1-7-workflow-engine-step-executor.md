@@ -248,8 +248,9 @@ interface Check {
 
 ### Workflow Execution Sequence
 
-**Standard Workflow Execution:**
-```
+#### Standard Workflow Execution
+
+```text
 1. WorkflowEngine.execute() called
    ↓
 2. Parse workflow.yaml via WorkflowParser
@@ -287,7 +288,8 @@ interface Check {
 
 ### XML Tag Parsing Strategy
 
-**Supported Tags in instructions.md:**
+#### Supported Tags in instructions.md
+
 ```xml
 <step n="1" goal="Load configuration">
   <action>Load workflow.yaml from provided path</action>
@@ -480,8 +482,9 @@ if (state) {
 4. **StateError**: State save/load failed → Log error, retry, escalate
 5. **WorkflowError**: Nested workflow failed → Log error, halt or continue based on critical flag
 
-**Error Message Format:**
-```
+#### Error Message Format
+
+```text
 WorkflowExecutionError: Step 3 failed - Undefined variable
 
 Variable: {{user_email}}

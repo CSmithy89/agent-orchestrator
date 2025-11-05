@@ -169,7 +169,10 @@ agent-orchestrator/
 
 ### Worktree Interface
 
-**Worktree Schema** (from architecture):
+#### Worktree Schema
+
+From architecture:
+
 ```typescript
 interface Worktree {
   storyId: string;           // e.g., "1-6", "2-3"

@@ -135,10 +135,23 @@ export class WorkflowParser {
    * @returns Config with path variables resolved
    */
   private resolvePathVariables(config: WorkflowConfig): WorkflowConfig {
-    const workflowDir = path.dirname(config.instructions || '');
-    const installedPath = path.isAbsolute(workflowDir)
-      ? workflowDir
-      : path.join(this.projectRoot, workflowDir);
+    // First expand {project-root} in the instructions path
+    const rawInstructions = typeof config.instructions === 'string' ? config.instructions : '';
+    const expandedInstructions = rawInstructions.includes('{project-root}')
+      ? rawInstructions.split('{project-root}').join(this.projectRoot)
+      : rawInstructions;
+
+    // Make the expanded path absolute if needed
+    const absoluteInstructions = expandedInstructions
+      ? path.isAbsolute(expandedInstructions)
+        ? expandedInstructions
+        : path.join(this.projectRoot, expandedInstructions)
+      : '';
+
+    // Now calculate installed_path from the resolved instructions path
+    const installedPath = absoluteInstructions
+      ? path.dirname(absoluteInstructions)
+      : this.projectRoot;
 
     return this.replaceVariables(config, {
       '{project-root}': this.projectRoot,
@@ -180,8 +193,7 @@ export class WorkflowParser {
     const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     return this.replaceVariables(config, {
-      'date:system-generated': today,
-      'system-generated': today
+      'date:system-generated': today
     });
   }
 
@@ -208,7 +220,33 @@ export class WorkflowParser {
   }
 
   /**
+   * Helper method to recursively walk config structure and apply string transformations
+   * Preserves non-string types (booleans, numbers, objects) during variable resolution
+   * @param value Value to transform (can be any type)
+   * @param mapper Function to apply to string values
+   * @returns Transformed value with original type preserved
+   */
+  private mapStringValues(value: unknown, mapper: (input: string) => unknown): unknown {
+    if (typeof value === 'string') {
+      return mapper(value);
+    }
+    if (Array.isArray(value)) {
+      return value.map(item => this.mapStringValues(item, mapper));
+    }
+    if (value && typeof value === 'object') {
+      return Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([key, val]) => [
+          key,
+          this.mapStringValues(val, mapper)
+        ])
+      );
+    }
+    return value;
+  }
+
+  /**
    * Replace variables in config using simple string replacements
+   * Preserves type information for non-string values
    * @param config Workflow config
    * @param replacements Variable replacement map
    * @returns Config with variables replaced
@@ -217,18 +255,18 @@ export class WorkflowParser {
     config: WorkflowConfig,
     replacements: Record<string, string>
   ): WorkflowConfig {
-    const configStr = JSON.stringify(config);
-    let result = configStr;
-
-    for (const [search, replace] of Object.entries(replacements)) {
-      result = result.split(search).join(replace);
-    }
-
-    return JSON.parse(result) as WorkflowConfig;
+    const updated = this.mapStringValues(config, value =>
+      Object.entries(replacements).reduce(
+        (acc, [search, replaceValue]) => acc.split(search).join(replaceValue),
+        value
+      )
+    );
+    return updated as WorkflowConfig;
   }
 
   /**
    * Replace variables in config using regex pattern
+   * Preserves type information when entire value is a placeholder
    * @param config Workflow config
    * @param pattern Regex pattern to match
    * @param replacer Replacement function
@@ -237,11 +275,26 @@ export class WorkflowParser {
   private replaceVariablesWithRegex(
     config: WorkflowConfig,
     pattern: RegExp,
-    replacer: (match: string, ...args: any[]) => string
+    replacer: (match: string, ...args: any[]) => string | number | boolean | object
   ): WorkflowConfig {
-    const configStr = JSON.stringify(config);
-    const result = configStr.replace(pattern, replacer);
-    return JSON.parse(result) as WorkflowConfig;
+    const updated = this.mapStringValues(config, value => {
+      const matches = [...value.matchAll(new RegExp(pattern.source, pattern.flags.includes('g') ? pattern.flags : pattern.flags + 'g'))];
+      if (matches.length === 0) {
+        return value;
+      }
+      // If the entire string is a single placeholder, preserve the resolved type
+      if (matches.length === 1 && matches[0][0] === value) {
+        return replacer(matches[0][0], ...matches[0].slice(1));
+      }
+      // Otherwise, replace within the string and coerce to string
+      let result = value;
+      for (const match of matches) {
+        const resolved = replacer(match[0], ...match.slice(1));
+        result = result.replace(match[0], String(resolved));
+      }
+      return result;
+    });
+    return updated as WorkflowConfig;
   }
 
   /**
