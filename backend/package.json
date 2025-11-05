@@ -26,6 +26,8 @@
     "js-yaml": "^4.1.0",
     "dotenv": "^16.0.0",
     "cosmiconfig": "^8.3.0",
+    "@anthropic-ai/sdk": "^0.20.0",
+    "openai": "^4.20.0",
     "simple-git": "^3.20.0"
   },
   "devDependencies": {
