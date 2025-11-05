@@ -695,6 +695,67 @@ class SecurityGateValidator {
 - Conflicting security specifications
 - Missing threat model for high-risk project
 
+#### 2.3.6 Dependency Graph Generator
+
+**Responsibility:** Generate interactive dependency graphs from story relationships
+
+**Key Classes:**
+```typescript
+interface StoryNode {
+  id: string;
+  title: string;
+  status: 'pending' | 'in_progress' | 'review' | 'merged' | 'blocked';
+  epic: string;
+  worktreeActive: boolean;
+  confidence?: number;
+}
+
+interface DependencyEdge {
+  source: string; // story ID
+  target: string; // story ID
+  type: 'hard' | 'soft'; // hard = blocking, soft = suggested order
+  blocking: boolean;
+}
+
+interface DependencyGraph {
+  nodes: StoryNode[];
+  edges: DependencyEdge[];
+  criticalPath: string[]; // array of story IDs
+  metadata: {
+    totalStories: number;
+    parallelizable: number;
+    bottlenecks: string[];
+  };
+}
+
+class DependencyGraphGenerator {
+  async generateGraph(sprintStatusPath: string): Promise<DependencyGraph>;
+  private detectDependencies(stories: Story[]): DependencyEdge[];
+  private calculateCriticalPath(graph: DependencyGraph): string[];
+  private identifyBottlenecks(graph: DependencyGraph): string[];
+  private detectParallelizable(graph: DependencyGraph): number;
+  async exportToSVG(graph: DependencyGraph): Promise<string>;
+  async exportToPNG(graph: DependencyGraph): Promise<Buffer>;
+}
+```
+
+**Graph Generation Workflow:**
+1. **Load Data**: Read sprint-status.yaml and story files
+2. **Parse Dependencies**: Extract prerequisites from story metadata
+3. **Build Graph Structure**: Create nodes and edges
+4. **Calculate Metrics**:
+   - Critical path (longest dependency chain)
+   - Bottlenecks (stories blocking multiple others)
+   - Parallelizable count (stories with no blocking dependencies)
+5. **Generate Visualization**: Create interactive SVG with D3.js
+6. **Real-Time Updates**: Subscribe to WebSocket for status changes
+
+**Visualization Features:**
+- **Node Rendering**: Circle shape, color-coded by status, size based on complexity, badge for worktree
+- **Edge Rendering**: Solid for hard dependencies, dashed for soft, red for blocking
+- **Interactions**: Pan/zoom, click node for details, hover for tooltips
+- **Layout Algorithm**: Hierarchical layout (dependencies top-to-bottom)
+
 ---
 
 ## 3. Data Models
@@ -1083,6 +1144,47 @@ Response 200 OK:
 }
 ```
 
+#### 4.4.5 Dependency Graph Endpoint
+
+**Endpoint:** `GET /api/projects/:id/dependency-graph`
+
+**Description:** Generate dependency graph for project stories
+
+**Response:**
+```typescript
+{
+  "nodes": [
+    {
+      "id": "story-001",
+      "title": "Project Repository Structure",
+      "status": "merged",
+      "epic": "epic-1",
+      "worktreeActive": false,
+      "confidence": 0.95
+    }
+  ],
+  "edges": [
+    {
+      "source": "story-001",
+      "target": "story-002",
+      "type": "hard",
+      "blocking": false
+    }
+  ],
+  "criticalPath": ["story-001", "story-002", "story-005"],
+  "metadata": {
+    "totalStories": 25,
+    "parallelizable": 8,
+    "bottlenecks": ["story-005", "story-012"]
+  }
+}
+```
+
+**Query Parameters:**
+- `epic` (optional): Filter by epic ID
+- `status` (optional): Filter by story status
+- `format` (optional): `json` (default) or `svg` or `png`
+
 ---
 
 ### 4.2 WebSocket API
@@ -1216,6 +1318,7 @@ Response 200 OK:
 | **Routing** | React Router 6+ | Standard, type-safe, data loading |
 | **Forms** | React Hook Form | Performance, validation, low re-renders |
 | **Charts** | Recharts | React-friendly, responsive, shadcn integration |
+| **Data Visualization** | D3.js v7 | Interactive dependency graphs, force-directed layouts |
 | **Icons** | Lucide React | Clean, consistent, tree-shakeable |
 | **Date/Time** | date-fns | Lightweight, tree-shakeable, i18n support |
 
@@ -2375,6 +2478,37 @@ jobs:
 - Secrets management strategy defined
 - Data encryption approach documented
 - API security measures defined
+
+**Status:** Accepted
+
+---
+
+### TD-009: Dependency Graph Visualization
+
+**Decision:** Use D3.js for interactive dependency graph visualization
+
+**Context:** Need to visualize story dependencies and parallel development status
+
+**Alternatives:**
+1. **Static image generation**: Simple (rejected: not interactive, no real-time updates)
+2. **React Flow**: Modern React library (rejected: overkill for our use case)
+3. **D3.js**: Mature, flexible data visualization (chosen)
+4. **Mermaid.js**: Simple diagrams (rejected: limited interactivity)
+
+**Consequences:**
+- ✅ Pro: Maximum customization for our specific needs
+- ✅ Pro: Mature library with extensive documentation
+- ✅ Pro: SVG output = scalable, accessible
+- ✅ Pro: Real-time updates via data rebinding
+- ❌ Con: Steeper learning curve than React Flow
+- ❌ Con: Manual layout management
+
+**Implementation Notes:**
+- Use hierarchical layout (dependencies top-to-bottom)
+- Color-code nodes by status (green/amber/red/blue/gray)
+- Show worktree status with badge overlay
+- Calculate critical path using topological sort
+- Export to SVG/PNG for offline viewing
 
 **Status:** Accepted
 

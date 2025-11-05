@@ -170,7 +170,14 @@ This is a novel approach combining:
    - ✅ Security and quality gate enforcement
    - **Success**: >90% code quality score, <5% critical issues in production
 
-7. **MVP Remote Access**
+7. **Story Dependency Visualization**
+   - ✅ Interactive dependency graph showing story relationships
+   - ✅ Real-time status updates (pending, in-progress, review, merged)
+   - ✅ Worktree activity indicators
+   - ✅ Critical path highlighting
+   - **Success**: Users understand dependencies at a glance, <5 seconds to identify blockers
+
+8. **MVP Remote Access**
    - ✅ REST API for project status and escalation management
    - ✅ Simple web dashboard for project monitoring
    - ✅ Escalation response interface
@@ -351,6 +358,26 @@ The Agent Orchestrator introduces several groundbreaking patterns in software de
 - Higher code quality through unbiased review
 - Reduced production bugs (target: 50% reduction)
 - Competitive advantage through multi-model orchestration
+
+### 7. Visual Dependency Intelligence
+
+**Innovation**: AI-generated dependency graph with real-time worktree status overlay
+
+**Why Novel**:
+- Most PM tools show static dependencies in lists/tables
+- We combine: dependency graph + git worktree status + real-time updates
+- Visual representation makes parallel development comprehensible
+- Critical path automatically calculated and highlighted
+
+**Validation Approach**:
+- A/B test: Dependency graph vs list view
+- Measure: Time to identify blocking dependencies
+- Track: User preference, error rate in parallel development
+
+**Business Impact**:
+- Faster sprint planning (visual dependencies)
+- Reduced blocked stories (clear dependency view)
+- Confident parallel development (worktree status visible)
 
 ---
 
@@ -797,6 +824,23 @@ Events:
 - Story details on click
 - PR links when available
 - Progress indicators
+
+**FR-DASH-005: Dependency Graph Visualization**
+- **Input**: Story dependencies from sprint-status.yaml
+- **Processing**:
+  - Generate interactive dependency graph (nodes = stories, edges = dependencies)
+  - Visualize story status with color coding
+  - Show worktree activity indicators
+  - Highlight critical path and blocking dependencies
+  - Support pan/zoom for large graphs
+- **Output**: Interactive SVG graph with click-to-detail functionality
+- **Acceptance Criteria**:
+  - Graph renders all stories and dependencies accurately
+  - Real-time updates as story status changes
+  - Mobile-responsive (simplified view on small screens)
+  - Click node → open story detail panel
+  - Export graph as PNG/SVG
+  - <2 second render time for graphs up to 100 stories
 
 ### Multi-Project Orchestration
 

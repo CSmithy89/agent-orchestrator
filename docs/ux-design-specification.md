@@ -445,6 +445,45 @@ graph LR
 
 ---
 
+**Journey 5: Sprint Planning with Dependency Graph (Desktop)**
+
+**Goal**: Plan sprint work by understanding story dependencies and identifying parallel work
+
+**Flow:**
+1. **Entry**: Open Project X detail view
+2. **Navigate to Dependencies**: Click "Dependencies" tab (alongside Kanban tab)
+3. **Graph Loads**: Dependency graph renders with all 25 stories
+   - Visual scan reveals:
+     - 8 stories at top (no dependencies, can start immediately)
+     - Critical path highlighted: 6 stories in sequence (longest chain)
+     - 2 bottleneck stories (blocking 4+ other stories)
+4. **Identify Parallel Work**: User sees:
+   - Stories 001-008 can develop in parallel (no dependencies)
+   - Stories 009-015 depend on 005 (bottleneck)
+   - Stories 016-025 can start after 012
+5. **Spot Bottleneck**: Hover over Story 005 (red highlighted)
+   - Tooltip: "Blocking 7 stories"
+   - User notes: Prioritize Story 005 for immediate work
+6. **Examine Critical Path**: Critical path highlighted in blue
+   - 6 stories in sequence: 001 → 003 → 005 → 009 → 012 → 025
+   - User understands: This is the minimum project duration
+7. **Click Node**: Click Story 005 to see details
+   - Story detail slide-over opens
+   - Shows: Acceptance criteria, dependencies, estimated time
+8. **Plan Sprint**: Based on graph insights
+   - Sprint 1: Stories 001-008 (parallel development)
+   - Sprint 2: Story 005 (bottleneck), then 009-015
+   - Sprint 3: Stories 016-025
+9. **Export Graph**: Click "Export PNG" button
+   - Graph downloads as sprint-plan.png
+   - Share with team in Slack
+10. **Real-Time Update**: Story 003 status changes to "In Progress"
+    - Node color smoothly transitions from gray to blue
+    - Pulsing border indicates active work
+11. **Success**: Sprint planned with clear parallel work strategy, <5 minutes total
+
+---
+
 ## 6. Component Library
 
 ### 6.1 Component Strategy
@@ -614,28 +653,111 @@ graph LR
   - Keyboard: Tab through elements, Enter to submit, Escape to close
   - Screen reader: Announce modal open, read question first
 
-**7. DependencyGraph Component**
-- **Purpose**: Visualize story dependencies and worktree status
-- **Anatomy**:
-  - Nodes: Story circles with ID labels
-  - Edges: Lines connecting dependent stories
-  - Node colors: Status-based (pending=gray, in-progress=blue, merged=green, blocked=red)
-  - Worktree indicator: Icon badge on node
-- **States**:
-  - Static: Default visualization
-  - Hover node: Highlight connected dependencies
-  - Real-time: Nodes update as stories progress
-- **Variants**:
-  - Compact: Simplified graph for mobile
-  - Expanded: Full graph with labels
-- **Behavior**:
-  - Click node → Open story detail
-  - Hover node → Show story title tooltip
-  - Pan/zoom for large graphs
-- **Accessibility**:
-  - ARIA role: "img" with alt text describing graph
-  - Keyboard: Tab through nodes, Enter to open
-  - Screen reader: List dependencies textually
+**UPDATED: 7. DependencyGraph Component (Detailed Specification)**
+
+**Purpose:** Visualize story dependencies with real-time worktree status for sprint planning
+
+**Enhanced Anatomy:**
+- **SVG Canvas**: Scalable vector graphics container
+- **Nodes (Story Circles)**:
+  - Circle shape with status-based color fill
+  - Story ID label (centered, white text)
+  - Size varies by complexity:
+    - Small (32px): 1-5 acceptance criteria
+    - Medium (48px): 6-10 acceptance criteria
+    - Large (64px): 11+ acceptance criteria
+  - Worktree badge (top-right): Orange circle with "W" icon
+  - Confidence indicator (bottom-right): Small percentage badge (if AI-generated)
+- **Edges (Dependency Lines)**:
+  - Source: Prerequisite story node
+  - Target: Dependent story node
+  - Line style:
+    - Solid: Hard dependency (blocking)
+    - Dashed: Soft dependency (suggested order)
+  - Color:
+    - Red (#EF4444): Blocking (target can't start)
+    - Gray (#9CA3AF): Non-blocking
+  - Arrow head at target end
+- **Critical Path Highlight**:
+  - Thicker edges (3px vs 1.5px)
+  - Blue color (#2563EB)
+  - Dashed glow effect
+- **Layout**:
+  - Hierarchical (top-to-bottom flow)
+  - No-dependency stories at top
+  - Dependent stories below prerequisites
+  - Auto-spacing to prevent overlaps
+- **Controls**:
+  - Zoom slider (bottom-right)
+  - Pan indicator (center when not at default view)
+  - Reset button ("Fit to View")
+  - Export dropdown (PNG, SVG, Link)
+- **Legend**:
+  - Status colors (Pending, In-Progress, Review, Merged, Blocked)
+  - Edge types (Hard, Soft, Critical Path)
+  - Icon meanings (Worktree active, Confidence score)
+
+**Enhanced States:**
+- **Loading**: Skeleton placeholder with animated shimmer
+- **Default**: Full graph rendered, nodes static
+- **Hover Node**: Node elevates (drop shadow), tooltip appears, connected edges highlight
+- **Selected Node**: Node border thickens, connected dependencies highlighted
+- **Panning**: Cursor changes to grab hand, graph moves with mouse
+- **Zooming**: Graph scales smoothly, labels fade in/out based on zoom level
+- **Updating**: Smooth transitions (500ms) when node status changes
+- **Error**: Error message overlay, "Unable to load dependency graph"
+
+**Enhanced Variants:**
+- **Desktop Full**: Complete graph with all interactions, filters sidebar
+- **Tablet**: Simplified graph, touch-optimized, swipe to pan
+- **Mobile**: List view with expandable dependencies (graph too complex for small screens)
+
+**Enhanced Behavior:**
+- **Click Node**: Open story detail slide-over panel (right side)
+- **Double-Click Node**: Center and zoom to node + immediate dependencies
+- **Hover Node**: Show tooltip with story title, status, epic, worktree status
+- **Click Edge**: Show tooltip with dependency type and reason
+- **Drag Node**: If manual layout enabled, update node position (save to preferences)
+- **Scroll**: Zoom in/out centered on mouse position
+- **Pinch (Touch)**: Zoom in/out on touch devices
+- **Pan**: Click-and-drag background to move graph
+- **Export PNG**: Download current view as PNG image
+- **Export SVG**: Download graph as SVG file (editable)
+- **Share Link**: Copy URL with graph view state (zoom, pan, selected node)
+- **Real-Time Updates**:
+  - WebSocket event: story.status.changed → Update node color
+  - WebSocket event: dependency.added → Add new edge
+  - WebSocket event: dependency.removed → Remove edge
+  - All changes animated smoothly (no jarring redraws)
+
+**Enhanced Accessibility:**
+- **ARIA Attributes**:
+  - role="img" with aria-label="Story dependency graph for [project name]"
+  - Each node: role="button" with aria-label="Story [ID]: [title], Status: [status]"
+- **Keyboard Navigation**:
+  - Tab: Focus next node (in topological order)
+  - Shift+Tab: Focus previous node
+  - Enter: Open focused node detail
+  - Arrow keys: Pan graph
+  - +/-: Zoom in/out
+  - R: Reset view to fit
+- **Screen Reader Support**:
+  - Provide text alternative: "Dependency list" with hierarchical structure
+  - Announce status changes: "Story 005 status changed to In Progress"
+- **Focus Indicators**:
+  - 3px blue outline on focused node
+  - Skip link: "Skip to dependency list"
+
+**Enhanced Implementation Notes:**
+- **Library**: D3.js v7 for data binding and SVG manipulation
+- **Layout Algorithm**: d3-hierarchy with topological sort
+- **Performance**:
+  - Virtualization for >100 nodes (only render visible)
+  - Canvas fallback for >500 nodes (WebGL acceleration)
+  - Debounce zoom/pan events (16ms = 60 FPS)
+- **Data Refresh**: Poll every 10 seconds or use WebSocket
+- **State Management**: Zustand slice for graph state (zoom, pan, selected node)
+- **Export**: html2canvas for PNG, native SVG serialization
 
 **8. Code Review Interface Components**
 - **Purpose**: Display Alex agent's code review results with clear severity indicators and actionable feedback

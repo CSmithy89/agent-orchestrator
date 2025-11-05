@@ -693,16 +693,17 @@ So that security requirements are complete before proceeding to solutioning.
 
 ## Epic 4: Solutioning Phase Automation
 
-**Goal:** Automatically decompose requirements into implementable epics and stories, enabling immediate development kickoff.
+**Goal:** Automatically decompose requirements into implementable epics and stories **with visual dependency mapping**, enabling immediate development kickoff.
 
-**Value Proposition:** Requirements break down into bite-sized stories autonomously. Dependencies mapped. Ready-to-develop stories generated in minutes.
+**Value Proposition:** Requirements break down into bite-sized stories autonomously. Dependencies mapped **and visualized**. Ready-to-develop stories generated in minutes.
 
-**Business Value:** Eliminates story writing bottleneck. Consistent quality. Dependencies detected automatically.
+**Business Value:** Eliminates story writing bottleneck. Consistent quality. **Dependencies detected and visualized automatically for planning clarity**.
 
 **Technical Scope:**
 - Epic/story generation workflow
 - Bob (Scrum Master) agent
 - Story dependency detection
+- **Dependency graph generation and visualization** ← NEW
 - Sprint status file generation
 
 ### Stories
@@ -854,6 +855,51 @@ So that I can immediately begin development.
 10. Update workflow-status.yaml
 
 **Prerequisites:** Story 4.1 through 4.6, Epic 3 complete
+
+**Estimated Time:** 3-4 hours
+
+---
+
+**Story 4.8: Dependency Graph Data Generation**
+
+As the solutioning workflow,
+I want to generate dependency graph data during story decomposition,
+So that story relationships are captured for visualization and planning.
+
+**Acceptance Criteria:**
+1. Implement DependencyGraphGenerator class with graph generation logic
+2. Execute automatically after Story 4.4 (Dependency Detection)
+3. Analyze story prerequisites to build dependency edges:
+   - Hard dependencies (blocking): Story A must complete before Story B
+   - Soft dependencies (suggested): Story A should complete before Story B for logical flow
+4. Create dependency graph structure:
+   - Nodes: All stories with metadata (ID, title, status, epic, complexity)
+   - Edges: Dependency relationships with type (hard/soft) and blocking status
+5. Calculate graph metrics:
+   - Critical path (longest dependency chain from start to finish)
+   - Bottlenecks (stories blocking ≥3 other stories)
+   - Parallelizable stories (no blocking dependencies)
+6. Detect circular dependencies and escalate if found
+7. Save graph data to docs/dependency-graph.json:
+   ```json
+   {
+     "nodes": [...],
+     "edges": [...],
+     "criticalPath": [...],
+     "metadata": {
+       "totalStories": N,
+       "parallelizable": M,
+       "bottlenecks": [...]
+     }
+   }
+   ```
+8. Update sprint-status.yaml with graph generation timestamp
+9. Complete graph generation in <30 seconds
+10. Track metrics: graph complexity, critical path length, bottleneck count
+
+**Prerequisites:** Story 4.4 (Dependency Detection & Sequencing)
+
+**Estimated Time:** 2-3 hours
 
 ---
 
@@ -1379,6 +1425,73 @@ So that I can visualize development progress.
 
 **Prerequisites:** Story 6.9, Story 6.4
 
+**Estimated Time:** 3-4 hours
+
+---
+
+**Story 6.12: Dependency Graph Visualization Component**
+
+As a user planning sprint work,
+I want to see story dependencies in an interactive visual graph,
+So that I can understand relationships and identify blockers at a glance.
+
+**Acceptance Criteria:**
+1. Implement DependencyGraph React component using D3.js
+2. Fetch dependency graph data from GET /api/projects/:id/dependency-graph
+3. Render interactive SVG visualization:
+   - **Nodes**: Circular, color-coded by status
+     - Pending: Gray (#9CA3AF)
+     - In-Progress: Blue (#3B82F6, animated pulsing border)
+     - Review: Amber (#F59E0B)
+     - Merged: Green (#10B981)
+     - Blocked: Red (#EF4444)
+   - **Node Size**: Based on story complexity (small: 32px, medium: 48px, large: 64px)
+   - **Node Labels**: Story ID (centered inside circle)
+   - **Worktree Indicator**: Orange badge (top-right corner) if worktree active
+   - **Edges**: Lines connecting dependent stories
+     - Solid line: Hard dependency (blocking)
+     - Dashed line: Soft dependency (suggested order)
+     - Red color: Blocking (target story can't start)
+     - Gray color: Non-blocking
+4. Layout algorithm: Hierarchical (dependencies flow top-to-bottom)
+   - Stories with no dependencies at top
+   - Dependent stories below their prerequisites
+   - Critical path highlighted with thicker edges
+5. Interactions:
+   - **Pan/Zoom**: Mouse drag to pan, scroll to zoom
+   - **Click Node**: Open story detail slide-over panel
+   - **Hover Node**: Show tooltip with story title and status
+   - **Click Edge**: Show dependency details tooltip
+   - **Double-Click Background**: Reset zoom to fit
+6. Real-time updates via WebSocket:
+   - When story status changes → Update node color
+   - When dependency added/removed → Rebuild graph
+   - Smooth transitions (500ms) for visual changes
+7. Responsive behavior:
+   - **Desktop**: Full graph, all interactions enabled
+   - **Tablet**: Simplified graph, touch-optimized
+   - **Mobile**: List view fallback with expandable dependencies
+8. Export functionality:
+   - Button to export graph as PNG (download)
+   - Button to export graph as SVG (download)
+   - Button to copy shareable link to graph view
+9. Accessibility:
+   - ARIA label: "Story dependency graph for [project name]"
+   - Keyboard navigation: Tab through nodes, Enter to open story
+   - Screen reader: Provide text alternative listing dependencies
+10. Performance:
+    - Render graph in <2 seconds for up to 100 stories
+    - Smooth animations (60 FPS)
+    - Virtualization for graphs >100 stories (only render visible nodes)
+11. Integration with Project Detail view:
+    - New tab: "Dependencies" (alongside Kanban, Chat, Details)
+    - Toggle: "Show Graph View" / "Show List View"
+    - Filter controls: By epic, by status, by blocking
+
+**Prerequisites:** Story 6.4 (State Query Endpoints), Story 4.8 (Graph Data Generation), Epic 4 complete
+
+**Estimated Time:** 4-5 hours
+
 ---
 
 ## Implementation Sequencing & Phases
@@ -1512,7 +1625,7 @@ Sequential after 4.4 + 4.5:
 - Story 4.6: Sprint Status File Generation
 - Story 4.7: Epics & Stories Workflow Executor
 
-**Phase 3 Completion Gate:** ✅ Stories generate automatically from PRD + Architecture
+**Phase 3 Completion Gate:** ✅ Stories generate automatically from PRD + Architecture **AND dependency graph generated for visualization**
 
 ---
 
