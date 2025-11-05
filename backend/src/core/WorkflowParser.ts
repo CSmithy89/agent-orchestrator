@@ -78,6 +78,16 @@ export class WorkflowParser {
    * @param filePath Path to workflow file (for error messages)
    */
   private validateRequiredFields(config: any, filePath: string): void {
+    // Guard against empty/invalid YAML payloads
+    if (!config || typeof config !== 'object' || Array.isArray(config)) {
+      throw new WorkflowParseError(
+        `Workflow file must contain a top-level mapping object: ${filePath}`,
+        'workflow',
+        'mapping',
+        filePath
+      );
+    }
+
     const requiredFields = ['name', 'instructions', 'config_source'];
     const missingFields: string[] = [];
 
@@ -135,7 +145,12 @@ export class WorkflowParser {
    * @returns Config with path variables resolved
    */
   private resolvePathVariables(config: WorkflowConfig): WorkflowConfig {
-    const workflowDir = path.dirname(config.instructions || '');
+    // First resolve {project-root} in the instructions path to avoid nested placeholder issues
+    const instructionsPathTemplate = config.instructions ?? '';
+    const resolvedInstructionsPath = instructionsPathTemplate
+      .split('{project-root}')
+      .join(this.projectRoot);
+    const workflowDir = path.dirname(resolvedInstructionsPath);
     const installedPath = path.isAbsolute(workflowDir)
       ? workflowDir
       : path.join(this.projectRoot, workflowDir);
