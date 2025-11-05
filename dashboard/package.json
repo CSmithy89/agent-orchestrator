@@ -1,0 +1,16 @@
+{
+  "name": "@agent-orchestrator/dashboard",
+  "version": "1.0.0",
+  "description": "Dashboard UI for the Agent Orchestrator",
+  "private": true,
+  "scripts": {
+    "lint": "echo 'Dashboard linting not yet implemented'"
+  },
+  "keywords": [
+    "bmad",
+    "orchestrator",
+    "dashboard"
+  ],
+  "author": "Chris",
+  "license": "UNLICENSED"
+}
