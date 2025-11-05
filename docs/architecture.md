@@ -961,6 +961,119 @@ if (!result.passed) {
 await workflowEngine.transitionPhase('implementation');
 ```
 
+#### 2.3.9 Cost-Quality Optimizer
+
+**Responsibility:** Optimize LLM model selection based on task complexity and budget constraints
+
+**Key Classes:**
+
+```typescript
+interface TaskComplexity {
+  level: 'simple' | 'moderate' | 'complex';
+  factors: string[];
+  confidence: number;
+}
+
+interface ModelRecommendation {
+  model: string;
+  provider: string;
+  estimatedCost: number; // USD
+  qualityScore: number; // 0-100
+  rationale: string;
+}
+
+interface BudgetConfig {
+  daily?: number;
+  weekly?: number;
+  monthly?: number;
+  alerts: {
+    threshold: number; // 0-1 (e.g., 0.75 = 75%)
+    action: 'warn' | 'block' | 'downgrade';
+  }[];
+}
+
+interface CostMetrics {
+  totalCost: number;
+  costByAgent: Map<string, number>;
+  costByPhase: Map<string, number>;
+  costByModel: Map<string, number>;
+  tokenUsage: {
+    input: number;
+    output: number;
+    cached: number;
+  };
+  projectedMonthly: number;
+}
+
+class CostQualityOptimizer {
+  async analyzeTaskComplexity(task: Task): Promise<TaskComplexity>;
+
+  async recommendModel(
+    task: Task,
+    budget: BudgetConfig
+  ): Promise<ModelRecommendation>;
+
+  async trackCost(
+    agent: string,
+    model: string,
+    tokens: number,
+    cost: number
+  ): Promise<void>;
+
+  async getCostMetrics(timeframe: 'day' | 'week' | 'month'): Promise<CostMetrics>;
+
+  async checkBudget(budget: BudgetConfig): Promise<{
+    remaining: number;
+    percentUsed: number;
+    alerts: string[];
+  }>;
+
+  private estimateCost(model: string, tokens: number): number;
+  private assessQuality(model: string, complexity: TaskComplexity): number;
+  private selectOptimalModel(
+    complexity: TaskComplexity,
+    budget: BudgetConfig
+  ): ModelRecommendation;
+}
+```
+
+**Complexity Analysis Factors:**
+
+```typescript
+function analyzeTaskComplexity(task: Task): TaskComplexity {
+  const factors = [];
+  let complexityScore = 0;
+
+  // Factor 1: Task type
+  if (task.type === 'architecture') complexityScore += 3;
+  else if (task.type === 'code-generation') complexityScore += 2;
+  else if (task.type === 'formatting') complexityScore += 0;
+
+  // Factor 2: Context size
+  if (task.contextTokens > 50000) complexityScore += 2;
+  else if (task.contextTokens > 20000) complexityScore += 1;
+
+  // Factor 3: Decision criticality
+  if (task.critical) complexityScore += 2;
+
+  // Factor 4: Novel vs routine
+  if (task.routine) complexityScore -= 1;
+
+  // Determine complexity level
+  if (complexityScore >= 6) return { level: 'complex', factors, confidence: 0.9 };
+  if (complexityScore >= 3) return { level: 'moderate', factors, confidence: 0.85 };
+  return { level: 'simple', factors, confidence: 0.95 };
+}
+```
+
+**Model Selection Matrix:**
+
+| Task Complexity | Premium (GPT-4/Sonnet) | Standard (GPT-3.5/Haiku) | Economy (Local/Cache) |
+|----------------|----------------------|------------------------|---------------------|
+| Complex | ✅ Recommended | 🟡 If budget constrained | ❌ Not recommended |
+| Moderate | 🟡 If quality critical | ✅ Recommended | 🟡 For non-critical |
+| Simple | ❌ Wasteful | 🟡 Safe choice | ✅ Recommended |
+
 ---
 
 ## 3. Data Models
@@ -2838,6 +2951,44 @@ jobs:
 **Gate Threshold:**
 - All required checks must pass (100%)
 - Warnings don't block but are surfaced
+
+**Status:** Accepted for V1.5
+
+### TD-013: Cost-Quality Optimizer for Budget Management
+
+**Decision:** Implement intelligent model selection based on task complexity and budget constraints
+
+**Context:** LLM costs vary 300x between models. Using premium models for all tasks is wasteful. Always using economy models degrades quality.
+
+**Alternatives:**
+1. **Fixed model per agent**: Simple (rejected: ignores task complexity variation)
+2. **Always use premium**: Best quality (rejected: 10-100x cost increase)
+3. **Always use economy**: Cheap (rejected: quality degradation on complex tasks)
+4. **Dynamic complexity-based selection**: Optimal cost/quality (chosen)
+
+**Consequences:**
+- ✅ Pro: 60-80% cost savings vs always-premium approach
+- ✅ Pro: Maintains quality on complex tasks (architecture, critical decisions)
+- ✅ Pro: Budget predictability (alerts at 75%, 90%, 100% thresholds)
+- ✅ Pro: Cost transparency (dashboards, reports by agent/phase/model)
+- ❌ Con: Complexity analysis adds <500ms overhead per task
+- ❌ Con: Risk of under-provisioning complexity (can escalate if quality suffers)
+
+**Complexity Factors:**
+- **Task type**: Architecture (3 points), Code Gen (2), Formatting (0)
+- **Context size**: >50k tokens (+2), >20k tokens (+1)
+- **Criticality**: Critical decisions (+2)
+- **Novelty**: Routine tasks (-1)
+
+**Model Selection Strategy:**
+- **Complex (≥6 points)**: Premium models (Claude Sonnet, GPT-4 Turbo)
+- **Moderate (3-5 points)**: Standard models (Claude Haiku, GPT-3.5 Turbo)
+- **Simple (≤2 points)**: Economy models (cached responses, local models)
+
+**Budget Safety:**
+- 75% threshold: Warning, continue normal
+- 90% threshold: Downgrade non-critical tasks to lower tier
+- 100% threshold: Block new tasks, escalate for budget approval
 
 **Status:** Accepted for V1.5
 

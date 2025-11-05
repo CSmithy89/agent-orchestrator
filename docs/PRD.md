@@ -926,6 +926,32 @@ Events:
   - User can accept, modify, or reject recommendations
   - Audit trail of CIS agent contributions
 
+**FR-COST-001: Cost-Quality Optimizer**
+- **Purpose**: Dynamically assign optimal LLM models to agents based on task complexity and budget
+- **Capabilities**:
+  - Analyze task complexity (simple, moderate, complex)
+  - Estimate cost for different model options
+  - Balance cost vs quality trade-offs
+  - Recommend model assignments
+  - Track actual costs vs budget
+  - Alert when approaching budget limits
+- **Model Tiers**:
+  - **Premium** (High complexity): Claude Sonnet, GPT-4 Turbo (~$30/M tokens)
+  - **Standard** (Moderate complexity): Claude Haiku, GPT-3.5 Turbo (~$1-3/M tokens)
+  - **Economy** (Simple tasks): Local models, cached responses (~$0.10/M tokens)
+- **Optimization Strategies**:
+  - Use economy models for routine tasks (PRD formatting, file operations)
+  - Use standard models for typical development (code generation, reviews)
+  - Use premium models for complex decisions (architecture, critical escalations)
+  - Cache frequently used prompts/responses
+  - Batch similar requests
+- **Acceptance Criteria**:
+  - Cost optimizer recommends model per task
+  - User can set budget limits (daily, weekly, monthly)
+  - Dashboard shows cost tracking and projections
+  - Alerts at 75%, 90%, 100% budget thresholds
+  - Cost reports by agent, by phase, by model
+
 ### Multi-Project Orchestration
 
 **FR-MULTI-001: Project Isolation**

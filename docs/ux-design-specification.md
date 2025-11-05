@@ -890,7 +890,34 @@ graph LR
 - **Format**: "Alex completed code review for Story 5.3 (Score: 87/100)"
 - **Behavior**: Link to full report modal
 
-**10. Security Gate Interface Components**
+**9. CostDashboard Component**
+
+**Purpose:** Display real-time cost tracking and budget status
+
+**Anatomy:**
+- Budget progress bar (color-coded: green <75%, amber 75-90%, red >90%)
+- Current spend vs budget (daily/weekly/monthly toggle)
+- Cost breakdown chart:
+  - By agent (pie chart)
+  - By phase (bar chart)
+  - By model (stacked bar)
+- Projected monthly cost
+- Cost savings from optimization
+- Alert badges at thresholds
+
+**States:**
+- Normal (< 75%): Green progress bar
+- Warning (75-90%): Amber bar, warning badge
+- Critical (90-100%): Red bar, downgrade notice
+- Over budget (>100%): Red bar, blocked badge
+
+**Interactions:**
+- Click chart segment → Filter cost details
+- Toggle timeframe → Update all metrics
+- Click "Cost Report" → Download CSV
+- Click "Adjust Budget" → Open budget config modal
+
+**11. Security Gate Interface Components**
 - **Purpose**: Display security gate validation results with clear pass/fail status and actionable gap analysis
 - **Components**:
 

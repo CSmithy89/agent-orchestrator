@@ -352,6 +352,68 @@ So that transient failures don't crash workflows and users get clear error messa
 
 **Prerequisites:** Story 1.3, Story 1.6
 
+**Story 1.13: Cost-Quality Optimizer Implementation**
+
+As a cost-conscious user,
+I want the orchestrator to use optimal LLM models for each task,
+So that I get best value (quality per dollar spent).
+
+**Acceptance Criteria:**
+1. Implement CostQualityOptimizer class with complexity analysis
+2. Analyze task complexity before agent invocation:
+   - Simple: Formatting, routine operations, cached responses
+   - Moderate: Code generation, standard reviews, typical decisions
+   - Complex: Architecture design, critical escalations, novel problems
+3. Recommend optimal model based on complexity + budget:
+   - Complex task + budget available → Premium (Claude Sonnet, GPT-4 Turbo)
+   - Moderate task → Standard (Claude Haiku, GPT-3.5 Turbo)
+   - Simple task → Economy (cached, local models)
+4. Override recommendations if budget constrained:
+   - At 75% budget → Downgrade non-critical tasks to standard
+   - At 90% budget → Downgrade all except critical to economy
+   - At 100% budget → Block new tasks, escalate for budget increase
+5. Track costs in real-time:
+   - Cost per agent invocation
+   - Cost per phase
+   - Cost per model
+   - Token usage (input, output, cached)
+6. Provide cost dashboard:
+   - Current spend vs budget (daily, weekly, monthly)
+   - Cost breakdown by agent, phase, model
+   - Projected monthly cost based on current usage
+   - Cost savings from optimizer (vs always using premium)
+7. Alert at budget thresholds:
+   - 75%: Warning toast + email
+   - 90%: Critical alert + downgrade strategy
+   - 100%: Block tasks + user approval required
+8. Cost optimization strategies:
+   - Cache frequently used prompts (e.g., agent personas)
+   - Batch similar requests to same model
+   - Use economy models for retries (after initial failure)
+   - Compress context for moderate tasks
+9. Budget configuration:
+   ```yaml
+   budget:
+     daily: 50  # $50/day
+     weekly: 300
+     monthly: 1000
+     alerts:
+       - threshold: 0.75
+         action: warn
+       - threshold: 0.90
+         action: downgrade
+       - threshold: 1.00
+         action: block
+   ```
+10. Cost reporting:
+    - CSV export of cost data
+    - Cost trends chart (last 30 days)
+    - Model efficiency metrics (quality score / cost)
+
+**Prerequisites:** Story 1.4 (Agent Pool), Story 1.3 (LLM Factory)
+
+**Estimated Time:** 5-6 hours
+
 ---
 
 ## Epic 2: Analysis Phase Automation
