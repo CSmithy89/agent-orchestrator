@@ -224,9 +224,9 @@ describe('StateManager', () => {
     });
 
     it('should handle corrupted YAML gracefully', async () => {
-      // Create corrupted YAML file
-      const yamlPath = path.join(BMAD_DIR, 'sprint-status.yaml');
-      await fs.mkdir(BMAD_DIR, { recursive: true });
+      // Create corrupted YAML file in the project subdirectory
+      const yamlPath = path.join(BMAD_DIR, 'test-project', 'sprint-status.yaml');
+      await fs.mkdir(path.dirname(yamlPath), { recursive: true });
       await fs.writeFile(yamlPath, 'invalid: yaml: content: [[[', 'utf-8');
 
       const loaded = await stateManager.loadState('test-project');
