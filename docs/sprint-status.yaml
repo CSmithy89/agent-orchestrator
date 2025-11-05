@@ -45,8 +45,8 @@ development_status:
 
   # Epic 1: Foundation & Core Engine
   epic-1: contexted  # Tech spec: docs/tech-spec-epic-1.md
-  1-1-project-repository-structure-configuration: backlog
-  1-2-workflow-yaml-parser: backlog
+  1-1-project-repository-structure-configuration: ready-for-dev
+  1-2-workflow-yaml-parser: drafted
   1-3-llm-factory-pattern-implementation: backlog
   1-4-agent-pool-lifecycle-management: backlog
   1-5-state-manager-file-persistence: backlog

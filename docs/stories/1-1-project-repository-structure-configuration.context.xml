@@ -1,0 +1,291 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>1.1</storyId>
+    <title>Project Repository Structure & Configuration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-1-project-repository-structure-configuration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>system architect</asA>
+    <iWant>a well-organized project structure with configuration management</iWant>
+    <soThat>the orchestrator can load project-specific settings and maintain clean separation of concerns</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <description>Setup TypeScript project configuration</description>
+        <subtasks>
+          <subtask>Create backend/package.json with dependencies (TypeScript, ts-node, @types/node)</subtask>
+          <subtask>Create backend/tsconfig.json with strict mode and ES2022 target</subtask>
+          <subtask>Configure build output to backend/dist/</subtask>
+          <subtask>Add scripts: build, dev, test</subtask>
+          <subtask>Install dependencies: js-yaml, dotenv, cosmiconfig</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="2">
+        <description>Establish directory structure</description>
+        <subtasks>
+          <subtask>Create backend/src/ directory for source code</subtask>
+          <subtask>Create backend/src/config/ for configuration management</subtask>
+          <subtask>Create backend/src/core/ for core orchestrator components</subtask>
+          <subtask>Create backend/src/providers/ for LLM provider implementations</subtask>
+          <subtask>Create backend/src/types/ for TypeScript type definitions</subtask>
+          <subtask>Create backend/tests/ for unit and integration tests</subtask>
+          <subtask>Create .bmad/ directory at project root for BMAD configuration</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="3,4">
+        <description>Implement ProjectConfig class</description>
+        <subtasks>
+          <subtask>Create backend/src/config/ProjectConfig.ts</subtask>
+          <subtask>Define ProjectConfigSchema interface with all required fields</subtask>
+          <subtask>Implement loadConfig() method to read .bmad/project-config.yaml</subtask>
+          <subtask>Parse YAML using js-yaml library</subtask>
+          <subtask>Support environment variable expansion (${ENV_VAR} syntax)</subtask>
+          <subtask>Load sections: project metadata, onboarding, agent_assignments, cost_management</subtask>
+          <subtask>Implement getAgentConfig(agentName) method for per-agent LLM lookup</subtask>
+          <subtask>Implement getOnboardingDocs() to return paths to onboarding documents</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="5">
+        <description>Configuration validation</description>
+        <subtasks>
+          <subtask>Define required fields schema (project.name, project.repository, etc.)</subtask>
+          <subtask>Implement validation logic with descriptive error messages</subtask>
+          <subtask>Validate agent_assignments: model, provider fields required</subtask>
+          <subtask>Validate supported LLM providers (anthropic, openai, zhipu, google)</subtask>
+          <subtask>Throw ValidationError with field path and expected format</subtask>
+          <subtask>Unit tests for valid and invalid configurations</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="6">
+        <description>Create example configuration</description>
+        <subtasks>
+          <subtask>Create .bmad/project-config.example.yaml with inline comments</subtask>
+          <subtask>Document all fields with descriptions</subtask>
+          <subtask>Provide example agent assignments for Mary, Winston, Amelia, etc.</subtask>
+          <subtask>Include multi-provider examples (Claude, GPT-4, GLM via z.ai)</subtask>
+          <subtask>Add cost management example with budget thresholds</subtask>
+          <subtask>Reference from README.md</subtask>
+        </subtasks>
+      </task>
+      <task id="6">
+        <description>Testing and documentation</description>
+        <subtasks>
+          <subtask>Write unit tests for ProjectConfig class</subtask>
+          <subtask>Test valid configuration loading</subtask>
+          <subtask>Test invalid configuration error handling</subtask>
+          <subtask>Test environment variable expansion</subtask>
+          <subtask>Update README with configuration setup instructions</subtask>
+          <subtask>Document configuration schema in architecture.md reference</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Create TypeScript project with proper tsconfig.json and package.json</criterion>
+    <criterion id="2">Establish directory structure: src/, tests/, docs/, .bmad/</criterion>
+    <criterion id="3">Implement ProjectConfig class that loads from .bmad/project-config.yaml</criterion>
+    <criterion id="4">Support loading: project metadata, agent LLM assignments, onboarding docs paths</criterion>
+    <criterion id="5">Validate configuration schema on load with clear error messages</criterion>
+    <criterion id="6">Include example project-config.yaml with inline documentation</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Data Models and Contracts - ProjectConfig Schema</section>
+        <snippet>Defines the complete ProjectConfig schema with project metadata, onboarding docs, agent_assignments (per-agent LLM configuration), and cost_management settings. This is the authoritative schema for Story 1.1 implementation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Dependencies and Integrations - Core Dependencies</section>
+        <snippet>Required dependencies: Node.js ≥20.0.0, TypeScript ^5.0.0, js-yaml ^4.1.0 for YAML parsing, dotenv ^16.0.0 for environment variables, cosmiconfig ^8.3.0 for config file discovery. All dependencies validated for Epic 1 scope.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Services and Modules - ProjectConfig</section>
+        <snippet>ProjectConfig module loads .bmad/project-config.yaml and provides configuration object. Owner Story: 1.1. Inputs: .bmad/project-config.yaml. Outputs: Configuration object with agent assignments and onboarding paths.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Test Strategy Summary - Unit Tests</section>
+        <snippet>Unit test examples for ProjectConfig: Parse valid/invalid YAML, variable resolution, schema validation. Coverage target: 80%+ code coverage for Epic 1. Tools: Vitest, test utilities, mocks for external dependencies.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Epic 1 - Story 1.1: Project Repository Structure & Configuration</section>
+        <snippet>First story in Epic 1. Creates TypeScript project structure with ProjectConfig class for loading .bmad/project-config.yaml. Supports project metadata, agent LLM assignments, onboarding docs paths. Validates configuration schema with clear errors. Includes example configuration file.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Story 0.1: Project Scaffolding & Initialization</section>
+        <snippet>Completed story that established monorepo structure with backend/ and dashboard/ workspaces, root package.json with npm workspaces, .env.example with LLM provider keys, and git repository initialization. Story 1.1 builds on this foundation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>package.json</path>
+        <kind>monorepo-root</kind>
+        <symbol>N/A</symbol>
+        <lines>1-37</lines>
+        <reason>Monorepo root configuration established by Story 0.1. Defines workspaces (backend, dashboard), Node.js ≥20.0.0 requirement, and workspace scripts. Story 1.1 will create backend/package.json as a workspace member.</reason>
+      </file>
+      <file>
+        <path>backend/</path>
+        <kind>workspace-directory</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Backend workspace directory exists (from Story 0.1) but currently empty. Story 1.1 will populate with src/, tests/, package.json, and tsconfig.json to establish TypeScript project structure.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <runtime>
+          <package name="js-yaml" version="^4.1.0" purpose="YAML parsing for .bmad/project-config.yaml" />
+          <package name="dotenv" version="^16.0.0" purpose="Environment variable loading for ${ENV_VAR} expansion" />
+          <package name="cosmiconfig" version="^8.3.0" purpose="Config file discovery (optional for flexibility)" />
+        </runtime>
+        <development>
+          <package name="typescript" version="^5.3.0" purpose="TypeScript compiler and type system" />
+          <package name="@types/node" version="^20.0.0" purpose="Node.js type definitions" />
+          <package name="@types/js-yaml" version="^4.0.0" purpose="js-yaml type definitions" />
+          <package name="vitest" version="^1.0.0" purpose="Unit test framework (Epic 1 standard)" />
+          <package name="@vitest/ui" version="^1.0.0" purpose="Vitest test UI" />
+          <package name="ts-node" version="^10.9.0" purpose="TypeScript execution for development" />
+          <package name="tsx" version="^4.0.0" purpose="Fast TypeScript execution" />
+        </development>
+      </node>
+      <system>
+        <requirement name="Node.js" version="≥20.0.0" purpose="Runtime with ESM support" />
+        <requirement name="npm" version="≥10.0.0" purpose="Package manager with workspaces" />
+      </system>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint category="architecture">
+      <rule>Microkernel pattern: ProjectConfig is a Core Kernel component (Section 2.1 in architecture.md). Must be stable and reusable by all Epic 1+ stories.</rule>
+    </constraint>
+    <constraint category="architecture">
+      <rule>File-based configuration: Use YAML for human readability. YAML for machine-readable, Markdown for human-readable (Epic 1 standard).</rule>
+    </constraint>
+    <constraint category="coding-standards">
+      <rule>TypeScript strict mode required. All code must pass strict type checking with no 'any' types.</rule>
+    </constraint>
+    <constraint category="coding-standards">
+      <rule>ES2022 target with ESM modules. Use import/export syntax, not require/module.exports.</rule>
+    </constraint>
+    <constraint category="security">
+      <rule>Environment variable expansion must sanitize inputs. Support ${ENV_VAR} syntax but validate against injection attacks.</rule>
+    </constraint>
+    <constraint category="security">
+      <rule>Never log or expose API keys. Configuration validation should not echo sensitive values in error messages.</rule>
+    </constraint>
+    <constraint category="testing">
+      <rule>Unit tests required for all public methods. Coverage target: 80%+ for this story's code.</rule>
+    </constraint>
+    <constraint category="testing">
+      <rule>Test framework: Vitest (Epic 1 standard). Unit test pattern: *.test.ts files colocated with source or in backend/tests/</rule>
+    </constraint>
+    <constraint category="error-handling">
+      <rule>Validation errors must include field path and expected format. Example: "Invalid agent_assignments.mary.provider: expected one of [anthropic, openai, zhipu, google], got 'unknown'"</rule>
+    </constraint>
+    <constraint category="file-structure">
+      <rule>Configuration management code in backend/src/config/. Core orchestrator components in backend/src/core/. Maintain clean separation.</rule>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ProjectConfig</name>
+      <kind>class</kind>
+      <signature>
+        class ProjectConfig {
+          static loadConfig(configPath?: string): Promise&lt;ProjectConfig&gt;;
+          getAgentConfig(agentName: string): AgentLLMConfig | undefined;
+          getOnboardingDocs(): OnboardingPaths;
+          getCostManagement(): CostManagementConfig;
+          getProjectMetadata(): ProjectMetadata;
+        }
+      </signature>
+      <path>backend/src/config/ProjectConfig.ts</path>
+      <description>Main configuration class that loads and provides access to .bmad/project-config.yaml. Singleton pattern with static factory method.</description>
+    </interface>
+    <interface>
+      <name>ProjectConfigSchema</name>
+      <kind>interface</kind>
+      <signature>
+        interface ProjectConfigSchema {
+          project: { name: string; description: string; repository: string };
+          onboarding: { tech_stack: string[]; coding_standards: string; architecture_patterns: string };
+          agent_assignments: Record&lt;string, AgentLLMConfig&gt;;
+          cost_management: { max_monthly_budget: number; alert_threshold: number; fallback_model: string };
+        }
+      </signature>
+      <path>backend/src/types/ProjectConfig.ts</path>
+      <description>TypeScript interface defining the complete schema for project-config.yaml. Used for type safety and validation.</description>
+    </interface>
+    <interface>
+      <name>AgentLLMConfig</name>
+      <kind>interface</kind>
+      <signature>
+        interface AgentLLMConfig {
+          model: string;
+          provider: 'anthropic' | 'openai' | 'zhipu' | 'google';
+          base_url?: string;
+          api_key?: string;
+          reasoning: string;
+        }
+      </signature>
+      <path>backend/src/types/ProjectConfig.ts</path>
+      <description>Per-agent LLM configuration. Enables cost/quality optimization by assigning optimal models to each agent (e.g., Mary on Claude, Amelia on GPT-4, Bob on GLM).</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Unit tests using Vitest framework (Epic 1 standard). Test files follow *.test.ts pattern. Coverage target: 80%+ for ProjectConfig code. Mock external dependencies (file system, environment variables) for isolation. Test both success and error cases with descriptive test names: "should load valid configuration from .bmad/project-config.yaml" style.
+    </standards>
+    <locations>
+      <location>backend/tests/config/ProjectConfig.test.ts</location>
+      <location>backend/src/config/ProjectConfig.test.ts (colocated alternative)</location>
+    </locations>
+    <ideas>
+      <test ac="1,2">
+        <description>Test TypeScript project structure: Verify tsconfig.json has strict mode, ES2022 target. Verify package.json has required dependencies (js-yaml, dotenv, typescript). Verify directory structure exists (src/, tests/, src/config/).</description>
+      </test>
+      <test ac="3">
+        <description>Test ProjectConfig.loadConfig() with valid .bmad/project-config.yaml: Should parse YAML successfully, return ProjectConfig instance with all sections loaded (project, onboarding, agent_assignments, cost_management).</description>
+      </test>
+      <test ac="3">
+        <description>Test ProjectConfig.loadConfig() with missing config file: Should throw clear error message "Configuration file not found at .bmad/project-config.yaml".</description>
+      </test>
+      <test ac="4">
+        <description>Test ProjectConfig.getAgentConfig("mary"): Should return AgentLLMConfig with model, provider, reasoning fields. Test with missing agent name: should return undefined or throw error.</description>
+      </test>
+      <test ac="4">
+        <description>Test environment variable expansion: Config with agent_assignments.mary.api_key: "${ANTHROPIC_API_KEY}" should resolve to actual env var value. Test with missing env var: should throw or return empty string.</description>
+      </test>
+      <test ac="5">
+        <description>Test validation with invalid configuration: Missing required field (project.name) should throw ValidationError with message "Required field 'project.name' is missing". Invalid provider ("unknown") should throw "Invalid provider: expected one of [anthropic, openai, zhipu, google]".</description>
+      </test>
+      <test ac="5">
+        <description>Test validation with malformed YAML: Invalid YAML syntax should throw error with line number "YAML parse error at line 12: unexpected token".</description>
+      </test>
+      <test ac="6">
+        <description>Verify .bmad/project-config.example.yaml exists and is valid: Load example config, parse successfully, all fields documented with comments. Verify README.md references example config in setup section.</description>
+      </test>
+    </ideas>
+  </tests>
+</story-context>
