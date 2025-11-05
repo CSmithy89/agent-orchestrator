@@ -237,6 +237,22 @@ interface LLMClient {
 - Aggregate by project, agent, workflow
 - Escalate if budget threshold exceeded (configurable)
 
+**Agent Types:**
+
+**Core BMAD Agents** (Epic 1-6):
+- Mary (Business Analyst), John (PM)
+- Winston (Architect), Murat (Test Architect)
+- Bob (Scrum Master), Amelia (Developer)
+- Alex (Code Reviewer)
+
+**CIS (Creative & Innovation Suite) Agents** (v1.1):
+- Dr. Quinn (Problem Solver)
+- Maya (Design Thinking Coach)
+- Sophia (Storyteller)
+- Victor (Innovation Strategist)
+
+CIS agents invoked strategically for complex decisions.
+
 ---
 
 #### 2.1.3 State Manager
@@ -763,6 +779,88 @@ class DependencyGraphGenerator {
 - **Edge Rendering**: Solid for hard dependencies, dashed for soft, red for blocking
 - **Interactions**: Pan/zoom, click node for details, hover for tooltips
 - **Layout Algorithm**: Hierarchical layout (dependencies top-to-bottom)
+
+#### 2.3.7 CIS Agent Router
+
+**Responsibility:** Route strategic decisions to specialized CIS agents based on decision type
+
+**Key Classes:**
+```typescript
+interface CISRequest {
+  decision: string;
+  context: string;
+  decisionType: 'technical' | 'ux' | 'product' | 'innovation';
+  confidence: number; // from primary agent
+  urgency: 'low' | 'medium' | 'high';
+  projectContext: ProjectContext;
+}
+
+interface CISResponse {
+  agent: string; // "dr-quinn" | "maya" | "sophia" | "victor"
+  framework: string; // e.g., "design-thinking-5-phases"
+  analysis: string; // markdown-formatted analysis
+  recommendations: Recommendation[];
+  confidence: number; // 0-1
+  reasoning: string;
+}
+
+interface Recommendation {
+  option: string;
+  pros: string[];
+  cons: string[];
+  impact: 'high' | 'medium' | 'low';
+  effort: 'high' | 'medium' | 'low';
+  rationale: string;
+}
+
+class CISAgentRouter {
+  async routeDecision(request: CISRequest): Promise<CISResponse>;
+
+  private selectAgent(decisionType: string): string;
+  private formatContextForCIS(context: ProjectContext): string;
+  private parseFrameworkAnalysis(response: string): CISResponse;
+
+  async invokeDrQuinn(problem: string, context: string): Promise<CISResponse>;
+  async invokeMaya(designQuestion: string, context: string): Promise<CISResponse>;
+  async invokeSophia(narrativeNeed: string, context: string): Promise<CISResponse>;
+  async invokeVictor(innovationChallenge: string, context: string): Promise<CISResponse>;
+}
+```
+
+**Integration Points:**
+
+1. **Architecture Phase** (Winston):
+   - Technology choice → Dr. Quinn (trade-off analysis)
+   - UX approach → Maya (design thinking)
+   - Product positioning → Sophia (narrative clarity)
+
+2. **Epic Formation** (Bob):
+   - Feature prioritization → Victor (innovation lens)
+   - User journey mapping → Maya (empathy-driven)
+
+3. **Critical Escalations**:
+   - Complex technical problems → Dr. Quinn
+   - Product vision questions → Sophia
+   - Differentiation opportunities → Victor
+
+**Trigger Logic:**
+```typescript
+if (decision.confidence < 0.70 && decision.strategic) {
+  const cisRequest = {
+    decision: decision.question,
+    context: buildContext(decision),
+    decisionType: classifyDecision(decision),
+    confidence: decision.confidence,
+    urgency: assessUrgency(decision),
+    projectContext: loadProjectContext()
+  };
+
+  const cisResponse = await cisRouter.routeDecision(cisRequest);
+
+  // Present CIS recommendations to user or primary agent
+  return augmentDecisionWithCIS(decision, cisResponse);
+}
+```
 
 ---
 
@@ -2572,6 +2670,40 @@ jobs:
 - CI/CD enforces test execution before merge
 
 **Status:** Accepted
+
+---
+
+### TD-011: CIS Agent Integration for Strategic Decisions
+
+**Decision:** Integrate CIS (Creative & Innovation Suite) agents at strategic decision points
+
+**Context:** Some decisions require specialized reasoning frameworks beyond general-purpose AI
+
+**Alternatives:**
+1. **Single AI for all decisions**: Simple (rejected: lacks domain-specific frameworks)
+2. **Human-only for complex decisions**: High quality (rejected: slow, blocks autonomy)
+3. **CIS specialist agents for strategic decisions**: Framework-driven (chosen)
+
+**Consequences:**
+- ✅ Pro: Better quality strategic decisions (framework-specific analysis)
+- ✅ Pro: Faster than human consultation (seconds vs hours)
+- ✅ Pro: Transparent reasoning (framework steps visible)
+- ✅ Pro: Multiple perspectives (different agents = different lenses)
+- ❌ Con: Additional LLM costs (~$2-5 per CIS invocation)
+- ❌ Con: Complexity in routing logic
+
+**Agent Selection Logic:**
+- **Technical problems, trade-offs** → Dr. Quinn (systematic problem-solving)
+- **UX decisions, user research** → Maya (design thinking, empathy maps)
+- **Product narrative, vision, messaging** → Sophia (storytelling frameworks)
+- **Competitive differentiation, innovation** → Victor (disruption analysis)
+
+**Invocation Triggers:**
+- Auto: Confidence <0.70 AND strategic decision
+- Manual: User request via chat ("Ask Maya about...")
+- Critical: High-impact escalations
+
+**Status:** Accepted for v1.1
 
 ---
 

@@ -213,6 +213,15 @@ This is a novel approach combining:
 - ✅ Model recommendation engine
 - **Impact**: 3x faster implementation phase
 
+**v1.1 - Enhanced Decision Intelligence**
+- ✅ CIS agent integration for strategic decisions
+- ✅ Dr. Quinn for technical problem-solving
+- ✅ Maya for design thinking and UX decisions
+- ✅ Sophia for product storytelling and narrative
+- ✅ Victor for innovation and differentiation
+- ✅ Manual CIS invocation via chat ("Ask Maya...")
+- **Value**: Higher quality strategic decisions through specialized reasoning frameworks
+
 **Enhanced Remote Access (v1.2):**
 - ✅ Full-featured PWA dashboard
 - ✅ Two-level Kanban board (Phase overview + detail)
@@ -386,6 +395,30 @@ The Agent Orchestrator introduces several groundbreaking patterns in software de
 - Faster sprint planning (visual dependencies)
 - Reduced blocked stories (clear dependency view)
 - Confident parallel development (worktree status visible)
+
+### 8. Multi-Framework AI Decision System
+
+**Innovation**: Invoke specialized AI agents with domain-specific reasoning frameworks at strategic decision points
+
+**Why Novel**:
+- Most AI systems use single general-purpose model for all decisions
+- We route complex decisions to specialists:
+  - Technical problems → Dr. Quinn (systematic problem-solving)
+  - UX decisions → Maya (design thinking)
+  - Product narrative → Sophia (storytelling frameworks)
+  - Innovation → Victor (disruption analysis)
+- Each agent trained on specific methodologies
+
+**Validation Approach**:
+- A/B test: CIS-enhanced decisions vs standard decisions
+- Measure: Decision quality (post-implementation outcomes)
+- Track: Time to decision, confidence scores, user satisfaction
+
+**Business Impact**:
+- Better strategic decisions (framework-driven analysis)
+- Faster complex problem resolution
+- More innovative solutions (Victor's disruption lens)
+- Clearer product vision (Sophia's narrative)
 
 ---
 
@@ -849,6 +882,30 @@ Events:
   - Click node → open story detail panel
   - Export graph as PNG/SVG
   - <2 second render time for graphs up to 100 stories
+
+### CIS (Creative & Innovation Suite) Agent Integration
+
+**FR-CIS-001: Strategic Decision Points**
+- **Trigger Points**:
+  - Architecture design (technology choice, architectural pattern selection)
+  - Epic formation (feature grouping, prioritization dilemmas)
+  - Critical escalations (high-impact decisions with uncertainty)
+- **CIS Agents**:
+  - **Dr. Quinn (Problem Solver)**: Complex technical problems, trade-off analysis
+  - **Maya (Design Thinking)**: User-centric design decisions, empathy-driven choices
+  - **Sophia (Storyteller)**: Product narrative, value proposition clarity
+  - **Victor (Innovation)**: Disruptive opportunities, competitive differentiation
+- **Integration**:
+  - Triggered automatically at decision points with confidence <0.70
+  - Can be manually invoked via chat interface ("Ask Maya about UX approach")
+  - Provide framework-specific analysis (Design Thinking, Innovation Canvas, etc.)
+  - Return structured recommendations with rationale
+- **Acceptance Criteria**:
+  - CIS agents invoked at strategic decision points
+  - Response time <60 seconds
+  - Recommendations include framework-specific analysis
+  - User can accept, modify, or reject recommendations
+  - Audit trail of CIS agent contributions
 
 ### Multi-Project Orchestration
 

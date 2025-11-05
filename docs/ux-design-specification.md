@@ -759,7 +759,49 @@ graph LR
 - **State Management**: Zustand slice for graph state (zoom, pan, selected node)
 - **Export**: html2canvas for PNG, native SVG serialization
 
-**8. Code Review Interface Components**
+**8. CISConsultationCard Component**
+
+**Purpose:** Display CIS agent framework analysis and recommendations
+
+**Anatomy:**
+- Card header: "[Agent Name] - [Framework]"
+  - Example: "Maya - Design Thinking Framework"
+- Framework visualization:
+  - For Maya: 5 phases diagram (Empathize → Define → Ideate → Prototype → Test)
+  - For Dr. Quinn: Problem-solving canvas
+  - For Sophia: Story arc diagram
+  - For Victor: Innovation canvas
+- Analysis section (collapsible):
+  - Framework-specific analysis in markdown
+  - Key insights highlighted
+- Recommendations section:
+  - 3-5 recommendation cards
+  - Each with: Option name, Pros (green), Cons (red), Impact/Effort matrix
+- Confidence indicator for each recommendation
+- Actions: Accept recommendation, Modify, Reject, Ask follow-up
+
+**States:**
+- Loading: "Consulting [Agent]..." with animated spinner
+- Loaded: Full analysis visible
+- Expanded: Framework details visible
+- Collapsed: Summary only
+
+**Variants:**
+- Inline (chat): Compact version in chat interface
+- Modal (critical decisions): Full-screen for detailed review
+
+**Behavior:**
+- Click recommendation → Expand details
+- Click "Accept" → Apply recommendation to decision
+- Click "Ask follow-up" → Opens chat with agent context
+- Real-time: Shows "thinking..." as agent analyzes
+
+**Accessibility:**
+- ARIA: role="article", aria-label="[Agent] consultation"
+- Keyboard: Tab through recommendations, Enter to accept
+- Screen reader: Read framework phases, recommendations linearly
+
+**9. Code Review Interface Components**
 - **Purpose**: Display Alex agent's code review results with clear severity indicators and actionable feedback
 - **Components**:
 
@@ -820,7 +862,7 @@ graph LR
 - **Format**: "Alex completed code review for Story 5.3 (Score: 87/100)"
 - **Behavior**: Link to full report modal
 
-**9. Security Gate Interface Components**
+**10. Security Gate Interface Components**
 - **Purpose**: Display security gate validation results with clear pass/fail status and actionable gap analysis
 - **Components**:
 

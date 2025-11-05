@@ -706,6 +706,58 @@ So that security requirements are complete before proceeding to solutioning.
 
 ---
 
+**Story 3.8: CIS Agent Integration for Architecture Decisions**
+
+As Winston agent making architecture decisions,
+I want to consult CIS specialists for strategic choices,
+So that architecture benefits from framework-specific analysis.
+
+**Acceptance Criteria:**
+1. Implement CISAgentRouter class with agent selection logic
+2. Integrate CIS router into architecture workflow
+3. Trigger CIS consultation automatically when:
+   - Winston's confidence <0.70 on technology choice
+   - Architectural pattern selection has multiple viable options
+   - UX approach has high uncertainty
+4. Route decisions to appropriate CIS agent:
+   - Technology trade-offs → Dr. Quinn (pros/cons analysis, impact assessment)
+   - UX architecture → Maya (design thinking phases, user empathy)
+   - Product positioning → Sophia (narrative frameworks, story arcs)
+   - Innovative patterns → Victor (disruption opportunities, differentiation)
+5. CIS agent analyzes decision using specialized framework:
+   - Dr. Quinn: Problem-solving canvas (problem, root causes, solutions, impact)
+   - Maya: Design thinking (empathize, define, ideate, prototype, test)
+   - Sophia: Storytelling structure (hero, journey, transformation)
+   - Victor: Innovation canvas (market, disruption, moat, growth)
+6. Return structured CIS response:
+   - Framework-specific analysis (markdown formatted)
+   - 3-5 recommendations with pros/cons
+   - Confidence score for each recommendation
+   - Rationale grounded in framework
+7. Winston evaluates CIS recommendations:
+   - If high confidence (>0.85): Accept top recommendation
+   - If medium confidence (0.70-0.85): Present to user for choice
+   - If low confidence (<0.70): Escalate with CIS analysis attached
+8. Log CIS consultation in technical decisions:
+   - Which agent consulted, which framework used
+   - Recommendations considered
+   - Final decision and rationale
+9. Track metrics:
+   - CIS invocation frequency
+   - Time to CIS response (<60 seconds target)
+   - Decision confidence after CIS consultation
+   - User acceptance rate of CIS recommendations
+10. Manual invocation support:
+    - User can request CIS via chat: "Ask Maya about authentication UX"
+    - System routes to appropriate agent
+    - Response presented in chat with framework context
+
+**Prerequisites:** Story 3.3 (Architecture Workflow), Epic 1 (Agent Pool)
+
+**Estimated Time:** 4-5 hours
+
+---
+
 ## Epic 4: Solutioning Phase Automation
 
 **Goal:** Automatically decompose requirements into implementable epics and stories **with visual dependency mapping**, enabling immediate development kickoff.
