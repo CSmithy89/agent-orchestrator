@@ -350,6 +350,27 @@ class OpenAIClient implements LLMClient {
       );
     }
 
+    // Check for network/timeout errors that should be retried
+    const message = (error.message || '').toLowerCase();
+    if (
+      error.code === 'ETIMEDOUT' ||
+      error.code === 'ECONNRESET' ||
+      error.code === 'ECONNREFUSED' ||
+      error.code === 'ENOTFOUND' ||
+      message.includes('timeout') ||
+      message.includes('network') ||
+      message.includes('econnreset') ||
+      message.includes('econnrefused')
+    ) {
+      return new LLMError(
+        `OpenAI transient network error: ${error.message}`,
+        LLMErrorType.TRANSIENT,
+        this.provider,
+        this.config.model,
+        error
+      );
+    }
+
     return new LLMError(
       `OpenAI API error: ${error.message}`,
       LLMErrorType.PERMANENT,

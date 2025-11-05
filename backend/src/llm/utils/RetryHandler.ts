@@ -61,8 +61,12 @@ export class RetryHandler {
         lastError = error as Error;
         const errorType = this.classifyError(error);
 
-        // Don't retry auth or permanent errors
-        if (errorType === LLMErrorType.AUTH || errorType === LLMErrorType.PERMANENT) {
+        // Don't retry auth, permanent, or config errors
+        if (
+          errorType === LLMErrorType.AUTH ||
+          errorType === LLMErrorType.PERMANENT ||
+          errorType === LLMErrorType.CONFIG
+        ) {
           throw this.wrapError(error, errorType);
         }
 

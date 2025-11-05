@@ -399,9 +399,23 @@ class ZhipuClient implements LLMClient {
    * Handle and classify errors
    */
   private handleError(error: any): LLMError {
+    const message = error?.message || 'Unknown error';
+    const lower = message.toLowerCase();
+
+    // Check for network/timeout errors that should be retried
+    const isTransient =
+      lower.includes('timeout') ||
+      lower.includes('network') ||
+      lower.includes('econnreset') ||
+      lower.includes('econnrefused') ||
+      error?.code === 'ETIMEDOUT' ||
+      error?.code === 'ECONNRESET' ||
+      error?.code === 'ECONNREFUSED' ||
+      error?.code === 'ENOTFOUND';
+
     return new LLMError(
-      `Zhipu API error: ${error.message}`,
-      LLMErrorType.PERMANENT,
+      `Zhipu API error: ${message}`,
+      isTransient ? LLMErrorType.TRANSIENT : LLMErrorType.PERMANENT,
       this.provider,
       this.config.model,
       error

@@ -130,6 +130,36 @@ describe('RetryHandler', () => {
     });
   });
 
+  describe('Error Classification - Config Errors', () => {
+    it('should not retry CONFIG errors', async () => {
+      const error = new LLMError('Invalid model configuration', LLMErrorType.CONFIG);
+
+      const fn = vi.fn().mockRejectedValue(error);
+
+      await expect(
+        retryHandler.executeWithRetry(fn, 'config operation')
+      ).rejects.toThrow();
+
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+
+    it('should preserve CONFIG error type (not convert to TRANSIENT)', async () => {
+      const error = new LLMError('Unknown provider', LLMErrorType.CONFIG, 'test', 'model');
+
+      const fn = vi.fn().mockRejectedValue(error);
+
+      try {
+        await retryHandler.executeWithRetry(fn, 'config operation');
+        expect.fail('Should have thrown an error');
+      } catch (err: any) {
+        expect(err.errorType).toBe(LLMErrorType.CONFIG);
+        expect(err.message).toContain('Unknown provider');
+      }
+
+      expect(fn).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('Error Classification - Transient Errors', () => {
     it('should retry 429 rate limit errors', async () => {
       const error = new Error('Rate limit exceeded');
@@ -182,6 +212,48 @@ describe('RetryHandler', () => {
         .mockResolvedValue('success');
 
       const result = await retryHandler.executeWithRetry(fn, 'connection error operation');
+
+      expect(result).toBe('success');
+      expect(fn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should retry ETIMEDOUT errors', async () => {
+      const error = new Error('Connection timeout');
+      (error as any).code = 'ETIMEDOUT';
+
+      const fn = vi.fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValue('success');
+
+      const result = await retryHandler.executeWithRetry(fn, 'timeout operation');
+
+      expect(result).toBe('success');
+      expect(fn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should retry ECONNREFUSED errors', async () => {
+      const error = new Error('Connection refused');
+      (error as any).code = 'ECONNREFUSED';
+
+      const fn = vi.fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValue('success');
+
+      const result = await retryHandler.executeWithRetry(fn, 'connection refused operation');
+
+      expect(result).toBe('success');
+      expect(fn).toHaveBeenCalledTimes(2);
+    });
+
+    it('should retry ENOTFOUND errors', async () => {
+      const error = new Error('DNS lookup failed');
+      (error as any).code = 'ENOTFOUND';
+
+      const fn = vi.fn()
+        .mockRejectedValueOnce(error)
+        .mockResolvedValue('success');
+
+      const result = await retryHandler.executeWithRetry(fn, 'DNS error operation');
 
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(2);
