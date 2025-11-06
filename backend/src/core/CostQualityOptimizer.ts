@@ -156,9 +156,9 @@ export class CostQualityOptimizer {
 
     // Initialize cost metrics
     this.costMetrics = {
-      byAgent: new Map(),
-      byPhase: new Map(),
-      byModel: new Map(),
+      byAgent: {},
+      byPhase: {},
+      byModel: {},
       total: 0,
       dailyTotals: []
     };
@@ -327,10 +327,11 @@ export class CostQualityOptimizer {
    */
   trackCost(agentId: string, model: string, usage: TokenUsage, phase?: string): void {
     // Find model pricing
-    const pricing = this.findModelPricing(model);
+    let pricing = this.findModelPricing(model);
     if (!pricing) {
-      this.log(`Warning: Unknown model ${model}, using default pricing`);
-      return;
+      this.log(`Warning: Unknown model ${model}, using economy tier pricing as fallback`);
+      // Use economy tier pricing as fallback
+      pricing = this.modelTiers.economy.models[0].pricing;
     }
 
     // Calculate cost
@@ -343,17 +344,17 @@ export class CostQualityOptimizer {
     this.totalInvocationCount++;
 
     // Update cost by agent
-    const agentCost = this.costMetrics.byAgent.get(agentId) || 0;
-    this.costMetrics.byAgent.set(agentId, agentCost + cost);
+    const agentCost = this.costMetrics.byAgent[agentId] || 0;
+    this.costMetrics.byAgent[agentId] = agentCost + cost;
 
     // Update cost by model
-    const modelCost = this.costMetrics.byModel.get(model) || 0;
-    this.costMetrics.byModel.set(model, modelCost + cost);
+    const modelCost = this.costMetrics.byModel[model] || 0;
+    this.costMetrics.byModel[model] = modelCost + cost;
 
     // Update cost by phase if provided
     if (phase) {
-      const phaseCost = this.costMetrics.byPhase.get(phase) || 0;
-      this.costMetrics.byPhase.set(phase, phaseCost + cost);
+      const phaseCost = this.costMetrics.byPhase[phase] || 0;
+      this.costMetrics.byPhase[phase] = phaseCost + cost;
     }
 
     // Update daily totals
@@ -466,11 +467,11 @@ export class CostQualityOptimizer {
     const savings = Math.max(0, (estimatedPremiumCost - avgActualCostPerInvocation) * totalInvocations);
 
     // Get top cost drivers
-    const topAgents = Array.from(this.costMetrics.byAgent.entries())
+    const topAgents = Object.entries(this.costMetrics.byAgent)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    const topModels = Array.from(this.costMetrics.byModel.entries())
+    const topModels = Object.entries(this.costMetrics.byModel)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
@@ -504,21 +505,10 @@ export class CostQualityOptimizer {
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-    // Convert maps to records for report
-    const costByAgent: Record<string, number> = {};
-    this.costMetrics.byAgent.forEach((cost, agent) => {
-      costByAgent[agent] = cost;
-    });
-
-    const costByPhase: Record<string, number> = {};
-    this.costMetrics.byPhase.forEach((cost, phase) => {
-      costByPhase[phase] = cost;
-    });
-
-    const costByModel: Record<string, number> = {};
-    this.costMetrics.byModel.forEach((cost, model) => {
-      costByModel[model] = cost;
-    });
+    // Convert records for report (already in correct format)
+    const costByAgent: Record<string, number> = { ...this.costMetrics.byAgent };
+    const costByPhase: Record<string, number> = { ...this.costMetrics.byPhase };
+    const costByModel: Record<string, number> = { ...this.costMetrics.byModel };
 
     // Calculate top cost drivers with percentages
     const totalCost = this.costMetrics.total;
@@ -535,7 +525,7 @@ export class CostQualityOptimizer {
     }));
 
     // Calculate model efficiency
-    const modelEfficiency = Array.from(this.costMetrics.byModel.entries()).map(([model, cost]) => ({
+    const modelEfficiency = Object.entries(this.costMetrics.byModel).map(([model, cost]) => ({
       model,
       totalCost: cost,
       invocations: this.getModelInvocationCount(model),
@@ -649,6 +639,13 @@ export class CostQualityOptimizer {
     const existing = this.promptCache.get(key);
     if (existing) {
       existing.hits++;
+      // Calculate and track savings from cache hit (90% discount)
+      // Estimate based on content length and typical model pricing
+      const estimatedTokens = Math.ceil(content.length / 4);
+      const pricing = this.modelTiers.standard.models[0].pricing;
+      const fullCost = (estimatedTokens / 1_000_000) * pricing.inputCostPerM;
+      const cachedCost = (estimatedTokens / 1_000_000) * pricing.cachedCostPerM;
+      existing.savedCost += (fullCost - cachedCost);
       return key;
     }
 
@@ -775,7 +772,7 @@ export class CostQualityOptimizer {
    */
   private getModelInvocationCount(model: string): number {
     // Rough estimate based on proportion of cost
-    const modelCost = this.costMetrics.byModel.get(model) || 0;
+    const modelCost = this.costMetrics.byModel[model] || 0;
     const totalCost = this.costMetrics.total;
     const proportion = totalCost > 0 ? modelCost / totalCost : 0;
     return Math.max(1, Math.round(this.getTotalInvocations() * proportion));
@@ -789,13 +786,33 @@ export class CostQualityOptimizer {
       const data = await fs.readFile(this.costTrackingFile, 'utf-8');
       const parsed = JSON.parse(data);
 
-      // Convert arrays back to maps
-      this.costMetrics.byAgent = new Map(Object.entries(parsed.byAgent || {}));
-      this.costMetrics.byPhase = new Map(Object.entries(parsed.byPhase || {}));
-      this.costMetrics.byModel = new Map(Object.entries(parsed.byModel || {}));
-      this.costMetrics.total = parsed.total || 0;
-      this.costMetrics.dailyTotals = parsed.dailyTotals || [];
-      this.totalInvocationCount = parsed.totalInvocationCount || 0;
+      // Merge persisted values into existing data (instead of replacing)
+      for (const [agent, cost] of Object.entries(parsed.byAgent || {})) {
+        const existing = this.costMetrics.byAgent[agent] || 0;
+        this.costMetrics.byAgent[agent] = existing + Number(cost);
+      }
+      for (const [phase, cost] of Object.entries(parsed.byPhase || {})) {
+        const existing = this.costMetrics.byPhase[phase] || 0;
+        this.costMetrics.byPhase[phase] = existing + Number(cost);
+      }
+      for (const [model, cost] of Object.entries(parsed.byModel || {})) {
+        const existing = this.costMetrics.byModel[model] || 0;
+        this.costMetrics.byModel[model] = existing + Number(cost);
+      }
+      this.costMetrics.total += Number(parsed.total || 0);
+      for (const entry of parsed.dailyTotals || []) {
+        const existing = this.costMetrics.dailyTotals.find(e => e.date === entry.date);
+        if (existing) {
+          existing.cost += Number(entry.cost);
+        } else {
+          this.costMetrics.dailyTotals.push({ date: entry.date, cost: Number(entry.cost) });
+        }
+      }
+      this.costMetrics.dailyTotals.sort((a, b) => a.date.localeCompare(b.date));
+      if (this.costMetrics.dailyTotals.length > 30) {
+        this.costMetrics.dailyTotals = this.costMetrics.dailyTotals.slice(-30);
+      }
+      this.totalInvocationCount += parsed.totalInvocationCount || 0;
 
       this.log(`Loaded cost metrics: $${this.costMetrics.total.toFixed(2)} total, ${this.totalInvocationCount} invocations`);
     } catch (error) {
@@ -811,11 +828,11 @@ export class CostQualityOptimizer {
       // Ensure directory exists
       await fs.mkdir(path.dirname(this.costTrackingFile), { recursive: true });
 
-      // Convert maps to objects for JSON serialization
+      // Serialize cost metrics (already in JSON-compatible format)
       const serializable = {
-        byAgent: Object.fromEntries(this.costMetrics.byAgent),
-        byPhase: Object.fromEntries(this.costMetrics.byPhase),
-        byModel: Object.fromEntries(this.costMetrics.byModel),
+        byAgent: this.costMetrics.byAgent,
+        byPhase: this.costMetrics.byPhase,
+        byModel: this.costMetrics.byModel,
         total: this.costMetrics.total,
         dailyTotals: this.costMetrics.dailyTotals,
         totalInvocationCount: this.totalInvocationCount

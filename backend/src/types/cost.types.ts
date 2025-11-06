@@ -125,13 +125,13 @@ export interface BudgetState {
  */
 export interface CostMetrics {
   /** Cost by agent name */
-  byAgent: Map<string, number>;
+  byAgent: Record<string, number>;
 
   /** Cost by workflow phase */
-  byPhase: Map<string, number>;
+  byPhase: Record<string, number>;
 
   /** Cost by model */
-  byModel: Map<string, number>;
+  byModel: Record<string, number>;
 
   /** Total cost */
   total: number;
@@ -162,13 +162,13 @@ export interface CostDashboard {
   utilizationPercentage: number;
 
   /** Cost breakdown by agent */
-  costByAgent: Map<string, number>;
+  costByAgent: Record<string, number>;
 
   /** Cost breakdown by phase */
-  costByPhase: Map<string, number>;
+  costByPhase: Record<string, number>;
 
   /** Cost breakdown by model */
-  costByModel: Map<string, number>;
+  costByModel: Record<string, number>;
 
   /** Projected monthly cost based on current trends */
   projectedMonthlyCost: number;

@@ -299,7 +299,7 @@ export class ProjectConfig {
     // Use enhanced budget config if available, otherwise fall back to legacy format
     if (costMgmt.budget) {
       return {
-        monthly: costMgmt.budget.monthly || costMgmt.max_monthly_budget,
+        monthly: costMgmt.budget.monthly ?? costMgmt.max_monthly_budget,
         daily: costMgmt.budget.daily,
         weekly: costMgmt.budget.weekly,
         alerts: costMgmt.budget.alerts
