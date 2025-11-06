@@ -22,8 +22,6 @@ import * as path from 'path';
 import * as Handlebars from 'handlebars';
 import {
   TemplateOptions,
-  TemplateContext,
-  ProcessedTemplate,
   TemplateError,
   TemplateNotFoundError,
   TemplateSyntaxError,

@@ -316,7 +316,7 @@ export class WorkflowEngine {
         console.log(`[WorkflowEngine] Output: ${resolvedContent}`);
         break;
 
-      case 'template-output':
+      case 'template-output': {
         // Extract file attribute and template content
         const outputFile = action.attributes?.file;
 
@@ -355,6 +355,7 @@ export class WorkflowEngine {
           );
         }
         break;
+      }
 
       case 'elicit-required':
         if (!this.yoloMode) {

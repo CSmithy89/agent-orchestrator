@@ -20,7 +20,6 @@ import {
   TemplateNotFoundError,
   TemplateSyntaxError,
   VariableUndefinedError,
-  TemplateRenderError,
   FileWriteError,
 } from '../../src/types/template.types.js';
 
