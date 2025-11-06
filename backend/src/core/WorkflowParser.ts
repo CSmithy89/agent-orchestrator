@@ -9,10 +9,11 @@ import * as yaml from 'js-yaml';
 import {
   WorkflowConfig,
   Step,
-  ValidationResult,
-  WorkflowParseError
+  ValidationResult
 } from '../types/workflow.types.js';
+import { WorkflowParseError } from '../types/errors.types.js';
 import { ProjectConfig } from '../config/ProjectConfig.js';
+import { logger } from '../utils/logger.js';
 
 /**
  * WorkflowParser class
@@ -50,23 +51,28 @@ export class WorkflowParser {
       return rawConfig as WorkflowConfig;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new WorkflowParseError(
-          `Workflow file not found at ${filePath}`,
-          'workflow_file',
-          undefined,
+        const err = new WorkflowParseError(
+          `Workflow file not found`,
+          'WORKFLOW_FILE_NOT_FOUND',
           filePath
         );
+        logger.error('Workflow file not found', err, { filePath });
+        throw err;
       }
       if (error instanceof WorkflowParseError) {
         throw error;
       }
       if (error instanceof yaml.YAMLException) {
-        throw new WorkflowParseError(
-          `YAML parse error: ${error.message}`,
-          'yaml_syntax',
-          undefined,
-          filePath
+        // Extract line number from YAML error
+        const lineNumber = this.extractLineNumber(error);
+        const err = new WorkflowParseError(
+          error.message,
+          'YAML_SYNTAX_ERROR',
+          filePath,
+          lineNumber
         );
+        logger.error('YAML syntax error', err, { filePath, lineNumber });
+        throw err;
       }
       throw error;
     }
@@ -88,14 +94,28 @@ export class WorkflowParser {
     }
 
     if (missingFields.length > 0) {
-      const fieldList = missingFields.map(f => `  - ${f}`).join('\n');
-      throw new WorkflowParseError(
-        `Required fields missing in ${filePath}:\n${fieldList}\n\nRequired fields: name, instructions, config_source`,
+      const message = `Missing required field '${missingFields[0]}'`;
+      const err = new WorkflowParseError(
+        message,
+        'MISSING_REQUIRED_FIELD',
+        filePath,
+        undefined,
         missingFields[0],
-        'string',
-        filePath
+        { missingFields, requiredFields }
       );
+      logger.error(message, err, { filePath, missingFields });
+      throw err;
     }
+  }
+
+  /**
+   * Extract line number from YAML error
+   */
+  private extractLineNumber(error: yaml.YAMLException): number | undefined {
+    if (error.mark && error.mark.line !== undefined) {
+      return error.mark.line + 1; // YAML uses 0-indexed lines
+    }
+    return undefined;
   }
 
   /**
@@ -171,14 +191,19 @@ export class WorkflowParser {
   ): WorkflowConfig {
     const configSourcePattern = /\{config_source\}:([a-zA-Z0-9_.]+)/g;
 
-    return this.replaceVariablesWithRegex(config, configSourcePattern, (match, key) => {
+    return this.replaceVariablesWithRegex(config, configSourcePattern, (_match, key) => {
       const value = this.getNestedValue(configData, key);
       if (value === undefined) {
-        throw new WorkflowParseError(
-          `Config reference '{config_source}:${key}' not found in config file`,
+        const err = new WorkflowParseError(
+          `Config reference '{config_source}:${key}' not found`,
+          'CONFIG_KEY_NOT_FOUND',
+          config.config_source,
+          undefined,
           key,
-          'defined config key'
+          { key, configSource: config.config_source }
         );
+        logger.error(`Config key not found: ${key}`, err);
+        throw err;
       }
       return value;
     });
@@ -208,12 +233,13 @@ export class WorkflowParser {
       return yaml.load(fileContents) as any;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new WorkflowParseError(
-          `Config source file not found at ${configPath}`,
-          'config_source',
-          'valid file path',
+        const err = new WorkflowParseError(
+          `Config source file not found`,
+          'CONFIG_SOURCE_NOT_FOUND',
           configPath
         );
+        logger.error('Config source file not found', err, { configPath });
+        throw err;
       }
       throw error;
     }
@@ -426,12 +452,13 @@ export class WorkflowParser {
       return steps;
     } catch (error) {
       if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
-        throw new WorkflowParseError(
-          `Instructions file not found at ${markdownFile}`,
-          'instructions',
-          'valid file path',
+        const err = new WorkflowParseError(
+          `Instructions file not found`,
+          'INSTRUCTIONS_FILE_NOT_FOUND',
           markdownFile
         );
+        logger.error('Instructions file not found', err, { markdownFile });
+        throw err;
       }
       throw error;
     }
