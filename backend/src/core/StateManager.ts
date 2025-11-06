@@ -9,10 +9,35 @@ import * as path from 'path';
 import * as yaml from 'js-yaml';
 import {
   WorkflowState,
-  StoryStatus,
-  StateManagerError
+  StoryStatus
 } from '../types/workflow.types.js';
 import { StateManagerError } from '../types/errors.types.js';
+
+/**
+ * Raw YAML state structure (before Date conversion)
+ */
+interface RawYAMLState {
+  project: {
+    id: string;
+    name: string;
+    level: number;
+  };
+  currentWorkflow: string;
+  currentStep: number;
+  status: 'running' | 'paused' | 'completed' | 'error';
+  variables?: Record<string, unknown>;
+  agentActivity?: Array<{
+    agentId: string;
+    agentName: string;
+    action: string;
+    timestamp: string;
+    duration?: number;
+    status: 'started' | 'completed' | 'failed';
+    output?: string;
+  }>;
+  startTime: string;
+  lastUpdate: string;
+}
 
 /**
  * StateManager class - Singleton state manager
@@ -309,8 +334,8 @@ export class StateManager {
       // Read YAML file
       const fileContents = await fs.readFile(yamlPath, 'utf-8');
 
-      // Parse YAML
-      const rawState = yaml.load(fileContents) as any;
+      // Parse YAML (RawYAMLState interface defined at top of file)
+      const rawState = yaml.load(fileContents) as RawYAMLState;
 
       // Convert ISO strings back to Date objects
       const state: WorkflowState = {
@@ -319,7 +344,7 @@ export class StateManager {
         currentStep: rawState.currentStep,
         status: rawState.status,
         variables: rawState.variables || {},
-        agentActivity: (rawState.agentActivity || []).map((activity: any) => ({
+        agentActivity: (rawState.agentActivity || []).map((activity) => ({
           agentId: activity.agentId,
           agentName: activity.agentName,
           action: activity.action,

@@ -226,9 +226,14 @@ async function getMemoryDetails(): Promise<{
 }
 
 /**
- * Get disk space details
- * Note: This is a simplified implementation
- * For production, consider using a library like 'check-disk-space'
+ * Retrieves disk space metrics for the current working directory.
+ *
+ * Attempts to run `df -k .` and parse its output; returns the available and total bytes and the used percentage rounded to two decimals. If parsing or the command fails, logs a warning and returns zeros for all fields.
+ *
+ * @returns An object with:
+ *  - `available`: available disk bytes
+ *  - `total`: total disk bytes
+ *  - `percentage`: used disk percentage (0–100) rounded to two decimals
  */
 async function getDiskDetails(): Promise<{
   available: number;
@@ -245,7 +250,7 @@ async function getDiskDetails(): Promise<{
     const lines = stdout.trim().split('\n');
 
     if (lines.length >= 2) {
-      const parts = lines[1].split(/\s+/);
+      const parts = lines[1]?.split(/\s+/) ?? [];
       const total = parseInt(parts[1] ?? '0') * 1024; // Convert KB to bytes
       const used = parseInt(parts[2] ?? '0') * 1024;
       const available = parseInt(parts[3] ?? '0') * 1024;

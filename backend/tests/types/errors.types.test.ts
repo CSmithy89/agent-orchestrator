@@ -237,17 +237,16 @@ describe('Error Types', () => {
   describe('WorkflowExecutionError', () => {
     it('should include workflow name and step info', () => {
       const error = new WorkflowExecutionError(
-        'Execution failed',
-        'EXECUTION_ERROR',
-        'prd-workflow',
-        3,
-        'Generate PRD'
+        'Execution failed at step 3 in prd-workflow: Generate PRD',
+        3,  // stepNumber
+        undefined,  // cause
+        { workflowName: 'prd-workflow', stepName: 'Generate PRD' }  // context
       );
 
       expect(error).toBeInstanceOf(RetryableError);
-      expect(error.workflowName).toBe('prd-workflow');
       expect(error.stepNumber).toBe(3);
-      expect(error.stepName).toBe('Generate PRD');
+      expect(error.context.workflowName).toBe('prd-workflow');
+      expect(error.context.stepName).toBe('Generate PRD');
     });
   });
 

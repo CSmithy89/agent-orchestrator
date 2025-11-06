@@ -235,10 +235,10 @@ describe('CostQualityOptimizer', () => {
       );
 
       const dashboard = optimizer.getCostDashboard();
-      expect(dashboard.costByAgent.has('agent-123')).toBe(true);
-      expect(dashboard.costByAgent.get('agent-123')).toBeGreaterThan(0);
-      expect(dashboard.costByModel.has('claude-sonnet-4-5')).toBe(true);
-      expect(dashboard.costByPhase.has('implementation')).toBe(true);
+      expect(dashboard.costByAgent['agent-123']).toBeDefined();
+      expect(dashboard.costByAgent['agent-123']).toBeGreaterThan(0);
+      expect(dashboard.costByModel['claude-sonnet-4-5']).toBeDefined();
+      expect(dashboard.costByPhase['implementation']).toBeDefined();
     });
 
     it('should accumulate costs across multiple invocations', () => {
@@ -247,7 +247,7 @@ describe('CostQualityOptimizer', () => {
       optimizer.trackCost('agent-1', 'claude-haiku', { inputTokens: 1000, outputTokens: 500 });
 
       const dashboard = optimizer.getCostDashboard();
-      const agentCost = dashboard.costByAgent.get('agent-1') || 0;
+      const agentCost = dashboard.costByAgent['agent-1'] || 0;
 
       expect(agentCost).toBeGreaterThan(0);
       // Should be approximately 3x the cost of a single invocation
@@ -260,9 +260,9 @@ describe('CostQualityOptimizer', () => {
 
       const dashboard = optimizer.getCostDashboard();
 
-      expect(dashboard.costByAgent.size).toBe(2);
-      expect(dashboard.costByAgent.has('agent-1')).toBe(true);
-      expect(dashboard.costByAgent.has('agent-2')).toBe(true);
+      expect(Object.keys(dashboard.costByAgent).length).toBe(2);
+      expect(dashboard.costByAgent['agent-1']).toBeDefined();
+      expect(dashboard.costByAgent['agent-2']).toBeDefined();
     });
 
     it('should track costs by model', () => {
@@ -271,9 +271,9 @@ describe('CostQualityOptimizer', () => {
 
       const dashboard = optimizer.getCostDashboard();
 
-      expect(dashboard.costByModel.size).toBeGreaterThanOrEqual(2);
-      expect(dashboard.costByModel.has('claude-haiku')).toBe(true);
-      expect(dashboard.costByModel.has('claude-sonnet-4-5')).toBe(true);
+      expect(Object.keys(dashboard.costByModel).length).toBeGreaterThanOrEqual(2);
+      expect(dashboard.costByModel['claude-haiku']).toBeDefined();
+      expect(dashboard.costByModel['claude-sonnet-4-5']).toBeDefined();
     });
 
     it('should track costs by phase', () => {
@@ -282,8 +282,8 @@ describe('CostQualityOptimizer', () => {
 
       const dashboard = optimizer.getCostDashboard();
 
-      expect(dashboard.costByPhase.has('analysis')).toBe(true);
-      expect(dashboard.costByPhase.has('implementation')).toBe(true);
+      expect(dashboard.costByPhase['analysis']).toBeDefined();
+      expect(dashboard.costByPhase['implementation']).toBeDefined();
     });
 
     it('should update daily totals', () => {
@@ -316,9 +316,9 @@ describe('CostQualityOptimizer', () => {
       expect(dashboard.utilizationPercentage).toBeGreaterThanOrEqual(0);
       expect(dashboard.utilizationPercentage).toBeLessThan(100);
 
-      expect(dashboard.costByAgent.size).toBeGreaterThan(0);
-      expect(dashboard.costByModel.size).toBeGreaterThan(0);
-      expect(dashboard.costByPhase.size).toBeGreaterThan(0);
+      expect(Object.keys(dashboard.costByAgent).length).toBeGreaterThan(0);
+      expect(Object.keys(dashboard.costByModel).length).toBeGreaterThan(0);
+      expect(Object.keys(dashboard.costByPhase).length).toBeGreaterThan(0);
 
       expect(dashboard.projectedMonthlyCost).toBeGreaterThan(0);
       expect(dashboard.savings).toBeGreaterThanOrEqual(0);

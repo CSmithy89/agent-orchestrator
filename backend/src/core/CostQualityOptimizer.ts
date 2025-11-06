@@ -22,6 +22,7 @@ import {
   CachedPrompt,
   OptimizationStrategy
 } from '../types/cost.types.js';
+import type { LLMProvider } from '../types/ProjectConfig.js';
 
 /**
  * Model pricing data (USD per million tokens)
@@ -36,7 +37,7 @@ interface ModelPricing {
  * Model tier definition
  */
 interface ModelTierDefinition {
-  models: Array<{ model: string; provider: string; pricing: ModelPricing }>;
+  models: Array<{ model: string; provider: LLMProvider; pricing: ModelPricing }>;
   targetCostRange: { min: number; max: number };
 }
 
@@ -262,6 +263,10 @@ export class CostQualityOptimizer {
     const tierDef = this.modelTiers[targetTier];
     const selectedModel = tierDef.models[0];  // Use first model in tier
 
+    if (!selectedModel) {
+      throw new Error(`No models available for tier: ${targetTier}`);
+    }
+
     // Estimate cost
     const estimatedCost = this.estimateTaskCost(
       complexity.estimatedTokens,
@@ -331,7 +336,11 @@ export class CostQualityOptimizer {
     if (!pricing) {
       this.log(`Warning: Unknown model ${model}, using economy tier pricing as fallback`);
       // Use economy tier pricing as fallback
-      pricing = this.modelTiers.economy.models[0].pricing;
+      const fallbackModel = this.modelTiers.economy.models[0];
+      if (!fallbackModel) {
+        throw new Error('No fallback model available in economy tier');
+      }
+      pricing = fallbackModel.pricing;
     }
 
     // Calculate cost
@@ -358,7 +367,7 @@ export class CostQualityOptimizer {
     }
 
     // Update daily totals
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] ?? '';
     const dailyEntry = this.costMetrics.dailyTotals.find(e => e.date === today);
     if (dailyEntry) {
       dailyEntry.cost += cost;
@@ -391,7 +400,7 @@ export class CostQualityOptimizer {
     for (const alert of this.budgetConfig.alerts || []) {
       if (budgetState.utilization >= alert.threshold) {
         // Check if we've already alerted at this threshold today
-        const today = new Date().toISOString().split('T')[0];
+        const today = new Date().toISOString().split('T')[0] ?? '';
         const alreadyAlerted = this.alertHistory.some(
           record => record.threshold === alert.threshold &&
           record.timestamp.toISOString().startsWith(today)
@@ -461,6 +470,9 @@ export class CostQualityOptimizer {
 
     // Calculate savings (vs always using premium)
     const premiumModel = this.modelTiers.premium.models[0];
+    if (!premiumModel) {
+      throw new Error('No premium model available for cost analysis');
+    }
     const totalInvocations = this.getTotalInvocations();
     const avgActualCostPerInvocation = totalInvocations > 0 ? this.costMetrics.total / totalInvocations : 0;
     const estimatedPremiumCost = this.estimateTaskCost(2000, 1000, premiumModel.pricing);
@@ -642,7 +654,11 @@ export class CostQualityOptimizer {
       // Calculate and track savings from cache hit (90% discount)
       // Estimate based on content length and typical model pricing
       const estimatedTokens = Math.ceil(content.length / 4);
-      const pricing = this.modelTiers.standard.models[0].pricing;
+      const standardModel = this.modelTiers.standard.models[0];
+      if (!standardModel) {
+        throw new Error('No standard model available for cache pricing');
+      }
+      const pricing = standardModel.pricing;
       const fullCost = (estimatedTokens / 1_000_000) * pricing.inputCostPerM;
       const cachedCost = (estimatedTokens / 1_000_000) * pricing.cachedCostPerM;
       existing.savedCost += (fullCost - cachedCost);
@@ -764,7 +780,7 @@ export class CostQualityOptimizer {
    */
   private getTotalInvocations(): number {
     // Return tracked invocation count, fallback to estimation if no tracking yet
-    return this.totalInvocationCount > 0 ? this.totalInvocationCount : Math.max(1, this.costMetrics.byAgent.size * 10);
+    return this.totalInvocationCount > 0 ? this.totalInvocationCount : Math.max(1, Object.keys(this.costMetrics.byAgent).length * 10);
   }
 
   /**

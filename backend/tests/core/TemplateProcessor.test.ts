@@ -298,9 +298,14 @@ const code = "preserved";
     });
 
     it('should throw FileWriteError for write failures', async () => {
-      // Try to write to invalid location
+      // Create a file, then try to write to it as if it were a directory
+      // This will cause ENOTDIR error
+      const blockingFile = path.join(testDir, 'blocking-file.txt');
+      await fs.writeFile(blockingFile, 'content');
+
+      // Try to write to a path that has a file in the middle (not a directory)
       await expect(
-        processor.writeOutput('content', '/invalid/path/file.md')
+        processor.writeOutput('content', path.join(blockingFile, 'nested', 'file.md'))
       ).rejects.toThrow(FileWriteError);
     });
   });

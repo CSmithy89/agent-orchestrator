@@ -35,7 +35,7 @@ describe('ProjectConfig', () => {
     cost_management: {
       max_monthly_budget: 1000,
       alert_threshold: 0.8,
-      fallback_model: 'claude-haiku-3-5'
+      fallback_model: 'claude-haiku'
     }
   };
 

@@ -29,6 +29,40 @@ project:
     name: Test Project
 `;
     await fs.writeFile(path.join(bmadDir, 'config.yaml'), configContent);
+
+    // Create project-config.yaml for WorkflowEngine
+    const projectConfigContent = `
+project:
+  name: Test Project
+  description: Test project for workflow engine
+  repository: https://github.com/test/test-project
+
+onboarding:
+  tech_stack: []
+  coding_standards: ${projectRoot}/docs/coding-standards.md
+  architecture_patterns: ${projectRoot}/docs/architecture.md
+
+agent_assignments:
+  test-agent:
+    model: claude-haiku
+    provider: anthropic
+    reasoning: Test agent
+
+cost_management:
+  max_monthly_budget: 1000
+  alert_threshold: 0.8
+  fallback_model: claude-haiku
+  budget:
+    daily: 100
+    weekly: 500
+    monthly: 1000
+    alerts:
+      - threshold: 0.75
+        action: warn
+        notification: console
+`;
+    await fs.mkdir(path.join(projectRoot, '.bmad'), { recursive: true });
+    await fs.writeFile(path.join(projectRoot, '.bmad/project-config.yaml'), projectConfigContent);
   });
 
   afterEach(async () => {

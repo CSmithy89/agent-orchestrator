@@ -85,7 +85,8 @@ export class WorkflowEngine {
       this.workflowConfig = await this.workflowParser.parseYAML(this.workflowPath);
 
       // Resolve variables
-      const projectConfig = await ProjectConfig.loadConfig();
+      const configPath = path.join(this.projectRoot, '.bmad', 'project-config.yaml');
+      const projectConfig = await ProjectConfig.loadConfig(configPath);
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
         projectConfig
@@ -127,6 +128,13 @@ export class WorkflowEngine {
       for (let i = 0; i < this.steps.length; i++) {
         this.currentStepIndex = i;
         const step = this.steps[i];
+
+        if (!step) {
+          throw new WorkflowExecutionError(
+            'Step is undefined in workflow execution',
+            i + 1
+          );
+        }
 
         console.log(`\n[WorkflowEngine] Executing Step ${step.number}: ${step.goal}`);
 
@@ -187,7 +195,8 @@ export class WorkflowEngine {
 
       // Parse workflow config and instructions
       this.workflowConfig = await this.workflowParser.parseYAML(this.workflowPath);
-      const projectConfig = await ProjectConfig.loadConfig();
+      const configPath = path.join(this.projectRoot, '.bmad', 'project-config.yaml');
+      const projectConfig = await ProjectConfig.loadConfig(configPath);
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
         projectConfig
@@ -204,6 +213,13 @@ export class WorkflowEngine {
       for (let i = resumeIndex; i < this.steps.length; i++) {
         this.currentStepIndex = i;
         const step = this.steps[i];
+
+        if (!step) {
+          throw new WorkflowExecutionError(
+            'Step is undefined in workflow resume',
+            i + 1
+          );
+        }
 
         console.log(`\n[WorkflowEngine] Executing Step ${step.number}: ${step.goal}`);
 
@@ -430,10 +446,17 @@ export class WorkflowEngine {
 
       // Validate step numbers are sequential
       for (let i = 0; i < steps.length; i++) {
-        if (steps[i].number !== i + 1) {
+        const step = steps[i];
+        if (!step) {
           throw new WorkflowExecutionError(
-            `Step numbers must be sequential. Expected step ${i + 1}, found step ${steps[i].number}`,
-            steps[i].number
+            `Step at index ${i} is undefined`,
+            i + 1
+          );
+        }
+        if (step.number !== i + 1) {
+          throw new WorkflowExecutionError(
+            `Step numbers must be sequential. Expected step ${i + 1}, found step ${step.number}`,
+            step.number
           );
         }
       }
@@ -601,7 +624,7 @@ export class WorkflowEngine {
     // Use pre-compiled regex pattern (reset lastIndex for reuse)
     WorkflowEngine.VARIABLE_REGEX.lastIndex = 0;
 
-    return text.replace(WorkflowEngine.VARIABLE_REGEX, (match, variableName, defaultValue) => {
+    return text.replace(WorkflowEngine.VARIABLE_REGEX, (_match, variableName, defaultValue) => {
       // Support nested variables (e.g., user.name)
       const value = this.getNestedValue(vars, variableName);
 
