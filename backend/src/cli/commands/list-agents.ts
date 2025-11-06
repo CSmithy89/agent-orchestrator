@@ -6,6 +6,7 @@
 import { StateManager } from '../../core/StateManager.js';
 import { colors } from '../utils/colors.js';
 import { handleError, StateLoadError, exitWithCode } from '../utils/error-handler.js';
+import { AgentActivity } from '../../types/workflow.types.js';
 
 interface ListAgentsOptions {
   project: string;
@@ -31,7 +32,7 @@ function formatDuration(ms: number): string {
 /**
  * Estimate cost based on agent activity (rough estimate)
  */
-function estimateCost(activities: any[]): number {
+function estimateCost(activities: AgentActivity[]): number {
   // This is a placeholder - real implementation would use actual model pricing
   // Rough estimate: $0.01 per agent action
   return activities.length * 0.01;
@@ -64,7 +65,7 @@ export async function listAgents(options: ListAgentsOptions): Promise<void> {
     }
 
     // Group activities by agent
-    const agentMap = new Map<string, any[]>();
+    const agentMap = new Map<string, AgentActivity[]>();
     for (const activity of state.agentActivity) {
       const agentActivities = agentMap.get(activity.agentId) || [];
       agentActivities.push(activity);

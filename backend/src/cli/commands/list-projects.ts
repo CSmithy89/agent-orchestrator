@@ -34,7 +34,7 @@ export async function listProjects(): Promise<void> {
     // Load project configuration
     let projectConfig: ProjectConfig;
     let projectName = 'Unknown';
-    let projectId = path.basename(projectRoot);
+    const projectId = path.basename(projectRoot);
 
     try {
       projectConfig = await ProjectConfig.loadConfig();

@@ -4,21 +4,21 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as fs from 'fs/promises';
-import * as path from 'path';
-import { WorkflowState } from '../../src/types/workflow.types.js';
+import * as _fs from 'fs/promises';
+import * as _path from 'path';
+import type { WorkflowState as _WorkflowState } from '../../src/types/workflow.types.js';
 
 // Mock console methods
 const mockConsoleLog = vi.spyOn(console, 'log').mockImplementation(() => {});
 const mockConsoleError = vi.spyOn(console, 'error').mockImplementation(() => {});
 
 // Mock process.exit
-const mockProcessExit = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
+const _mockProcessExit = vi.spyOn(process, 'exit').mockImplementation((code?: number) => {
   throw new Error(`Process.exit called with code ${code}`);
 });
 
 describe('CLI Command Tests', () => {
-  const testProjectRoot = path.join(process.cwd(), 'test-project');
+  const _testProjectRoot = path.join(process.cwd(), 'test-project');
   const testProjectId = 'test-project';
 
   beforeEach(() => {
