@@ -28,6 +28,26 @@ project:
     name: Integration Test Project
 `;
     await fs.writeFile(path.join(bmadDir, 'config.yaml'), configContent);
+
+    // Create project-config.yaml for WorkflowEngine
+    const projectConfigContent = `
+agent_assignments:
+  test-agent:
+    model: claude-haiku
+    provider: anthropic
+    reasoning: Test agent
+
+cost_quality_optimizer:
+  enabled: false
+
+llm_defaults:
+  provider: anthropic
+  model: claude-haiku
+  temperature: 0.7
+  max_tokens: 4000
+`;
+    await fs.mkdir(path.join(projectRoot, '.bmad'), { recursive: true });
+    await fs.writeFile(path.join(projectRoot, '.bmad/project-config.yaml'), projectConfigContent);
   });
 
   afterEach(async () => {
