@@ -1,0 +1,18 @@
+{
+  "id": "msg-test-12345",
+  "type": "message",
+  "role": "assistant",
+  "content": [
+    {
+      "type": "text",
+      "text": "This is a mock LLM response for testing purposes. It simulates the structure of a real API response."
+    }
+  ],
+  "model": "claude-sonnet-4",
+  "stop_reason": "end_turn",
+  "stop_sequence": null,
+  "usage": {
+    "input_tokens": 150,
+    "output_tokens": 75
+  }
+}

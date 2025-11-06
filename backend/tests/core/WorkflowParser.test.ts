@@ -282,7 +282,7 @@ project:
         instructions: '{project-root}/instructions.md',
         user_name: 'test',
         communication_language: 'en',
-        date: 'system-generated',
+        date: 'date:system-generated',
         output_folder: '',
         installed_path: '{project-root}',
         standalone: true

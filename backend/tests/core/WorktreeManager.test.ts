@@ -30,11 +30,25 @@ async function setupTestRepo(): Promise<void> {
   await git.addConfig('user.name', 'Test User');
   await git.addConfig('user.email', 'test@example.com');
 
+  // Disable commit signing for tests (avoids infrastructure signing issues)
+  await git.addConfig('commit.gpgSign', 'false');
+
   // Create initial commit
   const readme = path.join(TEST_PROJECT_ROOT, 'README.md');
   await fs.writeFile(readme, '# Test Project\n', 'utf-8');
   await git.add('README.md');
   await git.commit('Initial commit');
+
+  // Rename default branch to 'main' if it's not already
+  try {
+    const branches = await git.branch();
+    if (branches.current !== 'main') {
+      await git.branch(['-M', 'main']);
+    }
+  } catch (error) {
+    // If branch rename fails, create main branch explicitly
+    await git.checkoutLocalBranch('main');
+  }
 }
 
 // Helper to cleanup test repository
