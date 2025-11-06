@@ -58,17 +58,46 @@ export interface OnboardingPaths {
 }
 
 /**
+ * Budget alert configuration
+ */
+export interface BudgetAlertConfig {
+  /** Alert threshold (0-1) */
+  threshold: number;
+
+  /** Action to take at threshold */
+  action: 'warn' | 'downgrade' | 'block';
+
+  /** Optional notification channel */
+  notification?: 'console' | 'email' | 'webhook';
+}
+
+/**
  * Cost management configuration
  */
 export interface CostManagementConfig {
   /** Maximum monthly budget in USD */
   max_monthly_budget: number;
 
-  /** Alert threshold (0-1) for budget warnings */
-  alert_threshold: number;
+  /** Alert threshold (0-1) for budget warnings (deprecated - use budget.alerts) */
+  alert_threshold?: number;
 
   /** Fallback model when budget exceeded */
   fallback_model: string;
+
+  /** Enhanced budget configuration (optional) */
+  budget?: {
+    /** Daily budget limit in USD */
+    daily?: number;
+
+    /** Weekly budget limit in USD */
+    weekly?: number;
+
+    /** Monthly budget limit in USD */
+    monthly?: number;
+
+    /** Budget alert thresholds */
+    alerts?: BudgetAlertConfig[];
+  };
 }
 
 /**

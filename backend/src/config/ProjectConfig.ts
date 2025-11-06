@@ -282,6 +282,38 @@ export class ProjectConfig {
   }
 
   /**
+   * Get budget configuration for CostQualityOptimizer
+   * Converts ProjectConfig budget format to optimizer format
+   * @returns Budget configuration
+   */
+  getBudgetConfig(): {
+    monthly: number;
+    daily?: number;
+    weekly?: number;
+    alerts?: Array<{ threshold: number; action: 'warn' | 'downgrade' | 'block'; notification?: string }>;
+  } {
+    const costMgmt = this.config.cost_management;
+
+    // Use enhanced budget config if available, otherwise fall back to legacy format
+    if (costMgmt.budget) {
+      return {
+        monthly: costMgmt.budget.monthly || costMgmt.max_monthly_budget,
+        daily: costMgmt.budget.daily,
+        weekly: costMgmt.budget.weekly,
+        alerts: costMgmt.budget.alerts
+      };
+    }
+
+    // Legacy format: use max_monthly_budget and alert_threshold
+    return {
+      monthly: costMgmt.max_monthly_budget,
+      alerts: costMgmt.alert_threshold ? [
+        { threshold: costMgmt.alert_threshold, action: 'warn' }
+      ] : undefined
+    };
+  }
+
+  /**
    * Get project metadata
    * @returns Project metadata
    */
