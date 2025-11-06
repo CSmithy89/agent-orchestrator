@@ -212,8 +212,7 @@ export class TemplateProcessor {
 
       // Check for syntax errors
       if (errorMessage.includes('Parse error') || errorMessage.includes('Expecting')) {
-        const lineMatch = errorMessage.match(/line (\d+)/);
-        const line = (lineMatch && lineMatch[1]) ? parseInt(lineMatch[1], 10) : undefined;
+        const line = this.extractLineNumber(errorMessage);
 
         throw new TemplateSyntaxError(
           errorMessage,
@@ -223,8 +222,7 @@ export class TemplateProcessor {
       }
 
       // Generic render error
-      const lineMatch = errorMessage.match(/line (\d+)/);
-      const line = (lineMatch && lineMatch[1]) ? parseInt(lineMatch[1], 10) : undefined;
+      const line = this.extractLineNumber(errorMessage);
 
       throw new TemplateRenderError(
         `Template rendering failed: ${errorMessage}`,
@@ -595,6 +593,16 @@ export class TemplateProcessor {
         return target[prop];
       },
     });
+  }
+
+  /**
+   * Extract line number from error message
+   *
+   * Helper method to extract line numbers from error messages.
+   */
+  private extractLineNumber(errorMessage: string): number | undefined {
+    const lineMatch = errorMessage.match(/line (\d+)/);
+    return (lineMatch && lineMatch[1]) ? parseInt(lineMatch[1], 10) : undefined;
   }
 
   /**

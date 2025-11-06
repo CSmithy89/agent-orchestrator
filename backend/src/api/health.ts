@@ -249,6 +249,11 @@ async function getDiskDetails(): Promise<{
       const total = parseInt(parts[1] ?? '0') * 1024; // Convert KB to bytes
       const used = parseInt(parts[2] ?? '0') * 1024;
       const available = parseInt(parts[3] ?? '0') * 1024;
+
+      if (isNaN(total) || isNaN(used) || isNaN(available)) {
+        throw new Error('Failed to parse df output');
+      }
+
       const percentage = total > 0 ? (used / total) * 100 : 0;
 
       return {

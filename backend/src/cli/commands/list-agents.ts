@@ -79,8 +79,6 @@ export async function listAgents(options: ListAgentsOptions): Promise<void> {
 
     // Display each agent
     for (const [, activities] of agentMap.entries()) {
-      if (activities.length === 0) continue;
-
       const latestActivity = activities[activities.length - 1];
       if (!latestActivity) continue;
 

@@ -215,8 +215,7 @@ export class WorkflowParser {
    * @returns Config with system variables resolved
    */
   private resolveSystemVariables(config: WorkflowConfig): WorkflowConfig {
-    const isoDate = new Date().toISOString().split('T')[0];
-    const today = isoDate ?? new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
     return this.replaceVariables(config, {
       'date:system-generated': today
