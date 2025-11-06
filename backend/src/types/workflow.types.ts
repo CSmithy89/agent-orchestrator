@@ -192,50 +192,9 @@ export interface WorkflowState {
   lastUpdate: Date;
 }
 
-/**
- * Workflow parse error
- * Thrown when workflow YAML parsing or validation fails
- */
-export class WorkflowParseError extends Error {
-  constructor(
-    message: string,
-    public field?: string,
-    public expected?: string,
-    public filePath?: string
-  ) {
-    super(message);
-    this.name = 'WorkflowParseError';
-  }
-}
-
-/**
- * State management error
- */
-export class StateManagerError extends Error {
-  constructor(
-    message: string,
-    public operation?: string,
-    public filePath?: string
-  ) {
-    super(message);
-    this.name = 'StateManagerError';
-  }
-}
-
-/**
- * Workflow execution error
- */
-export class WorkflowExecutionError extends Error {
-  constructor(
-    message: string,
-    public step?: number,
-    public override cause?: Error,
-    public context?: Record<string, any>
-  ) {
-    super(message);
-    this.name = 'WorkflowExecutionError';
-  }
-}
+// Error classes have been moved to errors.types.ts to avoid duplication
+// Import them from there when needed:
+// import { WorkflowParseError, StateManagerError, WorkflowExecutionError } from './errors.types.js';
 
 /**
  * Action types in workflow steps

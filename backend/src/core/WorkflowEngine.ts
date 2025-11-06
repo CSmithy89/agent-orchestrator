@@ -12,9 +12,9 @@ import {
   Action,
   Check,
   EngineOptions,
-  WorkflowExecutionError,
   ProjectInfo
 } from '../types/workflow.types.js';
+import { WorkflowExecutionError } from '../types/errors.types.js';
 import { WorkflowParser } from './WorkflowParser.js';
 import { StateManager } from './StateManager.js';
 import { ProjectConfig } from '../config/ProjectConfig.js';
