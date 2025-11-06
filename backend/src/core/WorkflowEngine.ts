@@ -18,6 +18,7 @@ import {
 import { WorkflowParser } from './WorkflowParser.js';
 import { StateManager } from './StateManager.js';
 import { ProjectConfig } from '../config/ProjectConfig.js';
+import { TemplateProcessor } from './TemplateProcessor.js';
 
 /**
  * WorkflowEngine class
@@ -27,6 +28,7 @@ export class WorkflowEngine {
   private workflowPath: string;
   private workflowParser: WorkflowParser;
   private stateManager: StateManager;
+  private templateProcessor: TemplateProcessor;
   private projectRoot: string;
   private yoloMode: boolean;
   private workflowConfig?: WorkflowConfig;
@@ -63,6 +65,11 @@ export class WorkflowEngine {
     this.yoloMode = options.yoloMode || false;
     this.workflowParser = options.workflowParser || new WorkflowParser(this.projectRoot);
     this.stateManager = options.stateManager || new StateManager(this.projectRoot);
+    this.templateProcessor = new TemplateProcessor({
+      basePath: this.projectRoot,
+      strictMode: true,
+      preserveWhitespace: true,
+    });
   }
 
   /**
@@ -310,11 +317,42 @@ export class WorkflowEngine {
         break;
 
       case 'template-output':
-        if (!this.yoloMode) {
-          console.log(`[WorkflowEngine] Template output checkpoint: ${resolvedContent}`);
-          // In a real implementation, this would show template output for approval
-        } else {
-          console.log(`[WorkflowEngine] Auto-approving template output in YOLO mode`);
+        // Extract file attribute and template content
+        const outputFile = action.attributes?.file;
+
+        if (!outputFile) {
+          console.warn(`[WorkflowEngine] template-output missing file attribute, skipping`);
+          break;
+        }
+
+        // Resolve variables in output file path
+        const resolvedOutputFile = this.replaceVariables(outputFile, this.variables);
+
+        try {
+          // Process template content with current variables
+          const processedContent = this.templateProcessor.processTemplate(
+            resolvedContent,
+            this.variables
+          );
+
+          // Write processed template to output file
+          await this.templateProcessor.writeOutput(
+            processedContent,
+            resolvedOutputFile
+          );
+
+          if (!this.yoloMode) {
+            console.log(`[WorkflowEngine] Template rendered: ${resolvedOutputFile}`);
+            console.log(`[WorkflowEngine] Template output checkpoint reached`);
+            // In a real implementation, this would show template output for approval
+          } else {
+            console.log(`[WorkflowEngine] Auto-approved template output: ${resolvedOutputFile}`);
+          }
+        } catch (error) {
+          console.error(`[WorkflowEngine] Template processing failed:`, error);
+          throw new WorkflowExecutionError(
+            `Failed to process template: ${(error as Error).message}`
+          );
         }
         break;
 

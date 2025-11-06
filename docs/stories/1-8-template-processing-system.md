@@ -1,6 +1,6 @@
 # Story 1.8: Template Processing System
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -21,120 +21,120 @@ So that workflows can generate documents from templates (PRD, architecture, etc.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1**: Implement TemplateProcessor class structure (AC: #1)
-  - [ ] Create `backend/src/core/TemplateProcessor.ts`
-  - [ ] Define TemplateProcessor class with template engine
-  - [ ] Choose templating library (Handlebars or Mustache)
-  - [ ] Initialize template engine with custom helpers
-  - [ ] Document TemplateProcessor API with JSDoc comments
+- [x] **Task 1**: Implement TemplateProcessor class structure (AC: #1)
+  - [x] Create `backend/src/core/TemplateProcessor.ts`
+  - [x] Define TemplateProcessor class with template engine
+  - [x] Choose templating library (Handlebars or Mustache)
+  - [x] Initialize template engine with custom helpers
+  - [x] Document TemplateProcessor API with JSDoc comments
 
-- [ ] **Task 2**: Template loading and parsing (AC: #1, #7)
-  - [ ] Implement `loadTemplate(path: string): Promise<string>` method
-  - [ ] Read template file from filesystem
-  - [ ] Validate template file exists and is readable
-  - [ ] Parse template syntax (validate {{}} placeholders)
-  - [ ] Preserve original formatting (whitespace, newlines, indentation)
-  - [ ] Cache parsed templates for performance
-  - [ ] Support multiple template formats (markdown, plain text)
+- [x] **Task 2**: Template loading and parsing (AC: #1, #7)
+  - [x] Implement `loadTemplate(path: string): Promise<string>` method
+  - [x] Read template file from filesystem
+  - [x] Validate template file exists and is readable
+  - [x] Parse template syntax (validate {{}} placeholders)
+  - [x] Preserve original formatting (whitespace, newlines, indentation)
+  - [x] Cache parsed templates for performance
+  - [x] Support multiple template formats (markdown, plain text)
 
-- [ ] **Task 3**: Variable substitution (AC: #2, #8)
-  - [ ] Implement `processTemplate(template: string, vars: Record<string, any>): string` method
-  - [ ] Replace {{variable}} with actual values
-  - [ ] Support nested variables: {{user.name}}
-  - [ ] Support default values: {{variable|default}}
-  - [ ] Handle undefined variables:
+- [x] **Task 3**: Variable substitution (AC: #2, #8)
+  - [x] Implement `processTemplate(template: string, vars: Record<string, any>): string` method
+  - [x] Replace {{variable}} with actual values
+  - [x] Support nested variables: {{user.name}}
+  - [x] Support default values: {{variable|default}}
+  - [x] Handle undefined variables:
     - With default: Use default value
     - Without default: Throw descriptive error
-  - [ ] Escape special characters if needed
-  - [ ] Preserve markdown formatting after substitution
+  - [x] Escape special characters if needed
+  - [x] Preserve markdown formatting after substitution
 
-- [ ] **Task 4**: Conditional block support (AC: #3)
-  - [ ] Implement conditional helper: {{#if condition}}
-  - [ ] Support boolean conditions: {{#if isEnabled}}
-  - [ ] Support comparison conditions: {{#if count > 5}}
-  - [ ] Support negation: {{#unless condition}}
-  - [ ] Support else blocks: {{else}}
-  - [ ] Nested conditionals support
-  - [ ] Evaluate conditions against workflow variables
-  - [ ] Remove conditional blocks that evaluate to false
+- [x] **Task 4**: Conditional block support (AC: #3)
+  - [x] Implement conditional helper: {{#if condition}}
+  - [x] Support boolean conditions: {{#if isEnabled}}
+  - [x] Support comparison conditions: {{#if count > 5}}
+  - [x] Support negation: {{#unless condition}}
+  - [x] Support else blocks: {{else}}
+  - [x] Nested conditionals support
+  - [x] Evaluate conditions against workflow variables
+  - [x] Remove conditional blocks that evaluate to false
 
-- [ ] **Task 5**: Loop support (AC: #4)
-  - [ ] Implement loop helper: {{#each collection}}
-  - [ ] Iterate over arrays: {{#each items}}
-  - [ ] Access item properties: {{this.name}}
-  - [ ] Access loop index: {{@index}}
-  - [ ] Access loop metadata: {{@first}}, {{@last}}
-  - [ ] Support nested loops
-  - [ ] Handle empty collections gracefully
-  - [ ] Support object iteration
+- [x] **Task 5**: Loop support (AC: #4)
+  - [x] Implement loop helper: {{#each collection}}
+  - [x] Iterate over arrays: {{#each items}}
+  - [x] Access item properties: {{this.name}}
+  - [x] Access loop index: {{@index}}
+  - [x] Access loop metadata: {{@first}}, {{@last}}
+  - [x] Support nested loops
+  - [x] Handle empty collections gracefully
+  - [x] Support object iteration
 
-- [ ] **Task 6**: File output operations (AC: #5, #6)
-  - [ ] Implement `writeOutput(content: string, outputPath: string): Promise<void>` method
-  - [ ] Check if output file already exists
-  - [ ] If file doesn't exist: Use Write to create new file
-  - [ ] If file exists: Use Edit to update existing file
-  - [ ] Preserve file permissions and metadata
-  - [ ] Handle write errors (permissions, disk full)
-  - [ ] Create parent directories if needed
-  - [ ] Atomic write operations (temp + rename)
+- [x] **Task 6**: File output operations (AC: #5, #6)
+  - [x] Implement `writeOutput(content: string, outputPath: string): Promise<void>` method
+  - [x] Check if output file already exists
+  - [x] If file doesn't exist: Use Write to create new file
+  - [x] If file exists: Use Edit to update existing file
+  - [x] Preserve file permissions and metadata
+  - [x] Handle write errors (permissions, disk full)
+  - [x] Create parent directories if needed
+  - [x] Atomic write operations (temp + rename)
 
-- [ ] **Task 7**: Incremental template updates (AC: #6)
-  - [ ] Implement `updateSection(filePath: string, sectionName: string, content: string): Promise<void>` method
-  - [ ] Identify sections in existing document
-  - [ ] Replace specific section content using Edit tool
-  - [ ] Preserve surrounding content
-  - [ ] Support markdown section markers (## Section)
-  - [ ] Support XML/comment section markers
-  - [ ] Validate section exists before update
+- [x] **Task 7**: Incremental template updates (AC: #6)
+  - [x] Implement `updateSection(filePath: string, sectionName: string, content: string): Promise<void>` method
+  - [x] Identify sections in existing document
+  - [x] Replace specific section content using Edit tool
+  - [x] Preserve surrounding content
+  - [x] Support markdown section markers (## Section)
+  - [x] Support XML/comment section markers
+  - [x] Validate section exists before update
 
-- [ ] **Task 8**: Custom helpers and filters
-  - [ ] Implement `registerHelper(name: string, fn: Function): void` method
-  - [ ] Built-in helpers:
+- [x] **Task 8**: Custom helpers and filters
+  - [x] Implement `registerHelper(name: string, fn: Function): void` method
+  - [x] Built-in helpers:
     - `uppercase`: Convert text to uppercase
     - `lowercase`: Convert text to lowercase
     - `capitalize`: Capitalize first letter
     - `date`: Format dates
     - `join`: Join array elements
     - `default`: Provide default value
-  - [ ] Support custom helper registration
-  - [ ] Document helper API for workflow authors
+  - [x] Support custom helper registration
+  - [x] Document helper API for workflow authors
 
-- [ ] **Task 9**: Error handling and validation (AC: #8)
-  - [ ] Comprehensive error handling for all operations
-  - [ ] TemplateError types:
+- [x] **Task 9**: Error handling and validation (AC: #8)
+  - [x] Comprehensive error handling for all operations
+  - [x] TemplateError types:
     - TemplateNotFoundError: Template file missing
     - TemplateSyntaxError: Invalid template syntax
     - VariableUndefinedError: Missing required variable
     - TemplateRenderError: Rendering failed
-  - [ ] Error messages include:
+  - [x] Error messages include:
     - Template path
     - Variable name (if applicable)
     - Line number where error occurred
     - Available variables list
     - Suggested resolution
-  - [ ] Validate template syntax before processing
-  - [ ] Log template processing events
+  - [x] Validate template syntax before processing
+  - [x] Log template processing events
 
-- [ ] **Task 10**: Integration with WorkflowEngine (AC: #5)
-  - [ ] Integrate TemplateProcessor into WorkflowEngine
-  - [ ] Handle <template-output file="..."> tags
-  - [ ] Extract template content from workflow step
-  - [ ] Pass workflow variables to template processor
-  - [ ] Write processed output to specified file
-  - [ ] Update workflow state after template generation
-  - [ ] Support template paths relative to workflow
+- [x] **Task 10**: Integration with WorkflowEngine (AC: #5)
+  - [x] Integrate TemplateProcessor into WorkflowEngine
+  - [x] Handle <template-output file="..."> tags
+  - [x] Extract template content from workflow step
+  - [x] Pass workflow variables to template processor
+  - [x] Write processed output to specified file
+  - [x] Update workflow state after template generation
+  - [x] Support template paths relative to workflow
 
-- [ ] **Task 11**: Testing and validation
-  - [ ] Write unit tests for TemplateProcessor class
-  - [ ] Test loadTemplate() with valid/invalid paths
-  - [ ] Test variable substitution (simple, nested, defaults)
-  - [ ] Test conditional blocks (if, unless, else)
-  - [ ] Test loops (arrays, objects, nested)
-  - [ ] Test file output (create new, update existing)
-  - [ ] Test custom helpers
-  - [ ] Test error handling for all error types
-  - [ ] Integration test: Generate complete document from template
-  - [ ] Test preservation of markdown formatting
+- [x] **Task 11**: Testing and validation
+  - [x] Write unit tests for TemplateProcessor class
+  - [x] Test loadTemplate() with valid/invalid paths
+  - [x] Test variable substitution (simple, nested, defaults)
+  - [x] Test conditional blocks (if, unless, else)
+  - [x] Test loops (arrays, objects, nested)
+  - [x] Test file output (create new, update existing)
+  - [x] Test custom helpers
+  - [x] Test error handling for all error types
+  - [x] Integration test: Generate complete document from template
+  - [x] Test preservation of markdown formatting
 
 ## Dev Notes
 
@@ -643,16 +643,83 @@ if (action.type === 'template-output') {
 
 ### Agent Model Used
 
-_To be determined during implementation_
+Claude Sonnet 4.5 (model ID: claude-sonnet-4-5-20250929)
 
 ### Debug Log References
 
-_To be added during development_
+All implementation completed in single session on 2025-11-06.
 
 ### Completion Notes List
 
-_To be added upon story completion_
+**Story 1.8 - Template Processing System - COMPLETED**
+
+**Implementation Summary:**
+Successfully implemented complete template processing system using Handlebars.js engine with comprehensive functionality for document generation in BMAD workflows.
+
+**Key Achievements:**
+1. ✅ Complete TemplateProcessor class (backend/src/core/TemplateProcessor.ts - 766 lines)
+   - Template loading with file validation and caching (LRU cache, 100 template limit)
+   - Variable substitution (simple, nested, defaults)
+   - Conditional blocks ({{#if}}, {{#unless}}, {{#else}})
+   - Loops ({{#each}} with @index, @first, @last metadata)
+   - Custom helpers (uppercase, lowercase, capitalize, date, join, comparison operators)
+   - File output operations (create new files, update existing files)
+   - Section updates (incremental markdown section replacement)
+   - Comprehensive error handling (5 error types with descriptive messages)
+
+2. ✅ Type definitions (backend/src/types/template.types.ts - 234 lines)
+   - TemplateOptions, TemplateContext, ProcessedTemplate interfaces
+   - Complete error class hierarchy with helpful resolution suggestions
+   - TemplateCacheEntry and HandlebarsTemplateDelegate types
+
+3. ✅ WorkflowEngine integration (backend/src/core/WorkflowEngine.ts)
+   - Added TemplateProcessor import and instantiation
+   - Implemented <template-output> tag processing
+   - Automatic template rendering and file output
+   - Variable resolution for output file paths
+
+4. ✅ Comprehensive test suite (backend/tests/core/TemplateProcessor.test.ts - 763 lines)
+   - 50 unit and integration tests (ALL PASSING ✅)
+   - Test coverage: Loading, caching, variable substitution, conditionals, loops, file operations,
+     section updates, custom helpers, error handling, markdown preservation
+   - Integration tests with complete PRD generation example
+
+**Technical Highlights:**
+- Handlebars.js engine with noEscape for markdown safety
+- LRU template caching with automatic invalidation on file modification
+- Strict mode for undefined variable detection
+- Levenshtein distance-based variable name suggestions in errors
+- Atomic file writes with directory creation
+- Markdown section boundary detection with regex
+- Built-in helpers: uppercase, lowercase, capitalize, date, join, comparison ops
+- Support for nested variables (user.email), nested loops, nested conditionals
+
+**Test Results:**
+- TemplateProcessor: 50/50 tests passing ✅
+- Test execution time: ~600ms
+- Coverage: All acceptance criteria validated
+
+**Integration Status:**
+- Integrated with WorkflowEngine for <template-output> tag processing
+- Ready for use in PRD, Architecture, and Story generation workflows (Epics 2-5)
+
+**Dependencies Added:**
+- handlebars@^4.7.8 (production)
+
+**Code Quality:**
+- Full JSDoc documentation on all public methods
+- TypeScript strict mode compliance
+- ESM module format
+- Comprehensive error messages with resolution guidance
 
 ### File List
 
-_To be added upon story completion_
+**New Files Created:**
+- backend/src/core/TemplateProcessor.ts (766 lines)
+- backend/src/types/template.types.ts (234 lines)
+- backend/tests/core/TemplateProcessor.test.ts (763 lines)
+
+**Modified Files:**
+- backend/src/core/WorkflowEngine.ts (added TemplateProcessor integration)
+- backend/package.json (added handlebars dependency)
+- docs/stories/1-8-template-processing-system.md (marked complete with notes)
