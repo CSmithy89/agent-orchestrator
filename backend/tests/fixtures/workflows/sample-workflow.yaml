@@ -1,0 +1,38 @@
+name: "Test Workflow"
+description: "Sample workflow for testing purposes"
+author: "Test Suite"
+
+# Variables used in the workflow
+variables:
+  project_name: "test-project"
+  environment: "test"
+  max_retries: 3
+
+# Workflow configuration
+config_source: "{project-root}/config.yaml"
+output_folder: "{config_source}:output_folder"
+
+# Workflow components
+installed_path: "{project-root}/workflows/test-workflow"
+instructions: "{installed_path}/instructions.md"
+template: "{installed_path}/template.md"
+validation: "{installed_path}/checklist.md"
+
+# Execution settings
+standalone: true
+parallel_execution: false
+
+# Steps configuration
+steps:
+  - name: "Initialize"
+    description: "Initialize workflow state"
+    required: true
+
+  - name: "Process"
+    description: "Process workflow logic"
+    required: true
+    timeout: 5000
+
+  - name: "Validate"
+    description: "Validate results"
+    required: false

@@ -55,7 +55,7 @@ development_status:
   1-8-template-processing-system: ready-for-dev
   1-9-cli-foundation-basic-commands: ready-for-dev
   1-10-error-handling-recovery-infrastructure: done
-  1-11-test-framework-setup-infrastructure: drafted
+  1-11-test-framework-setup-infrastructure: done
   1-12-ci-cd-pipeline-configuration: drafted
   1-13-cost-quality-optimizer-implementation: drafted
   epic-1-retrospective: optional

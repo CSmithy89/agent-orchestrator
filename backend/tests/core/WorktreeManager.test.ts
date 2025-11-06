@@ -35,6 +35,17 @@ async function setupTestRepo(): Promise<void> {
   await fs.writeFile(readme, '# Test Project\n', 'utf-8');
   await git.add('README.md');
   await git.commit('Initial commit');
+
+  // Rename default branch to 'main' if it's not already
+  try {
+    const branches = await git.branch();
+    if (branches.current !== 'main') {
+      await git.branch(['-M', 'main']);
+    }
+  } catch (error) {
+    // If branch rename fails, create main branch explicitly
+    await git.checkoutLocalBranch('main');
+  }
 }
 
 // Helper to cleanup test repository
