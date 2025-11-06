@@ -1,5 +1,8 @@
 # Agent Orchestrator
 
+![CI Status](https://github.com/CSmithy89/agent-orchestrator/actions/workflows/ci.yml/badge.svg)
+![Coverage](https://img.shields.io/badge/coverage-%E2%89%A580%25-brightgreen)
+
 Autonomous BMAD workflow execution system for 24/7 software development.
 
 ## Overview

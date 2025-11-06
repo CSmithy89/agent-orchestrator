@@ -8,6 +8,8 @@ import {
   RetryableError,
   FatalError,
   LLMAPIError,
+  GitOperationError,
+  WorkflowParseError,
   StateCorruptionError,
   ResourceExhaustedError,
   isFatalError
