@@ -47,9 +47,9 @@ development_status:
   epic-1: contexted  # Tech spec: docs/tech-spec-epic-1.md
   1-1-project-repository-structure-configuration: done
   1-2-workflow-yaml-parser: done
-  1-3-llm-factory-pattern-implementation: ready-for-dev
+  1-3-llm-factory-pattern-implementation: done
   1-4-agent-pool-lifecycle-management: ready-for-dev
-  1-5-state-manager-file-persistence: ready-for-dev
+  1-5-state-manager-file-persistence: done
   1-6-git-worktree-manager-basic-operations: done
   1-7-workflow-engine-step-executor: ready-for-dev
   1-8-template-processing-system: ready-for-dev
