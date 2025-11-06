@@ -238,14 +238,16 @@ export class ProjectConfig {
       );
     }
 
-    if (typeof costMgmt.alert_threshold !== 'number' ||
-        costMgmt.alert_threshold < 0 ||
-        costMgmt.alert_threshold > 1) {
-      throw new ConfigValidationError(
-        "Required field 'cost_management.alert_threshold' must be a number between 0 and 1",
-        'cost_management.alert_threshold',
-        '0-1'
-      );
+    if (typeof costMgmt.alert_threshold !== 'undefined') {
+      if (typeof costMgmt.alert_threshold !== 'number' ||
+          costMgmt.alert_threshold < 0 ||
+          costMgmt.alert_threshold > 1) {
+        throw new ConfigValidationError(
+          "Optional field 'cost_management.alert_threshold' must be a number between 0 and 1",
+          'cost_management.alert_threshold',
+          '0-1'
+        );
+      }
     }
 
     if (!costMgmt.fallback_model) {

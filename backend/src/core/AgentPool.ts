@@ -384,7 +384,7 @@ export class AgentPool {
           outputTokens: tokenUsage.output_tokens,
           cachedTokens: 0  // TODO: Add cached token support when available from LLM providers
         },
-        agent.context.workflowState['currentPhase'] as string | undefined
+        agent.context.workflowState?.['currentPhase'] as string | undefined
       );
     }
 
