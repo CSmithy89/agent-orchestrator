@@ -30,6 +30,9 @@ async function setupTestRepo(): Promise<void> {
   await git.addConfig('user.name', 'Test User');
   await git.addConfig('user.email', 'test@example.com');
 
+  // Disable commit signing for tests (avoids infrastructure signing issues)
+  await git.addConfig('commit.gpgSign', 'false');
+
   // Create initial commit
   const readme = path.join(TEST_PROJECT_ROOT, 'README.md');
   await fs.writeFile(readme, '# Test Project\n', 'utf-8');

@@ -361,7 +361,8 @@ export const createTestDir = async () => {
    - WorktreeManager tests: Added `main` branch creation in test setup (git init creates `master` by default)
    - Integration tests: Switched from thread pool to fork pool to support process.chdir()
    - WorkflowParser test: Fixed date variable format (changed `system-generated` to `date:system-generated`)
-   - Result: 35 failures → 0 failures, 198 tests passing
+   - Git signing issue: Disabled commit.gpgSign in test git repos to avoid infrastructure signing failures
+   - Result: 35 failures → 0 failures, 198 tests passing (all tests passing)
 
 5. **Coverage provider decision**:
    - AC specifies c8, but using v8 (modern, faster alternative)
@@ -389,10 +390,10 @@ export const createTestDir = async () => {
 
 **Files Modified:**
 - backend/vitest.config.ts (enhanced with fork pool, CPU concurrency, CI reporters, setup files)
-- backend/tests/core/WorktreeManager.test.ts (fixed main branch creation in test setup)
+- backend/tests/core/WorktreeManager.test.ts (fixed main branch creation in test setup; disabled git commit signing for tests)
 - backend/tests/core/WorkflowParser.test.ts (fixed date variable format)
-- docs/stories/1-11-test-framework-setup-infrastructure.md (marked all tasks complete, added completion notes)
-- docs/sprint-status.yaml (status: drafted → in-progress → review)
+- docs/stories/1-11-test-framework-setup-infrastructure.md (marked all tasks complete, added completion notes, code review, post-review updates)
+- docs/sprint-status.yaml (status: drafted → in-progress → review → done)
 
 ---
 
@@ -418,7 +419,7 @@ The implementation demonstrates strong software engineering practices: comprehen
 5. **Code quality** - Clean code, proper error handling, comprehensive JSDoc comments
 
 **⚠️ Advisory Notes:**
-1. **Git signing test failure** - 1 test failing due to infrastructure/environment git commit signing issue (not code quality issue)
+1. **Git signing issue resolved** - ✅ Fixed by disabling commit.gpgSign in test repos (all 198 tests now passing)
 2. **Coverage below 80% overall** - 72.38% overall coverage acceptable given core components at 90.39%; LLM provider API tests out of scope
 3. **v8 vs c8** - Using v8 instead of c8 as specified in AC#3 (acceptable modern alternative, faster and more accurate)
 
@@ -476,8 +477,8 @@ All 51 subtasks across 7 main tasks verified as complete:
 - Types: 97.02% ✅
 
 **Test Quality:**
-- 197 tests passing (1 skipped)
-- 1 test failing due to git commit signing infrastructure issue (not code)
+- 198 tests passing (1 skipped) ✅ **All tests passing!**
+- Git signing issue resolved (disabled commit.gpgSign in test repos)
 - Proper AAA pattern usage
 - Good edge case coverage
 - Deterministic execution (fork pool solution for process.chdir())
@@ -527,10 +528,10 @@ All 51 subtasks across 7 main tasks verified as complete:
 **Advisory Notes (No blocking issues):**
 
 - Note: Consider adding LLM provider API integration tests in future story when API test infrastructure is established (would require test API keys and rate limiting)
-- Note: Git commit signing test failure is infrastructure/environment issue - investigate git signing configuration in test environment if this persists in CI
+- ~~Note: Git commit signing test failure is infrastructure/environment issue - investigate git signing configuration in test environment if this persists in CI~~ ✅ **RESOLVED** - Disabled commit.gpgSign in test repos
 - Note: Document the v8 vs c8 decision in architecture docs if this becomes a pattern (v8 is faster and more accurate, Vitest's default)
 
-**Summary:** 0 critical action items, 0 high priority, 0 medium priority, 3 low priority advisory notes
+**Summary:** 0 critical action items, 0 high priority, 0 medium priority, 2 low priority advisory notes (1 resolved)
 
 ---
 
@@ -538,6 +539,14 @@ All 51 subtasks across 7 main tasks verified as complete:
 
 This story represents excellent work. The test framework infrastructure is production-ready, comprehensive, and well-documented. All acceptance criteria met, all tasks verified, and code quality is high. The systematic bug fixes (35 failures → 0 failures) demonstrate strong engineering discipline.
 
-The minor deviations (v8 vs c8, coverage 72% vs 80%) are acceptable and well-documented. The git signing test failure is an environment issue, not a code quality issue.
+The minor deviations (v8 vs c8, coverage 72% vs 80%) are acceptable and well-documented. ✅ **UPDATE**: Git signing issue has been resolved - all 198 tests now passing.
 
 **Recommendation:** ✅ **APPROVE - Story ready for done status**
+
+---
+
+**Post-Review Update (2025-11-06):**
+
+Fixed remaining git commit signing issue in WorktreeManager tests by disabling commit.gpgSign in test repository setup. All 198 tests now passing with no infrastructure failures.
+
+**Final Test Status:** ✅ 198 passing, 1 skipped, 0 failing
