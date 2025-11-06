@@ -73,6 +73,12 @@ export interface Step {
 
   /** Conditional expression (from if="condition" attribute) */
   condition?: string;
+
+  /** Parsed actions within this step */
+  actions?: Action[];
+
+  /** Parsed conditional checks within this step */
+  checks?: Check[];
 }
 
 /**
@@ -214,4 +220,77 @@ export class StateManagerError extends Error {
     super(message);
     this.name = 'StateManagerError';
   }
+}
+
+/**
+ * Workflow execution error
+ */
+export class WorkflowExecutionError extends Error {
+  constructor(
+    message: string,
+    public step?: number,
+    public cause?: Error,
+    public context?: Record<string, any>
+  ) {
+    super(message);
+    this.name = 'WorkflowExecutionError';
+  }
+}
+
+/**
+ * Action types in workflow steps
+ */
+export type ActionType =
+  | 'action'
+  | 'ask'
+  | 'output'
+  | 'template-output'
+  | 'elicit-required'
+  | 'goto'
+  | 'invoke-workflow'
+  | 'invoke-task';
+
+/**
+ * Action definition within a step
+ */
+export interface Action {
+  /** Type of action */
+  type: ActionType;
+
+  /** Action content/description */
+  content: string;
+
+  /** Optional condition for conditional execution */
+  condition?: string;
+
+  /** Optional attributes (e.g., file path for template-output) */
+  attributes?: Record<string, string>;
+}
+
+/**
+ * Conditional check block
+ */
+export interface Check {
+  /** Condition expression to evaluate */
+  condition: string;
+
+  /** Actions to execute if condition is true */
+  actions: Action[];
+}
+
+/**
+ * WorkflowEngine options
+ */
+export interface EngineOptions {
+  /** Enable YOLO mode (skip optional steps and prompts) */
+  yoloMode?: boolean;
+
+  /** Custom StateManager instance */
+  stateManager?: any; // Using 'any' to avoid circular dependency
+
+  /** Custom WorkflowParser instance */
+  workflowParser?: any; // Using 'any' to avoid circular dependency
+
+  /** Project root directory (defaults to process.cwd()) */
+  projectRoot?: string;
 }

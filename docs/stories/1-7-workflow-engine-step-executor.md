@@ -1,6 +1,6 @@
 # Story 1.7: Workflow Engine - Step Executor
 
-Status: ready-for-dev
+Status: done
 
 ## Story
 
@@ -549,16 +549,76 @@ Resolution:
 
 ### Agent Model Used
 
-_To be determined during implementation_
+Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### Debug Log References
 
-_To be added during development_
+- Unit tests: `backend/tests/core/WorkflowEngine.test.ts` (14 tests, all passing)
+- Integration tests: `backend/tests/integration/workflow-execution.test.ts` (4 tests, all passing)
 
 ### Completion Notes List
 
-_To be added upon story completion_
+**Implementation Summary:**
+
+Story 1.7 has been successfully implemented with all acceptance criteria met:
+
+1. ✅ **WorkflowEngine Class**: Implemented complete workflow execution engine with sequential step processing
+2. ✅ **Instructions Parsing**: Enhanced markdown parser to extract `<step>` tags with nested action tags
+3. ✅ **Sequential Execution**: Steps execute in exact order (1, 2, 3...) with state saving after each
+4. ✅ **Variable Substitution**: Full support for `{{variable}}`, `{{nested.key}}`, and `{{var|default}}` patterns
+5. ✅ **Conditional Logic**: Complete support for comparisons (==, !=, <, >, <=, >=), logical operators (AND, OR, NOT), and special conditions (file exists, is defined, is true, etc.)
+6. ✅ **Special Tags**: Implemented goto, invoke-workflow, and invoke-task functionality
+7. ✅ **State Persistence**: Integration with StateManager for atomic state saves after each step
+8. ✅ **Crash Recovery**: resumeFromState() method successfully resumes from last completed step
+9. ✅ **YOLO Mode**: Skips optional steps, prompts, and elicitations; auto-approves checkpoints
+
+**Key Implementation Details:**
+
+- **XML Tag Parsing**: Supports all required tags: `<action>`, `<ask>`, `<output>`, `<template-output>`, `<elicit-required>`, `<check>`, `<goto>`, `<invoke-workflow>`, `<invoke-task>`
+- **Variable Resolution Order**: System variables → Project paths → Config references → Workflow variables → Runtime variables
+- **Condition Evaluation**: Robust expression parser handling multiple operator types and nested conditions
+- **Error Handling**: Custom WorkflowExecutionError class with detailed context and resolution steps
+- **State Management**: Atomic writes via StateManager with automatic git commits
+- **Testing**: 18 total tests (14 unit + 4 integration) covering all major functionality
+
+**Architecture Decisions:**
+
+1. **Step-by-Step State Persistence**: Every step completion triggers a state save, ensuring minimal work loss on crash
+2. **Recursive Workflow Support**: Nested workflows create separate engine instances sharing state/parser
+3. **YOLO Mode Design**: Maintains safety by never skipping critical steps or validation tasks
+4. **Variable Error Messages**: Provide clear resolution steps including available variables and suggestions
+
+**Files Modified/Created:**
+
+- `backend/src/core/WorkflowEngine.ts` (NEW) - Main workflow execution engine
+- `backend/src/types/workflow.types.ts` (MODIFIED) - Added Action, Check, EngineOptions, WorkflowExecutionError types
+- `backend/tests/core/WorkflowEngine.test.ts` (NEW) - Comprehensive unit tests
+- `backend/tests/integration/workflow-execution.test.ts` (NEW) - End-to-end integration tests
+
+**Integration with Other Components:**
+
+- **WorkflowParser** (Story 1.2): Used for parsing workflow.yaml and instructions.md
+- **StateManager** (Story 1.5): Used for state persistence and crash recovery
+- **ProjectConfig**: Used for config_source resolution during variable substitution
+
+**Known Limitations:**
+
+- Task invocation currently only reads task files; full task execution to be implemented in future stories
+- Nested workflow variable passing is basic; advanced input/output mapping not yet implemented
+- Condition evaluation uses synchronous fs.accessSync for file existence checks
 
 ### File List
 
-_To be added upon story completion_
+**New Files:**
+- `backend/src/core/WorkflowEngine.ts` - Workflow execution engine (735 lines)
+- `backend/tests/core/WorkflowEngine.test.ts` - Unit tests (490 lines)
+- `backend/tests/integration/workflow-execution.test.ts` - Integration tests (275 lines)
+
+**Modified Files:**
+- `backend/src/types/workflow.types.ts` - Added new types for WorkflowEngine
+  - Added `WorkflowExecutionError` class
+  - Added `ActionType` type
+  - Added `Action` interface
+  - Added `Check` interface
+  - Added `EngineOptions` interface
+  - Extended `Step` interface with `actions` and `checks` arrays
