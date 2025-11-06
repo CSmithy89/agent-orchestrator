@@ -260,7 +260,7 @@ export const mockLogger = () => {
  * ```
  */
 export const spyOnConsole = () => {
-  const originalConsole = { ...console };
+  const _originalConsole = { ...console };
   const mockConsole = {
     log: vi.spyOn(console, 'log').mockImplementation(() => {}),
     error: vi.spyOn(console, 'error').mockImplementation(() => {}),
