@@ -1,0 +1,196 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/1-10" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>10</storyId>
+    <title>Error Handling & Recovery Infrastructure</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-05</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/1-10-error-handling-recovery-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>an orchestrator reliability engineer</asA>
+    <iWant>comprehensive error handling with automatic retry and graceful degradation</iWant>
+    <soThat>transient failures don't crash workflows and users get clear error messages</soThat>
+    <tasks>
+      <task id="1" ac="2">Error classification system</task>
+      <task id="2" ac="1,3">RetryHandler with exponential backoff</task>
+      <task id="3" ac="3">LLM API error handling</task>
+      <task id="4" ac="4">Git operation error handling</task>
+      <task id="5" ac="5">Workflow parse error handling</task>
+      <task id="6" ac="6">Error logging infrastructure</task>
+      <task id="7" ac="7">Graceful degradation for multi-project</task>
+      <task id="8" ac="8">Health check endpoint</task>
+      <task id="9">Error recovery strategies</task>
+      <task id="10">Error escalation system</task>
+      <task id="11">Error metrics and monitoring</task>
+      <task id="12" ac="3,4">Integration with existing components</task>
+      <task id="13">Testing and validation</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Implement RetryHandler with exponential backoff (3 attempts default)</criterion>
+    <criterion id="2">Classify errors: recoverable (retry), retryable (backoff), escalation-required</criterion>
+    <criterion id="3">LLM API failures: retry 3x with backoff, then escalate</criterion>
+    <criterion id="4">Git operation failures: clean state, log error, escalate</criterion>
+    <criterion id="5">Workflow parse errors: report line number and clear message</criterion>
+    <criterion id="6">Log all errors with context, stack traces, and recovery attempts</criterion>
+    <criterion id="7">Graceful degradation: continue other projects if one fails</criterion>
+    <criterion id="8">Health check endpoint for monitoring</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Error Handler and Retry Logic</section>
+        <snippet>Comprehensive error handling infrastructure with RetryHandler (exponential backoff), error classification (recoverable, retryable, fatal), and graceful degradation. Includes specific handling for LLM API errors (rate limits, timeouts), git operation failures, and workflow parse errors.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.10: Error Handling & Recovery Infrastructure</section>
+        <snippet>User story and acceptance criteria. Prerequisites: Story 1.3 (LLMFactory - wrap with retry), Story 1.6 (WorktreeManager - git error handling). Exponential backoff with 3 retries default, project-level isolation for graceful degradation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Support Services - Error Handler</section>
+        <snippet>Error Handler is part of Support Services providing retry logic, error classification, and escalation. Integrated with all core components: WorkflowEngine, AgentPool, StateManager, WorktreeManager.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>NFR-REL-002: Error Recovery</section>
+        <snippet>Retry transient failures with exponential backoff: [1s, 2s, 4s]. Max 3 retry attempts before escalation. Clear error messages with recovery instructions. Target: 99%+ uptime with automatic recovery.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>backend/src/core/LLMFactory.ts</path>
+        <kind>module</kind>
+        <symbol>LLMFactory</symbol>
+        <lines>*</lines>
+        <reason>Wrap all LLM client calls with retry logic for rate limits (429), timeouts, and server errors (500-599)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/WorktreeManager.ts</path>
+        <kind>module</kind>
+        <symbol>WorktreeManager</symbol>
+        <lines>*</lines>
+        <reason>Wrap git operations with error handling, clean up partial state on failure (worktree creation, branch push)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/WorkflowParser.ts</path>
+        <kind>module</kind>
+        <symbol>WorkflowParser</symbol>
+        <lines>*</lines>
+        <reason>Enhance parse errors with line numbers and clear messages for YAML syntax errors and missing fields</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/workflow.types.ts</path>
+        <kind>types</kind>
+        <symbol>WorkflowState</symbol>
+        <lines>*</lines>
+        <reason>Extend to include error state, retry counts, and last error information for recovery tracking</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <winston version="^3.11.0">Structured logging with JSON format, log rotation, multiple transports (optional - can use console for MVP)</winston>
+        <pino version="^8.16.0">Alternative to winston - faster, simpler (optional)</pino>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Must integrate with all core components: LLMFactory, WorktreeManager, WorkflowParser, StateManager, AgentPool</constraint>
+    <constraint type="architecture">Project-level isolation required - one project failure must not affect other projects</constraint>
+    <constraint type="retry">Exponential backoff: [1s, 2s, 4s] with ±20% jitter to prevent thundering herd</constraint>
+    <constraint type="retry">Max 3 retry attempts default - configurable per operation type</constraint>
+    <constraint type="retry">Respect Retry-After header from LLM API rate limit responses</constraint>
+    <constraint type="error-handling">Never crash the orchestrator - catch and handle all errors at appropriate boundaries</constraint>
+    <constraint type="error-handling">Always provide actionable error messages with resolution steps</constraint>
+    <constraint type="logging">Never log sensitive data (API keys, tokens, credentials) - filter before logging</constraint>
+    <constraint type="logging">Structured logging with context: projectId, workflowName, stepNumber, agentId</constraint>
+    <constraint type="health-check">Health check endpoint must respond within 1 second (cached results)</constraint>
+    <constraint type="testing">Test all error scenarios: LLM failures, git failures, parse errors, resource exhaustion</constraint>
+    <constraint type="dependencies">Prerequisites: Story 1.3 (LLMFactory), Story 1.6 (WorktreeManager) must be complete</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>RetryHandler.executeWithRetry()</name>
+      <kind>method</kind>
+      <signature>async executeWithRetry&lt;T&gt;(operation: () =&gt; Promise&lt;T&gt;, shouldRetry?: (error: Error) =&gt; boolean): Promise&lt;T&gt;</signature>
+      <path>backend/src/core/RetryHandler.ts</path>
+      <description>Execute operation with exponential backoff retry logic. Returns result on success or throws after max retries.</description>
+    </interface>
+    <interface>
+      <name>ErrorHandler.classify()</name>
+      <kind>method</kind>
+      <signature>classify(error: Error): ErrorClassification</signature>
+      <path>backend/src/core/ErrorHandler.ts</path>
+      <description>Classify error as recoverable, retryable, or fatal to determine handling strategy</description>
+    </interface>
+    <interface>
+      <name>ErrorHandler.handle()</name>
+      <kind>method</kind>
+      <signature>async handle(error: Error, context: ErrorContext): Promise&lt;void&gt;</signature>
+      <path>backend/src/core/ErrorHandler.ts</path>
+      <description>Handle error based on classification: retry, escalate, or recover</description>
+    </interface>
+    <interface>
+      <name>Logger.error()</name>
+      <kind>method</kind>
+      <signature>error(message: string, context: Record&lt;string, any&gt;): void</signature>
+      <path>backend/src/utils/logger.ts</path>
+      <description>Log error with structured context, stack trace, and sensitive data filtering</description>
+    </interface>
+    <interface>
+      <name>HealthCheck.check()</name>
+      <kind>function</kind>
+      <signature>async check(): Promise&lt;HealthStatus&gt;</signature>
+      <path>backend/src/api/health.ts</path>
+      <description>Run health checks (LLM API, git, disk, memory) and return overall status</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest for unit tests (Epic 1, Story 1.11). Test error classification logic, retry handler with exponential backoff, and error logging. Mock external dependencies (LLM APIs, git operations) to simulate failures. Integration tests should verify retry success, max retries escalation, and graceful degradation with multi-project isolation.
+    </standards>
+    <locations>
+      backend/tests/core/ - Core component tests
+      backend/tests/core/ErrorHandler.test.ts - Error classification and handling tests
+      backend/tests/core/RetryHandler.test.ts - Retry logic and exponential backoff tests
+      backend/tests/integration/error-recovery.test.ts - Integration tests for error recovery scenarios
+      backend/tests/integration/health-check.test.ts - Health check endpoint tests
+    </locations>
+    <ideas>
+      <idea ac="1">Test RetryHandler with exponential backoff calculation: verify delays [1s, 2s, 4s]</idea>
+      <idea ac="1">Test RetryHandler with jitter: verify delay randomization ±20%</idea>
+      <idea ac="1">Test RetryHandler max retries: verify throws after 3 attempts</idea>
+      <idea ac="2">Test error classification: RecoverableError, RetryableError, FatalError</idea>
+      <idea ac="2">Test specific error types: LLMAPIError, GitOperationError, WorkflowParseError</idea>
+      <idea ac="3">Test LLM API rate limit (429): verify retry with exponential backoff</idea>
+      <idea ac="3">Test LLM API timeout: verify retry up to 3 times then escalate</idea>
+      <idea ac="3">Test LLM API auth error (401): verify no retry, immediate escalation</idea>
+      <idea ac="4">Test git worktree creation failure: verify cleanup of partial state</idea>
+      <idea ac="4">Test git push failure: verify error message includes resolution steps</idea>
+      <idea ac="5">Test YAML parse error: verify line number reported in error message</idea>
+      <idea ac="6">Test error logging with context: projectId, workflowName, stepNumber included</idea>
+      <idea ac="6">Test sensitive data filtering: API keys not present in logs</idea>
+      <idea ac="7">Test multi-project isolation: one project fails, others continue</idea>
+      <idea ac="8">Test health check endpoint: returns 200 when healthy, 503 when unhealthy</idea>
+      <idea>Integration test: LLM failure → retry (1s) → retry (2s) → success</idea>
+      <idea>Integration test: LLM failure → max retries → escalation</idea>
+      <idea>Integration test: Git failure → cleanup → escalation</idea>
+    </ideas>
+  </tests>
+</story-context>

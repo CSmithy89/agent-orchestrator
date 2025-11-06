@@ -162,8 +162,7 @@ This story implements the **TemplateProcessor** component from Epic 1 tech spec 
   - WorkflowEngine from Story 1.7 (invokes templates)
   - Path and file operations - Node.js `path` and `fs/promises` modules
 
-#### Templating Choice: Handlebars
-
+**Templating Choice: Handlebars**
 - Supports {{variable}}, {{#if}}, {{#each}} syntax
 - Custom helpers for extensibility
 - Logic-less templates (keeps business logic in code)
@@ -173,8 +172,7 @@ This story implements the **TemplateProcessor** component from Epic 1 tech spec 
 
 ### Project Structure Notes
 
-#### Directory Structure
-
+**Directory Structure:**
 ```
 agent-orchestrator/
 ├── backend/
@@ -439,16 +437,14 @@ templateProcessor.registerHelper('pluralize', (count: number, singular: string, 
 
 ### Error Handling Patterns
 
-#### Error Types
-
+**Error Types:**
 1. **TemplateNotFoundError**: Template file doesn't exist → Show searched paths
 2. **TemplateSyntaxError**: Invalid {{}} syntax → Show line number, expected format
 3. **VariableUndefinedError**: Required variable missing → List available variables
 4. **TemplateRenderError**: Rendering failed → Show context, partial output
 5. **FileWriteError**: Cannot write output → Check permissions, disk space
 
-#### Error Message Format
-
+**Error Message Format:**
 ```
 TemplateRenderError: Variable 'user_email' is undefined
 
@@ -645,18 +641,18 @@ if (action.type === 'template-output') {
 
 - [Story Context XML](./1-8-template-processing-system.context.xml)
 
-#### Agent Model Used
+### Agent Model Used
 
 _To be determined during implementation_
 
-#### Debug Log References
+### Debug Log References
 
 _To be added during development_
 
-#### Completion Notes List
+### Completion Notes List
 
 _To be added upon story completion_
 
-#### File List
+### File List
 
 _To be added upon story completion_
