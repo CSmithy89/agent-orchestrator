@@ -13,13 +13,13 @@ export interface AgentContext {
   onboardingDocs: string[];
 
   /** Current workflow state and phase information */
-  workflowState: any;
+  workflowState: Record<string, unknown>;
 
   /** Current task description */
   taskDescription: string;
 
   /** Optional previous phase outputs for context */
-  previousPhaseOutputs?: any;
+  previousPhaseOutputs?: Record<string, unknown>;
 }
 
 /**
@@ -58,8 +58,8 @@ export interface AgentTask {
   /** Agent name to create */
   agentName: string;
 
-  /** LLM configuration for the agent */
-  llmConfig: any;
+  /** LLM configuration for the agent (unused, will be loaded from project config) */
+  llmConfig: null;
 
   /** Agent context */
   context: AgentContext;
@@ -142,7 +142,7 @@ export interface AgentEventPayload {
   agentName: string;
 
   /** Event-specific data */
-  data?: any;
+  data?: Record<string, unknown>;
 
   /** Timestamp */
   timestamp: Date;

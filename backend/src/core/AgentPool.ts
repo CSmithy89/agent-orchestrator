@@ -96,6 +96,15 @@ export class AgentPool {
    * @returns Promise resolving to created Agent
    */
   async createAgent(name: string, context: AgentContext): Promise<Agent> {
+    // Validate agent name (alphanumeric, hyphens, underscores only)
+    if (!/^[a-z0-9-_]+$/i.test(name)) {
+      throw new AgentPoolError(
+        `Invalid agent name "${name}". Agent names must contain only alphanumeric characters, hyphens, and underscores.`,
+        'INVALID_AGENT_NAME',
+        name
+      );
+    }
+
     this.log(`Creating agent "${name}"...`);
 
     // Check if pool is at capacity - queue the task if so
@@ -107,7 +116,7 @@ export class AgentPool {
         const task: AgentTask = {
           id: randomUUID(),
           agentName: name,
-          llmConfig: null as any, // Will be loaded when processing queue
+          llmConfig: null, // Will be loaded when processing queue
           context,
           priority: 0, // Default FIFO priority
           queuedAt: new Date(),
@@ -211,11 +220,19 @@ export class AgentPool {
     return agent;
   }
 
+  /** Queue processing lock to prevent concurrent queue processing */
+  private isProcessingQueue: boolean = false;
+
   /**
    * Process next queued task if available
    * Called after agent destruction to create waiting agents
    */
   private async processQueue(): Promise<void> {
+    // Prevent concurrent queue processing
+    if (this.isProcessingQueue) {
+      return;
+    }
+
     // Check if queue is empty
     if (this.agentQueue.length === 0) {
       return;
@@ -226,28 +243,36 @@ export class AgentPool {
       return;
     }
 
-    // Sort queue by priority (higher priority first), then by queued time (FIFO)
-    this.agentQueue.sort((a, b) => {
-      if (a.priority !== b.priority) {
-        return b.priority - a.priority; // Higher priority first
-      }
-      return a.queuedAt.getTime() - b.queuedAt.getTime(); // Earlier queued first
-    });
+    // Set processing lock
+    this.isProcessingQueue = true;
 
-    // Get next task from queue
-    const task = this.agentQueue.shift();
-    if (!task) {
-      return;
-    }
-
-    this.log(`Processing queued task for agent "${task.agentName}" (queued ${Date.now() - task.queuedAt.getTime()}ms ago)`);
-
-    // Create the agent
     try {
-      const agent = await this.createAgent(task.agentName, task.context);
-      task.resolve(agent);
-    } catch (error) {
-      task.reject(error as Error);
+      // Sort queue by priority (higher priority first), then by queued time (FIFO)
+      this.agentQueue.sort((a, b) => {
+        if (a.priority !== b.priority) {
+          return b.priority - a.priority; // Higher priority first
+        }
+        return a.queuedAt.getTime() - b.queuedAt.getTime(); // Earlier queued first
+      });
+
+      // Get next task from queue
+      const task = this.agentQueue.shift();
+      if (!task) {
+        return;
+      }
+
+      this.log(`Processing queued task for agent "${task.agentName}" (queued ${Date.now() - task.queuedAt.getTime()}ms ago)`);
+
+      // Create the agent
+      try {
+        const agent = await this.createAgent(task.agentName, task.context);
+        task.resolve(agent);
+      } catch (error) {
+        task.reject(error as Error);
+      }
+    } finally {
+      // Always release the lock
+      this.isProcessingQueue = false;
     }
   }
 
