@@ -1,6 +1,6 @@
 # Story 1.10: Error Handling & Recovery Infrastructure
 
-Status: code-review
+Status: in-progress
 
 ## Story
 
@@ -859,3 +859,259 @@ All acceptance criteria have been met. The implementation is production-ready wi
 - `backend/src/types/workflow.types.ts` (modified)
 - `backend/src/core/StateManager.ts` (modified)
 - `backend/src/core/WorktreeManager.ts` (modified)
+
+## Senior Developer Review (AI)
+
+**Reviewer:** Chris
+**Date:** 2025-11-06
+**Review Type:** Systematic Code Review
+**Outcome:** **CHANGES REQUESTED**
+
+### Summary
+
+Story 1.10 implements a comprehensive error handling and recovery infrastructure with solid foundational components. The core implementations (error types, retry logic, logging, health check) are well-designed and production-ready. However, there are several issues that need attention before final approval:
+
+1. **Task Completion Tracking Mismatch** - All tasks marked incomplete despite implementation being done
+2. **TypeScript Type Safety** - 56 type errors need resolution
+3. **Test Suite Reliability** - 33 test failures need fixing
+4. **Integration Gaps** - Tasks 3-12 (LLM/Git/multi-project integration) are only partially complete
+
+The infrastructure is solid, but code quality issues and incomplete integration work prevent full approval at this time.
+
+### Key Findings
+
+#### **HIGH SEVERITY**
+
+1. **[HIGH] Task Completion Mismatch** - All 13 tasks are marked `[ ]` incomplete, but completion notes claim everything is done. This creates confusion about actual completion status. The tasks should be checked off `[x]` for completed work.
+   - Evidence: Story line 24-221 (all tasks unchecked) vs completion notes lines 741-845 (claiming completion)
+
+2. **[HIGH] TypeScript Type Errors** - 56 TypeScript compilation errors remain in the codebase
+   - Evidence: `npm run type-check` output shows errors in:
+     - `src/api/health.ts` (unused imports, undefined handling)
+     - `src/core/ErrorHandler.ts` (unused imports)
+     - `src/core/StateManager.ts` (import structure)
+     - `src/core/WorkflowParser.ts` (optional chaining, undefined handling)
+   - Impact: May cause runtime errors in edge cases
+   - Files affected: health.ts:7, health.ts:248-251, ErrorHandler.ts:8-18, StateManager.ts:13, WorkflowParser.ts:130,194,221,312-313,432-438
+
+3. **[HIGH] Test Failures** - 33 tests failing out of 237 total tests (14% failure rate)
+   - Evidence: Test output shows "33 failed | 203 passed"
+   - Primary cause: Async promise handling issues in test suite
+   - Impact: Unreliable test suite reduces confidence in code quality
+   - Note: The dev acknowledges these are "test bugs not implementation bugs" but this still needs fixing
+
+#### **MEDIUM SEVERITY**
+
+4. **[MED] Incomplete Integration** - Tasks 3-12 claim LLM/Git/multi-project integration but evidence is limited
+   - Task 3 (LLM API error handling): No evidence of wrapping LLM client calls with retry logic
+   - Task 4 (Git operation error handling): Minor cleanup in WorktreeManager, but no retry/cleanup logic added
+   - Task 7 (Graceful degradation): No multi-project isolation code found
+   - Task 12 (Integration with existing components): Not implemented
+   - Evidence: Searched for integration code - only found error type updates, not actual wrapping/integration
+
+5. **[MED] Missing Tests for Integration** - Task 13 claims integration tests but only unit tests exist
+   - Evidence: Only found unit tests in `tests/core/` and `tests/api/`
+   - Missing: Integration tests for LLM retry scenarios, git error scenarios, multi-project isolation
+   - Impact: Integration points not validated
+
+#### **LOW SEVERITY**
+
+6. **[LOW] Logger Implementation Differs from Spec** - Story spec mentions Winston/Pino but implementation uses custom console-based logger
+   - Evidence: `src/utils/logger.ts` uses `fs` and `console.log` instead of Winston
+   - Impact: None (custom logger is well-implemented and meets requirements)
+   - Note: This is actually a good decision for MVP - no external dependencies
+
+7. **[LOW] Health Check Disk Space Logic** - Fallback returns dummy values (0,0,0) if df command fails
+   - Evidence: `src/api/health.ts:280-285`
+   - Impact: Health check may report incorrect disk status on Windows or if df fails
+   - Suggestion: Add platform detection or use a cross-platform library
+
+### Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| AC1 | Implement RetryHandler with exponential backoff (3 attempts default) | ✅ IMPLEMENTED | `src/core/RetryHandler.ts:40-47` - Config defaults match spec. `RetryHandler.ts:77-110` - Exponential backoff logic with jitter. Test coverage in `tests/core/RetryHandler.test.ts:48-87` |
+| AC2 | Classify errors: recoverable, retryable, fatal | ✅ IMPLEMENTED | `src/types/errors.types.ts:66-97` - RecoverableError, RetryableError, FatalError classes. Utility functions `isRetryableError`, `isFatalError` at lines 353-374 |
+| AC3 | LLM API failures: retry 3x with backoff, then escalate | ⚠️ PARTIAL | `src/types/errors.types.ts:102-125` - LLMAPIError type defined. `src/core/RetryHandler.ts:196-212` - createLLMRetryHandler helper. **MISSING**: No evidence of actual LLM client wrapping (Task 3 not done) |
+| AC4 | Git operation failures: clean state, log error, escalate | ⚠️ PARTIAL | `src/types/errors.types.ts:130-150` - GitOperationError type defined. `src/core/RetryHandler.ts:217-243` - createGitRetryHandler. **MISSING**: No cleanup logic added to WorktreeManager operations (Task 4 not done) |
+| AC5 | Workflow parse errors: report line number and clear message | ✅ IMPLEMENTED | `src/core/WorkflowParser.ts:66-76` - Line number extraction from YAML errors. `src/types/errors.types.ts:152-195` - WorkflowParseError with formatDetailedMessage() method |
+| AC6 | Log all errors with context, stack traces, and recovery attempts | ✅ IMPLEMENTED | `src/utils/logger.ts:35-66` - LogEntry structure with context, error, retryCount. `logger.ts:285-307` - serializeError with stack traces and cause chaining |
+| AC7 | Graceful degradation: continue other projects if one fails | ❌ MISSING | No evidence found. Searched for Promise.allSettled or project isolation code - not implemented (Task 7 not done) |
+| AC8 | Health check endpoint for monitoring | ✅ IMPLEMENTED | `src/api/health.ts:1-278` - Complete health check with component checks (LLM, Git, disk, memory), status codes, caching |
+
+**AC Coverage Summary:** 5 of 8 acceptance criteria fully implemented, 2 partial, 1 missing
+
+### Task Completion Validation
+
+| Task | Marked As | Verified As | Evidence |
+|------|-----------|-------------|----------|
+| Task 1: Error classification system | [ ] | ✅ COMPLETE | `src/types/errors.types.ts` - All error types implemented as specified |
+| Task 2: RetryHandler | [ ] | ✅ COMPLETE | `src/core/RetryHandler.ts` - Full implementation with all specified features |
+| Task 3: LLM API error handling | [ ] | ❌ NOT DONE | Error types exist but no LLM client wrapping found |
+| Task 4: Git operation error handling | [ ] | ❌ NOT DONE | Error types exist but no WorktreeManager cleanup logic added |
+| Task 5: Workflow parse error handling | [ ] | ✅ COMPLETE | `src/core/WorkflowParser.ts` - Enhanced with line numbers and detailed messages |
+| Task 6: Error logging infrastructure | [ ] | ✅ COMPLETE | `src/utils/logger.ts` - All features implemented |
+| Task 7: Graceful degradation | [ ] | ❌ NOT DONE | No multi-project isolation code found |
+| Task 8: Health check endpoint | [ ] | ✅ COMPLETE | `src/api/health.ts` - All features implemented |
+| Task 9: Error recovery strategies | [ ] | ✅ COMPLETE | `src/core/ErrorHandler.ts` - Recovery strategies per error type |
+| Task 10: Error escalation system | [ ] | ✅ COMPLETE | `src/core/ErrorHandler.ts:28-49` - Escalation levels and logic |
+| Task 11: Error metrics | [ ] | ⚠️ PARTIAL | `src/core/ErrorHandler.ts:340-360` - Basic metrics tracking, missing alerting |
+| Task 12: Integration with existing components | [ ] | ❌ NOT DONE | No evidence of wrapping existing components |
+| Task 13: Testing and validation | [ ] | ⚠️ PARTIAL | Unit tests exist (68 tests), integration tests missing |
+
+**Task Completion Summary:** 6 of 13 tasks verified complete, 2 partial, 5 not done
+
+**CRITICAL ISSUE:** All tasks are marked `[ ]` incomplete even though 6 are fully done and 2 are partially done. This is a tracking/documentation issue that must be corrected.
+
+### Test Coverage and Gaps
+
+**Unit Tests Created:**
+- ✅ `tests/core/RetryHandler.test.ts` (14 tests) - Excellent coverage of retry logic
+- ✅ `tests/core/ErrorHandler.test.ts` (15 tests) - Good coverage of error handling
+- ✅ `tests/types/errors.types.test.ts` (28 tests) - Comprehensive error type tests
+- ✅ `tests/api/health.test.ts` (11 tests) - Basic health check tests
+
+**Test Quality Issues:**
+- 33 test failures (14% failure rate) - **Must be fixed**
+- Most failures are async handling issues in test suite
+- Unhandled promise rejections in test output
+
+**Missing Tests:**
+- ❌ No integration tests for LLM retry scenarios (Task 13)
+- ❌ No integration tests for git error handling (Task 13)
+- ❌ No integration tests for multi-project isolation (Task 13)
+- ❌ No E2E tests for complete workflows (Task 13)
+
+### Architectural Alignment
+
+**Tech Spec Compliance:**
+- ✅ Error hierarchy matches tech spec design
+- ✅ Retry logic follows spec (exponential backoff, jitter)
+- ✅ Logging structure aligns with requirements
+- ✅ Health check endpoint matches spec
+- ❌ Integration with existing components incomplete (LLMFactory, AgentPool, WorktreeManager wrapping not done)
+
+**Architecture Violations:**
+- None identified - design is sound
+
+**Positive Architectural Decisions:**
+- Used custom logger instead of Winston (reduces dependencies, good for MVP)
+- Error hierarchy is clean and extensible
+- Retry logic is generic and reusable
+- Health check is framework-agnostic
+
+### Security Notes
+
+**Positive Security Measures:**
+- ✅ Sensitive data redaction in logger (`src/utils/logger.ts:308-349`) - Redacts API keys, tokens, credentials
+- ✅ Error messages don't leak sensitive information
+- ✅ Health check doesn't expose internal paths or secrets
+
+**No Security Issues Found**
+
+### Best-Practices and References
+
+**Followed Best Practices:**
+- ✅ TypeScript strict mode (even if not fully passing yet)
+- ✅ Comprehensive JSDoc documentation
+- ✅ Clean separation of concerns
+- ✅ Defensive error handling (try-catch with cleanup)
+- ✅ Immutable error data (readonly fields)
+
+**TypeScript Best Practices:**
+- Reference: [TypeScript Handbook - Error Handling](https://www.typescriptlang.org/docs/handbook/2/narrowing.html)
+- Consider using discriminated unions for error types for better type narrowing
+
+**Retry Pattern References:**
+- AWS SDK Retry Best Practices: https://docs.aws.amazon.com/sdkref/latest/guide/feature-retry-behavior.html
+- Exponential Backoff And Jitter: https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
+
+**Logging Best Practices:**
+- Structured Logging: https://www.honeycomb.io/blog/structured-logging
+- 12-Factor App Logs: https://12factor.net/logs
+
+### Action Items
+
+#### **Code Changes Required:**
+
+- [ ] [High] Fix all TypeScript compilation errors (56 errors across 5 files)
+  - `src/api/health.ts:7` - Remove unused fs import
+  - `src/api/health.ts:248-251` - Add null checks for array access
+  - `src/core/ErrorHandler.ts:8-18` - Remove unused imports (RecoverableError, etc)
+  - `src/core/StateManager.ts:13` - Fix import structure
+  - `src/core/WorkflowParser.ts` - Add optional chaining and undefined handling
+
+- [ ] [High] Fix all 33 failing tests
+  - Primary issue: Async promise handling in test suite
+  - Add proper `await` statements in test assertions
+  - Handle promise rejections properly
+  - Files: `tests/core/ErrorHandler.test.ts`, `tests/core/RetryHandler.test.ts`
+
+- [ ] [High] Update task completion checkboxes to reflect actual implementation status
+  - Mark Tasks 1, 2, 5, 6, 8, 9, 10 as `[x]` complete
+  - Keep Tasks 3, 4, 7, 12 as `[ ]` incomplete (integration work not done)
+  - Mark Tasks 11, 13 as partially complete in notes
+
+- [ ] [Med] Implement Task 3: Wrap LLM client calls with retry logic (AC #3)
+  - Update `src/llm/LLMFactory.ts` or client wrappers
+  - Add retry logic to Anthropic/OpenAI calls
+  - Handle rate limits (429), timeouts, server errors
+  - Add tests for LLM retry scenarios
+
+- [ ] [Med] Implement Task 4: Add git cleanup logic to WorktreeManager (AC #4)
+  - Update `src/core/WorktreeManager.ts` operations
+  - Add try-catch with cleanup in createWorktree, removeWorktree
+  - Use GitOperationError type
+  - Add tests for git error scenarios
+
+- [ ] [Med] Implement Task 7: Multi-project graceful degradation (AC #7)
+  - Add project isolation logic (Promise.allSettled pattern)
+  - Update project state on failure
+  - Continue other projects if one fails
+  - Add integration test
+
+- [ ] [Med] Implement Task 12: Integrate error handling with existing components
+  - Wrap AgentPool.invokeAgent() with retry
+  - Wrap StateManager.saveState() with corruption detection
+  - Wrap WorkflowEngine.executeStep() with recovery logic
+
+- [ ] [Low] Add platform detection for health check disk space
+  - `src/api/health.ts:230-285`
+  - Consider using `check-disk-space` library or detect platform and skip on Windows
+
+#### **Advisory Notes:**
+
+- Note: Custom logger implementation is good for MVP - no dependencies needed
+- Note: Consider adding error metrics dashboard (Epic 6 dependency)
+- Note: Error recovery strategies could be enhanced with machine learning patterns (future work)
+- Note: Health check caching (60s) is appropriate for most use cases
+- Note: Jitter implementation (±20%) is industry standard
+
+### Resolution Steps
+
+**For CHANGES REQUESTED outcome:**
+
+1. Fix all TypeScript errors (HIGH priority)
+   - Run `npm run type-check` and address each error
+   - Add proper null checks and optional chaining
+   - Remove unused imports
+
+2. Fix failing tests (HIGH priority)
+   - Run tests with `npm test`
+   - Fix async handling in test assertions
+   - Ensure all promises are properly awaited
+
+3. Update task completion tracking (HIGH priority)
+   - Check off completed tasks in story file
+   - Update completion notes to reflect partial work
+
+4. Implement missing integration work (MEDIUM priority)
+   - Tasks 3, 4, 7, 12 need actual integration code
+   - Or document as "deferred to follow-up story"
+
+5. Re-run review after fixes
+   - Create new commit with fixes
+   - Change story status back to "review"
+   - Re-run code-review workflow
+
+**Estimated Effort:** 4-6 hours to address all HIGH priority items, 8-12 hours for MEDIUM priority integration work
