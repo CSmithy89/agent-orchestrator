@@ -70,13 +70,13 @@ export interface ErrorHandlerConfig {
  * Default configuration
  */
 const DEFAULT_CONFIG: Required<ErrorHandlerConfig> = {
-  enableRetry: true
-  enableRecovery: true
-  enableEscalation: true
+  enableRetry: true,
+  enableRecovery: true,
+  enableEscalation: true,
   onEscalation: (event) => {
     logger.error(
-      `Escalation [${event.level}]: ${event.error.message}`
-      event.error
+      `Escalation [${event.level}]: ${event.error.message}`,
+      event.error,
       { attempts: event.attempts, suggestedActions: event.suggestedActions }
     );
   }
@@ -94,10 +94,10 @@ export class ErrorHandler {
   constructor(config?: ErrorHandlerConfig) {
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.retryHandler = new RetryHandler({
-      maxRetries: 3
+      maxRetries: 3,
       onRetry: (error, attempt, delay) => {
         logger.warn(
-          `Retry attempt ${attempt}/3 after ${delay}ms: ${error.message}`
+          `Retry attempt ${attempt}/3 after ${delay}ms: ${error.message}`,
           { attempt, delay }
         );
       }
@@ -112,7 +112,7 @@ export class ErrorHandler {
    * @throws Error if all recovery attempts fail
    */
   async handleOperation<T>(
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
     context?: string
   ): Promise<T> {
     try {
@@ -167,10 +167,10 @@ export class ErrorHandler {
       message.includes('econnreset')
     ) {
       return new RetryableError(
-        error.message
-        'NETWORK_ERROR'
-        {}
-        0
+        error.message,
+        'NETWORK_ERROR',
+        {},
+        0,
         error
       );
     }
@@ -178,20 +178,20 @@ export class ErrorHandler {
     // Check for permission errors
     if (message.includes('permission') || message.includes('eacces')) {
       return new FatalError(
-        error.message
-        'PERMISSION_ERROR'
-        {}
-        0
+        error.message,
+        'PERMISSION_ERROR',
+        {},
+        0,
         error
       );
     }
 
     // Default to retryable error
     return new RetryableError(
-      error.message
-      'UNKNOWN_ERROR'
-      {}
-      0
+      error.message,
+      'UNKNOWN_ERROR',
+      {},
+      0,
       error
     );
   }
@@ -200,11 +200,11 @@ export class ErrorHandler {
    * Attempt recovery strategies based on error type
    */
   private async attemptRecovery(
-    error: BaseOrchestratorError
+    error: BaseOrchestratorError,
     context?: string
   ): Promise<RecoveryResult> {
     logger.info(`Attempting recovery for ${error.constructor.name}`, {
-      errorCode: error.code
+      errorCode: error.code,
       context
     });
 
@@ -230,7 +230,7 @@ export class ErrorHandler {
 
     // No recovery strategy available
     return {
-      success: false
+      success: false,
       message: 'No recovery strategy available'
     };
   }
@@ -242,7 +242,7 @@ export class ErrorHandler {
     // For rate limits, suggest waiting
     if (error.code === 'RATE_LIMIT') {
       return {
-        success: false
+        success: false,
         message: 'Rate limit exceeded - retry with backoff'
       };
     }
@@ -250,14 +250,14 @@ export class ErrorHandler {
     // For auth errors, suggest checking credentials
     if (error.code === 'AUTH_ERROR') {
       return {
-        success: false
+        success: false,
         message: 'Authentication failed - check API credentials'
       };
     }
 
     // Could implement provider fallback here
     return {
-      success: false
+      success: false,
       message: 'LLM API error - no fallback available'
     };
   }
@@ -267,12 +267,12 @@ export class ErrorHandler {
    */
   private async recoverFromGitError(error: GitOperationError): Promise<RecoveryResult> {
     logger.warn('Git error recovery not implemented - manual intervention required', {
-      command: error.command
+      command: error.command,
       stderr: error.stderr
     });
 
     return {
-      success: false
+      success: false,
       message: 'Git error requires manual intervention'
     };
   }
@@ -284,13 +284,13 @@ export class ErrorHandler {
     error: StateCorruptionError
   ): Promise<RecoveryResult> {
     logger.warn('State corruption detected', {
-      filePath: error.stateFilePath
+      filePath: error.stateFilePath,
       type: error.corruptionType
     });
 
     // Could implement state recovery from git history here
     return {
-      success: false
+      success: false,
       message: 'State corruption - restore from git history recommended'
     };
   }
@@ -302,8 +302,8 @@ export class ErrorHandler {
     error: ResourceExhaustedError
   ): Promise<RecoveryResult> {
     logger.warn('Resource exhaustion detected', {
-      resourceType: error.resourceType
-      currentUsage: error.currentUsage
+      resourceType: error.resourceType,
+      currentUsage: error.currentUsage,
       limit: error.limit
     });
 
@@ -312,13 +312,13 @@ export class ErrorHandler {
       await this.sleep(5000); // Wait 5 seconds
 
       return {
-        success: false
+        success: false,
         message: 'Waited for resources - retry operation'
       };
     }
 
     return {
-      success: false
+      success: false,
       message: 'Resource exhaustion - manual intervention required'
     };
   }
@@ -331,12 +331,12 @@ export class ErrorHandler {
     const suggestedActions = this.getSuggestedActions(error);
 
     const event: EscalationEvent = {
-      level
-      error
-      errorType: error.constructor.name
-      attempts: error.retryCount
-      timestamp: new Date()
-      suggestedActions
+      level,
+      error,
+      errorType: error.constructor.name,
+      attempts: error.retryCount,
+      timestamp: new Date(),
+      suggestedActions,
       context: context ? { operation: context } : undefined
     };
 
@@ -347,11 +347,11 @@ export class ErrorHandler {
 
     // Log escalation
     logger.error(
-      `Escalation [${level}]: ${error.message}`
-      error
+      `Escalation [${level}]: ${error.message}`,
+      error,
       {
-        level
-        attempts: error.retryCount
+        level,
+        attempts: error.retryCount,
         suggestedActions
       }
     );
@@ -428,9 +428,9 @@ export class ErrorHandler {
 
     if (!this.errorMetrics.has(errorType)) {
       this.errorMetrics.set(errorType, {
-        count: 0
-        lastOccurrence: new Date()
-        retrySuccessCount: 0
+        count: 0,
+        lastOccurrence: new Date(),
+        retrySuccessCount: 0,
         recoverySuccessCount: 0
       });
     }
