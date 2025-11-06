@@ -3,6 +3,8 @@
  * Defines types for cost tracking, budgeting, and quality optimization
  */
 
+import type { LLMProvider } from './ProjectConfig.js';
+
 /**
  * Task complexity levels for model selection
  */
@@ -57,7 +59,7 @@ export interface ModelRecommendation {
   model: string;
 
   /** LLM provider */
-  provider: string;
+  provider: LLMProvider;
 
   /** Model tier (premium/standard/economy) */
   tier: ModelTier;

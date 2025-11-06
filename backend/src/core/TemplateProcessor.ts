@@ -178,6 +178,9 @@ export class TemplateProcessor {
       // Check for undefined variables in strict mode
       if (this.options.strictMode && undefinedVariables.size > 0) {
         const firstUndefined = Array.from(undefinedVariables)[0];
+        if (!firstUndefined) {
+          throw new TemplateError('Undefined variable detected but could not identify variable name');
+        }
         throw new VariableUndefinedError(
           firstUndefined,
           'template',
@@ -615,7 +618,8 @@ export class TemplateProcessor {
     const variablePattern = new RegExp(`{{.*${this.escapeRegex(variableName)}.*}}`);
 
     for (let i = 0; i < lines.length; i++) {
-      if (variablePattern.test(lines[i])) {
+      const line = lines[i];
+      if (line && variablePattern.test(line)) {
         const start = Math.max(0, i - 1);
         const end = Math.min(lines.length, i + 2);
         const context = lines.slice(start, end);

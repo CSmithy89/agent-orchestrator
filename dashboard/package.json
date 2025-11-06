@@ -4,6 +4,7 @@
   "description": "Dashboard UI for the Agent Orchestrator",
   "private": true,
   "scripts": {
+    "build": "echo 'Dashboard build not yet implemented'",
     "lint": "echo 'Dashboard linting not yet implemented'",
     "test": "echo 'Dashboard testing not yet implemented'"
   },

@@ -245,7 +245,7 @@ async function getDiskDetails(): Promise<{
     const lines = stdout.trim().split('\n');
 
     if (lines.length >= 2) {
-      const parts = lines[1].split(/\s+/);
+      const parts = lines[1]?.split(/\s+/) ?? [];
       const total = parseInt(parts[1] ?? '0') * 1024; // Convert KB to bytes
       const used = parseInt(parts[2] ?? '0') * 1024;
       const available = parseInt(parts[3] ?? '0') * 1024;
