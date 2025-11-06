@@ -286,8 +286,8 @@ export class TemplateProcessor {
   /**
    * Write output to file
    *
-   * Creates new file (Write) or updates existing file (Edit).
-   * Uses atomic write operations (temp + rename) for safety.
+   * Creates new file or updates existing file with direct write operation.
+   * Creates parent directories if they don't exist.
    *
    * @param content - Content to write to file
    * @param outputPath - Path to output file
