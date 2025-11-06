@@ -29,7 +29,8 @@ describe('CLI Command Tests', () => {
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    // Only clear mocks, don't restore them (restoration breaks the spies)
+    vi.clearAllMocks();
   });
 
   describe('Color Utilities', () => {
