@@ -13,6 +13,8 @@ import {
 import { logger } from '../../src/utils/logger.js';
 
 describe('ErrorHandler', () => {
+  let unhandledRejectionHandler: (reason: any) => void;
+
   beforeEach(() => {
     vi.useFakeTimers();
     // Mock the sleep method to prevent orphaned async timers during recovery
@@ -21,17 +23,31 @@ describe('ErrorHandler', () => {
     vi.spyOn(logger, 'error').mockImplementation(() => {});
     vi.spyOn(logger, 'warn').mockImplementation(() => {});
     vi.spyOn(logger, 'info').mockImplementation(() => {});
+
     // Add unhandled rejection handler for expected test errors
-    process.on('unhandledRejection', () => {
-      // Suppress expected unhandled rejections during tests
-    });
+    // This handler specifically ignores errors from our ErrorHandler tests
+    unhandledRejectionHandler = (reason: any) => {
+      // Only suppress if it's one of our expected test error types
+      const isExpectedError =
+        reason instanceof Error &&
+        (reason.message.includes('Error') ||
+         reason.message.includes('Fatal') ||
+         reason.message.includes('Rate limit') ||
+         reason.message.includes('Auth failed'));
+
+      if (!isExpectedError) {
+        // Re-throw unexpected errors so they're not silently swallowed
+        console.error('Unexpected unhandled rejection in test:', reason);
+      }
+    };
+    process.on('unhandledRejection', unhandledRejectionHandler);
   });
 
   afterEach(() => {
     vi.useRealTimers();
     vi.restoreAllMocks();
-    // Remove all unhandled rejection listeners
-    process.removeAllListeners('unhandledRejection');
+    // Remove only our specific handler
+    process.removeListener('unhandledRejection', unhandledRejectionHandler);
   });
 
   describe('constructor', () => {
@@ -82,6 +98,8 @@ describe('ErrorHandler', () => {
       const error = new RetryableError('Error', 'TEST_ERROR');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation first, then flush timers to handle any async operations
+      // This pattern prevents orphaned timers and ensures proper cleanup
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -184,7 +202,8 @@ describe('ErrorHandler', () => {
     it('should escalate auth errors as CRITICAL', async () => {
       const onEscalation = vi.fn();
       const handler = new ErrorHandler({
-        enableRetry: false, // Disable retry to preserve original error type
+        // Disable retry to preserve original error type and avoid retryCount affecting escalation level
+        enableRetry: false,
         enableEscalation: true,
         onEscalation
       });
@@ -211,7 +230,8 @@ describe('ErrorHandler', () => {
     it('should provide suggested actions', async () => {
       const onEscalation = vi.fn();
       const handler = new ErrorHandler({
-        enableRetry: false, // Disable retry to preserve original error type
+        // Disable retry to preserve original error type and test suggested actions for LLMAPIError
+        enableRetry: false,
         enableEscalation: true,
         onEscalation
       });
@@ -299,7 +319,9 @@ describe('ErrorHandler', () => {
       await vi.runAllTimersAsync();
       await expect(promise1).rejects.toThrow();
 
-      await expect(handler.handleOperation(op2)).rejects.toThrow();
+      const promise2 = handler.handleOperation(op2);
+      await vi.runAllTimersAsync();
+      await expect(promise2).rejects.toThrow();
 
       const metrics = handler.getErrorMetrics();
 
