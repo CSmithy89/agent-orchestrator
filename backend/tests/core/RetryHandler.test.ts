@@ -87,10 +87,8 @@ describe('RetryHandler', () => {
       const promise = handler.executeWithRetry(operation, 'test operation');
 
       // Advance timers and catch the rejection properly
-      await Promise.all([
-        vi.runAllTimersAsync(),
-        expect(promise).rejects.toThrow('Operation failed after 2 retries')
-      ]);
+      await vi.runAllTimersAsync();
+      await expect(promise).rejects.toThrow('Operation failed after 2 retries');
 
       expect(operation).toHaveBeenCalledTimes(3); // Initial + 2 retries
     });
@@ -138,10 +136,8 @@ describe('RetryHandler', () => {
       const promise1 = handler.executeWithRetry(operation1);
 
       // Advance timers and catch the rejection properly
-      await Promise.all([
-        vi.runAllTimersAsync(),
-        expect(promise1).rejects.toThrow()
-      ]);
+      await vi.runAllTimersAsync();
+      await expect(promise1).rejects.toThrow();
 
       expect(operation1).toHaveBeenCalledTimes(4); // Initial + 3 retries
 
@@ -197,10 +193,8 @@ describe('RetryHandler', () => {
       const promise = handler.executeWithRetry(operation);
 
       // Advance timers and catch the rejection properly
-      await Promise.all([
-        vi.runAllTimersAsync(),
-        expect(promise).rejects.toThrow()
-      ]);
+      await vi.runAllTimersAsync();
+      await expect(promise).rejects.toThrow();
 
       expect(delays.length).toBe(1);
       // Delay should be within ±20% of 1000ms
