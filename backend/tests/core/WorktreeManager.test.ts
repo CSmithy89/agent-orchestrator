@@ -3,12 +3,11 @@
  * Tests for git worktree management operations
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { WorktreeManager } from '../../src/core/WorktreeManager.js';
 import {
   WorktreeExistsError,
   WorktreeNotFoundError,
-  WorktreeGitError,
   WorktreeError
 } from '../../src/types/worktree.types.js';
 import * as fs from 'fs/promises';

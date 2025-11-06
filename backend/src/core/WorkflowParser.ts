@@ -107,7 +107,7 @@ export class WorkflowParser {
    */
   async resolveVariables(
     config: WorkflowConfig,
-    projectConfig: ProjectConfig
+    _projectConfig: ProjectConfig
   ): Promise<WorkflowConfig> {
     // First, resolve {project-root} and {installed_path}
     let resolved = this.resolvePathVariables(config);
@@ -169,7 +169,7 @@ export class WorkflowParser {
     config: WorkflowConfig,
     configData: any
   ): WorkflowConfig {
-    const configSourcePattern = /\{config_source\}:([a-zA-Z0-9_\.]+)/g;
+    const configSourcePattern = /\{config_source\}:([a-zA-Z0-9_.]+)/g;
 
     return this.replaceVariablesWithRegex(config, configSourcePattern, (match, key) => {
       const value = this.getNestedValue(configData, key);
