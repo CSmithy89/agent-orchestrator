@@ -8,8 +8,6 @@ import {
   RetryableError,
   FatalError,
   LLMAPIError,
-  GitOperationError,
-  StateCorruptionError,
   ResourceExhaustedError
 } from '../../src/types/errors.types.js';
 
