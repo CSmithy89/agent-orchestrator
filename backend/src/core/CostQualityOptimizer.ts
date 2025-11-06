@@ -62,6 +62,9 @@ export class CostQualityOptimizer {
   /** Cost tracking file path */
   private costTrackingFile: string;
 
+  /** Total invocation count tracker */
+  private totalInvocationCount: number = 0;
+
   /** Model tier definitions */
   private readonly modelTiers: Record<ModelTier, ModelTierDefinition> = {
     premium: {
@@ -119,6 +122,26 @@ export class CostQualityOptimizer {
    * @param costTrackingDir Directory for cost tracking files
    */
   constructor(budgetConfig: BudgetConfig, costTrackingDir?: string) {
+    // Validate budget config
+    if (budgetConfig.monthly !== undefined && budgetConfig.monthly < 0) {
+      throw new Error('Monthly budget must be non-negative');
+    }
+    if (budgetConfig.daily !== undefined && budgetConfig.daily < 0) {
+      throw new Error('Daily budget must be non-negative');
+    }
+    if (budgetConfig.weekly !== undefined && budgetConfig.weekly < 0) {
+      throw new Error('Weekly budget must be non-negative');
+    }
+
+    // Validate alert thresholds
+    if (budgetConfig.alerts) {
+      for (const alert of budgetConfig.alerts) {
+        if (alert.threshold < 0 || alert.threshold > 1) {
+          throw new Error(`Alert threshold must be between 0 and 1, got: ${alert.threshold}`);
+        }
+      }
+    }
+
     // Set budget config with defaults
     this.budgetConfig = {
       monthly: budgetConfig.monthly || 500,  // Default $500/month
@@ -316,6 +339,9 @@ export class CostQualityOptimizer {
     // Update total cost
     this.costMetrics.total += cost;
 
+    // Track invocation count
+    this.totalInvocationCount++;
+
     // Update cost by agent
     const agentCost = this.costMetrics.byAgent.get(agentId) || 0;
     this.costMetrics.byAgent.set(agentId, agentCost + cost);
@@ -434,9 +460,10 @@ export class CostQualityOptimizer {
 
     // Calculate savings (vs always using premium)
     const premiumModel = this.modelTiers.premium.models[0];
-    const avgActualCostPerInvocation = this.costMetrics.total / this.getTotalInvocations();
+    const totalInvocations = this.getTotalInvocations();
+    const avgActualCostPerInvocation = totalInvocations > 0 ? this.costMetrics.total / totalInvocations : 0;
     const estimatedPremiumCost = this.estimateTaskCost(2000, 1000, premiumModel.pricing);
-    const savings = Math.max(0, (estimatedPremiumCost - avgActualCostPerInvocation) * this.getTotalInvocations());
+    const savings = Math.max(0, (estimatedPremiumCost - avgActualCostPerInvocation) * totalInvocations);
 
     // Get top cost drivers
     const topAgents = Array.from(this.costMetrics.byAgent.entries())
@@ -617,7 +644,7 @@ export class CostQualityOptimizer {
    * @returns Cache key
    */
   cachePrompt(content: string): string {
-    const key = crypto.createHash('md5').update(content).digest('hex');
+    const key = crypto.createHash('sha256').update(content).digest('hex');
 
     const existing = this.promptCache.get(key);
     if (existing) {
@@ -736,11 +763,11 @@ export class CostQualityOptimizer {
   }
 
   /**
-   * Get total invocations (estimated from agent count)
+   * Get total invocations (tracked count)
    */
   private getTotalInvocations(): number {
-    // Rough estimate: assume each agent costs average amount per invocation
-    return Math.max(1, this.costMetrics.byAgent.size * 10);  // Assume ~10 invocations per agent
+    // Return tracked invocation count, fallback to estimation if no tracking yet
+    return this.totalInvocationCount > 0 ? this.totalInvocationCount : Math.max(1, this.costMetrics.byAgent.size * 10);
   }
 
   /**
@@ -768,8 +795,9 @@ export class CostQualityOptimizer {
       this.costMetrics.byModel = new Map(Object.entries(parsed.byModel || {}));
       this.costMetrics.total = parsed.total || 0;
       this.costMetrics.dailyTotals = parsed.dailyTotals || [];
+      this.totalInvocationCount = parsed.totalInvocationCount || 0;
 
-      this.log(`Loaded cost metrics: $${this.costMetrics.total.toFixed(2)} total`);
+      this.log(`Loaded cost metrics: $${this.costMetrics.total.toFixed(2)} total, ${this.totalInvocationCount} invocations`);
     } catch (error) {
       throw new Error(`Failed to load cost metrics: ${(error as Error).message}`);
     }
@@ -789,7 +817,8 @@ export class CostQualityOptimizer {
         byPhase: Object.fromEntries(this.costMetrics.byPhase),
         byModel: Object.fromEntries(this.costMetrics.byModel),
         total: this.costMetrics.total,
-        dailyTotals: this.costMetrics.dailyTotals
+        dailyTotals: this.costMetrics.dailyTotals,
+        totalInvocationCount: this.totalInvocationCount
       };
 
       await fs.writeFile(this.costTrackingFile, JSON.stringify(serializable, null, 2), 'utf-8');
