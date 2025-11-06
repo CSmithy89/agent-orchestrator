@@ -1,0 +1,531 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>13</storyId>
+    <title>Cost-Quality Optimizer Implementation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-06</generatedAt>
+    <generator>Manual Story Context Creation</generator>
+    <sourceStoryPath>docs/stories/1-13-cost-quality-optimizer-implementation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>cost-conscious user</asA>
+    <iWant>the orchestrator to use optimal LLM models for each task</iWant>
+    <soThat>I get best value (quality per dollar spent)</soThat>
+    <tasks>
+      <task id="1" priority="critical">
+        <title>Implement CostQualityOptimizer class structure (AC: #1)</title>
+        <subtasks>
+          <subtask>Create backend/src/core/CostQualityOptimizer.ts</subtask>
+          <subtask>Define CostQualityOptimizer class with constructor</subtask>
+          <subtask>Define interfaces: TaskComplexity, ModelRecommendation, CostMetrics</subtask>
+          <subtask>Setup budget configuration loading from project config</subtask>
+          <subtask>Initialize cost tracking data structures (per agent, phase, model)</subtask>
+          <subtask>Implement logger for cost-related events</subtask>
+        </subtasks>
+      </task>
+      <task id="2" priority="critical">
+        <title>Task complexity analysis (AC: #2)</title>
+        <subtasks>
+          <subtask>Implement analyzeComplexity(taskDescription: string): TaskComplexity method</subtask>
+          <subtask>Define complexity levels: Simple, Moderate, Complex</subtask>
+          <subtask>Use heuristics: token count, keyword detection, task type</subtask>
+          <subtask>Return TaskComplexity object with level and confidence score</subtask>
+          <subtask>Add complexity analysis logging for transparency</subtask>
+        </subtasks>
+      </task>
+      <task id="3" priority="critical">
+        <title>Model recommendation engine (AC: #3)</title>
+        <subtasks>
+          <subtask>Implement recommendModel(complexity: TaskComplexity, budget: BudgetState): ModelRecommendation</subtask>
+          <subtask>Define model tiers: Premium, Standard, Economy</subtask>
+          <subtask>Recommendation logic: Complex → Premium, Moderate → Standard, Simple → Economy</subtask>
+          <subtask>Return ModelRecommendation with model name, provider, reasoning</subtask>
+          <subtask>Include cost estimate in recommendation</subtask>
+        </subtasks>
+      </task>
+      <task id="4" priority="high">
+        <title>Budget constraint handling (AC: #4)</title>
+        <subtasks>
+          <subtask>Implement checkBudgetConstraints(currentSpend: number, budget: Budget): BudgetState</subtask>
+          <subtask>Calculate budget utilization percentage</subtask>
+          <subtask>Define threshold actions: 75% warn, 90% downgrade, 100% block</subtask>
+          <subtask>Override model recommendations based on budget state</subtask>
+          <subtask>Log budget constraint decisions</subtask>
+        </subtasks>
+      </task>
+      <task id="5" priority="critical">
+        <title>Real-time cost tracking (AC: #5)</title>
+        <subtasks>
+          <subtask>Implement trackCost(agentId: string, model: string, usage: TokenUsage): void</subtask>
+          <subtask>Track cost per agent invocation (input, output, cached tokens)</subtask>
+          <subtask>Aggregate costs by phase (analysis, planning, solutioning, implementation)</subtask>
+          <subtask>Aggregate costs by model (sum across all invocations)</subtask>
+          <subtask>Calculate running totals (daily, weekly, monthly)</subtask>
+          <subtask>Store cost data in CostMetrics data structure</subtask>
+          <subtask>Persist cost metrics to file for historical tracking</subtask>
+        </subtasks>
+      </task>
+      <task id="6" priority="high">
+        <title>Cost dashboard data structure (AC: #6)</title>
+        <subtasks>
+          <subtask>Define CostDashboard interface with currentSpend, budget, utilization</subtask>
+          <subtask>Implement getCostDashboard(): CostDashboard method</subtask>
+          <subtask>Calculate projected monthly cost from current usage trends</subtask>
+          <subtask>Calculate savings by comparing actual vs premium-only cost</subtask>
+          <subtask>Format data for dashboard consumption</subtask>
+        </subtasks>
+      </task>
+      <task id="7" priority="high">
+        <title>Budget threshold alerts (AC: #7)</title>
+        <subtasks>
+          <subtask>Implement checkAndAlert(budgetState: BudgetState): void</subtask>
+          <subtask>Generate alerts at 75%, 90%, 100% thresholds</subtask>
+          <subtask>Define alert types: Warning, Critical, Block</subtask>
+          <subtask>Integrate with notification system (console logs for MVP)</subtask>
+          <subtask>Track alert history to avoid duplicate alerts</subtask>
+          <subtask>Log all alerts with timestamp and budget state</subtask>
+        </subtasks>
+      </task>
+      <task id="8" priority="medium">
+        <title>Cost optimization strategies (AC: #8)</title>
+        <subtasks>
+          <subtask>Implement caching for frequently used prompts (personas, onboarding)</subtask>
+          <subtask>Implement batching for similar requests</subtask>
+          <subtask>Implement context compression for moderate tasks</subtask>
+          <subtask>Use economy models for retries (after initial failure)</subtask>
+          <subtask>Document optimization strategies applied</subtask>
+        </subtasks>
+      </task>
+      <task id="9" priority="high">
+        <title>Budget configuration (AC: #9)</title>
+        <subtasks>
+          <subtask>Extend .bmad/project-config.yaml schema with budget section</subtask>
+          <subtask>Update ProjectConfig to load budget configuration</subtask>
+          <subtask>Validate budget values (positive numbers, consistent hierarchy)</subtask>
+          <subtask>Provide default budget if not configured (monthly: 500)</subtask>
+          <subtask>Document budget configuration in config example file</subtask>
+        </subtasks>
+      </task>
+      <task id="10" priority="medium">
+        <title>Cost reporting and export (AC: #10)</title>
+        <subtasks>
+          <subtask>Implement generateCostReport(): CostReport method</subtask>
+          <subtask>Include cost breakdown by agent, phase, model</subtask>
+          <subtask>Implement exportToCSV(report: CostReport): string</subtask>
+          <subtask>Generate cost trends chart data (last 30 days)</subtask>
+          <subtask>Calculate model efficiency metrics (quality score / cost)</subtask>
+          <subtask>Save cost reports to bmad/cost-reports/ directory</subtask>
+          <subtask>Add timestamp to report filenames</subtask>
+        </subtasks>
+      </task>
+      <task id="11" priority="critical">
+        <title>Integration with AgentPool (AC: #1, #3)</title>
+        <subtasks>
+          <subtask>Update AgentPool to use CostQualityOptimizer</subtask>
+          <subtask>Call analyzeComplexity() before agent invocation</subtask>
+          <subtask>Call recommendModel() to get optimal model</subtask>
+          <subtask>Pass recommended model to LLMFactory</subtask>
+          <subtask>Call trackCost() after agent invocation completes</subtask>
+          <subtask>Handle budget blocks (throw BudgetExceededError)</subtask>
+          <subtask>Log optimizer decisions for transparency</subtask>
+        </subtasks>
+      </task>
+      <task id="12" priority="high">
+        <title>Testing and validation</title>
+        <subtasks>
+          <subtask>Write unit tests for CostQualityOptimizer class</subtask>
+          <subtask>Test complexity analysis with various task descriptions</subtask>
+          <subtask>Test model recommendations across complexity levels</subtask>
+          <subtask>Test budget constraint handling at all thresholds</subtask>
+          <subtask>Test cost tracking accuracy</subtask>
+          <subtask>Test dashboard data generation</subtask>
+          <subtask>Test alert triggering at thresholds</subtask>
+          <subtask>Test optimization strategies (cache, batch, compress)</subtask>
+          <subtask>Test CSV export format</subtask>
+          <subtask>Integration test with AgentPool</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" priority="critical">
+      <description>Implement CostQualityOptimizer class with complexity analysis</description>
+      <testability>Unit test verifies class instantiation, complexity analysis returns valid TaskComplexity objects</testability>
+    </criterion>
+    <criterion id="2" priority="critical">
+      <description>Analyze task complexity before agent invocation (Simple, Moderate, Complex)</description>
+      <testability>Test various task descriptions return correct complexity levels with reasonable confidence scores</testability>
+    </criterion>
+    <criterion id="3" priority="critical">
+      <description>Recommend optimal model based on complexity + budget constraints</description>
+      <testability>Test recommendations match expected model tier for each complexity level and budget state</testability>
+    </criterion>
+    <criterion id="4" priority="high">
+      <description>Override recommendations if budget constrained (75%, 90%, 100% thresholds)</description>
+      <testability>Test budget at 75%, 90%, 100% triggers appropriate downgrade strategy</testability>
+    </criterion>
+    <criterion id="5" priority="critical">
+      <description>Track costs in real-time (per agent invocation, per phase, per model)</description>
+      <testability>Verify cost tracking accumulates correctly across multiple invocations, aggregates by agent/phase/model</testability>
+    </criterion>
+    <criterion id="6" priority="high">
+      <description>Provide cost dashboard data structure with spend vs budget metrics</description>
+      <testability>Test getCostDashboard() returns complete CostDashboard with all required fields</testability>
+    </criterion>
+    <criterion id="7" priority="high">
+      <description>Alert at budget thresholds (75%, 90%, 100%) with appropriate actions</description>
+      <testability>Test alerts generated at each threshold, verify alert history prevents duplicates</testability>
+    </criterion>
+    <criterion id="8" priority="medium">
+      <description>Implement cost optimization strategies (caching, batching, compression)</description>
+      <testability>Test caching reduces cost on repeated requests, verify optimization strategies documented</testability>
+    </criterion>
+    <criterion id="9" priority="high">
+      <description>Configure budget settings in project configuration file</description>
+      <testability>Test budget configuration loads from .bmad/project-config.yaml, defaults applied if missing</testability>
+    </criterion>
+    <criterion id="10" priority="medium">
+      <description>Generate cost reporting with CSV export and trend analysis</description>
+      <testability>Test generateCostReport() and exportToCSV() produce valid output, verify CSV format correct</testability>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Story 1.13: Cost-Quality Optimizer Implementation</section>
+        <snippet>CostQualityOptimizer analyzes task complexity and recommends optimal LLM models based on budget constraints. Tracks costs in real-time, provides dashboard data, alerts at budget thresholds, implements optimization strategies (caching, batching, compression). Budget configuration in project-config.yaml with daily/weekly/monthly limits.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.13: Cost-Quality Optimizer Implementation</section>
+        <snippet>Detailed AC list for optimizer: complexity analysis (simple/moderate/complex), model recommendations (premium/standard/economy), budget thresholds (75%/90%/100%), real-time cost tracking, dashboard data structure, alerts, optimization strategies, budget config, cost reporting with CSV export.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>service</kind>
+        <symbol>AgentPool class</symbol>
+        <lines>N/A</lines>
+        <reason>INTEGRATION POINT - AgentPool will be updated to use CostQualityOptimizer for model selection before agent creation and cost tracking after agent invocation.</reason>
+      </file>
+      <file>
+        <path>backend/src/core/LLMFactory.ts</path>
+        <kind>service</kind>
+        <symbol>LLMFactory class</symbol>
+        <lines>N/A</lines>
+        <reason>REFERENCE - LLMFactory provides model cost data and model instantiation. CostQualityOptimizer will use cost estimation methods from LLMFactory.</reason>
+      </file>
+      <file>
+        <path>backend/src/config/ProjectConfig.ts</path>
+        <kind>service</kind>
+        <symbol>ProjectConfig class</symbol>
+        <lines>N/A</lines>
+        <reason>TO UPDATE - ProjectConfig will be extended to load budget configuration from .bmad/project-config.yaml.</reason>
+      </file>
+      <file>
+        <path>.bmad/project-config.yaml</path>
+        <kind>config</kind>
+        <symbol>Project configuration (TO UPDATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO UPDATE - Add budget section with daily/weekly/monthly limits and alert thresholds.</reason>
+      </file>
+      <file>
+        <path>backend/src/core/CostQualityOptimizer.ts</path>
+        <kind>service</kind>
+        <symbol>CostQualityOptimizer class (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Main optimizer implementation with complexity analysis, model recommendations, cost tracking, alerts, and reporting.</reason>
+      </file>
+      <file>
+        <path>backend/src/types/cost.types.ts</path>
+        <kind>types</kind>
+        <symbol>Cost-related interfaces (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Interfaces for TaskComplexity, ModelRecommendation, CostMetrics, CostDashboard, BudgetState, BudgetConfig, CostReport.</reason>
+      </file>
+      <file>
+        <path>backend/tests/core/CostQualityOptimizer.test.ts</path>
+        <kind>test</kind>
+        <symbol>CostQualityOptimizer tests (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Comprehensive unit and integration tests for all optimizer functionality.</reason>
+      </file>
+      <file>
+        <path>.bmad/cost-reports/</path>
+        <kind>directory</kind>
+        <symbol>Cost reports directory (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Directory for storing cost report CSV exports with timestamps.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@anthropic-ai/sdk" version="^0.20.0">For Claude cost data - INSTALLED</package>
+        <package name="openai" version="^4.20.0">For GPT cost data - INSTALLED</package>
+      </node>
+      <standard-library>
+        <module>fs/promises</module>
+        <module>path</module>
+      </standard-library>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="complexity-heuristics">
+      <rule>Use token count, keywords, and task type to determine complexity level</rule>
+      <rationale>Simple heuristics enable fast, reasonably accurate complexity analysis without LLM call</rationale>
+      <source>docs/stories/1-13-cost-quality-optimizer-implementation.md#Complexity-Analysis-Heuristics</source>
+    </constraint>
+    <constraint type="model-tiers">
+      <rule>Three-tier model strategy: Premium (complex), Standard (moderate), Economy (simple)</rule>
+      <rationale>Balances quality and cost, matches LLM capabilities to task requirements</rationale>
+      <source>docs/tech-spec-epic-1.md#Story-1.13</source>
+    </constraint>
+    <constraint type="budget-thresholds">
+      <rule>Budget thresholds at 75% (warn), 90% (downgrade), 100% (block) of configured limits</rule>
+      <rationale>Progressive cost control, prevents budget overruns while allowing continued operation</rationale>
+      <source>docs/stories/1-13-cost-quality-optimizer-implementation.md#Budget-Constraint-Handling</source>
+    </constraint>
+    <constraint type="cost-accuracy">
+      <rule>Cost tracking must be accurate to within 5% of actual LLM API costs</rule>
+      <rationale>Reliable budget management requires accurate cost estimation</rationale>
+      <source>docs/tech-spec-epic-1.md#Cost-Quality-Optimizer</source>
+    </constraint>
+    <constraint type="real-time-tracking">
+      <rule>Costs must be tracked immediately after each LLM invocation (no batching delay)</rule>
+      <rationale>Real-time tracking enables accurate budget enforcement and prevents overruns</rationale>
+      <source>docs/stories/1-13-cost-quality-optimizer-implementation.md#Real-Time-Cost-Tracking</source>
+    </constraint>
+    <constraint type="optimization-transparency">
+      <rule>All optimization decisions (model selection, downgrades, caching) must be logged with reasoning</rule>
+      <rationale>Users need visibility into cost optimization to understand trade-offs</rationale>
+      <source>docs/stories/1-13-cost-quality-optimizer-implementation.md#Cost-Optimization-Strategies</source>
+    </constraint>
+    <constraint type="default-budget">
+      <rule>If budget not configured, default to $500/month to prevent unlimited spending</rule>
+      <rationale>Safe default prevents accidental cost overruns on unconfigured projects</rationale>
+      <source>docs/stories/1-13-cost-quality-optimizer-implementation.md#Budget-Configuration</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>CostQualityOptimizer.analyzeComplexity()</name>
+      <kind>method</kind>
+      <signature>analyzeComplexity(taskDescription: string): TaskComplexity</signature>
+      <path>backend/src/core/CostQualityOptimizer.ts (TO CREATE)</path>
+      <usage>Called by AgentPool before agent invocation to determine task complexity and optimal model tier</usage>
+    </interface>
+    <interface>
+      <name>CostQualityOptimizer.recommendModel()</name>
+      <kind>method</kind>
+      <signature>recommendModel(complexity: TaskComplexity, budget: BudgetState): ModelRecommendation</signature>
+      <path>backend/src/core/CostQualityOptimizer.ts (TO CREATE)</path>
+      <usage>Returns optimal model based on complexity and budget constraints, used by AgentPool to select LLM</usage>
+    </interface>
+    <interface>
+      <name>CostQualityOptimizer.trackCost()</name>
+      <kind>method</kind>
+      <signature>trackCost(agentId: string, model: string, usage: TokenUsage): void</signature>
+      <path>backend/src/core/CostQualityOptimizer.ts (TO CREATE)</path>
+      <usage>Called by AgentPool after agent invocation completes to track actual costs</usage>
+    </interface>
+    <interface>
+      <name>CostQualityOptimizer.getCostDashboard()</name>
+      <kind>method</kind>
+      <signature>getCostDashboard(): CostDashboard</signature>
+      <path>backend/src/core/CostQualityOptimizer.ts (TO CREATE)</path>
+      <usage>Returns current cost dashboard data for UI display (Epic 6 dashboard will consume this)</usage>
+    </interface>
+    <interface>
+      <name>CostQualityOptimizer.checkBudgetConstraints()</name>
+      <kind>method</kind>
+      <signature>checkBudgetConstraints(currentSpend: number, budget: Budget): BudgetState</signature>
+      <path>backend/src/core/CostQualityOptimizer.ts (TO CREATE)</path>
+      <usage>Checks current spend against budget, returns state indicating if constraints apply</usage>
+    </interface>
+    <interface>
+      <name>TaskComplexity interface</name>
+      <kind>interface</kind>
+      <signature>
+interface TaskComplexity {
+  level: 'simple' | 'moderate' | 'complex';
+  confidence: number;  // 0-1
+  reasoning: string;
+  estimatedTokens: number;
+}
+      </signature>
+      <path>backend/src/types/cost.types.ts (TO CREATE)</path>
+      <usage>Returned by analyzeComplexity() to indicate task complexity level</usage>
+    </interface>
+    <interface>
+      <name>ModelRecommendation interface</name>
+      <kind>interface</kind>
+      <signature>
+interface ModelRecommendation {
+  model: string;           // e.g., "claude-sonnet-4-5"
+  provider: string;        // e.g., "anthropic"
+  tier: 'premium' | 'standard' | 'economy';
+  estimatedCost: number;   // USD
+  reasoning: string;
+}
+      </signature>
+      <path>backend/src/types/cost.types.ts (TO CREATE)</path>
+      <usage>Returned by recommendModel() with optimal model selection and cost estimate</usage>
+    </interface>
+    <interface>
+      <name>CostDashboard interface</name>
+      <kind>interface</kind>
+      <signature>
+interface CostDashboard {
+  currentSpend: { daily: number; weekly: number; monthly: number };
+  budget: { daily: number; weekly: number; monthly: number };
+  utilizationPercentage: number;
+  costByAgent: Map&lt;string, number&gt;;
+  costByPhase: Map&lt;string, number&gt;;
+  costByModel: Map&lt;string, number&gt;;
+  projectedMonthlyCost: number;
+  savings: number;
+  topCostDrivers: {
+    agents: [string, number][];
+    models: [string, number][];
+  };
+  trends: { last30Days: { date: string, cost: number }[] };
+}
+      </signature>
+      <path>backend/src/types/cost.types.ts (TO CREATE)</path>
+      <usage>Dashboard data structure consumed by Epic 6 web UI for cost visualization</usage>
+    </interface>
+  </interfaces>
+
+  <existing-context>
+    <note>
+      CostQualityOptimizer integrates with existing Epic 1 components:
+      - Story 1.3 (LLMFactory): Uses cost estimation methods and model registry
+      - Story 1.4 (AgentPool): Integration point for model selection and cost tracking
+      - Story 1.1 (ProjectConfig): Loads budget configuration from .bmad/project-config.yaml
+
+      Implementation order: Must be implemented after Stories 1.3 and 1.4 are complete.
+    </note>
+    <note>
+      LLM PRICING REFERENCE (approximate, verify current pricing):
+      - Claude Sonnet 4.5: $3/M input, $15/M output tokens
+      - Claude Haiku: $0.25/M input, $1.25/M output tokens
+      - GPT-4 Turbo: $10/M input, $30/M output tokens
+      - GPT-3.5 Turbo: $0.50/M input, $1.50/M output tokens
+      - GLM-4: ~$1/M tokens (via wrapper)
+      - Cached tokens: 90% discount (10% of normal price)
+    </note>
+    <note>
+      COMPLEXITY ANALYSIS HEURISTICS:
+      - Simple (&lt;1000 tokens): format, list, show, display keywords
+      - Moderate (1000-5000 tokens): generate, review, implement, create keywords
+      - Complex (&gt;5000 tokens): architecture, design, critical, novel keywords
+      - Confidence based on keyword matches and token count clarity
+    </note>
+    <note>
+      OPTIMIZATION STRATEGIES:
+      - Caching: 10x cost reduction for repeated prompts (personas, docs)
+      - Batching: 2-3x cost reduction for similar tasks
+      - Compression: 20-40% cost reduction for moderate tasks
+      - Fallback: 2-5x cost reduction using economy models for retries
+      - Target: 50%+ cache hit rate for maximum savings
+    </note>
+  </existing-context>
+
+  <implementation-examples>
+    <example>
+      <title>Complexity Analysis Example</title>
+      <pattern>
+// Simple task (economy model)
+const simpleTask = "Format the following code snippet";
+const complexity1 = optimizer.analyzeComplexity(simpleTask);
+// Returns: { level: 'simple', confidence: 0.9, estimatedTokens: 500 }
+
+// Moderate task (standard model)
+const moderateTask = "Generate unit tests for the UserService class";
+const complexity2 = optimizer.analyzeComplexity(moderateTask);
+// Returns: { level: 'moderate', confidence: 0.85, estimatedTokens: 3000 }
+
+// Complex task (premium model)
+const complexTask = "Design the microservices architecture for a distributed system";
+const complexity3 = optimizer.analyzeComplexity(complexTask);
+// Returns: { level: 'complex', confidence: 0.95, estimatedTokens: 8000 }
+      </pattern>
+    </example>
+    <example>
+      <title>Model Recommendation with Budget Constraints</title>
+      <pattern>
+// Normal budget (no constraints)
+const budgetState = optimizer.checkBudgetConstraints(250, { monthly: 1000 });
+// Returns: { utilization: 0.25, constraint: 'none' }
+
+const recommendation = optimizer.recommendModel(complexComplexity, budgetState);
+// Returns: { model: 'claude-sonnet-4-5', provider: 'anthropic', tier: 'premium' }
+
+// 90% budget (downgrade strategy)
+const constrainedBudget = optimizer.checkBudgetConstraints(900, { monthly: 1000 });
+// Returns: { utilization: 0.90, constraint: 'downgrade' }
+
+const constrainedRec = optimizer.recommendModel(complexComplexity, constrainedBudget);
+// Returns: { model: 'claude-haiku', provider: 'anthropic', tier: 'standard' }
+// Even complex tasks downgraded to standard due to budget constraint
+      </pattern>
+    </example>
+    <example>
+      <title>Cost Tracking Integration</title>
+      <pattern>
+// In AgentPool.invokeAgent()
+const complexity = optimizer.analyzeComplexity(taskDescription);
+const recommendation = optimizer.recommendModel(complexity, budgetState);
+
+const llmClient = llmFactory.createClient({
+  model: recommendation.model,
+  provider: recommendation.provider
+});
+
+const response = await llmClient.invoke(prompt);
+
+// Track actual cost after invocation
+optimizer.trackCost(agent.id, recommendation.model, {
+  inputTokens: response.usage.input_tokens,
+  outputTokens: response.usage.output_tokens,
+  cachedTokens: response.usage.cached_tokens || 0
+});
+
+// Check if budget exceeded
+const newBudgetState = optimizer.checkBudgetConstraints();
+if (newBudgetState.constraint === 'block') {
+  throw new BudgetExceededError('Monthly budget limit reached');
+}
+      </pattern>
+    </example>
+  </implementation-examples>
+
+  <references>
+    <reference>
+      <title>Anthropic Pricing</title>
+      <url>https://www.anthropic.com/pricing</url>
+      <relevance>Current pricing for Claude models, used for cost calculations</relevance>
+    </reference>
+    <reference>
+      <title>OpenAI Pricing</title>
+      <url>https://openai.com/pricing</url>
+      <relevance>Current pricing for GPT models, used for cost calculations</relevance>
+    </reference>
+    <reference>
+      <title>Token Counting Best Practices</title>
+      <url>https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them</url>
+      <relevance>Token estimation for complexity analysis and cost prediction</relevance>
+    </reference>
+  </references>
+
+</story-context>

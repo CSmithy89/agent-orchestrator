@@ -1,0 +1,413 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>11</storyId>
+    <title>Test Framework Setup & Infrastructure</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-06</generatedAt>
+    <generator>Manual Story Context Creation</generator>
+    <sourceStoryPath>docs/stories/1-11-test-framework-setup-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>development team</asA>
+    <iWant>a comprehensive test framework with proper infrastructure and tooling</iWant>
+    <soThat>we can ensure code quality through automated testing across all Epic 1 components</soThat>
+    <tasks>
+      <task id="1" priority="high">
+        <title>Configure Vitest test framework (AC: #1, #2)</title>
+        <subtasks>
+          <subtask>Install Vitest and required dependencies (@vitest/ui, @vitest/coverage-c8)</subtask>
+          <subtask>Create vitest.config.ts with TypeScript path resolution</subtask>
+          <subtask>Configure test file patterns: **/*.test.ts, **/*.spec.ts</subtask>
+          <subtask>Setup test environment (node, jsdom for future frontend tests)</subtask>
+          <subtask>Configure module aliases to match tsconfig paths</subtask>
+          <subtask>Enable source map support for debugging</subtask>
+          <subtask>Set test timeout defaults (5000ms for unit, 30000ms for integration)</subtask>
+        </subtasks>
+      </task>
+      <task id="2" priority="critical">
+        <title>Code coverage configuration (AC: #3)</title>
+        <subtasks>
+          <subtask>Install c8 coverage provider</subtask>
+          <subtask>Configure coverage thresholds in vitest.config.ts: 80% branches, functions, lines, statements</subtask>
+          <subtask>Configure per-file minimum: 60%</subtask>
+          <subtask>Exclude patterns: tests/, dist/, node_modules/, *.config.ts</subtask>
+          <subtask>Setup coverage reporters: text, html, json</subtask>
+          <subtask>Configure coverage output directory: coverage/</subtask>
+          <subtask>Add coverage scripts to package.json</subtask>
+        </subtasks>
+      </task>
+      <task id="3" priority="high">
+        <title>Test execution optimization (AC: #4, #5)</title>
+        <subtasks>
+          <subtask>Enable parallel test execution (default: true, validate it works)</subtask>
+          <subtask>Configure maxConcurrency based on CPU cores</subtask>
+          <subtask>Setup watch mode configuration</subtask>
+          <subtask>Add test scripts to package.json: test, test:watch, test:coverage, test:ui</subtask>
+          <subtask>Configure test filtering by pattern/tag</subtask>
+          <subtask>Setup CI-friendly reporter (json, junit)</subtask>
+        </subtasks>
+      </task>
+      <task id="4" priority="high">
+        <title>Test utilities and mocks (AC: #6)</title>
+        <subtasks>
+          <subtask>Create backend/tests/setup.ts for global test setup</subtask>
+          <subtask>Create backend/tests/utils/test-helpers.ts with mock utilities</subtask>
+          <subtask>Add mock file system operations</subtask>
+          <subtask>Add mock LLM API calls (for LLMFactory tests)</subtask>
+          <subtask>Add mock git operations (for WorktreeManager tests)</subtask>
+          <subtask>Add test fixture loaders</subtask>
+          <subtask>Create backend/tests/fixtures/ directory with sample files</subtask>
+          <subtask>Document mock patterns in test-helpers.ts</subtask>
+        </subtasks>
+      </task>
+      <task id="5" priority="medium">
+        <title>Testing patterns documentation (AC: #7)</title>
+        <subtasks>
+          <subtask>Create backend/tests/README.md with testing guidelines</subtask>
+          <subtask>Document test file organization (mirror src/ structure)</subtask>
+          <subtask>Document naming conventions (describe, it, test cases)</subtask>
+          <subtask>Document AAA pattern (Arrange-Act-Assert)</subtask>
+          <subtask>Document mock usage guidelines</subtask>
+          <subtask>Document coverage expectations</subtask>
+          <subtask>Document integration test patterns</subtask>
+          <subtask>Document test categories: Unit (60%), Integration (30%), E2E (10%)</subtask>
+          <subtask>Provide example test templates for common scenarios</subtask>
+        </subtasks>
+      </task>
+      <task id="6" priority="critical">
+        <title>Validate existing tests (AC: #8)</title>
+        <subtasks>
+          <subtask>Run all existing Story 1.1-1.10 tests</subtask>
+          <subtask>Verify ProjectConfig tests (11 tests) pass</subtask>
+          <subtask>Verify WorkflowParser tests (28 tests) pass</subtask>
+          <subtask>Verify LLMFactory tests pass</subtask>
+          <subtask>Verify StateManager tests pass</subtask>
+          <subtask>Verify WorktreeManager tests pass</subtask>
+          <subtask>Fix any test failures or configuration issues</subtask>
+          <subtask>Verify coverage meets 80% threshold for completed stories</subtask>
+          <subtask>Generate coverage report and review gaps</subtask>
+        </subtasks>
+      </task>
+      <task id="7" priority="medium">
+        <title>CI/CD integration preparation (AC: #7)</title>
+        <subtasks>
+          <subtask>Validate test framework works in CI environment</subtask>
+          <subtask>Create .github/workflows/test.yml template (ready for Story 1.12)</subtask>
+          <subtask>Document CI-specific test configurations</subtask>
+          <subtask>Setup test result caching for faster CI runs</subtask>
+          <subtask>Ensure deterministic test execution (no flaky tests)</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" priority="critical">
+      <description>Configure Vitest as the primary test framework with TypeScript support</description>
+      <testability>Verify vitest.config.ts exists with TypeScript paths and test scripts run successfully</testability>
+    </criterion>
+    <criterion id="2" priority="critical">
+      <description>Setup test file pattern recognition (*.test.ts) with proper resolution</description>
+      <testability>Run tests and verify all test files are discovered and executed</testability>
+    </criterion>
+    <criterion id="3" priority="critical">
+      <description>Configure code coverage reporting using c8 with 80% minimum threshold</description>
+      <testability>Run test:coverage and verify threshold enforcement and coverage report generation</testability>
+    </criterion>
+    <criterion id="4" priority="high">
+      <description>Enable parallel test execution for faster feedback</description>
+      <testability>Verify tests run in parallel (check execution time vs sequential)</testability>
+    </criterion>
+    <criterion id="5" priority="high">
+      <description>Setup watch mode for development workflow</description>
+      <testability>Run test:watch and verify file change detection triggers re-runs</testability>
+    </criterion>
+    <criterion id="6" priority="high">
+      <description>Configure test utilities and common mocks for Epic 1 components</description>
+      <testability>Import and use test-helpers.ts mocks in at least one test file</testability>
+    </criterion>
+    <criterion id="7" priority="medium">
+      <description>Establish testing patterns documentation for future stories</description>
+      <testability>Verify backend/tests/README.md exists with comprehensive guidelines</testability>
+    </criterion>
+    <criterion id="8" priority="critical">
+      <description>Verify all existing Epic 1 tests run successfully in the new framework</description>
+      <testability>Run npm run test and verify all existing tests pass (39+ tests expected)</testability>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Test Strategy Summary</section>
+        <snippet>Defines test pyramid (60% unit, 30% integration, 10% E2E), coverage targets (80%+ overall), test infrastructure requirements (Vitest, c8), and testing best practices. Includes ATDD process, test data fixtures, and CI/CD integration requirements.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Story 1.11: Test Framework Setup & Infrastructure</section>
+        <snippet>Configure comprehensive test framework with Vitest, establish testing patterns, and validate existing Epic 1 tests. Prerequisites: Story 1.1 (project structure). Enables: Story 1.12 (CI/CD Pipeline).</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Test Infrastructure Requirements</title>
+        <section>Testing Best Practices</section>
+        <snippet>DO: Write tests before implementation (TDD), use descriptive test names, test edge cases, mock external dependencies, use test fixtures, run tests in CI, aim for &gt;80% coverage. DON'T: Test implementation details, skip error cases, use production API keys, write brittle tests, couple tests.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/vitest.config.ts</path>
+        <kind>config</kind>
+        <symbol>Vitest configuration</symbol>
+        <lines>1-52</lines>
+        <reason>EXISTING - Already configured with v8 coverage provider, 80% thresholds, test patterns, path aliases. Needs review and potential enhancements (c8 migration, setup files, better timeouts).</reason>
+      </file>
+      <file>
+        <path>backend/tests/core/WorkflowParser.test.ts</path>
+        <kind>test</kind>
+        <symbol>WorkflowParser tests (28 tests)</symbol>
+        <lines>1-726</lines>
+        <reason>REFERENCE - Exemplar test file showing AAA pattern, beforeEach/afterEach cleanup, comprehensive coverage, descriptive test names. Model for test documentation and patterns.</reason>
+      </file>
+      <file>
+        <path>backend/tests/config/ProjectConfig.test.ts</path>
+        <kind>test</kind>
+        <symbol>ProjectConfig tests (11 tests)</symbol>
+        <lines>1-299</lines>
+        <reason>REFERENCE - Shows integration test patterns with file system operations, mock environment variables, error scenario testing.</reason>
+      </file>
+      <file>
+        <path>backend/tests/llm/LLMFactory.test.ts</path>
+        <kind>test</kind>
+        <symbol>LLMFactory tests</symbol>
+        <lines>N/A</lines>
+        <reason>EXISTING - Tests LLM factory pattern with multiple providers. Needs to be validated in test run.</reason>
+      </file>
+      <file>
+        <path>backend/package.json</path>
+        <kind>config</kind>
+        <symbol>npm scripts and dependencies</symbol>
+        <lines>1-46</lines>
+        <reason>EXISTING - Has test scripts (test, test:watch, test:ui, test:coverage) and Vitest dependencies. Note: Uses @vitest/coverage-v8, not c8 (AC requires c8 - may need package update or AC clarification).</reason>
+      </file>
+      <file>
+        <path>backend/tests/setup.ts</path>
+        <kind>setup</kind>
+        <symbol>Global test setup (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Global test configuration, mock setup, environment preparation. Referenced in vitest.config.ts setupFiles.</reason>
+      </file>
+      <file>
+        <path>backend/tests/utils/test-helpers.ts</path>
+        <kind>utility</kind>
+        <symbol>Test utilities and mocks (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Mock file system, LLM API, git operations. Fixture loaders. Should export mockFileSystem(), mockLLMResponse(), loadFixture(), createTestDir().</reason>
+      </file>
+      <file>
+        <path>backend/tests/README.md</path>
+        <kind>documentation</kind>
+        <symbol>Testing guidelines (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Comprehensive testing documentation covering patterns, conventions, examples. Critical for future story developers.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="vitest" version="^1.0.0">Test framework - INSTALLED</package>
+        <package name="@vitest/ui" version="^1.0.0">Test UI for debugging - INSTALLED</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Coverage provider (currently v8, AC specifies c8) - INSTALLED</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler - INSTALLED</package>
+        <package name="@types/node" version="^20.0.0">Node.js type definitions - INSTALLED</package>
+      </node>
+      <standard-library>
+        <module>fs/promises</module>
+        <module>path</module>
+      </standard-library>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="coverage">
+      <rule>Minimum 80% code coverage (lines, functions, branches, statements)</rule>
+      <rationale>Ensures comprehensive testing and prevents regression</rationale>
+      <source>docs/tech-spec-epic-1.md#Test-Strategy-Summary</source>
+    </constraint>
+    <constraint type="test-structure">
+      <rule>Mirror src/ directory structure in tests/ directory</rule>
+      <rationale>Easy navigation, clear organization, 1:1 mapping between code and tests</rationale>
+      <source>docs/tech-spec-epic-1.md#Testing-Best-Practices</source>
+    </constraint>
+    <constraint type="test-naming">
+      <rule>Use descriptive test names: "should [expected behavior] when [condition]"</rule>
+      <rationale>Self-documenting tests, clear failure messages, better maintainability</rationale>
+      <source>docs/tech-spec-epic-1.md#Testing-Best-Practices</source>
+    </constraint>
+    <constraint type="test-isolation">
+      <rule>Each test must be independent (no shared state between tests)</rule>
+      <rationale>Prevents flaky tests, enables parallel execution, easier debugging</rationale>
+      <source>docs/tech-spec-epic-1.md#Testing-Best-Practices</source>
+    </constraint>
+    <constraint type="mock-strategy">
+      <rule>Mock external dependencies (LLM APIs, file system for unit tests, git operations)</rule>
+      <rationale>Fast test execution, deterministic results, no external service dependencies</rationale>
+      <source>docs/tech-spec-epic-1.md#Testing-Best-Practices</source>
+    </constraint>
+    <constraint type="test-pyramid">
+      <rule>Maintain test distribution: 60% unit, 30% integration, 10% E2E</rule>
+      <rationale>Fast feedback loop, comprehensive coverage, efficient test execution</rationale>
+      <source>docs/tech-spec-epic-1.md#Test-Pyramid-for-Epic-1</source>
+    </constraint>
+    <constraint type="ci-compatibility">
+      <rule>Tests must run deterministically in CI environment (no flaky tests)</rule>
+      <rationale>Reliable CI/CD pipeline, trustworthy test results, no random failures</rationale>
+      <source>docs/tech-spec-epic-1.md#CI/CD-Pipeline-Configuration</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>vitest.config.ts</name>
+      <kind>config-file</kind>
+      <signature>
+export default defineConfig({
+  test: {
+    environment: 'node',
+    globals: true,
+    include: ['tests/**/*.test.ts', 'tests/**/*.spec.ts'],
+    coverage: { provider: 'c8', thresholds: { lines: 80, ... } },
+    testTimeout: 5000,
+  },
+  resolve: { alias: { '@': './src', ... } }
+})
+      </signature>
+      <path>backend/vitest.config.ts</path>
+      <usage>Central configuration for all test execution, coverage, and path resolution</usage>
+    </interface>
+    <interface>
+      <name>mockFileSystem()</name>
+      <kind>test-utility</kind>
+      <signature>export const mockFileSystem = () => ({ readFile: vi.fn(), writeFile: vi.fn(), access: vi.fn(), mkdir: vi.fn() })</signature>
+      <path>backend/tests/utils/test-helpers.ts (TO CREATE)</path>
+      <usage>Mock file system operations for unit tests, avoiding real file I/O</usage>
+    </interface>
+    <interface>
+      <name>mockLLMResponse()</name>
+      <kind>test-utility</kind>
+      <signature>export const mockLLMResponse = (content: string) => ({ id: string, content: [...], model: string, usage: {...} })</signature>
+      <path>backend/tests/utils/test-helpers.ts (TO CREATE)</path>
+      <usage>Create mock LLM API responses for testing agent invocations without real API calls</usage>
+    </interface>
+    <interface>
+      <name>loadFixture()</name>
+      <kind>test-utility</kind>
+      <signature>export const loadFixture = async (fixturePath: string) => Promise&lt;any&gt;</signature>
+      <path>backend/tests/utils/test-helpers.ts (TO CREATE)</path>
+      <usage>Load test fixture files (sample workflows, configs) for consistent test data</usage>
+    </interface>
+    <interface>
+      <name>createTestDir()</name>
+      <kind>test-utility</kind>
+      <signature>export const createTestDir = async () => Promise&lt;{ path: string, cleanup: () => Promise&lt;void&gt; }&gt;</signature>
+      <path>backend/tests/utils/test-helpers.ts (TO CREATE)</path>
+      <usage>Create temporary test directories for integration tests with automatic cleanup</usage>
+    </interface>
+  </interfaces>
+
+  <existing-context>
+    <note>
+      Test framework is PARTIALLY IMPLEMENTED. Vitest is configured, test scripts exist in package.json, and 39+ tests are already written for Stories 1.1, 1.2, 1.3, 1.5, 1.6. This story focuses on:
+      1. Reviewing and enhancing existing vitest.config.ts (currently uses v8, AC specifies c8)
+      2. Creating missing infrastructure (setup.ts, test-helpers.ts, fixtures/, README.md)
+      3. Validating all existing tests run successfully
+      4. Documenting testing patterns for future developers
+      5. Preparing for CI/CD integration (Story 1.12)
+    </note>
+    <note>
+      IMPORTANT: AC#3 specifies "c8 coverage provider" but package.json has @vitest/coverage-v8. Investigation needed:
+      - Is c8 requirement correct or should it be v8?
+      - Vitest 1.0+ defaults to v8 coverage (faster, more accurate than c8)
+      - Consider: Update AC to match implementation (v8) OR update package to use c8
+      - Recommendation: Keep v8 (modern, faster), update AC or note as acceptable deviation
+    </note>
+  </existing-context>
+
+  <test-examples>
+    <example>
+      <title>Unit Test Example (AAA Pattern)</title>
+      <source>backend/tests/core/WorkflowParser.test.ts:34-50</source>
+      <pattern>
+// Arrange
+const workflowPath = path.join(tempDir, 'workflow.yaml');
+const workflowContent = `name: "Test"...`;
+await fs.writeFile(workflowPath, workflowContent);
+
+// Act
+const config = await parser.parseYAML(workflowPath);
+
+// Assert
+expect(config.name).toBe('Test Workflow');
+expect(config.description).toBe('Test workflow description');
+      </pattern>
+    </example>
+    <example>
+      <title>Error Test Example</title>
+      <source>backend/tests/core/WorkflowParser.test.ts:70-112</source>
+      <pattern>
+it('should throw WorkflowParseError when required field missing', async () => {
+  const workflowPath = path.join(tempDir, 'workflow.yaml');
+  const invalidContent = `name: "Test"`; // Missing required fields
+
+  await fs.writeFile(workflowPath, invalidContent);
+
+  await expect(parser.parseYAML(workflowPath))
+    .rejects
+    .toThrow(WorkflowParseError);
+});
+      </pattern>
+    </example>
+    <example>
+      <title>Integration Test Example (with cleanup)</title>
+      <source>backend/tests/core/WorkflowParser.test.ts:17-31</source>
+      <pattern>
+beforeEach(async () => {
+  tempDir = path.join(process.cwd(), 'temp-test-' + Date.now());
+  await fs.mkdir(tempDir, { recursive: true });
+  parser = new WorkflowParser(tempDir);
+});
+
+afterEach(async () => {
+  try {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  } catch (error) {
+    // Ignore cleanup errors
+  }
+});
+      </pattern>
+    </example>
+  </test-examples>
+
+  <references>
+    <reference>
+      <title>Vitest Documentation</title>
+      <url>https://vitest.dev/</url>
+      <relevance>Official Vitest docs for configuration, API, best practices</relevance>
+    </reference>
+    <reference>
+      <title>Vitest Coverage Guide</title>
+      <url>https://vitest.dev/guide/coverage</url>
+      <relevance>Coverage provider setup (v8 vs c8), threshold configuration, reporters</relevance>
+    </reference>
+    <reference>
+      <title>Testing Library Best Practices</title>
+      <url>https://kentcdodds.com/blog/common-mistakes-with-react-testing-library</url>
+      <relevance>Test isolation, mocking strategies, test structure patterns</relevance>
+    </reference>
+  </references>
+
+</story-context>
