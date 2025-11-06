@@ -24,6 +24,9 @@ describe('WorkflowEngine', () => {
   } as unknown as StateManager;
 
   beforeEach(async () => {
+    // Reset all mocks before each test
+    vi.clearAllMocks();
+
     // Create test directory structure
     await fs.mkdir(projectRoot, { recursive: true });
     await fs.mkdir(bmadDir, { recursive: true });
@@ -552,7 +555,7 @@ standalone: true
       await fs.writeFile(instructionsPath, instructionsContent);
 
       // Execute first workflow
-      const engine1 = new WorkflowEngine(workflowPath, { projectRoot });
+      const engine1 = new WorkflowEngine(workflowPath, { projectRoot, stateManager: mockStateManager });
       await engine1.execute();
 
       // Create a mock state for testing resume functionality
