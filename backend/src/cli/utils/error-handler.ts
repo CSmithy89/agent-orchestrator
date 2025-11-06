@@ -7,7 +7,7 @@ import { colors } from './colors.js';
 import {
   WorkflowParseError,
   WorkflowExecutionError
-} from '../../types/workflow.types.js';
+} from '../../types/errors.types.js';
 import { ConfigValidationError } from '../../types/ProjectConfig.js';
 
 /**
@@ -69,8 +69,8 @@ export function handleError(error: unknown, context: string): void {
       console.error(colors.info(`   1. Check logs for detailed error information`));
       console.error(colors.info(`   2. Verify all required variables are defined`));
       console.error(colors.info(`   3. Run 'orchestrator logs --project <id>' to see execution logs`));
-      if (error.step !== undefined) {
-        console.error(colors.highlight(`   Failed at step: ${error.step}`));
+      if (error.stepNumber !== undefined) {
+        console.error(colors.highlight(`   Failed at step: ${error.stepNumber}`));
       }
     } else if (error instanceof ConfigValidationError) {
       console.error(colors.info(`\n💡 Resolution steps:`));

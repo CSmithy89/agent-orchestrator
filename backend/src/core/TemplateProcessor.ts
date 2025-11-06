@@ -199,7 +199,7 @@ export class TemplateProcessor {
       // Check for undefined variable errors
       if (errorMessage.includes('not defined') || errorMessage.includes('is undefined')) {
         const variableMatch = errorMessage.match(/"([^"]+)"/);
-        const variableName = variableMatch ? variableMatch[1] : 'unknown';
+        const variableName = (variableMatch && variableMatch[1]) ? variableMatch[1] : 'unknown';
 
         throw new VariableUndefinedError(
           variableName,
@@ -212,8 +212,7 @@ export class TemplateProcessor {
 
       // Check for syntax errors
       if (errorMessage.includes('Parse error') || errorMessage.includes('Expecting')) {
-        const lineMatch = errorMessage.match(/line (\d+)/);
-        const line = lineMatch ? parseInt(lineMatch[1], 10) : undefined;
+        const line = this.extractLineNumber(errorMessage);
 
         throw new TemplateSyntaxError(
           errorMessage,
@@ -223,8 +222,7 @@ export class TemplateProcessor {
       }
 
       // Generic render error
-      const lineMatch = errorMessage.match(/line (\d+)/);
-      const line = lineMatch ? parseInt(lineMatch[1], 10) : undefined;
+      const line = this.extractLineNumber(errorMessage);
 
       throw new TemplateRenderError(
         `Template rendering failed: ${errorMessage}`,
@@ -366,7 +364,7 @@ export class TemplateProcessor {
 
       const match = existingContent.match(sectionRegex);
 
-      if (!match) {
+      if (!match || !match[0]) {
         throw new TemplateError(
           `Section "${sectionName}" not found in ${filePath}\n\n` +
           `Available sections:\n${this.extractSectionNames(existingContent).map(s => `  - ${s}`).join('\n')}`,
@@ -598,6 +596,16 @@ export class TemplateProcessor {
   }
 
   /**
+   * Extract line number from error message
+   *
+   * Helper method to extract line numbers from error messages.
+   */
+  private extractLineNumber(errorMessage: string): number | undefined {
+    const lineMatch = errorMessage.match(/line (\d+)/);
+    return (lineMatch && lineMatch[1]) ? parseInt(lineMatch[1], 10) : undefined;
+  }
+
+  /**
    * Extract context around variable reference
    *
    * Returns 3 lines of context around variable for error messages.
@@ -630,7 +638,9 @@ export class TemplateProcessor {
     let match;
 
     while ((match = sectionRegex.exec(content)) !== null) {
-      sections.push(match[1].trim());
+      if (match[1]) {
+        sections.push(match[1].trim());
+      }
     }
 
     return sections;
