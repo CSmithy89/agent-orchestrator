@@ -25,7 +25,7 @@ interface RawYAMLState {
   currentWorkflow: string;
   currentStep: number;
   status: 'running' | 'paused' | 'completed' | 'error';
-  variables?: Record<string, any>;
+  variables?: Record<string, unknown>;
   agentActivity?: Array<{
     agentId: string;
     agentName: string;
