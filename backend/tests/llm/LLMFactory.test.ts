@@ -2,7 +2,7 @@
  * LLMFactory Unit Tests
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { LLMFactory, createLLMFactory } from '../../src/llm/index.js';
 import { AnthropicProvider } from '../../src/llm/providers/AnthropicProvider.js';
 import { OpenAIProvider } from '../../src/llm/providers/OpenAIProvider.js';

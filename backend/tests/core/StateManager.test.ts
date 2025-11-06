@@ -3,7 +3,7 @@
  * Tests state persistence, loading, atomic writes, and crash recovery
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { StateManager } from '../../src/core/StateManager.js';
 import {
   WorkflowState,
@@ -240,7 +240,7 @@ describe('StateManager', () => {
       stateManager.clearCache();
 
       // First load
-      const loaded1 = await stateManager.loadState('test-project');
+      const _loaded1 = await stateManager.loadState('test-project');
 
       // Modify the file
       const yamlPath = path.join(BMAD_DIR, 'sprint-status.yaml');
