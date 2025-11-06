@@ -35,12 +35,29 @@ export class WorkflowEngine {
   private variables: Record<string, any> = {};
   private projectInfo?: ProjectInfo;
 
+  // Pre-compiled regex patterns for better performance
+  private static readonly STEP_REGEX = /<step\s+n="(\d+)"\s+goal="([^"]+)"(?:\s+optional="(true|false)")?(?:\s+if="([^"]+)")?>(.*?)<\/step>/gs;
+  private static readonly ACTION_REGEX = /<action(?:\s+if="([^"]+)")?>(.*?)<\/action>/gs;
+  private static readonly ASK_REGEX = /<ask>(.*?)<\/ask>/gs;
+  private static readonly OUTPUT_REGEX = /<output>(.*?)<\/output>/gs;
+  private static readonly TEMPLATE_OUTPUT_REGEX = /<template-output(?:\s+file="([^"]+)")?(.*?)>(.*?)<\/template-output>/gs;
+  private static readonly ELICIT_REGEX = /<elicit-required>(.*?)<\/elicit-required>/gs;
+  private static readonly GOTO_REGEX = /<goto\s+step="(\d+)"\s*\/?>/g;
+  private static readonly INVOKE_WORKFLOW_REGEX = /<invoke-workflow\s+path="([^"]+)"\s*\/?>/g;
+  private static readonly INVOKE_TASK_REGEX = /<invoke-task\s+path="([^"]+)"\s*\/?>/g;
+  private static readonly CHECK_REGEX = /<check\s+if="([^"]+)">(.*?)<\/check>/gs;
+  private static readonly VARIABLE_REGEX = /\{\{([a-zA-Z0-9_.-]+)(?:\|([^}]+))?\}\}/g;
+
   /**
    * Create a new WorkflowEngine instance
    * @param workflowPath Path to workflow.yaml file
    * @param options Engine configuration options
    */
   constructor(workflowPath: string, options: EngineOptions = {}) {
+    if (!workflowPath || typeof workflowPath !== 'string') {
+      throw new WorkflowExecutionError('workflowPath must be a non-empty string');
+    }
+
     this.workflowPath = workflowPath;
     this.projectRoot = options.projectRoot || process.cwd();
     this.yoloMode = options.yoloMode || false;
@@ -255,9 +272,14 @@ export class WorkflowEngine {
       }
     } catch (error) {
       throw new WorkflowExecutionError(
-        `Step ${step.number} execution failed: ${(error as Error).message}`,
+        `Step ${step.number} ("${step.goal}") execution failed: ${(error as Error).message}`,
         step.number,
-        error as Error
+        error as Error,
+        {
+          stepGoal: step.goal,
+          stepContent: step.content.substring(0, 200),
+          workflowPath: this.workflowPath
+        }
       );
     }
   }
@@ -335,11 +357,11 @@ export class WorkflowEngine {
       const fileContents = await fs.readFile(markdownFile, 'utf-8');
       const steps: Step[] = [];
 
-      // Regex to match <step> tags with attributes
-      const stepRegex = /<step\s+n="(\d+)"\s+goal="([^"]+)"(?:\s+optional="(true|false)")?(?:\s+if="([^"]+)")?>(.*?)<\/step>/gs;
+      // Use pre-compiled regex pattern (reset lastIndex for reuse)
+      WorkflowEngine.STEP_REGEX.lastIndex = 0;
 
       let match: RegExpExecArray | null;
-      while ((match = stepRegex.exec(fileContents)) !== null) {
+      while ((match = WorkflowEngine.STEP_REGEX.exec(fileContents)) !== null) {
         const [, numberStr, goal, optional, condition, content] = match;
 
         steps.push({
@@ -380,10 +402,10 @@ export class WorkflowEngine {
   private parseActions(content: string): Action[] {
     const actions: Action[] = [];
 
-    // Parse <action> tags
-    const actionRegex = /<action(?:\s+if="([^"]+)")?>(.*?)<\/action>/gs;
+    // Parse <action> tags - reset lastIndex for reuse
+    WorkflowEngine.ACTION_REGEX.lastIndex = 0;
     let match: RegExpExecArray | null;
-    while ((match = actionRegex.exec(content)) !== null) {
+    while ((match = WorkflowEngine.ACTION_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'action',
         content: match[2].trim(),
@@ -392,8 +414,8 @@ export class WorkflowEngine {
     }
 
     // Parse <ask> tags
-    const askRegex = /<ask>(.*?)<\/ask>/gs;
-    while ((match = askRegex.exec(content)) !== null) {
+    WorkflowEngine.ASK_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.ASK_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'ask',
         content: match[1].trim()
@@ -401,8 +423,8 @@ export class WorkflowEngine {
     }
 
     // Parse <output> tags
-    const outputRegex = /<output>(.*?)<\/output>/gs;
-    while ((match = outputRegex.exec(content)) !== null) {
+    WorkflowEngine.OUTPUT_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.OUTPUT_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'output',
         content: match[1].trim()
@@ -410,8 +432,8 @@ export class WorkflowEngine {
     }
 
     // Parse <template-output> tags
-    const templateOutputRegex = /<template-output(?:\s+file="([^"]+)")?(.*?)>(.*?)<\/template-output>/gs;
-    while ((match = templateOutputRegex.exec(content)) !== null) {
+    WorkflowEngine.TEMPLATE_OUTPUT_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.TEMPLATE_OUTPUT_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'template-output',
         content: match[3].trim(),
@@ -420,8 +442,8 @@ export class WorkflowEngine {
     }
 
     // Parse <elicit-required> tags
-    const elicitRegex = /<elicit-required>(.*?)<\/elicit-required>/gs;
-    while ((match = elicitRegex.exec(content)) !== null) {
+    WorkflowEngine.ELICIT_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.ELICIT_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'elicit-required',
         content: match[1].trim()
@@ -429,8 +451,8 @@ export class WorkflowEngine {
     }
 
     // Parse <goto> tags
-    const gotoRegex = /<goto\s+step="(\d+)"\s*\/?>/g;
-    while ((match = gotoRegex.exec(content)) !== null) {
+    WorkflowEngine.GOTO_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.GOTO_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'goto',
         content: `Jump to step ${match[1]}`,
@@ -439,8 +461,8 @@ export class WorkflowEngine {
     }
 
     // Parse <invoke-workflow> tags
-    const invokeWorkflowRegex = /<invoke-workflow\s+path="([^"]+)"\s*\/?>/g;
-    while ((match = invokeWorkflowRegex.exec(content)) !== null) {
+    WorkflowEngine.INVOKE_WORKFLOW_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.INVOKE_WORKFLOW_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'invoke-workflow',
         content: `Invoke workflow ${match[1]}`,
@@ -449,8 +471,8 @@ export class WorkflowEngine {
     }
 
     // Parse <invoke-task> tags
-    const invokeTaskRegex = /<invoke-task\s+path="([^"]+)"\s*\/?>/g;
-    while ((match = invokeTaskRegex.exec(content)) !== null) {
+    WorkflowEngine.INVOKE_TASK_REGEX.lastIndex = 0;
+    while ((match = WorkflowEngine.INVOKE_TASK_REGEX.exec(content)) !== null) {
       actions.push({
         type: 'invoke-task',
         content: `Invoke task ${match[1]}`,
@@ -469,10 +491,10 @@ export class WorkflowEngine {
   private parseChecks(content: string): Check[] {
     const checks: Check[] = [];
 
-    // Parse <check> tags
-    const checkRegex = /<check\s+if="([^"]+)">(.*?)<\/check>/gs;
+    // Parse <check> tags - reset lastIndex for reuse
+    WorkflowEngine.CHECK_REGEX.lastIndex = 0;
     let match: RegExpExecArray | null;
-    while ((match = checkRegex.exec(content)) !== null) {
+    while ((match = WorkflowEngine.CHECK_REGEX.exec(content)) !== null) {
       const condition = match[1];
       const checkContent = match[2].trim();
 
@@ -496,10 +518,10 @@ export class WorkflowEngine {
    * @returns Text with variables replaced
    */
   private replaceVariables(text: string, vars: Record<string, any>): string {
-    // Match {{variable}} or {{variable|default}} patterns
-    const variableRegex = /\{\{([a-zA-Z0-9_.-]+)(?:\|([^}]+))?\}\}/g;
+    // Use pre-compiled regex pattern (reset lastIndex for reuse)
+    WorkflowEngine.VARIABLE_REGEX.lastIndex = 0;
 
-    return text.replace(variableRegex, (match, variableName, defaultValue) => {
+    return text.replace(WorkflowEngine.VARIABLE_REGEX, (match, variableName, defaultValue) => {
       // Support nested variables (e.g., user.name)
       const value = this.getNestedValue(vars, variableName);
 
