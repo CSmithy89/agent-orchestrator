@@ -455,9 +455,10 @@ standalone: true
 
       await engine.execute();
 
-      // Verify saveState was called (mocked)
-      // The StateManager mock should have been called during execution
-      expect(engine).toBeDefined();
+      // Verify saveState was called during execution
+      // Should be called at least for initialization and completion
+      expect(mockStateManager.saveState).toHaveBeenCalled();
+      expect(mockStateManager.saveState.mock.calls.length).toBeGreaterThan(0);
     });
   });
 
