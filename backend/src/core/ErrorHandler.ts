@@ -37,7 +37,7 @@ export interface EscalationEvent {
   attempts: number;
   timestamp: Date;
   suggestedActions: string[];
-  context?: Record<string, any>;
+  context?: Record<string, unknown>;
 }
 
 /**
