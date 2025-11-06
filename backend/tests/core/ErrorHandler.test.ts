@@ -35,8 +35,8 @@ describe('ErrorHandler', () => {
 
     // Mock the sleep method to prevent orphaned async timers during recovery
     // This allows tests to run synchronously with vi.runAllTimersAsync()
-    vi.spyOn(ErrorHandler.prototype as any, 'sleep').mockResolvedValue(undefined);
-
+    // @ts-expect-error - accessing protected method for testing
+    vi.spyOn(ErrorHandler.prototype, 'sleep').mockResolvedValue(undefined);
     // Mock logger to suppress output and prevent unhandled rejection warnings
     vi.spyOn(logger, 'error').mockImplementation(() => {});
     vi.spyOn(logger, 'warn').mockImplementation(() => {});
@@ -46,13 +46,12 @@ describe('ErrorHandler', () => {
     // This handler tracks and suppresses expected errors from ErrorHandler tests
     // while logging unexpected errors to prevent silent failures
     unhandledRejectionHandler = (reason: any) => {
-      // Only suppress if it's one of our expected test error types
+      // Only suppress errors from our ErrorHandler test cases
       const isExpectedError =
-        reason instanceof Error &&
-        (reason.message.includes('Error') ||
-         reason.message.includes('Fatal') ||
-         reason.message.includes('Rate limit') ||
-         reason.message.includes('Auth failed'));
+        reason instanceof RetryableError ||
+        reason instanceof FatalError ||
+        reason instanceof LLMAPIError ||
+        reason instanceof ResourceExhaustedError;
 
       if (isExpectedError) {
         expectedRejectionCount++;

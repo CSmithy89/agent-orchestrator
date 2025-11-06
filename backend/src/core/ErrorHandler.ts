@@ -458,8 +458,9 @@ export class ErrorHandler {
 
   /**
    * Sleep utility
+   * Protected to allow mocking in tests
    */
-  private sleep(ms: number): Promise<void> {
+  protected sleep(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 }
