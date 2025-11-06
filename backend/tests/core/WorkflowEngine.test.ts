@@ -3,11 +3,10 @@
  * Comprehensive test suite for workflow execution engine
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { WorkflowEngine } from '../../src/core/WorkflowEngine.js';
-import { WorkflowParser } from '../../src/core/WorkflowParser.js';
 import { StateManager } from '../../src/core/StateManager.js';
 import { WorkflowExecutionError } from '../../src/types/workflow.types.js';
 

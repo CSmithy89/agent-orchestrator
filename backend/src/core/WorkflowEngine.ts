@@ -327,20 +327,23 @@ export class WorkflowEngine {
         }
         break;
 
-      case 'goto':
+      case 'goto': {
         const targetStep = parseInt(action.attributes?.step || '0', 10);
         await this.handleGoto(targetStep);
         break;
+      }
 
-      case 'invoke-workflow':
+      case 'invoke-workflow': {
         const workflowPath = action.attributes?.path || '';
         await this.invokeWorkflow(workflowPath, this.variables);
         break;
+      }
 
-      case 'invoke-task':
+      case 'invoke-task': {
         const taskPath = action.attributes?.path || '';
         await this.invokeTask(taskPath, this.variables);
         break;
+      }
 
       default:
         console.warn(`[WorkflowEngine] Unknown action type: ${action.type}`);
@@ -770,9 +773,9 @@ export class WorkflowEngine {
   /**
    * Invoke task file
    * @param taskPath Path to task file
-   * @param params Task parameters
+   * @param _params Task parameters
    */
-  private async invokeTask(taskPath: string, params: Record<string, any>): Promise<void> {
+  private async invokeTask(taskPath: string, _params: Record<string, any>): Promise<void> {
     console.log(`[WorkflowEngine] Invoking task: ${taskPath}`);
 
     try {
