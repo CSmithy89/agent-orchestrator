@@ -8,7 +8,6 @@ import * as path from 'path';
 import simpleGit, { SimpleGit, GitError } from 'simple-git';
 import {
   Worktree,
-  WorktreeStatus,
   WorktreePersistenceData,
   WorktreeSerializable,
   WorktreeError,
@@ -254,12 +253,8 @@ export class WorktreeManager {
       throw new WorktreeExistsError(storyId, existing.path, existing.branch);
     }
 
-    // Also check git worktree list for manually created worktrees
-    const expectedPath = this.getWorktreePath(storyId);
-    const expectedBranch = this.getBranchName(storyId);
-
-    // Note: For full validation, we'd query git here, but that's expensive
-    // The sync operation on initialization handles detection of manual worktrees
+    // Note: For full validation, we'd query git to check for manually created worktrees,
+    // but that's expensive. The sync operation on initialization handles detection instead.
   }
 
   /**
