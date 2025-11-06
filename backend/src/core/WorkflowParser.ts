@@ -66,7 +66,7 @@ export class WorkflowParser {
         // Extract line number from YAML error
         const lineNumber = this.extractLineNumber(error);
         const err = new WorkflowParseError(
-          error.message,
+          `YAML parse error: ${error.message}`,
           'YAML_SYNTAX_ERROR',
           filePath,
           lineNumber
