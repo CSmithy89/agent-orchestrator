@@ -1,0 +1,476 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>1</epicId>
+    <storyId>12</storyId>
+    <title>CI/CD Pipeline Configuration</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-06</generatedAt>
+    <generator>Manual Story Context Creation</generator>
+    <sourceStoryPath>docs/stories/1-12-ci-cd-pipeline-configuration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>development team</asA>
+    <iWant>automated CI/CD pipelines configured with GitHub Actions</iWant>
+    <soThat>code quality is enforced through automated testing, linting, and build verification on every commit and pull request</soThat>
+    <tasks>
+      <task id="1" priority="critical">
+        <title>Create GitHub Actions workflow structure (AC: #1)</title>
+        <subtasks>
+          <subtask>Create .github/workflows/ directory</subtask>
+          <subtask>Create ci.yml workflow file with proper YAML structure</subtask>
+          <subtask>Configure workflow name and triggers (push, pull_request)</subtask>
+          <subtask>Define target branches (main, develop, feature branches)</subtask>
+          <subtask>Setup workflow permissions (read for contents, write for checks)</subtask>
+          <subtask>Add workflow_dispatch for manual triggers</subtask>
+        </subtasks>
+      </task>
+      <task id="2" priority="critical">
+        <title>Configure test job (AC: #2, #5)</title>
+        <subtasks>
+          <subtask>Define test job with ubuntu-latest runner</subtask>
+          <subtask>Checkout code with actions/checkout@v4</subtask>
+          <subtask>Setup Node.js with actions/setup-node@v4</subtask>
+          <subtask>Configure Node.js version (20.x as specified in tech spec)</subtask>
+          <subtask>Setup caching for npm dependencies</subtask>
+          <subtask>Install dependencies (npm ci for backend workspace)</subtask>
+          <subtask>Run tests with coverage (npm run test:coverage)</subtask>
+          <subtask>Upload coverage reports as artifacts</subtask>
+          <subtask>Enforce 80% coverage threshold (fail if below)</subtask>
+          <subtask>Generate coverage summary for PR comments</subtask>
+        </subtasks>
+      </task>
+      <task id="3" priority="high">
+        <title>Configure lint and type-check jobs (AC: #3)</title>
+        <subtasks>
+          <subtask>Create lint job separate from test job</subtask>
+          <subtask>Setup Node.js and dependencies</subtask>
+          <subtask>Run ESLint (npm run lint)</subtask>
+          <subtask>Create type-check job</subtask>
+          <subtask>Run TypeScript compiler (npm run type-check)</subtask>
+          <subtask>Configure both jobs to run in parallel with test job</subtask>
+          <subtask>Ensure lint and type-check failures block PR merge</subtask>
+        </subtasks>
+      </task>
+      <task id="4" priority="high">
+        <title>Configure build verification jobs (AC: #4)</title>
+        <subtasks>
+          <subtask>Create build-backend job</subtask>
+          <subtask>Setup Node.js and install dependencies</subtask>
+          <subtask>Run backend build (npm run build in backend workspace)</subtask>
+          <subtask>Verify dist/ output created successfully</subtask>
+          <subtask>Create build-frontend job (placeholder for future)</subtask>
+          <subtask>Add note that frontend build will be activated in Epic 6</subtask>
+          <subtask>Configure builds to run after test/lint jobs pass</subtask>
+        </subtasks>
+      </task>
+      <task id="5" priority="high">
+        <title>Optimize CI performance (AC: #6, #8)</title>
+        <subtasks>
+          <subtask>Implement dependency caching with cache key based on lock file</subtask>
+          <subtask>Configure test result caching (if supported by Vitest)</subtask>
+          <subtask>Use npm ci instead of npm install for faster installs</subtask>
+          <subtask>Enable parallel job execution where possible</subtask>
+          <subtask>Configure timeout limits (10 minutes max per job)</subtask>
+          <subtask>Measure and optimize total pipeline duration (&lt;5 minutes target)</subtask>
+        </subtasks>
+      </task>
+      <task id="6" priority="medium">
+        <title>Matrix testing configuration (AC: #7)</title>
+        <subtasks>
+          <subtask>Evaluate need for multi-version Node.js testing</subtask>
+          <subtask>If needed, configure matrix strategy with Node.js versions [20.x, 22.x]</subtask>
+          <subtask>Otherwise, document decision to test single version (20.x LTS)</subtask>
+          <subtask>Configure matrix to run tests in parallel across versions</subtask>
+          <subtask>Ensure all matrix jobs must pass for overall success</subtask>
+        </subtasks>
+      </task>
+      <task id="7" priority="medium">
+        <title>Add status badges and documentation (AC: #9)</title>
+        <subtasks>
+          <subtask>Generate GitHub Actions status badge URL</subtask>
+          <subtask>Add CI status badge to README.md</subtask>
+          <subtask>Generate coverage badge (via shields.io or codecov)</subtask>
+          <subtask>Add coverage status badge to README.md</subtask>
+          <subtask>Document CI pipeline in README.md or docs/ci-cd.md</subtask>
+          <subtask>Add troubleshooting section for common CI issues</subtask>
+        </subtasks>
+      </task>
+      <task id="8" priority="critical">
+        <title>Validate and test CI pipeline</title>
+        <subtasks>
+          <subtask>Create test branch to validate workflow</subtask>
+          <subtask>Push commit to trigger CI pipeline</subtask>
+          <subtask>Verify all jobs execute successfully</subtask>
+          <subtask>Verify test coverage enforcement works</subtask>
+          <subtask>Verify lint failures block pipeline</subtask>
+          <subtask>Verify build failures block pipeline</subtask>
+          <subtask>Test PR workflow (create test PR, verify checks run)</subtask>
+          <subtask>Verify pipeline completes within time target (&lt;5 minutes)</subtask>
+          <subtask>Fix any issues discovered during validation</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1" priority="critical">
+      <description>Create GitHub Actions workflow configuration (.github/workflows/ci.yml)</description>
+      <testability>Verify ci.yml file exists with valid YAML syntax and proper workflow structure</testability>
+    </criterion>
+    <criterion id="2" priority="critical">
+      <description>Configure automated test execution on push and pull request events</description>
+      <testability>Push commit and create PR, verify tests run automatically in GitHub Actions UI</testability>
+    </criterion>
+    <criterion id="3" priority="critical">
+      <description>Setup automated linting and type checking in CI pipeline</description>
+      <testability>Introduce lint error and type error, verify pipeline fails with clear error messages</testability>
+    </criterion>
+    <criterion id="4" priority="high">
+      <description>Configure build verification for backend and frontend workspaces</description>
+      <testability>Verify backend build job runs successfully, frontend placeholder documented for Epic 6</testability>
+    </criterion>
+    <criterion id="5" priority="critical">
+      <description>Integrate code coverage reporting with threshold enforcement (80% minimum)</description>
+      <testability>Reduce coverage below 80%, verify pipeline fails; restore coverage, verify pipeline passes</testability>
+    </criterion>
+    <criterion id="6" priority="high">
+      <description>Setup test result caching for faster CI runs</description>
+      <testability>Run pipeline twice, verify second run faster due to dependency caching (check logs)</testability>
+    </criterion>
+    <criterion id="7" priority="medium">
+      <description>Configure matrix testing for multiple Node.js versions (if needed)</description>
+      <testability>If matrix configured, verify tests run on all specified Node.js versions</testability>
+    </criterion>
+    <criterion id="8" priority="high">
+      <description>Ensure CI pipeline completes in &lt;5 minutes for typical changes</description>
+      <testability>Measure pipeline duration for standard commit, verify &lt;5 minutes total</testability>
+    </criterion>
+    <criterion id="9" priority="medium">
+      <description>Add status badges to README.md showing CI and coverage status</description>
+      <testability>Verify badges display correctly in README.md and update based on CI status</testability>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification</title>
+        <section>Test Infrastructure - CI/CD Pipeline Configuration</section>
+        <snippet>Story 1.12 establishes GitHub Actions CI/CD pipeline with automated test execution, linting, type checking, build verification, and coverage enforcement. Pipeline must complete in &lt;5 minutes with 80% coverage threshold.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic Breakdown</title>
+        <section>Epic 1 Test Story Requirements</section>
+        <snippet>Every epic must include test stories. Epic 1 includes Story 1.11 (Test Framework Setup) and Story 1.12 (CI/CD Pipeline Configuration). CI/CD enforces 80% minimum coverage and test execution required before merge.</snippet>
+      </doc>
+      <doc>
+        <path>README.md</path>
+        <title>Project README</title>
+        <section>Setup and Development</section>
+        <snippet>Current README provides project overview, setup instructions, development commands. Will be updated with CI/CD status badges and pipeline documentation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/package.json</path>
+        <kind>config</kind>
+        <symbol>npm scripts</symbol>
+        <lines>8-16</lines>
+        <reason>EXISTING - Contains scripts that CI will invoke: test, test:coverage, lint, type-check, build. CI jobs will call these scripts.</reason>
+      </file>
+      <file>
+        <path>backend/vitest.config.ts</path>
+        <kind>config</kind>
+        <symbol>Vitest configuration with coverage thresholds</symbol>
+        <lines>1-52</lines>
+        <reason>EXISTING - Defines 80% coverage thresholds that CI will enforce. When tests run with coverage, Vitest will fail if below thresholds.</reason>
+      </file>
+      <file>
+        <path>backend/tsconfig.json</path>
+        <kind>config</kind>
+        <symbol>TypeScript configuration</symbol>
+        <lines>N/A</lines>
+        <reason>EXISTING - Type checking configuration. CI type-check job will use this to validate TypeScript compilation without emitting files.</reason>
+      </file>
+      <file>
+        <path>.github/workflows/ci.yml</path>
+        <kind>ci-config</kind>
+        <symbol>GitHub Actions CI workflow (TO CREATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE - Main CI/CD pipeline configuration. Defines jobs for test, lint, type-check, build with triggers, caching, and parallel execution.</reason>
+      </file>
+      <file>
+        <path>README.md</path>
+        <kind>documentation</kind>
+        <symbol>Project README (TO UPDATE)</symbol>
+        <lines>N/A</lines>
+        <reason>TO UPDATE - Add CI status badge and coverage badge. Optionally add CI/CD documentation section or link to docs/ci-cd.md.</reason>
+      </file>
+      <file>
+        <path>docs/ci-cd.md</path>
+        <kind>documentation</kind>
+        <symbol>CI/CD documentation (TO CREATE - OPTIONAL)</symbol>
+        <lines>N/A</lines>
+        <reason>TO CREATE (OPTIONAL) - Detailed CI/CD pipeline documentation: what runs on each trigger, how to debug failures, coverage requirements, local testing.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <github-actions>
+        <action name="actions/checkout" version="v4">Checkout repository code with full git history</action>
+        <action name="actions/setup-node" version="v4">Setup Node.js environment with specified version</action>
+        <action name="actions/cache" version="v3">Cache npm dependencies for faster subsequent runs</action>
+        <action name="actions/upload-artifact" version="v3">Upload test coverage reports as artifacts</action>
+      </github-actions>
+      <node>
+        <package name="vitest" version="^1.0.0">Test framework with coverage - INSTALLED</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Coverage provider - INSTALLED</package>
+        <package name="eslint" version="^8.56.0">Linting - INSTALLED</package>
+        <package name="typescript" version="^5.3.0">Type checking - INSTALLED</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="pipeline-performance">
+      <rule>CI pipeline must complete in &lt;5 minutes for typical changes</rule>
+      <rationale>Fast feedback loop, developer productivity, avoid blocking development</rationale>
+      <source>docs/tech-spec-epic-1.md#Test-Infrastructure, docs/stories/1-12-ci-cd-pipeline-configuration.md#Performance-Optimization</source>
+    </constraint>
+    <constraint type="coverage-enforcement">
+      <rule>80% minimum coverage threshold enforced at CI level (fail pipeline if below)</rule>
+      <rationale>Maintains code quality standards, prevents merging untested code</rationale>
+      <source>docs/tech-spec-epic-1.md#Test-Strategy-Summary, backend/vitest.config.ts:28-33</source>
+    </constraint>
+    <constraint type="quality-gates">
+      <rule>All jobs (test, lint, type-check, build) must pass before PR can merge</rule>
+      <rationale>Enforces comprehensive quality checks, prevents broken code in main branch</rationale>
+      <source>docs/tech-spec-epic-1.md#Testing-Best-Practices</source>
+    </constraint>
+    <constraint type="parallel-execution">
+      <rule>Independent jobs (test, lint, type-check) must run in parallel for speed</rule>
+      <rationale>Minimizes total pipeline duration, maximizes resource utilization</rationale>
+      <source>docs/stories/1-12-ci-cd-pipeline-configuration.md#Performance-Optimization</source>
+    </constraint>
+    <constraint type="dependency-management">
+      <rule>Use npm ci (not npm install) for deterministic, fast installs</rule>
+      <rationale>Faster installs, guaranteed consistency with package-lock.json</rationale>
+      <source>docs/stories/1-12-ci-cd-pipeline-configuration.md#CI/CD-Best-Practices</source>
+    </constraint>
+    <constraint type="caching-strategy">
+      <rule>Cache node_modules based on package-lock.json hash for faster subsequent runs</rule>
+      <rationale>Reduces dependency install time from ~2 minutes to ~10 seconds on cache hit</rationale>
+      <source>docs/stories/1-12-ci-cd-pipeline-configuration.md#Performance-Optimization</source>
+    </constraint>
+    <constraint type="node-version">
+      <rule>Test on Node.js 20.x LTS as specified in Epic 1 tech requirements</rule>
+      <rationale>Consistency with development environment, LTS stability guarantees</rationale>
+      <source>docs/tech-spec-epic-1.md#Dependencies-and-Integrations</source>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ci.yml workflow structure</name>
+      <kind>github-actions-workflow</kind>
+      <signature>
+name: CI Pipeline
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps: [...]
+  lint:
+    runs-on: ubuntu-latest
+    steps: [...]
+  type-check:
+    runs-on: ubuntu-latest
+    steps: [...]
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint, type-check]
+    steps: [...]
+      </signature>
+      <path>.github/workflows/ci.yml (TO CREATE)</path>
+      <usage>Main CI/CD pipeline configuration defining all automated quality checks</usage>
+    </interface>
+    <interface>
+      <name>npm run test:coverage</name>
+      <kind>npm-script</kind>
+      <signature>vitest run --coverage</signature>
+      <path>backend/package.json:14</path>
+      <usage>CI test job invokes this to run all tests with coverage reporting and threshold enforcement</usage>
+    </interface>
+    <interface>
+      <name>npm run lint</name>
+      <kind>npm-script</kind>
+      <signature>eslint src tests --ext .ts</signature>
+      <path>backend/package.json:15</path>
+      <usage>CI lint job invokes this to check code style and catch common errors</usage>
+    </interface>
+    <interface>
+      <name>npm run type-check</name>
+      <kind>npm-script</kind>
+      <signature>tsc --noEmit</signature>
+      <path>backend/package.json:16</path>
+      <usage>CI type-check job invokes this to validate TypeScript types without building</usage>
+    </interface>
+    <interface>
+      <name>npm run build</name>
+      <kind>npm-script</kind>
+      <signature>tsc</signature>
+      <path>backend/package.json:9</path>
+      <usage>CI build job invokes this to compile TypeScript and verify build succeeds</usage>
+    </interface>
+    <interface>
+      <name>GitHub Actions Status Badge</name>
+      <kind>badge-url</kind>
+      <signature>![CI Status](https://github.com/CSmithy89/agent-orchestrator/actions/workflows/ci.yml/badge.svg)</signature>
+      <path>README.md (TO UPDATE)</path>
+      <usage>Displays current CI pipeline status (passing/failing) in repository README</usage>
+    </interface>
+  </interfaces>
+
+  <existing-context>
+    <note>
+      Test framework is already configured in Story 1.11 (prerequisite). This story builds on that foundation:
+      - Vitest configured with 80% coverage thresholds (vitest.config.ts)
+      - Test scripts available in package.json (test, test:coverage)
+      - ESLint and TypeScript configured
+      - All existing tests passing (39+ tests from Stories 1.1-1.6)
+
+      This story focuses on automating those quality checks through GitHub Actions CI/CD.
+    </note>
+    <note>
+      DEPENDENCY: Story 1.11 must be completed before this story can be fully validated. However:
+      - Can create ci.yml workflow file now (it will call scripts that should exist)
+      - Can test workflow structure and job execution
+      - Cannot validate coverage enforcement until Story 1.11 configures thresholds
+      - Recommend: Implement Story 1.11 first, or accept that CI will fail until 1.11 done
+    </note>
+    <note>
+      PERFORMANCE TARGET: &lt;5 minutes total pipeline duration
+      - Dependency install with cache: ~10-30 seconds
+      - Test execution: ~1-2 minutes (depends on test count)
+      - Lint: ~10-20 seconds
+      - Type check: ~10-20 seconds
+      - Build: ~30-60 seconds
+      - Total (parallel): ~2-3 minutes with caching, ~4-5 minutes without
+      - Monitor and optimize if exceeding 5 minutes
+    </note>
+  </existing-context>
+
+  <ci-workflow-example>
+    <example>
+      <title>Basic CI Workflow Structure</title>
+      <pattern>
+name: CI Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: cd backend && npm ci
+
+      - name: Run tests with coverage
+        run: cd backend && npm run test:coverage
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: backend/coverage/
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: cd backend && npm ci
+      - run: cd backend && npm run lint
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: cd backend && npm ci
+      - run: cd backend && npm run type-check
+
+  build:
+    runs-on: ubuntu-latest
+    needs: [test, lint, type-check]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+      - run: cd backend && npm ci
+      - run: cd backend && npm run build
+      </pattern>
+    </example>
+  </ci-workflow-example>
+
+  <references>
+    <reference>
+      <title>GitHub Actions Documentation</title>
+      <url>https://docs.github.com/en/actions</url>
+      <relevance>Official GitHub Actions docs for workflow syntax, triggers, jobs, steps</relevance>
+    </reference>
+    <reference>
+      <title>GitHub Actions - Node.js</title>
+      <url>https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs</url>
+      <relevance>Best practices for Node.js CI/CD, caching strategies, test execution</relevance>
+    </reference>
+    <reference>
+      <title>Vitest CI Integration</title>
+      <url>https://vitest.dev/guide/coverage#coverage-providers</url>
+      <relevance>Coverage threshold enforcement, CI-specific configurations, reporters</relevance>
+    </reference>
+    <reference>
+      <title>GitHub Actions - Caching</title>
+      <url>https://docs.github.com/en/actions/using-workflows/caching-dependencies-to-speed-up-workflows</url>
+      <relevance>Dependency caching for faster CI runs, cache key strategies</relevance>
+    </reference>
+    <reference>
+      <title>GitHub Actions Marketplace</title>
+      <url>https://github.com/marketplace?type=actions</url>
+      <relevance>Find actions for coverage reporting, badges, notifications</relevance>
+    </reference>
+  </references>
+
+</story-context>
