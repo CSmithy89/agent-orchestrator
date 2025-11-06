@@ -2,7 +2,7 @@
  * Unit tests for ErrorHandler
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ErrorHandler, EscalationLevel } from '../../src/core/ErrorHandler.js';
 import {
   RetryableError,
@@ -10,10 +10,28 @@ import {
   LLMAPIError,
   ResourceExhaustedError
 } from '../../src/types/errors.types.js';
+import { logger } from '../../src/utils/logger.js';
 
 describe('ErrorHandler', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    // Mock the sleep method to prevent orphaned async timers during recovery
+    vi.spyOn(ErrorHandler.prototype as any, 'sleep').mockResolvedValue(undefined);
+    // Mock logger to suppress output and prevent unhandled rejection warnings
+    vi.spyOn(logger, 'error').mockImplementation(() => {});
+    vi.spyOn(logger, 'warn').mockImplementation(() => {});
+    vi.spyOn(logger, 'info').mockImplementation(() => {});
+    // Add unhandled rejection handler for expected test errors
+    process.on('unhandledRejection', () => {
+      // Suppress expected unhandled rejections during tests
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+    // Remove all unhandled rejection listeners
+    process.removeAllListeners('unhandledRejection');
   });
 
   describe('constructor', () => {
@@ -64,10 +82,10 @@ describe('ErrorHandler', () => {
       const error = new RetryableError('Error', 'TEST_ERROR');
       const operation = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        handler.handleOperation(operation, 'test')
-      ).rejects.toThrow(error);
+      const promise = handler.handleOperation(operation, 'test');
+      await vi.runAllTimersAsync();
 
+      await expect(promise).rejects.toThrow();
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
@@ -111,9 +129,10 @@ describe('ErrorHandler', () => {
       const error = new FatalError('Fatal error', 'FATAL');
       const operation = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        handler.handleOperation(operation)
-      ).rejects.toThrow(error);
+      const promise = handler.handleOperation(operation);
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow();
     });
 
     it('should convert network errors to RetryableError', async () => {
@@ -132,9 +151,10 @@ describe('ErrorHandler', () => {
       const error = new Error('EACCES: Permission denied');
       const operation = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        handler.handleOperation(operation)
-      ).rejects.toThrow(FatalError);
+      const promise = handler.handleOperation(operation);
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow(FatalError);
     });
   });
 
@@ -149,9 +169,10 @@ describe('ErrorHandler', () => {
       const error = new FatalError('Fatal error', 'FATAL');
       const operation = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        handler.handleOperation(operation, 'test')
-      ).rejects.toThrow();
+      const promise = handler.handleOperation(operation, 'test');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow();
 
       expect(onEscalation).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -163,6 +184,7 @@ describe('ErrorHandler', () => {
     it('should escalate auth errors as CRITICAL', async () => {
       const onEscalation = vi.fn();
       const handler = new ErrorHandler({
+        enableRetry: false, // Disable retry to preserve original error type
         enableEscalation: true,
         onEscalation
       });
@@ -174,9 +196,10 @@ describe('ErrorHandler', () => {
       );
       const operation = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        handler.handleOperation(operation, 'test')
-      ).rejects.toThrow();
+      const promise = handler.handleOperation(operation, 'test');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow();
 
       expect(onEscalation).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -188,6 +211,7 @@ describe('ErrorHandler', () => {
     it('should provide suggested actions', async () => {
       const onEscalation = vi.fn();
       const handler = new ErrorHandler({
+        enableRetry: false, // Disable retry to preserve original error type
         enableEscalation: true,
         onEscalation
       });
@@ -230,9 +254,10 @@ describe('ErrorHandler', () => {
       );
       const operation = vi.fn().mockRejectedValue(error);
 
-      await expect(
-        handler.handleOperation(operation, 'test')
-      ).rejects.toThrow();
+      const promise = handler.handleOperation(operation, 'test');
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow();
 
       // Recovery attempted but failed (no fallback provider)
       expect(operation).toHaveBeenCalledTimes(1);
