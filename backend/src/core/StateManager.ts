@@ -10,8 +10,10 @@ import * as yaml from 'js-yaml';
 import {
   WorkflowState,
   StoryStatus,
-  StateManagerError
+  AgentActivity,
+  ProjectInfo
 } from '../types/workflow.types.js';
+import { StateCorruptionError } from '../types/errors.types.js';
 
 /**
  * StateManager class - Singleton state manager

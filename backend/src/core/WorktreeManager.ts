@@ -450,12 +450,14 @@ export class WorktreeManager {
           continue;
         }
 
-        const storyId = folderMatch[1];
+        const storyId = folderMatch[1] || 'unknown';
         if (this.worktrees.has(storyId)) {
           continue;
         }
 
-        const branchName = (gitWorktree.branch || '').replace(/^refs\/heads\//, '');
+        const branchName = gitWorktree.branch
+          ? gitWorktree.branch.replace(/^refs\/heads\//, '')
+          : 'unknown';
 
         this.worktrees.set(storyId, {
           storyId,
