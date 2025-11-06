@@ -132,7 +132,7 @@ export class WorkflowEngine {
         if (!step) {
           throw new WorkflowExecutionError(
             'Step is undefined in workflow execution',
-            i
+            i + 1
           );
         }
 
@@ -217,7 +217,7 @@ export class WorkflowEngine {
         if (!step) {
           throw new WorkflowExecutionError(
             'Step is undefined in workflow resume',
-            i
+            i + 1
           );
         }
 
