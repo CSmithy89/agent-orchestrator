@@ -20,9 +20,9 @@ import { logger } from '../utils/logger.js';
  */
 export enum EscalationLevel {
   /** Log warning and continue */
-  WARNING = 'warning'
+  WARNING = 'warning',
   /** Pause workflow and notify user */
-  ESCALATION = 'escalation'
+  ESCALATION = 'escalation',
   /** Stop orchestrator, require manual intervention */
   CRITICAL = 'critical'
 }
