@@ -18,7 +18,6 @@ import {
   CostDashboard,
   CostReport,
   AlertRecord,
-  BudgetExceededError,
   TokenUsage,
   CachedPrompt,
   OptimizationStrategy

@@ -4,7 +4,7 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { CostQualityOptimizer } from '../../src/core/CostQualityOptimizer.js';
-import { BudgetConfig, BudgetExceededError } from '../../src/types/cost.types.js';
+import { BudgetConfig } from '../../src/types/cost.types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
