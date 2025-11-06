@@ -2,13 +2,17 @@
  * Unit tests for RetryHandler
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { RetryHandler, retry } from '../../src/core/RetryHandler.js';
 import { RetryableError, FatalError } from '../../src/types/errors.types.js';
 
 describe('RetryHandler', () => {
   beforeEach(() => {
     vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe('constructor', () => {
@@ -81,9 +85,11 @@ describe('RetryHandler', () => {
       const operation = vi.fn().mockRejectedValue(error);
 
       const promise = handler.executeWithRetry(operation, 'test operation');
-      await vi.runAllTimersAsync();
 
+      // Advance timers and catch the rejection properly
+      await vi.runAllTimersAsync();
       await expect(promise).rejects.toThrow('Operation failed after 2 retries');
+
       expect(operation).toHaveBeenCalledTimes(3); // Initial + 2 retries
     });
 
@@ -128,8 +134,11 @@ describe('RetryHandler', () => {
 
       // Should retry this error
       const promise1 = handler.executeWithRetry(operation1);
+
+      // Advance timers and catch the rejection properly
       await vi.runAllTimersAsync();
       await expect(promise1).rejects.toThrow();
+
       expect(operation1).toHaveBeenCalledTimes(4); // Initial + 3 retries
 
       // Should not retry this error
@@ -173,7 +182,7 @@ describe('RetryHandler', () => {
       });
 
       const delays: number[] = [];
-      const onRetry = vi.fn((error, attempt, delay) => {
+      const onRetry = vi.fn((_error, _attempt, delay) => {
         delays.push(delay);
       });
 
@@ -182,6 +191,8 @@ describe('RetryHandler', () => {
       const operation = vi.fn().mockRejectedValue(new RetryableError('Error', 'TEST'));
 
       const promise = handler.executeWithRetry(operation);
+
+      // Advance timers and catch the rejection properly
       await vi.runAllTimersAsync();
       await expect(promise).rejects.toThrow();
 

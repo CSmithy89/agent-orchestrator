@@ -153,7 +153,7 @@ describe('ProjectConfig', () => {
 
     expect(costConfig.max_monthly_budget).toBe(1000);
     expect(costConfig.alert_threshold).toBe(0.8);
-    expect(costConfig.fallback_model).toBe('claude-haiku-3-5');
+    expect(costConfig.fallback_model).toBe('claude-haiku');
   });
 
   it('should return project metadata', async () => {

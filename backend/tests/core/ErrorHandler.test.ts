@@ -119,8 +119,8 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, then verify rejection without retry
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
+
       expect(operation).toHaveBeenCalledTimes(1);
     });
 
@@ -138,8 +138,8 @@ describe('ErrorHandler', () => {
       // Start operation, flush all retry timers, then verify escalation occurred
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
+
       expect(onEscalation).toHaveBeenCalled();
     });
 
@@ -151,7 +151,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, then verify metrics were updated
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
 
       const metrics = handler.getErrorMetrics();
@@ -169,7 +168,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, then verify rejection
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
     });
 
@@ -181,7 +179,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, then verify rejection
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow(RetryableError);
     });
 
@@ -193,7 +190,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, then verify rejection
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow(FatalError);
     });
   });
@@ -212,7 +208,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, verify rejection and escalation
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
 
       expect(onEscalation).toHaveBeenCalledWith(
@@ -241,7 +236,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, verify CRITICAL escalation for auth errors
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
 
       expect(onEscalation).toHaveBeenCalledWith(
@@ -272,7 +266,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers, verify suggested actions are provided
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
 
       expect(onEscalation).toHaveBeenCalledWith(
@@ -302,7 +295,6 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers to allow recovery attempt, verify rejection
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
 
       // Recovery attempted but failed (no fallback provider)
@@ -329,8 +321,8 @@ describe('ErrorHandler', () => {
       // Start operation, flush timers to allow recovery attempt, verify rejection
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
-
       await expect(promise).rejects.toThrow();
+
       // Note: sleep mock ensures any recovery delays don't create orphaned timers
     });
   });

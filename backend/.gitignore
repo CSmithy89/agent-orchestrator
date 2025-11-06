@@ -1,6 +1,9 @@
 # Test temporary directories
 test-*/
 
+# Test artifacts
+output.md
+
 # Node modules
 node_modules/
 
