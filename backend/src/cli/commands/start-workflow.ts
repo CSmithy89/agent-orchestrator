@@ -22,14 +22,23 @@ interface StartWorkflowOptions {
  */
 export async function startWorkflow(options: StartWorkflowOptions): Promise<void> {
   try {
-    const { project: projectId, workflow: workflowPath, yolo } = options;
+    const { project: projectIdInput, workflow: workflowPath, yolo } = options;
+
+    // Validate project exists
+    const projectRoot = process.cwd();
+    const canonicalProjectId = path.basename(projectRoot);
+
+    // Validate that the provided project ID matches the canonical one
+    if (projectIdInput && projectIdInput !== canonicalProjectId) {
+      throw new ProjectNotFoundError(projectIdInput);
+    }
+
+    const projectId = canonicalProjectId;
 
     console.log(colors.header(`\n🚀 Starting Workflow`));
     console.log(colors.info(`   Project: ${projectId}`));
     console.log(colors.info(`   Workflow: ${workflowPath}\n`));
 
-    // Validate project exists
-    const projectRoot = process.cwd();
     const configPath = path.join(projectRoot, '.bmad', 'project-config.yaml');
 
     try {

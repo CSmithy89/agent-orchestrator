@@ -65,7 +65,10 @@ export async function listProjects(): Promise<void> {
       // Format table row
       const idPadded = projectId.padEnd(18).substring(0, 18);
       const namePadded = projectName.padEnd(18).substring(0, 18);
-      const phasePadded = phase.substring(phase.indexOf(':') + 2).padEnd(15).substring(0, 15);
+      const phaseLabel = phase.includes(':')
+        ? phase.split(':', 2)[1]!.trimStart()
+        : phase;
+      const phasePadded = phaseLabel.padEnd(15).substring(0, 15);
 
       console.log(`│ ${colors.info(idPadded)}│ ${colors.info(namePadded)}│ ${colors.info(phasePadded)}│ ${statusColor(statusText.padEnd(8))}│`);
     } else {

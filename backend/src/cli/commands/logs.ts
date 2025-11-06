@@ -8,6 +8,53 @@ import * as path from 'path';
 import { colors, logLevelColors } from '../utils/colors.js';
 import { handleError, exitWithCode } from '../utils/error-handler.js';
 
+/**
+ * Read last N lines from a file efficiently
+ * For large files, only reads the trailing portion to avoid memory issues
+ */
+async function readLastLines(filePath: string, lineCount: number): Promise<string[]> {
+  const stats = await fs.stat(filePath);
+  const fileSize = stats.size;
+
+  // For small files (< 1MB), just read the whole thing
+  if (fileSize < 1024 * 1024) {
+    const content = await fs.readFile(filePath, 'utf-8');
+    const lines = content.split('\n').filter(line => line.trim() !== '');
+    return lines.slice(-lineCount);
+  }
+
+  // For larger files, read only the trailing chunk
+  const fd = await fs.open(filePath, 'r');
+  try {
+    // Start with 64KB chunk, which should handle most reasonable tail requests
+    let chunkSize = Math.min(64 * 1024, fileSize);
+    const buffer = Buffer.alloc(chunkSize);
+
+    // Read from the end of the file
+    await fd.read(buffer, 0, chunkSize, Math.max(0, fileSize - chunkSize));
+
+    const text = buffer.toString('utf-8');
+    const lines = text.split('\n').filter(line => line.trim() !== '');
+
+    // If we got enough lines, return the tail
+    if (lines.length >= lineCount) {
+      return lines.slice(-lineCount);
+    }
+
+    // If not enough lines in chunk and file is larger, fall back to reading entire file
+    // (This handles edge case where lines are very long or we need more history)
+    if (fileSize > chunkSize) {
+      const fullContent = await fs.readFile(filePath, 'utf-8');
+      const allLines = fullContent.split('\n').filter(line => line.trim() !== '');
+      return allLines.slice(-lineCount);
+    }
+
+    return lines;
+  } finally {
+    await fd.close();
+  }
+}
+
 interface LogsOptions {
   project: string;
   tail?: string;
@@ -68,12 +115,8 @@ export async function logs(options: LogsOptions): Promise<void> {
       return;
     }
 
-    // Read log file
-    const logContents = await fs.readFile(logPath, 'utf-8');
-    const logLines = logContents.split('\n').filter(line => line.trim() !== '');
-
-    // Get last N lines
-    const displayLines = logLines.slice(-tailLines);
+    // Read last N lines efficiently (handles large files)
+    const displayLines = await readLastLines(logPath, tailLines);
 
     if (displayLines.length === 0) {
       console.log(colors.dim('   (Log file is empty)\n'));
