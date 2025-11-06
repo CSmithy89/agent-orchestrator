@@ -229,7 +229,7 @@ export class WorkflowExecutionError extends Error {
   constructor(
     message: string,
     public step?: number,
-    public cause?: Error,
+    public override cause?: Error,
     public context?: Record<string, any>
   ) {
     super(message);

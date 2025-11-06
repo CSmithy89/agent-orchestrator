@@ -21,7 +21,7 @@ export class BaseOrchestratorError extends Error {
   readonly retryCount: number;
 
   /** Original error that caused this error (if any) */
-  readonly cause?: Error;
+  override readonly cause?: Error;
 
   constructor(
     message: string,
@@ -30,7 +30,7 @@ export class BaseOrchestratorError extends Error {
     retryCount: number = 0,
     cause?: Error
   ) {
-    super(message, { cause });
+    super(message, { cause } as ErrorOptions);
     this.name = this.constructor.name;
     this.code = code;
     this.context = context || {};
