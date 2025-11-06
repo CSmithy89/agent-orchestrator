@@ -5,7 +5,7 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as _fs from 'fs/promises';
-import * as _path from 'path';
+import * as path from 'path';
 import type { WorkflowState as _WorkflowState } from '../../src/types/workflow.types.js';
 
 // Mock console methods
