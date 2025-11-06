@@ -226,6 +226,7 @@ export class AgentPool {
   /**
    * Process next queued task if available
    * Called after agent destruction to create waiting agents
+   * Drains the queue up to capacity, continuing even if individual tasks fail
    */
   private async processQueue(): Promise<void> {
     // Prevent concurrent queue processing
@@ -233,42 +234,38 @@ export class AgentPool {
       return;
     }
 
-    // Check if queue is empty
-    if (this.agentQueue.length === 0) {
-      return;
-    }
-
-    // Check if pool has capacity
-    if (this.activeAgents.size >= this.maxConcurrentAgents) {
-      return;
-    }
-
     // Set processing lock
     this.isProcessingQueue = true;
 
     try {
-      // Sort queue by priority (higher priority first), then by queued time (FIFO)
-      this.agentQueue.sort((a, b) => {
-        if (a.priority !== b.priority) {
-          return b.priority - a.priority; // Higher priority first
+      // Process tasks while capacity is available and queue is not empty
+      while (this.agentQueue.length > 0 && this.activeAgents.size < this.maxConcurrentAgents) {
+        // Sort queue by priority (higher priority first), then by queued time (FIFO)
+        this.agentQueue.sort((a, b) => {
+          if (a.priority !== b.priority) {
+            return b.priority - a.priority; // Higher priority first
+          }
+          return a.queuedAt.getTime() - b.queuedAt.getTime(); // Earlier queued first
+        });
+
+        // Get next task from queue
+        const task = this.agentQueue.shift();
+        if (!task) {
+          break;
         }
-        return a.queuedAt.getTime() - b.queuedAt.getTime(); // Earlier queued first
-      });
 
-      // Get next task from queue
-      const task = this.agentQueue.shift();
-      if (!task) {
-        return;
-      }
+        this.log(`Processing queued task for agent "${task.agentName}" (queued ${Date.now() - task.queuedAt.getTime()}ms ago)`);
 
-      this.log(`Processing queued task for agent "${task.agentName}" (queued ${Date.now() - task.queuedAt.getTime()}ms ago)`);
-
-      // Create the agent
-      try {
-        const agent = await this.createAgent(task.agentName, task.context);
-        task.resolve(agent);
-      } catch (error) {
-        task.reject(error as Error);
+        // Create the agent
+        try {
+          const agent = await this.createAgent(task.agentName, task.context);
+          task.resolve(agent);
+        } catch (error) {
+          // Reject this task but continue processing others
+          task.reject(error as Error);
+          this.log(`Failed to create queued agent "${task.agentName}": ${(error as Error).message}. Continuing with next queued task.`);
+          // Continue to next task - the slot is still free
+        }
       }
     } finally {
       // Always release the lock
