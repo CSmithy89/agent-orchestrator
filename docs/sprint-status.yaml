@@ -51,7 +51,7 @@ development_status:
   1-4-agent-pool-lifecycle-management: done
   1-5-state-manager-file-persistence: done
   1-6-git-worktree-manager-basic-operations: done
-  1-7-workflow-engine-step-executor: review
+  1-7-workflow-engine-step-executor: in-progress
   1-8-template-processing-system: ready-for-dev
   1-9-cli-foundation-basic-commands: ready-for-dev
   1-10-error-handling-recovery-infrastructure: ready-for-dev
