@@ -1,5 +1,18 @@
 /**
  * Unit tests for ErrorHandler
+ *
+ * Timer Management Strategy:
+ * - Uses Vitest fake timers to control async operations and prevent test timeouts
+ * - Mocks ErrorHandler.sleep() to avoid real delays during retry/recovery flows
+ * - Calls vi.runAllTimersAsync() before awaiting promises to flush all pending timers
+ *
+ * Pattern for async tests:
+ * 1. Start operation (returns promise)
+ * 2. Flush timers with vi.runAllTimersAsync()
+ * 3. Await promise or expect rejection
+ *
+ * This ensures that all timer-based operations (retries, delays) complete synchronously
+ * in tests, preventing race conditions and orphaned timers.
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
@@ -14,18 +27,24 @@ import { logger } from '../../src/utils/logger.js';
 
 describe('ErrorHandler', () => {
   let unhandledRejectionHandler: (reason: any) => void;
+  let expectedRejectionCount = 0;
 
   beforeEach(() => {
     vi.useFakeTimers();
+    expectedRejectionCount = 0;
+
     // Mock the sleep method to prevent orphaned async timers during recovery
+    // This allows tests to run synchronously with vi.runAllTimersAsync()
     vi.spyOn(ErrorHandler.prototype as any, 'sleep').mockResolvedValue(undefined);
+
     // Mock logger to suppress output and prevent unhandled rejection warnings
     vi.spyOn(logger, 'error').mockImplementation(() => {});
     vi.spyOn(logger, 'warn').mockImplementation(() => {});
     vi.spyOn(logger, 'info').mockImplementation(() => {});
 
     // Add unhandled rejection handler for expected test errors
-    // This handler specifically ignores errors from our ErrorHandler tests
+    // This handler tracks and suppresses expected errors from ErrorHandler tests
+    // while logging unexpected errors to prevent silent failures
     unhandledRejectionHandler = (reason: any) => {
       // Only suppress if it's one of our expected test error types
       const isExpectedError =
@@ -35,8 +54,10 @@ describe('ErrorHandler', () => {
          reason.message.includes('Rate limit') ||
          reason.message.includes('Auth failed'));
 
-      if (!isExpectedError) {
-        // Re-throw unexpected errors so they're not silently swallowed
+      if (isExpectedError) {
+        expectedRejectionCount++;
+      } else {
+        // Log unexpected errors so they're not silently swallowed
         console.error('Unexpected unhandled rejection in test:', reason);
       }
     };
@@ -71,6 +92,7 @@ describe('ErrorHandler', () => {
       const handler = new ErrorHandler();
       const operation = vi.fn().mockResolvedValue('success');
 
+      // Start operation, flush timers, then await result
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
       const result = await promise;
@@ -85,6 +107,7 @@ describe('ErrorHandler', () => {
         .mockRejectedValueOnce(new RetryableError('Transient error', 'TEST_ERROR'))
         .mockResolvedValue('success');
 
+      // Start operation, flush timers (including retry delay), then await result
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
       const result = await promise;
@@ -98,8 +121,7 @@ describe('ErrorHandler', () => {
       const error = new RetryableError('Error', 'TEST_ERROR');
       const operation = vi.fn().mockRejectedValue(error);
 
-      // Start operation first, then flush timers to handle any async operations
-      // This pattern prevents orphaned timers and ensures proper cleanup
+      // Start operation, flush timers, then verify rejection without retry
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -118,6 +140,7 @@ describe('ErrorHandler', () => {
       const error = new RetryableError('Persistent error', 'TEST_ERROR');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush all retry timers, then verify escalation occurred
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -130,6 +153,7 @@ describe('ErrorHandler', () => {
       const error = new RetryableError('Test error', 'TEST_ERROR');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, then verify metrics were updated
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -147,6 +171,7 @@ describe('ErrorHandler', () => {
       const error = new FatalError('Fatal error', 'FATAL');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, then verify rejection
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
 
@@ -158,6 +183,7 @@ describe('ErrorHandler', () => {
       const error = new Error('ECONNRESET: Connection reset');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, then verify rejection
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
 
@@ -169,6 +195,7 @@ describe('ErrorHandler', () => {
       const error = new Error('EACCES: Permission denied');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, then verify rejection
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
 
@@ -187,6 +214,7 @@ describe('ErrorHandler', () => {
       const error = new FatalError('Fatal error', 'FATAL');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, verify rejection and escalation
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -215,6 +243,7 @@ describe('ErrorHandler', () => {
       );
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, verify CRITICAL escalation for auth errors
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -245,6 +274,7 @@ describe('ErrorHandler', () => {
       );
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers, verify suggested actions are provided
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -262,6 +292,9 @@ describe('ErrorHandler', () => {
 
   describe('recovery strategies', () => {
     it('should attempt recovery for LLM errors', async () => {
+      // Get reference to the sleep spy created in beforeEach
+      const sleepSpy = vi.mocked((ErrorHandler.prototype as any).sleep);
+
       const handler = new ErrorHandler({
         enableRecovery: true,
         enableRetry: false
@@ -274,6 +307,7 @@ describe('ErrorHandler', () => {
       );
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers to allow recovery attempt, verify rejection
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
@@ -281,9 +315,14 @@ describe('ErrorHandler', () => {
 
       // Recovery attempted but failed (no fallback provider)
       expect(operation).toHaveBeenCalledTimes(1);
+      // Note: sleep may or may not be called depending on recovery strategy
+      // The mock ensures any sleep calls don't create orphaned timers
     });
 
     it('should attempt recovery for resource exhaustion', async () => {
+      // Get reference to the sleep spy created in beforeEach
+      const sleepSpy = vi.mocked((ErrorHandler.prototype as any).sleep);
+
       const handler = new ErrorHandler({
         enableRecovery: true,
         enableRetry: false
@@ -298,10 +337,12 @@ describe('ErrorHandler', () => {
       );
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Start operation, flush timers to allow recovery attempt, verify rejection
       const promise = handler.handleOperation(operation, 'test');
       await vi.runAllTimersAsync();
 
       await expect(promise).rejects.toThrow();
+      // Note: sleep mock ensures any recovery delays don't create orphaned timers
     });
   });
 
@@ -315,14 +356,17 @@ describe('ErrorHandler', () => {
       const op1 = vi.fn().mockRejectedValue(error1);
       const op2 = vi.fn().mockRejectedValue(error2);
 
+      // Execute first operation, flush timers, verify rejection
       const promise1 = handler.handleOperation(op1);
       await vi.runAllTimersAsync();
       await expect(promise1).rejects.toThrow();
 
+      // Execute second operation, flush timers, verify rejection
       const promise2 = handler.handleOperation(op2);
       await vi.runAllTimersAsync();
       await expect(promise2).rejects.toThrow();
 
+      // Verify both error types were tracked
       const metrics = handler.getErrorMetrics();
 
       expect(metrics.has('RetryableError')).toBe(true);
@@ -335,6 +379,7 @@ describe('ErrorHandler', () => {
       const error = new RetryableError('Error', 'TEST');
       const operation = vi.fn().mockRejectedValue(error);
 
+      // Execute operation and track error, then verify reset
       const promise = handler.handleOperation(operation);
       await vi.runAllTimersAsync();
       await expect(promise).rejects.toThrow();
