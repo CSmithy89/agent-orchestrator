@@ -399,16 +399,21 @@ export class WorkflowEngine {
 
   /**
    * Parse action tags from step content
+   * Excludes actions inside <check> blocks (those are parsed separately)
    * @param content Step content
    * @returns Array of actions
    */
   private parseActions(content: string): Action[] {
     const actions: Action[] = [];
 
+    // Remove <check> blocks from content before parsing actions
+    // This prevents actions inside check blocks from being executed unconditionally
+    const contentWithoutChecks = content.replace(WorkflowEngine.CHECK_REGEX, '');
+
     // Parse <action> tags - reset lastIndex for reuse
     WorkflowEngine.ACTION_REGEX.lastIndex = 0;
     let match: RegExpExecArray | null;
-    while ((match = WorkflowEngine.ACTION_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.ACTION_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'action',
         content: match[2].trim(),
@@ -418,7 +423,7 @@ export class WorkflowEngine {
 
     // Parse <ask> tags
     WorkflowEngine.ASK_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.ASK_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.ASK_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'ask',
         content: match[1].trim()
@@ -427,7 +432,7 @@ export class WorkflowEngine {
 
     // Parse <output> tags
     WorkflowEngine.OUTPUT_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.OUTPUT_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.OUTPUT_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'output',
         content: match[1].trim()
@@ -436,7 +441,7 @@ export class WorkflowEngine {
 
     // Parse <template-output> tags
     WorkflowEngine.TEMPLATE_OUTPUT_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.TEMPLATE_OUTPUT_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.TEMPLATE_OUTPUT_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'template-output',
         content: match[3].trim(),
@@ -446,7 +451,7 @@ export class WorkflowEngine {
 
     // Parse <elicit-required> tags
     WorkflowEngine.ELICIT_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.ELICIT_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.ELICIT_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'elicit-required',
         content: match[1].trim()
@@ -455,7 +460,7 @@ export class WorkflowEngine {
 
     // Parse <goto> tags
     WorkflowEngine.GOTO_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.GOTO_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.GOTO_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'goto',
         content: `Jump to step ${match[1]}`,
@@ -465,7 +470,7 @@ export class WorkflowEngine {
 
     // Parse <invoke-workflow> tags
     WorkflowEngine.INVOKE_WORKFLOW_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.INVOKE_WORKFLOW_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.INVOKE_WORKFLOW_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'invoke-workflow',
         content: `Invoke workflow ${match[1]}`,
@@ -475,7 +480,7 @@ export class WorkflowEngine {
 
     // Parse <invoke-task> tags
     WorkflowEngine.INVOKE_TASK_REGEX.lastIndex = 0;
-    while ((match = WorkflowEngine.INVOKE_TASK_REGEX.exec(content)) !== null) {
+    while ((match = WorkflowEngine.INVOKE_TASK_REGEX.exec(contentWithoutChecks)) !== null) {
       actions.push({
         type: 'invoke-task',
         content: `Invoke task ${match[1]}`,
