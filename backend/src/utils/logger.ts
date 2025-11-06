@@ -222,7 +222,8 @@ export class Logger {
   private logToConsole(entry: LogEntry): void {
     if (this.config.prettyPrint) {
       // Pretty print for development
-      const timestamp = entry.timestamp.split('T')[1].split('.')[0]; // HH:MM:SS
+      const timePart = entry.timestamp.split('T')[1];
+      const timestamp = timePart ? timePart.split('.')[0] : '00:00:00'; // HH:MM:SS
       const levelStr = this.colorizeLevel(entry.level);
       const contextStr = entry.context ? ` ${JSON.stringify(entry.context)}` : '';
 

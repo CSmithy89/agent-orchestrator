@@ -21,7 +21,7 @@ export class BaseOrchestratorError extends Error {
   readonly retryCount: number;
 
   /** Original error that caused this error (if any) */
-  readonly cause?: Error;
+  override readonly cause?: Error;
 
   constructor(
     message: string,
@@ -30,7 +30,7 @@ export class BaseOrchestratorError extends Error {
     retryCount: number = 0,
     cause?: Error
   ) {
-    super(message, { cause });
+    super(message, { cause } as ErrorOptions);
     this.name = this.constructor.name;
     this.code = code;
     this.context = context || {};
@@ -223,24 +223,34 @@ export class WorkflowParseError extends FatalError {
  * Workflow execution errors - errors during workflow execution
  */
 export class WorkflowExecutionError extends RetryableError {
-  readonly workflowName: string;
   readonly stepNumber?: number;
-  readonly stepName?: string;
 
   constructor(
     message: string,
-    code: string,
-    workflowName: string,
     stepNumber?: number,
-    stepName?: string,
-    context?: Record<string, any>,
-    retryCount: number = 0,
-    cause?: Error
+    cause?: Error,
+    context?: Record<string, any>
   ) {
-    super(message, code, { ...context, workflowName, stepNumber, stepName }, retryCount, cause);
-    this.workflowName = workflowName;
+    super(message, 'WORKFLOW_EXECUTION_ERROR', { ...context, stepNumber }, 0, cause);
     this.stepNumber = stepNumber;
-    this.stepName = stepName;
+  }
+}
+
+/**
+ * State management errors - errors during state operations
+ */
+export class StateManagerError extends FatalError {
+  readonly operation?: string;
+  readonly filePath?: string;
+
+  constructor(
+    message: string,
+    operation?: string,
+    filePath?: string
+  ) {
+    super(message, 'STATE_MANAGER_ERROR', { operation, filePath }, 0);
+    this.operation = operation;
+    this.filePath = filePath;
   }
 }
 

@@ -80,6 +80,8 @@ export async function listAgents(options: ListAgentsOptions): Promise<void> {
     // Display each agent
     for (const [, activities] of agentMap.entries()) {
       const latestActivity = activities[activities.length - 1];
+      if (!latestActivity) continue;
+
       const agentName = latestActivity.agentName.padEnd(16).substring(0, 16);
 
       // Determine model (placeholder - would come from agent config)
