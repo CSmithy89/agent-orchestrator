@@ -27,11 +27,11 @@ import { logger } from '../../src/utils/logger.js';
 
 describe('ErrorHandler', () => {
   let unhandledRejectionHandler: (reason: any) => void;
-  let expectedRejectionCount = 0;
+  let _expectedRejectionCount = 0;
 
   beforeEach(() => {
     vi.useFakeTimers();
-    expectedRejectionCount = 0;
+    _expectedRejectionCount = 0;
 
     // Mock the sleep method to prevent orphaned async timers during recovery
     // This allows tests to run synchronously with vi.runAllTimersAsync()
@@ -54,7 +54,7 @@ describe('ErrorHandler', () => {
         reason instanceof ResourceExhaustedError;
 
       if (isExpectedError) {
-        expectedRejectionCount++;
+        _expectedRejectionCount++;
       } else {
         // Log unexpected errors so they're not silently swallowed
         console.error('Unexpected unhandled rejection in test:', reason);
@@ -292,7 +292,7 @@ describe('ErrorHandler', () => {
   describe('recovery strategies', () => {
     it('should attempt recovery for LLM errors', async () => {
       // Get reference to the sleep spy created in beforeEach
-      const sleepSpy = vi.mocked((ErrorHandler.prototype as any).sleep);
+      const _sleepSpy = vi.mocked((ErrorHandler.prototype as any).sleep);
 
       const handler = new ErrorHandler({
         enableRecovery: true,
@@ -320,7 +320,7 @@ describe('ErrorHandler', () => {
 
     it('should attempt recovery for resource exhaustion', async () => {
       // Get reference to the sleep spy created in beforeEach
-      const sleepSpy = vi.mocked((ErrorHandler.prototype as any).sleep);
+      const _sleepSpy = vi.mocked((ErrorHandler.prototype as any).sleep);
 
       const handler = new ErrorHandler({
         enableRecovery: true,
