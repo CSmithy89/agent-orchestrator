@@ -334,6 +334,30 @@ export class StateManager {
       // Read YAML file
       const fileContents = await fs.readFile(yamlPath, 'utf-8');
 
+      // Define interface for raw YAML structure before Date conversion
+      interface RawYAMLState {
+        project: {
+          id: string;
+          name: string;
+          level: number;
+        };
+        currentWorkflow: string;
+        currentStep: number;
+        status: 'running' | 'paused' | 'completed' | 'error';
+        variables?: Record<string, unknown>;
+        agentActivity?: Array<{
+          agentId: string;
+          agentName: string;
+          action: string;
+          timestamp: string;
+          duration?: number;
+          status: 'started' | 'completed' | 'failed';
+          output?: string;
+        }>;
+        startTime: string;
+        lastUpdate: string;
+      }
+
       // Parse YAML
       const rawState = yaml.load(fileContents) as RawYAMLState;
 
