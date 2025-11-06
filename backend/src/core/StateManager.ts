@@ -334,7 +334,7 @@ export class StateManager {
       // Read YAML file
       const fileContents = await fs.readFile(yamlPath, 'utf-8');
 
-      // Parse YAML using the top-level RawYAMLState interface
+      // Parse YAML (RawYAMLState interface defined at top of file)
       const rawState = yaml.load(fileContents) as RawYAMLState;
 
       // Convert ISO strings back to Date objects
