@@ -113,7 +113,7 @@ export class WorkflowEngine {
         }
 
         // Evaluate step condition
-        if (step.condition && !this.evaluateCondition(step.condition, this.variables)) {
+        if (step.condition && !(await this.evaluateCondition(step.condition, this.variables))) {
           console.log(`[WorkflowEngine] Skipping step due to condition: ${step.condition}`);
           continue;
         }
@@ -190,7 +190,7 @@ export class WorkflowEngine {
         }
 
         // Evaluate step condition
-        if (step.condition && !this.evaluateCondition(step.condition, this.variables)) {
+        if (step.condition && !(await this.evaluateCondition(step.condition, this.variables))) {
           console.log(`[WorkflowEngine] Skipping step due to condition: ${step.condition}`);
           continue;
         }
@@ -234,7 +234,7 @@ export class WorkflowEngine {
         const resolvedContent = this.replaceVariables(action.content, this.variables);
 
         // Evaluate action condition
-        if (action.condition && !this.evaluateCondition(action.condition, this.variables)) {
+        if (action.condition && !(await this.evaluateCondition(action.condition, this.variables))) {
           console.log(`[WorkflowEngine] Skipping action due to condition: ${action.condition}`);
           continue;
         }
@@ -245,7 +245,7 @@ export class WorkflowEngine {
 
       // Execute conditional checks
       for (const check of step.checks || []) {
-        if (this.evaluateCondition(check.condition, this.variables)) {
+        if (await this.evaluateCondition(check.condition, this.variables)) {
           console.log(`[WorkflowEngine] Check passed: ${check.condition}`);
           for (const action of check.actions) {
             const resolvedContent = this.replaceVariables(action.content, this.variables);
@@ -547,7 +547,7 @@ export class WorkflowEngine {
    * @param context Execution context with variables
    * @returns Boolean result
    */
-  private evaluateCondition(condition: string, context: Record<string, any>): boolean {
+  private async evaluateCondition(condition: string, context: Record<string, any>): Promise<boolean> {
     try {
       // Replace variables in condition first
       const resolvedCondition = this.replaceVariables(condition, context);
@@ -558,8 +558,8 @@ export class WorkflowEngine {
         if (filePathMatch) {
           const filePath = filePathMatch[1].trim();
           try {
-            // Synchronous check for file existence
-            require('fs').accessSync(filePath);
+            // Async check for file existence
+            await fs.access(filePath);
             return true;
           } catch {
             return false;
@@ -572,7 +572,7 @@ export class WorkflowEngine {
         if (filePathMatch) {
           const filePath = filePathMatch[1].trim();
           try {
-            require('fs').accessSync(filePath);
+            await fs.access(filePath);
             return false;
           } catch {
             return true;
@@ -612,17 +612,19 @@ export class WorkflowEngine {
       // Handle logical operators
       if (resolvedCondition.includes(' AND ')) {
         const parts = resolvedCondition.split(' AND ');
-        return parts.every(part => this.evaluateCondition(part.trim(), context));
+        const results = await Promise.all(parts.map(part => this.evaluateCondition(part.trim(), context)));
+        return results.every(result => result);
       }
 
       if (resolvedCondition.includes(' OR ')) {
         const parts = resolvedCondition.split(' OR ');
-        return parts.some(part => this.evaluateCondition(part.trim(), context));
+        const results = await Promise.all(parts.map(part => this.evaluateCondition(part.trim(), context)));
+        return results.some(result => result);
       }
 
       if (resolvedCondition.startsWith('NOT ')) {
         const innerCondition = resolvedCondition.substring(4).trim();
-        return !this.evaluateCondition(innerCondition, context);
+        return !(await this.evaluateCondition(innerCondition, context));
       }
 
       // Handle comparison operators

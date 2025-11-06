@@ -22,126 +22,126 @@ So that BMAD workflows can run autonomously.
 
 ## Tasks / Subtasks
 
-- [ ] **Task 1**: Implement WorkflowEngine class structure (AC: #1)
-  - [ ] Create `backend/src/core/WorkflowEngine.ts`
-  - [ ] Define WorkflowEngine class with private state
-  - [ ] Initialize with workflow path parameter
-  - [ ] Load WorkflowParser from Story 1.2
-  - [ ] Load StateManager from Story 1.5
-  - [ ] Set up workflow execution context
-  - [ ] Document WorkflowEngine API with JSDoc comments
+- [x] **Task 1**: Implement WorkflowEngine class structure (AC: #1)
+  - [x] Create `backend/src/core/WorkflowEngine.ts`
+  - [x] Define WorkflowEngine class with private state
+  - [x] Initialize with workflow path parameter
+  - [x] Load WorkflowParser from Story 1.2
+  - [x] Load StateManager from Story 1.5
+  - [x] Set up workflow execution context
+  - [x] Document WorkflowEngine API with JSDoc comments
 
-- [ ] **Task 2**: Parse instructions.md and extract steps (AC: #2)
-  - [ ] Implement `parseInstructions(path: string): Promise<Step[]>` method
-  - [ ] Read instructions.md file from workflow config
-  - [ ] Parse XML-style step tags: `<step n="X" goal="...">`
-  - [ ] Extract step number, goal, and content
-  - [ ] Parse nested action tags: `<action>`, `<check>`, `<ask>`, etc.
-  - [ ] Build Step[] array with parsed structure
-  - [ ] Validate step numbers are sequential (1, 2, 3...)
-  - [ ] Handle malformed XML with clear error messages
+- [x] **Task 2**: Parse instructions.md and extract steps (AC: #2)
+  - [x] Implement `parseInstructions(path: string): Promise<Step[]>` method
+  - [x] Read instructions.md file from workflow config
+  - [x] Parse XML-style step tags: `<step n="X" goal="...">`
+  - [x] Extract step number, goal, and content
+  - [x] Parse nested action tags: `<action>`, `<check>`, `<ask>`, etc.
+  - [x] Build Step[] array with parsed structure
+  - [x] Validate step numbers are sequential (1, 2, 3...)
+  - [x] Handle malformed XML with clear error messages
 
-- [ ] **Task 3**: Implement step execution loop (AC: #1, #3)
-  - [ ] Implement `execute(): Promise<void>` method
-  - [ ] Parse workflow.yaml using WorkflowParser
-  - [ ] Load and parse instructions.md
-  - [ ] Initialize execution state (currentStep: 0, status: 'running')
-  - [ ] Execute steps sequentially (for i=0; i<steps.length; i++)
-  - [ ] Call executeStep(step) for each step
-  - [ ] Save state after each step completion via StateManager
-  - [ ] Update workflow status to 'completed' when done
-  - [ ] Handle errors during execution (log, save state, escalate)
+- [x] **Task 3**: Implement step execution loop (AC: #1, #3)
+  - [x] Implement `execute(): Promise<void>` method
+  - [x] Parse workflow.yaml using WorkflowParser
+  - [x] Load and parse instructions.md
+  - [x] Initialize execution state (currentStep: 0, status: 'running')
+  - [x] Execute steps sequentially (for i=0; i<steps.length; i++)
+  - [x] Call executeStep(step) for each step
+  - [x] Save state after each step completion via StateManager
+  - [x] Update workflow status to 'completed' when done
+  - [x] Handle errors during execution (log, save state, escalate)
 
-- [ ] **Task 4**: Variable substitution system (AC: #4)
-  - [ ] Implement `replaceVariables(text: string, vars: Record<string, any>): string` method
-  - [ ] Find all {{variable}} patterns in text
-  - [ ] Replace with actual values from workflow variables
-  - [ ] Support nested variables: {{user.name}}
-  - [ ] Support default values: {{variable|default}}
-  - [ ] Throw error for undefined variables (unless default provided)
-  - [ ] Handle special variables: {{date}}, {{project-root}}
-  - [ ] Preserve formatting after substitution
+- [x] **Task 4**: Variable substitution system (AC: #4)
+  - [x] Implement `replaceVariables(text: string, vars: Record<string, any>): string` method
+  - [x] Find all {{variable}} patterns in text
+  - [x] Replace with actual values from workflow variables
+  - [x] Support nested variables: {{user.name}}
+  - [x] Support default values: {{variable|default}}
+  - [x] Throw error for undefined variables (unless default provided)
+  - [x] Handle special variables: {{date}}, {{project-root}}
+  - [x] Preserve formatting after substitution
 
-- [ ] **Task 5**: Conditional logic handling (AC: #5)
-  - [ ] Implement `evaluateCondition(condition: string, context: any): boolean` method
-  - [ ] Parse condition expressions: "file exists", "variable == value"
-  - [ ] Support comparison operators: ==, !=, <, >, <=, >=
-  - [ ] Support logical operators: AND, OR, NOT
-  - [ ] Support boolean checks: variable is true/false
-  - [ ] Execute `<check if="condition">` blocks conditionally
-  - [ ] Skip block content if condition evaluates to false
-  - [ ] Handle nested check blocks correctly
+- [x] **Task 5**: Conditional logic handling (AC: #5)
+  - [x] Implement `evaluateCondition(condition: string, context: any): boolean` method
+  - [x] Parse condition expressions: "file exists", "variable == value"
+  - [x] Support comparison operators: ==, !=, <, >, <=, >=
+  - [x] Support logical operators: AND, OR, NOT
+  - [x] Support boolean checks: variable is true/false
+  - [x] Execute `<check if="condition">` blocks conditionally
+  - [x] Skip block content if condition evaluates to false
+  - [x] Handle nested check blocks correctly
 
-- [ ] **Task 6**: Special tag support (AC: #6)
-  - [ ] Implement `handleGoto(stepNumber: number): void` method
-  - [ ] Jump to specified step when <goto step="X"> encountered
-  - [ ] Validate target step exists
-  - [ ] Implement `invokeWorkflow(workflowPath: string, inputs: any): Promise<void>` method
-  - [ ] Load and execute nested workflow
-  - [ ] Pass inputs to nested workflow
-  - [ ] Wait for nested workflow completion
-  - [ ] Implement `invokeTask(taskPath: string, params: any): Promise<void>` method
-  - [ ] Load and execute task file
-  - [ ] Return task output to workflow
+- [x] **Task 6**: Special tag support (AC: #6)
+  - [x] Implement `handleGoto(stepNumber: number): void` method
+  - [x] Jump to specified step when <goto step="X"> encountered
+  - [x] Validate target step exists
+  - [x] Implement `invokeWorkflow(workflowPath: string, inputs: any): Promise<void>` method
+  - [x] Load and execute nested workflow
+  - [x] Pass inputs to nested workflow
+  - [x] Wait for nested workflow completion
+  - [x] Implement `invokeTask(taskPath: string, params: any): Promise<void>` method
+  - [x] Load and execute task file
+  - [x] Return task output to workflow
 
-- [ ] **Task 7**: State persistence integration (AC: #7)
-  - [ ] Integrate StateManager from Story 1.5
-  - [ ] Save workflow state after each step: `stateManager.saveState(currentState)`
-  - [ ] Update state fields:
+- [x] **Task 7**: State persistence integration (AC: #7)
+  - [x] Integrate StateManager from Story 1.5
+  - [x] Save workflow state after each step: `stateManager.saveState(currentState)`
+  - [x] Update state fields:
     - currentWorkflow: workflow path
     - currentStep: step number just completed
     - status: 'running' | 'paused' | 'completed' | 'error'
     - variables: current workflow variables
-  - [ ] Handle state save failures (log error, continue or halt)
-  - [ ] Auto-commit state changes to git (via StateManager)
+  - [x] Handle state save failures (log error, continue or halt)
+  - [x] Auto-commit state changes to git (via StateManager)
 
-- [ ] **Task 8**: Crash recovery and resume (AC: #8)
-  - [ ] Implement `resumeFromState(state: WorkflowState): Promise<void>` method
-  - [ ] Load workflow state from StateManager
-  - [ ] Determine last completed step: state.currentStep
-  - [ ] Skip to next step: currentStep + 1
-  - [ ] Restore workflow variables from state
-  - [ ] Resume execution from recovery point
-  - [ ] Handle case where state is corrupted (log error, restart from beginning)
-  - [ ] Validate state matches current workflow (same path)
+- [x] **Task 8**: Crash recovery and resume (AC: #8)
+  - [x] Implement `resumeFromState(state: WorkflowState): Promise<void>` method
+  - [x] Load workflow state from StateManager
+  - [x] Determine last completed step: state.currentStep
+  - [x] Skip to next step: currentStep + 1
+  - [x] Restore workflow variables from state
+  - [x] Resume execution from recovery point
+  - [x] Handle case where state is corrupted (log error, restart from beginning)
+  - [x] Validate state matches current workflow (same path)
 
-- [ ] **Task 9**: #yolo mode implementation (AC: #9)
-  - [ ] Add `yoloMode: boolean` parameter to constructor
-  - [ ] Detect #yolo mode from CLI or workflow config
-  - [ ] Skip optional steps (steps with optional="true" attribute)
-  - [ ] Skip all <ask> prompts (use defaults or skip)
-  - [ ] Skip <elicit-required> tags
-  - [ ] Auto-approve template-output checkpoints
-  - [ ] Log skipped steps for transparency
-  - [ ] Execute only critical steps
+- [x] **Task 9**: #yolo mode implementation (AC: #9)
+  - [x] Add `yoloMode: boolean` parameter to constructor
+  - [x] Detect #yolo mode from CLI or workflow config
+  - [x] Skip optional steps (steps with optional="true" attribute)
+  - [x] Skip all <ask> prompts (use defaults or skip)
+  - [x] Skip <elicit-required> tags
+  - [x] Auto-approve template-output checkpoints
+  - [x] Log skipped steps for transparency
+  - [x] Execute only critical steps
 
-- [ ] **Task 10**: Error handling and logging
-  - [ ] Implement comprehensive error handling for all operations
-  - [ ] Log workflow execution events:
+- [x] **Task 10**: Error handling and logging
+  - [x] Implement comprehensive error handling for all operations
+  - [x] Log workflow execution events:
     - Workflow started (workflow path, timestamp)
     - Step started (step number, goal)
     - Step completed (step number, duration)
     - Variable substitutions (before/after)
     - Conditional evaluations (condition, result)
     - Errors and exceptions (context, stack trace)
-  - [ ] Use structured logging (JSON format)
-  - [ ] Include correlation IDs for request tracing
-  - [ ] Handle parse errors with line numbers
-  - [ ] Classify errors: recoverable, retryable, escalation-required
+  - [x] Use structured logging (JSON format)
+  - [x] Include correlation IDs for request tracing
+  - [x] Handle parse errors with line numbers
+  - [x] Classify errors: recoverable, retryable, escalation-required
 
-- [ ] **Task 11**: Testing and validation
-  - [ ] Write unit tests for WorkflowEngine class
-  - [ ] Test parseInstructions() extracts steps correctly
-  - [ ] Test execute() runs steps sequentially
-  - [ ] Test replaceVariables() substitutes correctly
-  - [ ] Test evaluateCondition() handles all operators
-  - [ ] Test handleGoto() jumps to correct step
-  - [ ] Test invokeWorkflow() and invokeTask()
-  - [ ] Test state persistence after each step
-  - [ ] Test resumeFromState() resumes correctly
-  - [ ] Test #yolo mode skips optional steps
-  - [ ] Integration test: Run complete workflow end-to-end
-  - [ ] Test crash recovery scenario (save → crash → load → resume)
+- [x] **Task 11**: Testing and validation
+  - [x] Write unit tests for WorkflowEngine class
+  - [x] Test parseInstructions() extracts steps correctly
+  - [x] Test execute() runs steps sequentially
+  - [x] Test replaceVariables() substitutes correctly
+  - [x] Test evaluateCondition() handles all operators
+  - [x] Test handleGoto() jumps to correct step
+  - [x] Test invokeWorkflow() and invokeTask()
+  - [x] Test state persistence after each step
+  - [x] Test resumeFromState() resumes correctly
+  - [x] Test #yolo mode skips optional steps
+  - [x] Integration test: Run complete workflow end-to-end
+  - [x] Test crash recovery scenario (save → crash → load → resume)
 
 ## Dev Notes
 
