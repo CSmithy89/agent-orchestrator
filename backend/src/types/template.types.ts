@@ -14,7 +14,7 @@ export interface TemplateOptions {
    * Custom helper functions to register with the template engine
    * Key is the helper name, value is the helper function
    */
-  helpers?: Record<string, Function>;
+  helpers?: Record<string, (...args: any[]) => any>;
 
   /**
    * When true, throws error on undefined variables
@@ -48,7 +48,7 @@ export interface TemplateContext {
   /**
    * Helper functions available during rendering
    */
-  helpers: Record<string, Function>;
+  helpers: Record<string, (...args: any[]) => any>;
 
   /**
    * Path to the template file being processed (optional)

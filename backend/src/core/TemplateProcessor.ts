@@ -409,7 +409,7 @@ export class TemplateProcessor {
    * // In template: {{formatCurrency price}}
    * ```
    */
-  registerHelper(name: string, fn: Function): void {
+  registerHelper(name: string, fn: (...args: any[]) => any): void {
     this.handlebars.registerHelper(name, fn as any);
   }
 
