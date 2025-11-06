@@ -10,6 +10,8 @@ import { LLMFactory } from '../llm/LLMFactory.js';
 import { LLMClient } from '../llm/LLMClient.interface.js';
 import { LLMConfig } from '../types/llm.types.js';
 import { ProjectConfig } from '../config/ProjectConfig.js';
+import { CostQualityOptimizer } from './CostQualityOptimizer.js';
+import { BudgetExceededError } from '../types/cost.types.js';
 import {
   Agent,
   AgentContext,
@@ -59,17 +61,23 @@ export class AgentPool {
   /** Event listeners */
   private eventListeners: Map<AgentLifecycleEvent, Array<(payload: AgentEventPayload) => void>> = new Map();
 
+  /** Cost Quality Optimizer for intelligent model selection and cost tracking */
+  private costOptimizer?: CostQualityOptimizer;
+
   /**
    * Create AgentPool with dependency injection
    * @param llmFactory LLM factory for creating LLM clients
    * @param projectConfig Project configuration
    * @param config Optional pool configuration overrides
+   * @param costOptimizer Optional cost quality optimizer
    */
   constructor(
     private llmFactory: LLMFactory,
     private projectConfig: ProjectConfig,
-    config?: Partial<AgentPoolConfig>
+    config?: Partial<AgentPoolConfig>,
+    costOptimizer?: CostQualityOptimizer
   ) {
+    this.costOptimizer = costOptimizer;
     // Set default configuration
     this.config = {
       maxConcurrentAgents: config?.maxConcurrentAgents ?? 3,
@@ -139,16 +147,44 @@ export class AgentPool {
       );
     }
 
+    // Use cost optimizer for model selection if available
+    let selectedModel = agentConfig.model;
+    let selectedProvider = agentConfig.provider;
+    let modelReasoning = agentConfig.reasoning;
+
+    if (this.costOptimizer) {
+      // Check budget before creating agent
+      const budgetState = this.costOptimizer.checkBudgetConstraints();
+      if (budgetState.constraint === 'block') {
+        throw new BudgetExceededError(
+          `Monthly budget limit reached ($${budgetState.currentSpend.toFixed(2)}/$${budgetState.budgetLimit.toFixed(2)}). Cannot create new agents.`,
+          budgetState
+        );
+      }
+
+      // Analyze task complexity
+      const complexity = this.costOptimizer.analyzeComplexity(context.taskDescription);
+      this.log(`Task complexity for "${name}": ${complexity.level} (confidence: ${(complexity.confidence * 100).toFixed(0)}%)`);
+
+      // Get model recommendation
+      const recommendation = this.costOptimizer.recommendModel(complexity, budgetState);
+      selectedModel = recommendation.model;
+      selectedProvider = recommendation.provider;
+      modelReasoning = `${recommendation.reasoning} (cost optimizer selected ${recommendation.tier} tier)`;
+
+      this.log(`Cost optimizer recommendation: ${selectedModel} (${selectedProvider}) - ${recommendation.reasoning}`);
+    }
+
     // Validate provider and model
-    this.log(`Agent "${name}" configured with provider: ${agentConfig.provider}, model: ${agentConfig.model}`);
+    this.log(`Agent "${name}" configured with provider: ${selectedProvider}, model: ${selectedModel}`);
 
     // Create LLM config from agent config
     const llmConfig: LLMConfig = {
-      model: agentConfig.model,
-      provider: agentConfig.provider,
+      model: selectedModel,
+      provider: selectedProvider,
       base_url: agentConfig.base_url,
       api_key: agentConfig.api_key,
-      reasoning: agentConfig.reasoning
+      reasoning: modelReasoning
     };
 
     // Create LLM client via factory
@@ -337,6 +373,20 @@ export class AgentPool {
     // Update global cost tracking
     this.totalCost += invocationCost;
     this.costByAgent[agent.name] = (this.costByAgent[agent.name] || 0) + invocationCost;
+
+    // Track cost with optimizer if available
+    if (this.costOptimizer && tokenUsage) {
+      this.costOptimizer.trackCost(
+        agentId,
+        agent.llmClient.model,
+        {
+          inputTokens: tokenUsage.input_tokens,
+          outputTokens: tokenUsage.output_tokens,
+          cachedTokens: 0  // TODO: Add cached token support when available from LLM providers
+        },
+        agent.context.workflowState?.['currentPhase'] as string | undefined
+      );
+    }
 
     // Log invocation details (sanitized)
     this.log(
