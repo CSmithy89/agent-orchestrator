@@ -52,6 +52,8 @@ development_status:
   1-5-state-manager-file-persistence: done
   1-6-git-worktree-manager-basic-operations: done
   1-7-workflow-engine-step-executor: done
+  1-8-template-processing-system: ready-for-dev
+  1-9-cli-foundation-basic-commands: done
   1-8-template-processing-system: review
   1-9-cli-foundation-basic-commands: ready-for-dev
   1-10-error-handling-recovery-infrastructure: done
