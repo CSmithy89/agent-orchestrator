@@ -8,7 +8,6 @@ import { AgentPool } from '../../src/core/AgentPool.js';
 import { LLMFactory } from '../../src/llm/LLMFactory.js';
 import { ProjectConfig } from '../../src/config/ProjectConfig.js';
 import {
-  Agent,
   AgentContext,
   AgentPoolError,
   AgentLifecycleEvent
@@ -172,7 +171,7 @@ describe('AgentPool', () => {
     it('should queue agent when pool at capacity', async () => {
       // Create 2 agents to reach capacity
       const agent1 = await agentPool.createAgent('test-agent', mockContext);
-      const agent2 = await agentPool.createAgent('test-agent', mockContext);
+      const _agent2 = await agentPool.createAgent('test-agent', mockContext);
 
       // Third agent should be queued
       const agent3Promise = agentPool.createAgent('test-agent', mockContext);
@@ -317,7 +316,7 @@ describe('AgentPool', () => {
     it('should process queued tasks after destruction', async () => {
       // Fill pool
       const agent1 = await agentPool.createAgent('test-agent', mockContext);
-      const agent2 = await agentPool.createAgent('test-agent', mockContext);
+      const _agent2 = await agentPool.createAgent('test-agent', mockContext);
 
       // Queue an agent
       const agent3Promise = agentPool.createAgent('test-agent', mockContext);
@@ -351,7 +350,7 @@ describe('AgentPool', () => {
       await fs.writeFile(persona2Path, '# Other Agent');
 
       const agent1 = await agentPool.createAgent('test-agent', mockContext);
-      const agent2 = await agentPool.createAgent('other-agent', mockContext);
+      const _agent2 = await agentPool.createAgent('other-agent', mockContext);
 
       const filtered = agentPool.getActiveAgents({ name: 'test-agent' });
       expect(filtered).toHaveLength(1);
@@ -435,7 +434,7 @@ describe('AgentPool', () => {
 
   describe('Pool Statistics', () => {
     it('should return accurate pool stats', async () => {
-      const agent = await agentPool.createAgent('test-agent', mockContext);
+      const _agent = await agentPool.createAgent('test-agent', mockContext);
 
       const stats = agentPool.getStats();
       expect(stats.activeAgents).toBe(1);
@@ -446,7 +445,7 @@ describe('AgentPool', () => {
 
     it('should update stats after agent operations', async () => {
       const agent1 = await agentPool.createAgent('test-agent', mockContext);
-      const agent2 = await agentPool.createAgent('test-agent', mockContext);
+      const _agent2 = await agentPool.createAgent('test-agent', mockContext);
 
       let stats = agentPool.getStats();
       expect(stats.activeAgents).toBe(2);
