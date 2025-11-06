@@ -25,16 +25,9 @@
   "license": "UNLICENSED",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
-
-{
-  "dependencies": {
     "chalk": "^5.6.2",
     "commander": "^11.1.0",
     "handlebars": "^4.7.8",
-    // ... keep all other dependencies alphabetically
-  }
-}
-
     "js-yaml": "^4.1.0",
     "openai": "^4.20.0",
     "simple-git": "^3.20.0"

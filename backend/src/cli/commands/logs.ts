@@ -27,7 +27,7 @@ async function readLastLines(filePath: string, lineCount: number): Promise<strin
   const fd = await fs.open(filePath, 'r');
   try {
     // Start with 64KB chunk, which should handle most reasonable tail requests
-    let chunkSize = Math.min(64 * 1024, fileSize);
+    const chunkSize = Math.min(64 * 1024, fileSize);
     const buffer = Buffer.alloc(chunkSize);
 
     // Read from the end of the file
