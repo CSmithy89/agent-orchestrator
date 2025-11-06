@@ -195,7 +195,8 @@ export class WorkflowEngine {
 
       // Parse workflow config and instructions
       this.workflowConfig = await this.workflowParser.parseYAML(this.workflowPath);
-      const projectConfig = await ProjectConfig.loadConfig();
+      const configPath = path.join(this.projectRoot, '.bmad', 'project-config.yaml');
+      const projectConfig = await ProjectConfig.loadConfig(configPath);
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
         projectConfig
