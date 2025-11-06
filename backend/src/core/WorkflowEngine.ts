@@ -12,12 +12,13 @@ import {
   Action,
   Check,
   EngineOptions,
-  WorkflowExecutionError,
   ProjectInfo
 } from '../types/workflow.types.js';
+import { WorkflowExecutionError } from '../types/errors.types.js';
 import { WorkflowParser } from './WorkflowParser.js';
 import { StateManager } from './StateManager.js';
 import { ProjectConfig } from '../config/ProjectConfig.js';
+import { TemplateProcessor } from './TemplateProcessor.js';
 
 /**
  * WorkflowEngine class
@@ -27,6 +28,7 @@ export class WorkflowEngine {
   private workflowPath: string;
   private workflowParser: WorkflowParser;
   private stateManager: StateManager;
+  private templateProcessor: TemplateProcessor;
   private projectRoot: string;
   private yoloMode: boolean;
   private workflowConfig?: WorkflowConfig;
@@ -63,6 +65,11 @@ export class WorkflowEngine {
     this.yoloMode = options.yoloMode || false;
     this.workflowParser = options.workflowParser || new WorkflowParser(this.projectRoot);
     this.stateManager = options.stateManager || new StateManager(this.projectRoot);
+    this.templateProcessor = new TemplateProcessor({
+      basePath: this.projectRoot,
+      strictMode: true,
+      preserveWhitespace: true,
+    });
   }
 
   /**
@@ -78,7 +85,7 @@ export class WorkflowEngine {
       this.workflowConfig = await this.workflowParser.parseYAML(this.workflowPath);
 
       // Resolve variables
-      const projectConfig = new ProjectConfig(this.projectRoot);
+      const projectConfig = await ProjectConfig.loadConfig();
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
         projectConfig
@@ -180,7 +187,7 @@ export class WorkflowEngine {
 
       // Parse workflow config and instructions
       this.workflowConfig = await this.workflowParser.parseYAML(this.workflowPath);
-      const projectConfig = new ProjectConfig(this.projectRoot);
+      const projectConfig = await ProjectConfig.loadConfig();
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
         projectConfig
@@ -309,14 +316,46 @@ export class WorkflowEngine {
         console.log(`[WorkflowEngine] Output: ${resolvedContent}`);
         break;
 
-      case 'template-output':
-        if (!this.yoloMode) {
-          console.log(`[WorkflowEngine] Template output checkpoint: ${resolvedContent}`);
-          // In a real implementation, this would show template output for approval
-        } else {
-          console.log(`[WorkflowEngine] Auto-approving template output in YOLO mode`);
+      case 'template-output': {
+        // Extract file attribute and template content
+        const outputFile = action.attributes?.file;
+
+        if (!outputFile) {
+          console.warn(`[WorkflowEngine] template-output missing file attribute, skipping`);
+          break;
+        }
+
+        // Resolve variables in output file path
+        const resolvedOutputFile = this.replaceVariables(outputFile, this.variables);
+
+        try {
+          // Process template content with current variables
+          const processedContent = this.templateProcessor.processTemplate(
+            resolvedContent,
+            this.variables
+          );
+
+          // Write processed template to output file
+          await this.templateProcessor.writeOutput(
+            processedContent,
+            resolvedOutputFile
+          );
+
+          if (!this.yoloMode) {
+            console.log(`[WorkflowEngine] Template rendered: ${resolvedOutputFile}`);
+            console.log(`[WorkflowEngine] Template output checkpoint reached`);
+            // In a real implementation, this would show template output for approval
+          } else {
+            console.log(`[WorkflowEngine] Auto-approved template output: ${resolvedOutputFile}`);
+          }
+        } catch (error) {
+          console.error(`[WorkflowEngine] Template processing failed:`, error);
+          throw new WorkflowExecutionError(
+            `Failed to process template: ${(error as Error).message}`
+          );
         }
         break;
+      }
 
       case 'elicit-required':
         if (!this.yoloMode) {
@@ -365,7 +404,20 @@ export class WorkflowEngine {
 
       let match: RegExpExecArray | null;
       while ((match = WorkflowEngine.STEP_REGEX.exec(fileContents)) !== null) {
-        const [, numberStr, goal, optional, condition, content] = match;
+        const numberStr = match[1];
+        const goal = match[2];
+        const optional = match[3];
+        const condition = match[4];
+        const content = match[5];
+
+        if (!numberStr || !goal || !content) {
+          throw new WorkflowExecutionError(
+            'Invalid step format: missing required attributes',
+            undefined,
+            undefined,
+            { match: match[0] }
+          );
+        }
 
         steps.push({
           number: parseInt(numberStr, 10),
@@ -414,78 +466,94 @@ export class WorkflowEngine {
     WorkflowEngine.ACTION_REGEX.lastIndex = 0;
     let match: RegExpExecArray | null;
     while ((match = WorkflowEngine.ACTION_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'action',
-        content: match[2].trim(),
-        condition: match[1] || undefined
-      });
+      if (match[2]) {
+        actions.push({
+          type: 'action',
+          content: match[2].trim(),
+          condition: match[1] || undefined
+        });
+      }
     }
 
     // Parse <ask> tags
     WorkflowEngine.ASK_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.ASK_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'ask',
-        content: match[1].trim()
-      });
+      if (match[1]) {
+        actions.push({
+          type: 'ask',
+          content: match[1].trim()
+        });
+      }
     }
 
     // Parse <output> tags
     WorkflowEngine.OUTPUT_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.OUTPUT_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'output',
-        content: match[1].trim()
-      });
+      if (match[1]) {
+        actions.push({
+          type: 'output',
+          content: match[1].trim()
+        });
+      }
     }
 
     // Parse <template-output> tags
     WorkflowEngine.TEMPLATE_OUTPUT_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.TEMPLATE_OUTPUT_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'template-output',
-        content: match[3].trim(),
-        attributes: { file: match[1] || '' }
-      });
+      if (match[3]) {
+        actions.push({
+          type: 'template-output',
+          content: match[3].trim(),
+          attributes: { file: match[1] || '' }
+        });
+      }
     }
 
     // Parse <elicit-required> tags
     WorkflowEngine.ELICIT_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.ELICIT_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'elicit-required',
-        content: match[1].trim()
-      });
+      if (match[1]) {
+        actions.push({
+          type: 'elicit-required',
+          content: match[1].trim()
+        });
+      }
     }
 
     // Parse <goto> tags
     WorkflowEngine.GOTO_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.GOTO_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'goto',
-        content: `Jump to step ${match[1]}`,
-        attributes: { step: match[1] }
-      });
+      if (match[1]) {
+        actions.push({
+          type: 'goto',
+          content: `Jump to step ${match[1]}`,
+          attributes: { step: match[1] }
+        });
+      }
     }
 
     // Parse <invoke-workflow> tags
     WorkflowEngine.INVOKE_WORKFLOW_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.INVOKE_WORKFLOW_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'invoke-workflow',
-        content: `Invoke workflow ${match[1]}`,
-        attributes: { path: match[1] }
-      });
+      if (match[1]) {
+        actions.push({
+          type: 'invoke-workflow',
+          content: `Invoke workflow ${match[1]}`,
+          attributes: { path: match[1] }
+        });
+      }
     }
 
     // Parse <invoke-task> tags
     WorkflowEngine.INVOKE_TASK_REGEX.lastIndex = 0;
     while ((match = WorkflowEngine.INVOKE_TASK_REGEX.exec(contentWithoutChecks)) !== null) {
-      actions.push({
-        type: 'invoke-task',
-        content: `Invoke task ${match[1]}`,
-        attributes: { path: match[1] }
-      });
+      if (match[1]) {
+        actions.push({
+          type: 'invoke-task',
+          content: `Invoke task ${match[1]}`,
+          attributes: { path: match[1] }
+        });
+      }
     }
 
     return actions;
@@ -504,10 +572,14 @@ export class WorkflowEngine {
     let match: RegExpExecArray | null;
     while ((match = WorkflowEngine.CHECK_REGEX.exec(content)) !== null) {
       const condition = match[1];
-      const checkContent = match[2].trim();
+      const checkContent = match[2];
+
+      if (!condition || !checkContent) {
+        continue;
+      }
 
       // Parse actions within the check block
-      const checkActions = this.parseActions(checkContent);
+      const checkActions = this.parseActions(checkContent.trim());
 
       checks.push({
         condition,
@@ -585,7 +657,7 @@ export class WorkflowEngine {
       // Handle special conditions
       if (resolvedCondition.includes('file exists')) {
         const filePathMatch = resolvedCondition.match(/file\s+(.+?)\s+exists/);
-        if (filePathMatch) {
+        if (filePathMatch && filePathMatch[1]) {
           const filePath = filePathMatch[1].trim();
           try {
             // Async check for file existence
@@ -599,7 +671,7 @@ export class WorkflowEngine {
 
       if (resolvedCondition.includes('file not exists')) {
         const filePathMatch = resolvedCondition.match(/file\s+(.+?)\s+not exists/);
-        if (filePathMatch) {
+        if (filePathMatch && filePathMatch[1]) {
           const filePath = filePathMatch[1].trim();
           try {
             await fs.access(filePath);
@@ -612,14 +684,14 @@ export class WorkflowEngine {
 
       if (resolvedCondition.includes('is defined')) {
         const varMatch = resolvedCondition.match(/(\w+)\s+is defined/);
-        if (varMatch) {
+        if (varMatch && varMatch[1]) {
           return context[varMatch[1]] !== undefined;
         }
       }
 
       if (resolvedCondition.includes('is empty')) {
         const varMatch = resolvedCondition.match(/(\w+)\s+is empty/);
-        if (varMatch) {
+        if (varMatch && varMatch[1]) {
           const value = context[varMatch[1]];
           return value === undefined || value === null || value === '';
         }
@@ -627,14 +699,14 @@ export class WorkflowEngine {
 
       if (resolvedCondition.includes('is true')) {
         const varMatch = resolvedCondition.match(/(\w+)\s+is true/);
-        if (varMatch) {
+        if (varMatch && varMatch[1]) {
           return context[varMatch[1]] === true;
         }
       }
 
       if (resolvedCondition.includes('is false')) {
         const varMatch = resolvedCondition.match(/(\w+)\s+is false/);
-        if (varMatch) {
+        if (varMatch && varMatch[1]) {
           return context[varMatch[1]] === false;
         }
       }
@@ -661,7 +733,14 @@ export class WorkflowEngine {
       const comparisonRegex = /^(.+?)\s*(==|!=|<=|>=|<|>)\s*(.+?)$/;
       const comparisonMatch = resolvedCondition.match(comparisonRegex);
       if (comparisonMatch) {
-        const [, left, operator, right] = comparisonMatch;
+        const left = comparisonMatch[1];
+        const operator = comparisonMatch[2];
+        const right = comparisonMatch[3];
+
+        if (!left || !operator || !right) {
+          return false;
+        }
+
         const leftValue = this.parseValue(left.trim());
         const rightValue = this.parseValue(right.trim());
 

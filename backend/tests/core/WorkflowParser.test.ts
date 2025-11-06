@@ -7,7 +7,7 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { WorkflowParser } from '../../src/core/WorkflowParser.js';
-import { WorkflowParseError } from '../../src/types/workflow.types.js';
+import { WorkflowParseError } from '../../src/types/errors.types.js';
 import { ProjectConfig } from '../../src/config/ProjectConfig.js';
 
 describe('WorkflowParser', () => {

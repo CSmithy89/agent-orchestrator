@@ -12,6 +12,7 @@ import {
   StoryStatus,
   StateManagerError
 } from '../types/workflow.types.js';
+import { StateManagerError } from '../types/errors.types.js';
 
 /**
  * StateManager class - Singleton state manager

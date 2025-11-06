@@ -52,12 +52,12 @@ development_status:
   1-5-state-manager-file-persistence: done
   1-6-git-worktree-manager-basic-operations: done
   1-7-workflow-engine-step-executor: done
-  1-8-template-processing-system: ready-for-dev
-  1-9-cli-foundation-basic-commands: ready-for-dev
+  1-8-template-processing-system: done
+  1-9-cli-foundation-basic-commands: done
   1-10-error-handling-recovery-infrastructure: done
   1-11-test-framework-setup-infrastructure: done
   1-12-ci-cd-pipeline-configuration: done
-  1-13-cost-quality-optimizer-implementation: drafted
+  1-13-cost-quality-optimizer-implementation: done
   epic-1-retrospective: optional
 
   # Epic 2: Analysis Phase Automation

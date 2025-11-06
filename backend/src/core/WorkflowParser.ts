@@ -66,7 +66,7 @@ export class WorkflowParser {
         // Extract line number from YAML error
         const lineNumber = this.extractLineNumber(error);
         const err = new WorkflowParseError(
-          error.message,
+          `YAML parse error: ${error.message}`,
           'YAML_SYNTAX_ERROR',
           filePath,
           lineNumber
@@ -309,14 +309,17 @@ export class WorkflowParser {
         return value;
       }
       // If the entire string is a single placeholder, preserve the resolved type
-      if (matches.length === 1 && matches[0][0] === value) {
-        return replacer(matches[0][0], ...matches[0].slice(1));
+      const firstMatch = matches[0];
+      if (matches.length === 1 && firstMatch && firstMatch[0] === value) {
+        return replacer(firstMatch[0], ...firstMatch.slice(1));
       }
       // Otherwise, replace within the string and coerce to string
       let result = value;
       for (const match of matches) {
-        const resolved = replacer(match[0], ...match.slice(1));
-        result = result.replace(match[0], String(resolved));
+        if (match && match[0]) {
+          const resolved = replacer(match[0], ...match.slice(1));
+          result = result.replace(match[0], String(resolved));
+        }
       }
       return result;
     });
@@ -429,14 +432,24 @@ export class WorkflowParser {
 
       // Extract content for each step
       for (let i = 0; i < matches.length; i++) {
-        const { index, match } = matches[i];
-        const [fullMatch, numberStr, goal, optional, condition] = match;
+        const matchEntry = matches[i];
+        if (!matchEntry) continue;
+
+        const { index, match } = matchEntry;
+        const fullMatch = match[0];
+        const numberStr = match[1];
+        const goal = match[2];
+        const optional = match[3];
+        const condition = match[4];
+
+        if (!fullMatch || !numberStr || !goal) {
+          continue;
+        }
 
         // Find content between this step and the next
         const contentStart = index + fullMatch.length;
-        const contentEnd = i < matches.length - 1
-          ? matches[i + 1].index
-          : fileContents.length;
+        const nextMatch = matches[i + 1];
+        const contentEnd = nextMatch ? nextMatch.index : fileContents.length;
 
         const content = fileContents.slice(contentStart, contentEnd).trim();
 

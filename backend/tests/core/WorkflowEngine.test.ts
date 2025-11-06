@@ -8,7 +8,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { WorkflowEngine } from '../../src/core/WorkflowEngine.js';
 import { StateManager } from '../../src/core/StateManager.js';
-import { WorkflowExecutionError } from '../../src/types/workflow.types.js';
+import { WorkflowExecutionError } from '../../src/types/errors.types.js';
 
 describe('WorkflowEngine', () => {
   const testDir = path.join(__dirname, '__test_data__', 'workflow-engine');
