@@ -58,9 +58,6 @@ export interface AgentTask {
   /** Agent name to create */
   agentName: string;
 
-  /** LLM configuration for the agent (unused, will be loaded from project config) */
-  llmConfig: null;
-
   /** Agent context */
   context: AgentContext;
 

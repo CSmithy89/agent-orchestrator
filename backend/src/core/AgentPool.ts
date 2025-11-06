@@ -116,7 +116,6 @@ export class AgentPool {
         const task: AgentTask = {
           id: randomUUID(),
           agentName: name,
-          llmConfig: null, // Will be loaded when processing queue
           context,
           priority: 0, // Default FIFO priority
           queuedAt: new Date(),
