@@ -1,6 +1,6 @@
 # Story 2.1: Confidence-Based Decision Engine
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -161,7 +161,7 @@ interface Decision {
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- [Story Context XML](2-1-confidence-based-decision-engine.context.xml) - Generated 2025-11-07
 
 ### Agent Model Used
 
