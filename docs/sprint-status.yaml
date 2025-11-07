@@ -62,7 +62,7 @@ development_status:
 
   # Epic 2: Analysis Phase Automation
   epic-2: contexted  # Tech spec: docs/tech-spec-epic-2.md
-  2-0-dependency-migration: drafted  # Pre-story: Upgrade dependencies for Epic 2
+  2-0-dependency-migration: review  # Pre-story: Upgrade dependencies for Epic 2
   2-1-confidence-based-decision-engine: backlog
   2-2-escalation-queue-system: backlog
   2-3-mary-agent-business-analyst-persona: backlog
