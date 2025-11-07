@@ -106,7 +106,7 @@ interface DecisionRecord {
  */
 export class MaryAgent {
   /** Default path to Mary's persona file */
-  private static readonly DEFAULT_PERSONA_PATH = '../../../bmad/bmm/agents/mary.md';
+  private static readonly DEFAULT_PERSONA_PATH = '../../../../bmad/bmm/agents/mary.md';
 
   /** Escalation threshold (from DecisionEngine) */
   private static readonly ESCALATION_THRESHOLD = 0.75;
