@@ -1,0 +1,242 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/2-4-john-agent-product-manager-persona" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.4</storyId>
+    <title>John Agent - Product Manager Persona</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-4-john-agent-product-manager-persona.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>the orchestrator core</asA>
+    <iWant>a John agent that provides strategic product guidance</iWant>
+    <soThat>PRD workflows benefit from PM-level thinking</soThat>
+    <tasks>
+      - Task 1: Implement JohnAgent class structure (AC: #1, #2)
+      - Task 2: Implement specialized prompts for product management (AC: #3)
+      - Task 3: Implement defineProductVision() method (AC: #4)
+      - Task 4: Implement prioritizeFeatures() method (AC: #4)
+      - Task 5: Implement assessMarketFit() method (AC: #4)
+      - Task 6: Implement validateRequirementsViability() method (AC: #5, #6)
+      - Task 7: Implement generateExecutiveSummary() method (AC: #7)
+      - Task 8: **WRITE TESTS FIRST** - Unit tests for JohnAgent (AC: all) - **START HERE per ATDD**
+      - Task 9: Integration tests with Mary and PRD workflow (AC: #5, #8)
+      - Task 10: Create JohnAgent integration with AgentPool (AC: #8)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Load John persona from bmad/bmm/agents/pm.md
+    2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments (Anthropic, OpenAI, Zhipu, Google)
+    3. Specialized prompts for: product strategy, prioritization, roadmap planning
+    4. Methods: defineProductVision(), prioritizeFeatures(), assessMarketFit()
+    5. Validate Mary's requirements for business viability
+    6. Challenge scope creep and unrealistic timelines
+    7. Generate executive summaries and success metrics
+    8. Collaborate with Mary through shared workflow context
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-2.md" section="Story 2.4: John Agent - Product Manager Persona" relevance="Technical specification with all acceptance criteria and implementation details for Story 2.4" lines="762-774"/>
+
+      <doc path="docs/epics.md" section="Story 2.4: John Agent - Product Manager Persona" relevance="Epic-level story definition and acceptance criteria" lines="499-519"/>
+
+      <doc path="docs/architecture.md" section="2.2 Agent Layer" relevance="Agent architecture patterns, persona loading, LLM configuration" lines="320-380"/>
+
+      <doc path="docs/architecture.md" section="2.3.2 Autonomous Intelligence - Agent Layer" relevance="John Agent as Product Manager persona providing strategic validation" lines="494-539"/>
+
+      <doc path="bmad/bmm/agents/pm.md" relevance="John's existing persona definition (name='John', role='Product Manager') with communication style and principles"/>
+
+      <doc path="docs/stories/2-3-mary-agent-business-analyst-persona.md" section="Dev Agent Record - Completion Notes" relevance="Mary Agent implementation patterns, file structure, testing approach, integration patterns to follow" lines="489-512"/>
+
+      <doc path="docs/stories/2-3-mary-agent-business-analyst-persona.md" section="Senior Developer Review - Action Items" relevance="Pending review item: Mary+John collaboration tests to be completed in Story 2.4" lines="645-678"/>
+
+      <doc path="docs/stories/2-2-escalation-queue-system.md" section="Dev Agent Record - Completion Notes" relevance="EscalationQueue integration patterns, file structure conventions" lines="382-424"/>
+
+      <doc path="docs/stories/2-1-confidence-based-decision-engine.md" relevance="DecisionEngine integration pattern, ESCALATION_THRESHOLD=0.75, confidence scoring approach"/>
+    </docs>
+
+    <code>
+      <artifact path="backend/src/core/agents/mary-agent.ts" kind="service" symbol="MaryAgent" reason="Parallel agent to John, provides implementation pattern for agent class structure, method signatures, LLM integration, error handling (Story 2.3)"/>
+
+      <artifact path="backend/tests/core/agents/MaryAgent.test.ts" kind="test" reason="Test patterns to follow for JohnAgent.test.ts - ATDD approach, mocking, test structure, 40+ test cases (Story 2.3)"/>
+
+      <artifact path="backend/tests/integration/mary-agent.test.ts" kind="test" reason="Integration test patterns for Mary+John collaboration tests (Task 9), 25+ test cases (Story 2.3)"/>
+
+      <artifact path="backend/src/core/AgentPool.ts" kind="service" symbol="AgentPool" reason="Agent lifecycle management and factory registration (Story 1.4)"/>
+
+      <artifact path="backend/src/core/LLMFactory.ts" kind="service" symbol="LLMFactory" reason="Multi-provider LLM instantiation (Anthropic, OpenAI, Zhipu, Google) - Story 1.3"/>
+
+      <artifact path="backend/src/core/services/decision-engine.ts" kind="service" symbol="DecisionEngine" reason="Confidence scoring integration for John's strategic decisions (Story 2.1)"/>
+
+      <artifact path="backend/src/core/services/escalation-queue.ts" kind="service" symbol="EscalationQueue" reason="Escalation integration when John's confidence < 0.75 (Story 2.2)"/>
+    </code>
+
+    <dependencies>
+      <dependency name="uuid" version="13.0.0" usage="ID generation (ESM-only, upgraded in Story 2.0)"/>
+      <dependency name="vitest" usage="Testing framework for unit and integration tests"/>
+      <dependency name="typescript" usage="Strict mode type safety, no 'any' types"/>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint category="architecture">
+      - Agent location: backend/src/core/agents/ (established by Story 2.3)
+      - Persona file location: bmad/bmm/agents/john.md (already exists as pm.md with name="John")
+      - Test location: backend/tests/core/agents/ for unit tests
+      - Integration test location: backend/tests/integration/
+      - Extend base Agent class from Story 1.4 (AgentPool)
+    </constraint>
+
+    <constraint category="testing">
+      - ATDD approach: Task 8 FIRST (write all tests before implementation)
+      - Target coverage: >80% (matching Mary Agent standard)
+      - Test structure: One describe block per AC/method
+      - Performance: All methods complete in <30 seconds
+      - Unit tests: 40+ test cases (following Mary's pattern)
+      - Integration tests: Mary ↔ John collaboration flow
+    </constraint>
+
+    <constraint category="integration">
+      - LLMFactory: Multi-provider support (Anthropic recommended)
+      - AgentPool: Register via factory pattern
+      - DecisionEngine: Confidence scoring for strategic decisions
+      - EscalationQueue: Escalate when confidence < 0.75
+      - Workflow context: Shared with Mary agent for collaboration
+    </constraint>
+
+    <constraint category="code-quality">
+      - TypeScript strict mode, no 'any' types
+      - JSDoc comments on all public methods
+      - Explicit return types
+      - ESM syntax with explicit .js extensions
+      - Error handling with exponential backoff retry
+      - Structured logging: [JohnAgent] method(inputSize) -> result
+    </constraint>
+
+    <constraint category="llm-configuration">
+      - Recommended provider: Anthropic (Claude Sonnet 4.5)
+      - Temperature: 0.5 (balanced strategy/creativity, same as Mary)
+      - Configuration source: .bmad/project-config.yaml agent_assignments section
+      - Support all providers: Anthropic, OpenAI, Zhipu, Google
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface name="JohnAgent" kind="class">
+      <description>Product Manager agent providing strategic product guidance</description>
+      <methods>
+        <method name="defineProductVision" signature="async defineProductVision(context: ProductContext): Promise&lt;ProductVision&gt;" purpose="Synthesize product vision from user requirements and market data"/>
+        <method name="prioritizeFeatures" signature="async prioritizeFeatures(features: Feature[], context: PrioritizationContext): Promise&lt;PrioritizedFeatures&gt;" purpose="Apply RICE/MoSCoW frameworks to rank features"/>
+        <method name="assessMarketFit" signature="async assessMarketFit(requirements: Requirements, marketData: MarketData): Promise&lt;MarketFitAssessment&gt;" purpose="Analyze product-market fit and business viability"/>
+        <method name="validateRequirementsViability" signature="async validateRequirementsViability(requirements: Requirements): Promise&lt;ValidationResult&gt;" purpose="Validate Mary's requirements for business viability, challenge scope creep"/>
+        <method name="generateExecutiveSummary" signature="async generateExecutiveSummary(prdContent: PRDContent): Promise&lt;ExecutiveSummary&gt;" purpose="Create concise executive summary from PRD content"/>
+      </methods>
+    </interface>
+
+    <interface name="ProductVision" kind="type">
+      <description>Output from defineProductVision method</description>
+      <fields>
+        <field name="visionStatement" type="string" purpose="Clear product vision statement"/>
+        <field name="targetUsers" type="string[]" purpose="Target user segments"/>
+        <field name="valueProposition" type="string" purpose="Core value proposition"/>
+        <field name="differentiation" type="string" purpose="Key differentiators from competitors"/>
+        <field name="confidence" type="number" purpose="Confidence score (0-1)"/>
+      </fields>
+    </interface>
+
+    <interface name="PrioritizedFeatures" kind="type">
+      <description>Output from prioritizeFeatures method</description>
+      <fields>
+        <field name="mvpFeatures" type="Feature[]" purpose="MVP-critical features"/>
+        <field name="growthFeatures" type="Feature[]" purpose="Post-MVP growth features"/>
+        <field name="scopeCreepRisks" type="string[]" purpose="Identified scope creep concerns"/>
+        <field name="rationale" type="string" purpose="Prioritization reasoning"/>
+      </fields>
+    </interface>
+
+    <interface name="MarketFitAssessment" kind="type">
+      <description>Output from assessMarketFit method</description>
+      <fields>
+        <field name="score" type="number" purpose="Market fit score (0-100)"/>
+        <field name="risks" type="string[]" purpose="Market risks identified"/>
+        <field name="opportunities" type="string[]" purpose="Market opportunities"/>
+        <field name="recommendations" type="string[]" purpose="Strategic recommendations"/>
+      </fields>
+    </interface>
+
+    <interface name="ValidationResult" kind="type">
+      <description>Output from validateRequirementsViability method</description>
+      <fields>
+        <field name="valid" type="boolean" purpose="Overall validation result"/>
+        <field name="concerns" type="string[]" purpose="Business viability concerns"/>
+        <field name="scopeCreepIndicators" type="string[]" purpose="Scope creep red flags"/>
+        <field name="timelineIssues" type="string[]" purpose="Unrealistic timeline flags"/>
+        <field name="recommendations" type="string[]" purpose="Recommendations for improvement"/>
+      </fields>
+    </interface>
+
+    <interface name="ExecutiveSummary" kind="type">
+      <description>Output from generateExecutiveSummary method</description>
+      <fields>
+        <field name="summary" type="string" purpose="1-2 paragraph executive summary"/>
+        <field name="keyMetrics" type="string[]" purpose="Key success metrics"/>
+        <field name="businessImpact" type="string" purpose="Expected business impact"/>
+        <field name="roi" type="string" purpose="ROI indicators"/>
+      </fields>
+    </interface>
+
+    <interface name="Agent (base class)" kind="class" source="Story 1.4">
+      <description>Base class from Epic 1, Story 1.4 - provides lifecycle, LLM client, context management</description>
+      <methods>
+        <method name="constructor" signature="constructor(name: string, role: string, llmClient: LLMClient, context: AgentContext)" purpose="Initialize agent with name, role, LLM, and context"/>
+        <method name="loadPersona" signature="loadPersona(personaPath: string): void" purpose="Load persona markdown from file"/>
+      </methods>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      - ATDD methodology: Write tests FIRST (Task 8), then implementation (Tasks 1-7)
+      - Test structure: describe blocks per AC/method, beforeEach/afterEach hooks
+      - Mocking: LLMFactory, AgentPool dependencies
+      - Coverage target: >80% for JohnAgent
+      - Performance: All methods <30 seconds execution time
+      - Test file naming: JohnAgent.test.ts (PascalCase for class tests)
+      - Integration tests: Separate file for Mary+John collaboration
+    </standards>
+
+    <locations>
+      - Unit tests: backend/tests/core/agents/JohnAgent.test.ts
+      - Integration tests: backend/tests/integration/john-mary-collaboration.test.ts
+      - Run tests: npm run test -- JohnAgent.test.ts
+      - Watch mode: npm run test:watch
+      - Coverage: npm run test:coverage
+    </locations>
+
+    <ideas>
+      - Test persona loading from bmad/bmm/agents/pm.md (AC #1)
+      - Test multi-provider LLM configuration (Anthropic, OpenAI, Zhipu, Google) - AC #2
+      - Test defineProductVision returns valid ProductVision with all fields (AC #4)
+      - Test prioritizeFeatures correctly ranks features MVP vs growth (AC #4)
+      - Test prioritizeFeatures identifies scope creep risks (AC #6)
+      - Test assessMarketFit returns MarketFitAssessment with score/risks (AC #4)
+      - Test validateRequirementsViability flags scope creep indicators (AC #6)
+      - Test validateRequirementsViability identifies unrealistic timelines (AC #6)
+      - Test validateRequirementsViability validates Mary's requirements (AC #5)
+      - Test generateExecutiveSummary creates concise 1-2 paragraph summary (AC #7)
+      - Test collaboration with Mary via shared workflow context (AC #8)
+      - Test confidence scoring integration with DecisionEngine
+      - Test escalation trigger when confidence < 0.75
+      - Test error handling with exponential backoff retry
+      - Test structured logging format [JohnAgent] method(inputSize) -> result
+      - Integration test: Mary analyzes requirements → John validates for viability
+      - Integration test: John challenges scope creep in Mary's requirements
+      - Integration test: John generates executive summary from Mary's PRD content
+      - Integration test: Verify Mary+John collaboration through shared workflow context (Story 2.3 pending item)
+    </ideas>
+  </tests>
+</story-context>

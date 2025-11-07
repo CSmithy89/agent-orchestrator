@@ -380,7 +380,7 @@ Story 2.4: Brief description of changes
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+docs/stories/2-4-john-agent-product-manager-persona.context.xml
 
 ### Agent Model Used
 
