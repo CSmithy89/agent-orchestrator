@@ -9,7 +9,7 @@
  * Tests will be skipped if API keys are not available.
  */
 
-import { describe, it, expect, beforeEach, beforeAll, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, afterEach } from 'vitest';
 import { DecisionEngine } from '../../src/core/services/decision-engine.js';
 import { LLMFactory } from '../../src/llm/LLMFactory.js';
 import { AnthropicProvider } from '../../src/llm/providers/AnthropicProvider.js';
