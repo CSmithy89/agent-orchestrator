@@ -1,6 +1,6 @@
 # Story 2.2: Escalation Queue System
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -257,7 +257,7 @@ class EscalationQueue {
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- [Story Context XML](2-2-escalation-queue-system.context.xml) - Generated 2025-11-07
 
 ### Agent Model Used
 
