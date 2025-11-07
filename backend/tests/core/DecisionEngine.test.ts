@@ -154,10 +154,10 @@ describe('DecisionEngine', () => {
       // Mock onboarding directory exists
       vi.mocked(fs.stat).mockResolvedValue({
         isDirectory: () => true
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof fs.stat>>);
 
       // Mock onboarding file exists
-      vi.mocked(fs.readdir).mockResolvedValue(['setup.md'] as any);
+      vi.mocked(fs.readdir).mockResolvedValue(['setup.md'] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
       vi.mocked(fs.readFile).mockResolvedValue('How to set up the project: Run npm install');
 
       const decision = await decisionEngine.attemptAutonomousDecision(
@@ -209,9 +209,9 @@ describe('DecisionEngine', () => {
     it('should only process markdown files from onboarding directory', async () => {
       vi.mocked(fs.stat).mockResolvedValue({
         isDirectory: () => true
-      } as any);
+      } as unknown as Awaited<ReturnType<typeof fs.stat>>);
 
-      vi.mocked(fs.readdir).mockResolvedValue(['doc.md', 'image.png', 'script.sh'] as any);
+      vi.mocked(fs.readdir).mockResolvedValue(['doc.md', 'image.png', 'script.sh'] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
       vi.mocked(fs.readFile).mockResolvedValue('Onboarding content with relevant keywords question');
 
       // readFile should only be called for .md files
@@ -383,8 +383,8 @@ describe('DecisionEngine', () => {
     it('should not escalate for onboarding doc answers (confidence 0.95)', async () => {
       vi.mocked(fs.stat).mockResolvedValue({
         isDirectory: () => true
-      } as any);
-      vi.mocked(fs.readdir).mockResolvedValue(['doc.md'] as any);
+      } as unknown as Awaited<ReturnType<typeof fs.stat>>);
+      vi.mocked(fs.readdir).mockResolvedValue(['doc.md'] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
       vi.mocked(fs.readFile).mockResolvedValue('Answer to the keywords question here');
 
       const decision = await decisionEngine.attemptAutonomousDecision(
@@ -446,8 +446,8 @@ describe('DecisionEngine', () => {
     it('should provide reasoning for onboarding doc decisions', async () => {
       vi.mocked(fs.stat).mockResolvedValue({
         isDirectory: () => true
-      } as any);
-      vi.mocked(fs.readdir).mockResolvedValue(['setup.md'] as any);
+      } as unknown as Awaited<ReturnType<typeof fs.stat>>);
+      vi.mocked(fs.readdir).mockResolvedValue(['setup.md'] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
       vi.mocked(fs.readFile).mockResolvedValue('Setup instructions for question');
 
       const decision = await decisionEngine.attemptAutonomousDecision(
@@ -541,8 +541,8 @@ describe('DecisionEngine', () => {
     it('should set source to "onboarding" for onboarding doc decisions', async () => {
       vi.mocked(fs.stat).mockResolvedValue({
         isDirectory: () => true
-      } as any);
-      vi.mocked(fs.readdir).mockResolvedValue(['doc.md'] as any);
+      } as unknown as Awaited<ReturnType<typeof fs.stat>>);
+      vi.mocked(fs.readdir).mockResolvedValue(['doc.md'] as unknown as Awaited<ReturnType<typeof fs.readdir>>);
       vi.mocked(fs.readFile).mockResolvedValue('Documentation content for question');
 
       const decision = await decisionEngine.attemptAutonomousDecision(
