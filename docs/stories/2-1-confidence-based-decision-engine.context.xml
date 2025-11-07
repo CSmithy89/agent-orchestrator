@@ -1,0 +1,264 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.1</storyId>
+    <title>Confidence-Based Decision Engine</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-1-confidence-based-decision-engine.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>autonomous workflow developer</asA>
+    <iWant>agents to assess their confidence in decisions and escalate when uncertain</iWant>
+    <soThat>the orchestrator balances autonomy with safety</soThat>
+    <tasks>
+      <task id="1" ac="1">
+        <title>Implement DecisionEngine class structure</title>
+        <subtasks>
+          <subtask>Create `src/core/services/decision-engine.ts` file</subtask>
+          <subtask>Define Decision interface with all required fields</subtask>
+          <subtask>Define DecisionEngine class with ESCALATION_THRESHOLD constant (0.75)</subtask>
+          <subtask>Add TypeScript types and JSDoc comments</subtask>
+        </subtasks>
+      </task>
+      <task id="2" ac="3">
+        <title>Implement onboarding docs lookup</title>
+        <subtasks>
+          <subtask>Create checkOnboardingDocs(question) private method</subtask>
+          <subtask>Search `.bmad/onboarding/` directory for relevant files</subtask>
+          <subtask>Use basic keyword matching to find explicit answers</subtask>
+          <subtask>Return answer with confidence 0.95 if found, null otherwise</subtask>
+          <subtask>Add error handling for missing onboarding directory</subtask>
+        </subtasks>
+      </task>
+      <task id="3" ac="4,5">
+        <title>Implement LLM reasoning decision logic</title>
+        <subtasks>
+          <subtask>Create useLLMReasoning(question, context) private method</subtask>
+          <subtask>Use LLMFactory to create LLM client with temperature 0.3</subtask>
+          <subtask>Construct prompt asking for decision + confidence assessment</subtask>
+          <subtask>Parse LLM response for: decision value, confidence score, reasoning</subtask>
+          <subtask>Assess confidence based on answer clarity, context sufficiency, response length</subtask>
+          <subtask>Return structured response: { value, confidence, reasoning }</subtask>
+        </subtasks>
+      </task>
+      <task id="4" ac="2,6,7,8">
+        <title>Implement attemptAutonomousDecision main method</title>
+        <subtasks>
+          <subtask>Create public attemptAutonomousDecision(question, context) method</subtask>
+          <subtask>Check onboarding docs first (Step 1)</subtask>
+          <subtask>If onboarding doc answer found: Return Decision with confidence 0.95</subtask>
+          <subtask>If not found: Call useLLMReasoning(question, context)</subtask>
+          <subtask>If confidence &lt; ESCALATION_THRESHOLD (0.75): Mark for escalation</subtask>
+          <subtask>Return complete Decision object with all fields</subtask>
+          <subtask>Log decision for audit trail</subtask>
+        </subtasks>
+      </task>
+      <task id="5" ac="all">
+        <title>Unit tests for DecisionEngine</title>
+        <subtasks>
+          <subtask>Test checkOnboardingDocs returns 0.95 confidence when answer found</subtask>
+          <subtask>Test checkOnboardingDocs returns null when no answer found</subtask>
+          <subtask>Test useLLMReasoning uses temperature 0.3</subtask>
+          <subtask>Test useLLMReasoning confidence scoring (0.0-1.0 range)</subtask>
+          <subtask>Test attemptAutonomousDecision returns proper Decision object</subtask>
+          <subtask>Test escalation trigger when confidence &lt; 0.75</subtask>
+          <subtask>Test audit trail tracking (all Decision fields populated)</subtask>
+          <subtask>Mock LLMFactory to control LLM responses</subtask>
+          <subtask>Achieve &gt;90% code coverage</subtask>
+        </subtasks>
+      </task>
+      <task id="6" ac="2,4">
+        <title>Integration tests with LLMFactory</title>
+        <subtasks>
+          <subtask>Test DecisionEngine works with Anthropic provider</subtask>
+          <subtask>Test DecisionEngine works with OpenAI provider</subtask>
+          <subtask>Test error handling for LLM API failures</subtask>
+          <subtask>Test retry logic integration (from Story 1.10)</subtask>
+          <subtask>Verify temperature 0.3 passed to LLM client</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Implement DecisionEngine class with confidence scoring</criterion>
+    <criterion id="2">attemptAutonomousDecision(question, context) returns Decision with confidence (0-1)</criterion>
+    <criterion id="3">Check onboarding docs first for explicit answers (confidence 0.95)</criterion>
+    <criterion id="4">Use LLM reasoning with low temperature (0.3) for decisions</criterion>
+    <criterion id="5">Assess confidence based on answer clarity and context sufficiency</criterion>
+    <criterion id="6">Escalate if confidence &lt; 0.75 (ESCALATION_THRESHOLD)</criterion>
+    <criterion id="7">Return decision value and reasoning for audit trail</criterion>
+    <criterion id="8">Track: question, decision, confidence, reasoning, outcome</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Analysis Phase Automation</title>
+        <section>Story 2.1: Confidence-Based Decision Engine</section>
+        <snippet>DecisionEngine provides confidence-based autonomous decision making. Checks onboarding docs first (0.95 confidence), falls back to LLM reasoning (temperature 0.3). Escalates if confidence &lt; 0.75 threshold. Returns Decision with question, decision, confidence, reasoning, source, timestamp, context.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Analysis Phase Automation</title>
+        <section>Decision Schema (Data Models and Contracts)</section>
+        <snippet>Decision interface: question (string), decision (any), confidence (0.0-1.0), reasoning (string), source ('onboarding' | 'llm'), timestamp (Date), context (Record&lt;string, any&gt;). Confidence scoring factors: answer clarity, context sufficiency, LLM certainty indicators.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>2.3.1 Decision Engine (Support Services)</section>
+        <snippet>DecisionEngine enables autonomous decisions with confidence-based escalation. ESCALATION_THRESHOLD = 0.75. Workflow: 1) Check onboarding docs, 2) Use LLM reasoning (temp 0.3), 3) Assess confidence, 4) Escalate if &lt;0.75. Audit trail logs all decisions with reasoning.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Story 2.1: Confidence-Based Decision Engine</section>
+        <snippet>Implement DecisionEngine class with confidence scoring (0-1). Check onboarding docs first (0.95), use LLM with temperature 0.3 for decisions. Escalate if confidence &lt; 0.75. Return decision value and reasoning for audit trail.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-0-dependency-migration.md</path>
+        <title>Story 2.0: Dependency Migration &amp; Environment Setup</title>
+        <section>Dev Agent Record - Completion Notes</section>
+        <snippet>Dependencies upgraded: @anthropic-ai/sdk v0.68.0, openai v6.8.1, uuid v13.0.0. LLMFactory tested with both Anthropic and OpenAI providers - no code changes needed. Test suite: 389 tests passing, patterns established in tests/integration/.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/llm/LLMFactory.ts</path>
+        <kind>service</kind>
+        <symbol>LLMFactory.createClient(config: LLMConfig)</symbol>
+        <lines>44-70</lines>
+        <reason>Creates LLM clients for DecisionEngine. Must pass temperature 0.3 in config for consistent reasoning.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/providers/AnthropicProvider.ts</path>
+        <kind>provider</kind>
+        <symbol>AnthropicProvider</symbol>
+        <lines>1-150</lines>
+        <reason>Anthropic SDK v0.68 integration. DecisionEngine will use this for Claude-based reasoning.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/providers/OpenAIProvider.ts</path>
+        <kind>provider</kind>
+        <symbol>OpenAIProvider</symbol>
+        <lines>1-150</lines>
+        <reason>OpenAI SDK v6.8 integration. DecisionEngine supports OpenAI GPT models as alternative.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/RetryHandler.ts</path>
+        <kind>service</kind>
+        <symbol>RetryHandler</symbol>
+        <lines>1-100</lines>
+        <reason>Exponential backoff retry logic for LLM API failures. DecisionEngine should integrate for reliability.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/llm.types.ts</path>
+        <kind>types</kind>
+        <symbol>LLMConfig, LLMError, LLMErrorType</symbol>
+        <lines>1-50</lines>
+        <reason>TypeScript types for LLM configuration. DecisionEngine will use LLMConfig to specify temperature 0.3.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/llm/LLMFactory.test.ts</path>
+        <kind>test</kind>
+        <symbol>LLMFactory tests</symbol>
+        <lines>1-200</lines>
+        <reason>Existing test patterns for LLMFactory. DecisionEngine tests should follow similar mocking approach.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@anthropic-ai/sdk" version="^0.68.0">Anthropic Claude API SDK - for LLM reasoning</package>
+        <package name="openai" version="^6.2.0">OpenAI GPT API SDK - alternative provider</package>
+        <package name="uuid" version="^13.0.0">UUID generation - may be useful for decision tracking</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler - strict mode enabled</package>
+        <package name="vitest" version="^1.0.0">Testing framework - for unit and integration tests</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Code coverage - target &gt;90%</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>DecisionEngine must use ESCALATION_THRESHOLD = 0.75 constant (architecture requirement)</constraint>
+    <constraint>LLM reasoning MUST use temperature 0.3 for consistent, deterministic decisions</constraint>
+    <constraint>Onboarding docs lookup returns confidence 0.95 when explicit answer found</constraint>
+    <constraint>LLM reasoning confidence range: 0.3-0.9 (based on clarity and context)</constraint>
+    <constraint>Decision interface must include all fields: question, decision, confidence, reasoning, source, timestamp, context</constraint>
+    <constraint>Must integrate with existing LLMFactory from Epic 1 Story 1.3</constraint>
+    <constraint>Must integrate with RetryHandler from Epic 1 Story 1.10 for LLM API reliability</constraint>
+    <constraint>File location: backend/src/core/services/decision-engine.ts (architecture specification)</constraint>
+    <constraint>TypeScript strict mode enabled - no 'any' types, explicit return types required</constraint>
+    <constraint>JSDoc comments required on all exported functions/classes</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Decision</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface Decision {
+  question: string;              // Original question requiring decision
+  decision: any;                 // Decision value (varies by question type)
+  confidence: number;            // 0.0-1.0, triggers escalation if &lt;0.75
+  reasoning: string;             // AI rationale for audit trail
+  source: 'onboarding' | 'llm';  // Onboarding doc (0.95) or LLM reasoning (0.3-0.9)
+  timestamp: Date;
+  context: Record&lt;string, any&gt;;  // Relevant context used in decision
+}
+      </signature>
+      <path>docs/tech-spec-epic-2.md</path>
+    </interface>
+    <interface>
+      <name>DecisionEngine.attemptAutonomousDecision</name>
+      <kind>Public method</kind>
+      <signature>
+async attemptAutonomousDecision(
+  question: string,
+  context: Record&lt;string, any&gt;
+): Promise&lt;Decision&gt;
+      </signature>
+      <path>docs/architecture.md</path>
+    </interface>
+    <interface>
+      <name>LLMFactory.createClient</name>
+      <kind>Factory method</kind>
+      <signature>
+async createClient(config: LLMConfig): Promise&lt;LLMClient&gt;
+// config.temperature must be 0.3 for DecisionEngine
+      </signature>
+      <path>backend/src/llm/LLMFactory.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Use Vitest testing framework (established in Epic 1). Follow test patterns from backend/tests/llm/LLMFactory.test.ts for mocking LLMFactory. Unit tests should mock LLMFactory to control responses. Integration tests should use real providers (Anthropic, OpenAI) with test API keys. Achieve &gt;90% code coverage for DecisionEngine (core component). Tests must verify all 8 acceptance criteria. Use describe/it pattern with clear test names. Arrange-Act-Assert structure for clarity.
+    </standards>
+    <locations>
+      <location>backend/tests/core/DecisionEngine.test.ts - Unit tests</location>
+      <location>backend/tests/integration/decision-engine.test.ts - Integration tests with LLMFactory</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test DecisionEngine class constructor and basic structure</idea>
+      <idea ac="2">Test attemptAutonomousDecision returns Decision object with correct structure</idea>
+      <idea ac="3">Test checkOnboardingDocs returns confidence 0.95 when file found with answer</idea>
+      <idea ac="3">Test checkOnboardingDocs returns null when no answer found</idea>
+      <idea ac="4">Test useLLMReasoning creates LLM client with temperature 0.3</idea>
+      <idea ac="5">Test confidence scoring based on answer clarity (certainty indicators)</idea>
+      <idea ac="5">Test confidence scoring based on context sufficiency</idea>
+      <idea ac="6">Test escalation flag set when confidence &lt; 0.75</idea>
+      <idea ac="6">Test no escalation when confidence &gt;= 0.75</idea>
+      <idea ac="7">Test Decision object includes reasoning string</idea>
+      <idea ac="8">Test all Decision fields populated: question, decision, confidence, reasoning, source, timestamp, context</idea>
+      <idea ac="integration">Test DecisionEngine with Anthropic provider end-to-end</idea>
+      <idea ac="integration">Test DecisionEngine with OpenAI provider end-to-end</idea>
+      <idea ac="integration">Test error handling for LLM API failures (401, 429, 500-599)</idea>
+      <idea ac="integration">Test retry logic integration from RetryHandler</idea>
+    </ideas>
+  </tests>
+</story-context>
