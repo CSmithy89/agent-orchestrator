@@ -14,6 +14,7 @@ import { logs } from './commands/logs.js';
 import { listProjects } from './commands/list-projects.js';
 import { listAgents } from './commands/list-agents.js';
 import { state } from './commands/state.js';
+import { runPRDWorkflow } from './commands/run-prd-workflow.js';
 import { colors } from './utils/colors.js';
 
 // Create CLI program
@@ -84,6 +85,16 @@ program
   .requiredOption('-p, --project <id>', 'Project ID')
   .option('--json', 'Output as JSON')
   .action(state);
+
+// PRD workflow command
+program
+  .command('run-prd-workflow')
+  .description('Execute PRD workflow to generate Product Requirements Document')
+  .option('--project-path <path>', 'Project root path (defaults to current directory)')
+  .option('--yolo', 'YOLO mode: skip elicitation and use defaults')
+  .option('--max-escalations <n>', 'Maximum escalations allowed', '3')
+  .option('--timeout <ms>', 'Workflow execution timeout in milliseconds', '1800000')
+  .action(runPRDWorkflow);
 
 // Custom help
 program.on('--help', () => {
