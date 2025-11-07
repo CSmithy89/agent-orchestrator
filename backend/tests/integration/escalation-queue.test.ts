@@ -9,18 +9,12 @@
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { EscalationQueue } from '../../src/core/services/escalation-queue.js';
-import { DecisionEngine, Decision } from '../../src/core/services/decision-engine.js';
-import { LLMFactory } from '../../src/llm/LLMFactory.js';
-import { LLMConfig } from '../../src/types/llm.types.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
 describe('EscalationQueue Integration Tests', () => {
   const testDir = '.bmad-escalations-integration-test';
   let escalationQueue: EscalationQueue;
-  let decisionEngine: DecisionEngine;
-  let llmFactory: LLMFactory;
-  let llmConfig: LLMConfig;
 
   beforeEach(async () => {
     // Clean up test directory
@@ -32,15 +26,6 @@ describe('EscalationQueue Integration Tests', () => {
 
     // Create EscalationQueue with test directory
     escalationQueue = new EscalationQueue(testDir);
-
-    // Create real LLMFactory and DecisionEngine (for integration testing)
-    llmConfig = {
-      provider: 'anthropic',
-      model: 'claude-sonnet-4-5'
-    };
-
-    // Note: DecisionEngine requires real LLMFactory which may not work in test env
-    // These tests focus on EscalationQueue integration patterns
   });
 
   afterEach(async () => {
@@ -144,7 +129,7 @@ describe('EscalationQueue Integration Tests', () => {
       });
 
       // Wait for all to complete
-      const [id1, id2, id3] = await Promise.all([
+      const [_id1, _id2, _id3] = await Promise.all([
         escalation1Promise,
         escalation2Promise,
         escalation3Promise
@@ -275,7 +260,7 @@ describe('EscalationQueue Integration Tests', () => {
         context: {}
       });
 
-      const id3 = await escalationQueue.add({
+      const _id3 = await escalationQueue.add({
         workflowId: 'arch-workflow',
         step: 1,
         question: 'Q3?',
