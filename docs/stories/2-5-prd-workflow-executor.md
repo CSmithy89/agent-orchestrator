@@ -1,6 +1,6 @@
 # Story 2.5: PRD Workflow Executor
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -480,7 +480,7 @@ Story 2.5: Brief description of changes
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+docs/stories/2-5-prd-workflow-executor.context.xml
 
 ### Agent Model Used
 

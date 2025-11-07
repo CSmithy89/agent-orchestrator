@@ -1,0 +1,301 @@
+<story-context id="2-5-prd-workflow-executor" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>5</storyId>
+    <title>PRD Workflow Executor</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-5-prd-workflow-executor.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user wanting automated requirements analysis</asA>
+    <iWant>to run the PRD workflow and get a complete PRD document</iWant>
+    <soThat>I can skip manual requirements documentation</soThat>
+    <tasks>
+      - Task 1: Implement PRDWorkflowExecutor class structure (AC: #1, #2)
+      - Task 2: Implement agent spawning integration (AC: #3, #4)
+      - Task 3: Implement step execution engine (AC: #2)
+      - Task 4: Implement template-output processing (AC: #5)
+      - Task 5: Implement elicit-required tag handling (AC: #6)
+      - Task 6: Integrate DecisionEngine for autonomous decisions (AC: #7)
+      - Task 7: Implement workflow completion and status updates (AC: #8, #9, #10)
+      - Task 8: WRITE TESTS FIRST - Unit tests for PRDWorkflowExecutor (AC: all) - START HERE per ATDD
+      - Task 9: Integration tests with Mary, John, and DecisionEngine (AC: all)
+      - Task 10: Create PRDWorkflowExecutor CLI command integration (AC: all)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Load bmad/bmm/workflows/prd/workflow.yaml
+    2. Execute all PRD workflow steps in order
+    3. Spawn Mary agent for requirements analysis
+    4. Spawn John agent for strategic validation
+    5. Process template-output tags by generating content and saving to PRD.md
+    6. Handle elicit-required tags (skip in #yolo mode)
+    7. Make autonomous decisions via DecisionEngine (target &lt;3 escalations)
+    8. Complete execution in &lt;30 minutes
+    9. Generate docs/PRD.md with all sections filled
+    10. Update workflow-status.yaml to mark PRD complete
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Story 2.5: PRD Workflow Executor</section>
+        <snippet>Defines all acceptance criteria for PRD workflow executor: Load workflow.yaml, execute steps in order, spawn Mary and John agents, process template-output tags, handle elicitation, make autonomous decisions via DecisionEngine (target &lt;3 escalations), complete in &lt;30 minutes, generate PRD.md, update workflow-status.yaml. Lines 776-788.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>1.1 High-Level Architecture - Workflow Plugins</section>
+        <snippet>PRDWorkflowExecutor is a Workflow Plugin in the Orchestrator Core (Microkernel pattern). Executes PRD workflow from bmad/bmm/workflows/prd/workflow.yaml. Integrates with Workflow Engine for step execution, AgentPool for spawning agents, DecisionEngine for autonomous decisions. Lines 75-84.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>2.1 Core Kernel - Workflow Engine</section>
+        <snippet>Workflow Engine (Epic 1, Story 1.7) provides base WorkflowExecutor class for parsing and executing workflow YAML configurations. Supports step execution, template processing, state management, and error recovery. Lines 320-380.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Analysis Phase Automation</section>
+        <snippet>PRD workflow enables autonomous requirements analysis by orchestrating Mary (Business Analyst) and John (Product Manager) agents. Generates complete PRD documents with minimal human intervention using confidence-based decision making.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-mary-agent-business-analyst-persona.md</path>
+        <title>Story 2.3: Mary Agent</title>
+        <section>Dev Agent Record</section>
+        <snippet>MaryAgent provides requirements analysis methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope(). Located at backend/src/core/agents/mary-agent.ts. Integrates with DecisionEngine for confidence scoring and EscalationQueue for low-confidence decisions. Temperature 0.3 for analytical reasoning.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-john-agent-product-manager-persona.md</path>
+        <title>Story 2.4: John Agent</title>
+        <section>Dev Agent Record</section>
+        <snippet>JohnAgent provides strategic validation methods: defineProductVision(), prioritizeFeatures(), assessMarketFit(), validateRequirementsViability(), generateExecutiveSummary(). Located at backend/src/core/agents/john-agent.ts. Collaborates with Mary via shared workflow context. Temperature 0.5 for balanced strategy/creativity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-1-confidence-based-decision-engine.md</path>
+        <title>Story 2.1: Decision Engine</title>
+        <section>Dev Notes</section>
+        <snippet>DecisionEngine provides attemptAutonomousDecision() method returning Decision with confidence score (0.0-1.0). Checks onboarding docs first (0.95 confidence), uses LLM reasoning (temperature 0.3) for uncertain decisions. Escalates when confidence &lt; 0.75. Located at backend/src/core/services/decision-engine.ts.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-2-escalation-queue-system.md</path>
+        <title>Story 2.2: Escalation Queue</title>
+        <section>Dev Notes</section>
+        <snippet>EscalationQueue provides add(), respond(), list(), getMetrics() methods. Saves escalations to .bmad-escalations/{id}.json files. Pauses workflow execution, notifies user, waits for response, then resumes. Located at backend/src/core/services/escalation-queue.ts.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/core/WorkflowEngine.ts</path>
+        <kind>service</kind>
+        <symbol>WorkflowEngine</symbol>
+        <lines>1-500</lines>
+        <reason>Base class for PRDWorkflowExecutor. Provides workflow YAML parsing, step execution engine, template processing, and state management. PRDWorkflowExecutor should extend this class.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>service</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-300</lines>
+        <reason>Agent lifecycle management service. PRDWorkflowExecutor uses AgentPool.spawn() to create MaryAgent and JohnAgent instances with configured LLMs. Handles agent initialization, cleanup, and resource management.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/mary-agent.ts</path>
+        <kind>agent</kind>
+        <symbol>MaryAgent</symbol>
+        <lines>1-693</lines>
+        <reason>Business Analyst persona agent. PRDWorkflowExecutor spawns Mary for requirements analysis. Methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope(). Returns structured analysis results for PRD generation.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/john-agent.ts</path>
+        <kind>agent</kind>
+        <symbol>JohnAgent</symbol>
+        <lines>1-766</lines>
+        <reason>Product Manager persona agent. PRDWorkflowExecutor spawns John for strategic validation. Methods: defineProductVision(), prioritizeFeatures(), assessMarketFit(), validateRequirementsViability(), generateExecutiveSummary(). Collaborates with Mary via shared context.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/decision-engine.ts</path>
+        <kind>service</kind>
+        <symbol>DecisionEngine</symbol>
+        <lines>1-400</lines>
+        <reason>Autonomous decision making service. PRDWorkflowExecutor uses attemptAutonomousDecision() for workflow decisions. Returns Decision with confidence score. Escalates when confidence &lt; 0.75 (AC #7).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/escalation-queue.ts</path>
+        <kind>service</kind>
+        <symbol>EscalationQueue</symbol>
+        <lines>1-350</lines>
+        <reason>Human-in-the-loop escalation service. PRDWorkflowExecutor uses add() to escalate low-confidence decisions, waitForResponse() to pause workflow, and respond() to resume after human input. Tracks escalation metrics (target &lt;3 per workflow run).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/WorkflowEngine.test.ts</path>
+        <kind>test</kind>
+        <symbol>WorkflowEngine tests</symbol>
+        <lines>1-400</lines>
+        <reason>Test patterns for workflow execution. PRDWorkflowExecutor tests should follow similar structure: describe blocks per AC, beforeEach setup, mocking dependencies (AgentPool, DecisionEngine, EscalationQueue), testing step execution order, error handling.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/agents/MaryAgent.test.ts</path>
+        <kind>test</kind>
+        <symbol>MaryAgent tests</symbol>
+        <lines>1-982</lines>
+        <reason>ATDD test patterns for agents. Shows how to test agent initialization, method signatures, LLM integration, confidence scoring, and error handling. PRDWorkflowExecutor integration tests should verify Mary spawning and requirements analysis flow.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/agents/JohnAgent.test.ts</path>
+        <kind>test</kind>
+        <symbol>JohnAgent tests</symbol>
+        <lines>1-982</lines>
+        <reason>ATDD test patterns for agents. Shows how to test agent collaboration via shared context. PRDWorkflowExecutor integration tests should verify John spawning and strategic validation flow, plus Mary-John collaboration.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/john-mary-collaboration.test.ts</path>
+        <kind>test</kind>
+        <symbol>Mary-John collaboration tests</symbol>
+        <lines>1-200</lines>
+        <reason>Integration test patterns for multi-agent workflows. Shows how to test shared workflow context, agent collaboration, and data flow between agents. Critical pattern for PRDWorkflowExecutor testing.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@anthropic-ai/sdk" version="^0.68.0" usage="LLM provider for Claude models" />
+        <package name="openai" version="^6.2.0" usage="LLM provider for GPT models" />
+        <package name="js-yaml" version="^4.1.0" usage="Parse workflow.yaml configuration files" />
+        <package name="handlebars" version="^4.7.8" usage="Template processing for PRD generation" />
+        <package name="simple-git" version="^3.20.0" usage="Git operations for worktree management" />
+        <package name="uuid" version="^13.0.0" usage="Generate unique IDs for escalations and workflow instances" />
+        <package name="vitest" version="^1.0.0" usage="Testing framework for unit and integration tests" />
+        <package name="typescript" version="^5.3.0" usage="Type safety and interfaces" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - PRDWorkflowExecutor must extend WorkflowEngine base class (Story 1.7)
+    - Use AgentPool.spawn() to create MaryAgent and JohnAgent instances (Story 1.4)
+    - Pass shared workflow context between Mary and John for collaboration (AC #8 from Story 2.4)
+    - Use DecisionEngine.attemptAutonomousDecision() for all workflow decisions (Story 2.1)
+    - Escalate to EscalationQueue when confidence &lt; 0.75, target &lt;3 escalations per run (AC #7)
+    - Handle elicit-required tags: skip in #yolo mode, prompt user in normal mode (AC #6)
+    - Generate PRD.md incrementally via template-output tag processing (AC #5)
+    - Update workflow-status.yaml on completion (AC #10)
+    - Total execution time must be &lt;30 minutes (AC #8)
+    - TypeScript strict mode: no 'any' types, use 'unknown' if needed
+    - All file paths must be project-relative (strip project root prefix)
+    - ESM imports with explicit .js extensions
+    - Follow ATDD approach: Write tests first (Task 8), then implement (Tasks 1-7)
+    - Target >80% test coverage for PRDWorkflowExecutor
+    - File location: backend/src/core/workflows/prd-workflow-executor.ts
+    - Test location: backend/tests/core/workflows/PRDWorkflowExecutor.test.ts
+    - Integration test location: backend/tests/integration/prd-workflow.test.ts
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>WorkflowEngine.executeStep()</name>
+      <kind>method</kind>
+      <signature>async executeStep(step: WorkflowStep): Promise&lt;StepResult&gt;</signature>
+      <path>backend/src/core/WorkflowEngine.ts</path>
+    </interface>
+    <interface>
+      <name>AgentPool.spawn()</name>
+      <kind>method</kind>
+      <signature>async spawn(agentType: string, context: AgentContext): Promise&lt;Agent&gt;</signature>
+      <path>backend/src/core/AgentPool.ts</path>
+    </interface>
+    <interface>
+      <name>MaryAgent.analyzeRequirements()</name>
+      <kind>method</kind>
+      <signature>async analyzeRequirements(context: AnalysisContext): Promise&lt;RequirementsDocument&gt;</signature>
+      <path>backend/src/core/agents/mary-agent.ts</path>
+    </interface>
+    <interface>
+      <name>JohnAgent.defineProductVision()</name>
+      <kind>method</kind>
+      <signature>async defineProductVision(context: ProductContext): Promise&lt;ProductVision&gt;</signature>
+      <path>backend/src/core/agents/john-agent.ts</path>
+    </interface>
+    <interface>
+      <name>JohnAgent.validateRequirementsViability()</name>
+      <kind>method</kind>
+      <signature>async validateRequirementsViability(requirements: Requirements): Promise&lt;ValidationResult&gt;</signature>
+      <path>backend/src/core/agents/john-agent.ts</path>
+    </interface>
+    <interface>
+      <name>DecisionEngine.attemptAutonomousDecision()</name>
+      <kind>method</kind>
+      <signature>async attemptAutonomousDecision(question: string, context: DecisionContext): Promise&lt;Decision&gt;</signature>
+      <path>backend/src/core/services/decision-engine.ts</path>
+    </interface>
+    <interface>
+      <name>EscalationQueue.add()</name>
+      <kind>method</kind>
+      <signature>async add(escalation: EscalationRequest): Promise&lt;string&gt;</signature>
+      <path>backend/src/core/services/escalation-queue.ts</path>
+    </interface>
+    <interface>
+      <name>EscalationQueue.waitForResponse()</name>
+      <kind>method</kind>
+      <signature>async waitForResponse(escalationId: string): Promise&lt;EscalationResponse&gt;</signature>
+      <path>backend/src/core/services/escalation-queue.ts</path>
+    </interface>
+    <interface>
+      <name>PRDWorkflowExecutor.execute()</name>
+      <kind>method</kind>
+      <signature>async execute(projectPath: string, options: ExecutionOptions): Promise&lt;WorkflowResult&gt;</signature>
+      <path>backend/src/core/workflows/prd-workflow-executor.ts</path>
+      <note>To be implemented in this story</note>
+    </interface>
+    <interface>
+      <name>ExecutionOptions</name>
+      <kind>interface</kind>
+      <signature>interface ExecutionOptions { yoloMode?: boolean; maxEscalations?: number; timeout?: number; }</signature>
+      <path>backend/src/core/workflows/prd-workflow-executor.ts</path>
+      <note>To be defined in this story</note>
+    </interface>
+    <interface>
+      <name>WorkflowResult</name>
+      <kind>interface</kind>
+      <signature>interface WorkflowResult { success: boolean; outputPath: string; executionTime: number; escalationsCount: number; sectionsGenerated: string[]; errors?: string[]; }</signature>
+      <path>backend/src/core/workflows/prd-workflow-executor.ts</path>
+      <note>To be defined in this story</note>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Testing framework: vitest (v1.0.0). Test structure: Describe blocks per acceptance criterion, beforeEach/afterEach hooks for setup/cleanup. Mocking: Use vi.mock() for dependencies (AgentPool, DecisionEngine, EscalationQueue, WorkflowEngine). Coverage target: >80% for PRDWorkflowExecutor. Performance tests: Verify workflow completes in &lt;30 minutes (AC #8). Integration tests: Test full workflow execution with real Mary and John agents. ATDD approach: Write all tests in Task 8 BEFORE implementing code in Tasks 1-7. Tests should initially FAIL, then pass as implementation progresses.
+    </standards>
+    <locations>
+      - backend/tests/core/workflows/PRDWorkflowExecutor.test.ts (unit tests)
+      - backend/tests/integration/prd-workflow.test.ts (integration tests)
+    </locations>
+    <ideas>
+      <test ac="1">Test workflow.yaml loading and parsing - verify YAML structure, required fields, step definitions</test>
+      <test ac="2">Test step execution in sequential order - verify steps execute 1, 2, 3, not out of order</test>
+      <test ac="3">Test Mary agent spawning - verify AgentPool.spawn('mary') called with correct context</test>
+      <test ac="4">Test John agent spawning - verify AgentPool.spawn('john') called with correct context</test>
+      <test ac="5">Test template-output tag processing - verify content generated and saved to PRD.md incrementally</test>
+      <test ac="6">Test elicit-required handling in #yolo mode - verify elicitation skipped, defaults used</test>
+      <test ac="6">Test elicit-required handling in normal mode - verify workflow pauses, waits for user input</test>
+      <test ac="7">Test DecisionEngine integration - verify attemptAutonomousDecision() called for workflow decisions</test>
+      <test ac="7">Test high-confidence decisions (>=0.75) - verify workflow proceeds autonomously</test>
+      <test ac="7">Test low-confidence decisions (&lt;0.75) - verify escalation to EscalationQueue</test>
+      <test ac="7">Test escalation count tracking - verify &lt;3 escalations per workflow run</test>
+      <test ac="8">Test execution time - verify workflow completes in &lt;30 minutes (performance test)</test>
+      <test ac="9">Test PRD.md generation - verify file exists, contains all required sections</test>
+      <test ac="10">Test workflow-status.yaml update - verify 'prd' workflow marked 'complete'</test>
+      <test integration="all">Test full workflow: initialization → Mary analysis → John validation → PRD generation → completion</test>
+      <test integration="all">Test Mary-John collaboration via shared workflow context</test>
+      <test integration="all">Test error recovery - workflow crashes mid-execution, resumes from last saved state</test>
+      <test integration="all">Test CLI command integration - verify 'run-prd-workflow' command works end-to-end</test>
+    </ideas>
+  </tests>
+</story-context>
