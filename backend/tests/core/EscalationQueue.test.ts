@@ -9,9 +9,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
-import { EscalationQueue, Escalation, EscalationMetrics } from '../../src/core/services/escalation-queue.js';
+import { EscalationQueue } from '../../src/core/services/escalation-queue.js';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 // Mock fs/promises for isolated testing
 vi.mock('fs/promises');
