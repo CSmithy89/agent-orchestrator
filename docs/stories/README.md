@@ -37,17 +37,18 @@ When an epic is completed:
 
 ## Current Epic
 
-**Epic 2**: Analysis Phase Automation (Pending)
+**Epic 2**: Analysis Phase Automation (In Progress)
 
-Stories to be created:
-- 2-1: Confidence-based decision engine
-- 2-2: Escalation queue system
-- 2-3: Mary agent - Business analyst persona
-- 2-4: John agent - Product manager persona
-- 2-5: PRD workflow executor
-- 2-6: PRD template content generation
-- 2-7: PRD quality validation
-- 2-8: PRD validation tests
+Stories:
+- 2-0: Dependency migration & environment setup (DRAFTED - prerequisite)
+- 2-1: Confidence-based decision engine (pending)
+- 2-2: Escalation queue system (pending)
+- 2-3: Mary agent - Business analyst persona (pending)
+- 2-4: John agent - Product manager persona (pending)
+- 2-5: PRD workflow executor (pending)
+- 2-6: PRD template content generation (pending)
+- 2-7: PRD quality validation (pending)
+- 2-8: PRD validation tests (pending)
 
 ## Completed Epics
 
