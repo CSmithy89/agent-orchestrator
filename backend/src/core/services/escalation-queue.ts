@@ -149,6 +149,17 @@ export class EscalationQueue {
   async add(
     escalation: Omit<Escalation, 'id' | 'status' | 'createdAt'>
   ): Promise<string> {
+    // Validate inputs
+    if (escalation.confidence < 0 || escalation.confidence > 1) {
+      throw new Error(`Invalid confidence score: ${escalation.confidence}. Must be between 0 and 1.`);
+    }
+    if (!escalation.question?.trim()) {
+      throw new Error('Question is required and cannot be empty');
+    }
+    if (!escalation.workflowId?.trim()) {
+      throw new Error('WorkflowId is required and cannot be empty');
+    }
+
     // Generate unique ID with esc- prefix
     const id = `esc-${uuidv4()}`;
 
@@ -212,14 +223,19 @@ export class EscalationQueue {
     const files = await fs.readdir(this.escalationsDir);
     const escalationFiles = files.filter(f => f.endsWith('.json') && !f.endsWith('.tmp'));
 
-    // Load and parse all escalations
-    const escalations: Escalation[] = [];
-    for (const file of escalationFiles) {
-      const filePath = path.join(this.escalationsDir, file);
-      const content = await fs.readFile(filePath, 'utf-8');
-      const escalation = JSON.parse(content) as Escalation;
-      escalations.push(escalation);
-    }
+    // Load and parse all escalations in parallel
+    const escalations = await Promise.all(
+      escalationFiles.map(async (file) => {
+        const filePath = path.join(this.escalationsDir, file);
+        try {
+          const content = await fs.readFile(filePath, 'utf-8');
+          return JSON.parse(content) as Escalation;
+        } catch (error) {
+          console.warn(`Failed to load escalation file ${file}: ${(error as Error).message}`);
+          return null;
+        }
+      })
+    ).then(results => results.filter((e): e is Escalation => e !== null));
 
     // Apply filters
     let filtered = escalations;
@@ -259,7 +275,11 @@ export class EscalationQueue {
       const content = await fs.readFile(filePath, 'utf-8');
       return JSON.parse(content) as Escalation;
     } catch (error) {
-      throw new Error(`Escalation not found: ${escalationId}`);
+      if ((error as NodeJS.ErrnoException).code === 'ENOENT') {
+        throw new Error(`Escalation not found: ${escalationId}`);
+      }
+      // Preserve original error for other failures (permissions, invalid JSON, etc.)
+      throw new Error(`Failed to load escalation ${escalationId}: ${(error as Error).message}`);
     }
   }
 
