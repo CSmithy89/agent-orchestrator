@@ -65,8 +65,8 @@ development_status:
   2-0-dependency-migration: done  # Pre-story: Upgrade dependencies for Epic 2
   2-1-confidence-based-decision-engine: done
   2-2-escalation-queue-system: done
-  2-3-mary-agent-business-analyst-persona: done
-  2-4-john-agent-product-manager-persona: backlog
+  2-3-mary-agent-business-analyst-persona: review
+  2-4-john-agent-product-manager-persona: review
   2-5-prd-workflow-executor: backlog
   2-6-prd-template-content-generation: backlog
   2-7-prd-quality-validation: backlog
