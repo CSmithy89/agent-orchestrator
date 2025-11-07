@@ -585,148 +585,205 @@ So that output meets >85% completeness standard.
 
 ---
 
-## Epic 3: Planning Phase Automation
+## Epic 3: Planning Phase Automation (Restructured for Parallel Development)
 
-**Goal:** Enable autonomous architecture design **and test strategy planning** with mandatory security validation, eliminating the architect bottleneck and producing secure, testable technical specifications automatically.
+**Goal:** Enable autonomous architecture design **and test strategy planning** with mandatory security validation, using **foundation-first architecture** that maximizes git worktree parallelization.
 
-**Value Proposition:** System architecture emerges from requirements automatically. **Test infrastructure defined upfront.** Technical decisions documented with rationale. Testing strategies defined before implementation. Security gate ensures compliance before solutioning.
+**Value Proposition:** System architecture emerges from requirements automatically. **Test infrastructure defined upfront.** Technical decisions documented with rationale. **Foundation stories (3.1-3.3) establish shared infrastructure, enabling feature stories (3.4-3.8) to develop in parallel git worktrees for 2x faster completion.**
 
-**Business Value:** 10x faster architecture phase (<45 minutes vs 4-8 hours). **Test quality baked in from the start.** Consistent quality. Reduced security vulnerabilities through early validation. No waiting for architect availability.
+**Business Value:** 10x faster architecture phase (<50 minutes vs 4-8 hours). **2x parallel development speedup via worktrees.** Test quality baked in from the start. Consistent quality. Reduced security vulnerabilities through early validation. No waiting for architect availability.
 
 **Technical Scope:**
-- Architecture workflow execution
-- Winston (Architect) agent
-- **Murat (Test Architect) agent - REQUIRED**
-- Security gate validation
-- Technical decisions logging
-- Architecture document generation
-- **Test strategy document generation**
+- Architecture data models and schemas (foundation)
+- Architecture workflow engine (foundation)
+- Winston (Architect) agent infrastructure (foundation)
+- **Murat (Test Architect) agent infrastructure - REQUIRED** (foundation)
+- System architecture generation (parallel)
+- Test strategy generation (parallel)
+- Security gate validation (parallel)
+- Technical decisions logging (parallel)
+- CIS agent integration (parallel)
+
+**Implementation Strategy:**
+- **Phase 1 (Foundation)**: Stories 3.1-3.3 run sequentially (~8 hours) to establish shared infrastructure
+- **Phase 2 (Features)**: Stories 3.4-3.8 run in parallel git worktrees (~4-5 hours with 5 worktrees)
+- **Speedup**: 2x faster than original sequential approach (4 story-units vs 8)
 
 ### Stories
 
-**Story 3.1: Winston Agent - System Architect Persona**
-
-As the orchestrator core,
-I want a Winston agent with deep architectural expertise,
-So that architecture workflows can design systems autonomously.
-
-**Acceptance Criteria:**
-1. Load Winston persona from bmad/bmm/agents/winston.md
-2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
-   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
-   - Recommended: Claude Sonnet for best reasoning on complex system design
-   - See Story 1.3 for configuration examples with multiple providers
-3. Specialized prompts for: system design, component architecture, API design
-4. Context includes: PRD, technical design document, domain knowledge
-5. Methods: designSystemArchitecture(), defineDataModels(), specifyAPIs()
-6. Generate architecture diagrams (as markdown/mermaid)
-7. Document technical decisions with rationale
-8. Consider scalability, security, and maintainability
-9. Make decisions with confidence scoring
-
-**Prerequisites:** Epic 1, Story 2.1
-
 ---
 
-**Story 3.2: Murat Agent - Test Architect Persona (REQUIRED)**
+### **PHASE 1: FOUNDATION (Sequential)**
 
-As the orchestrator core,
-I want a Murat agent focused on comprehensive testing strategy **executed in every architecture workflow**,
-So that all projects have solid test infrastructure and quality foundations.
+**Story 3.1: Architecture Data Models & Core Infrastructure**
+
+As a system architect,
+I want foundational data models and schemas for architecture documents,
+So that all architecture stories can build on consistent types.
 
 **Acceptance Criteria:**
-1. Load Murat persona from bmad/bmm/agents/murat.md
-2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
-   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
-   - Recommended: Claude Sonnet for test design reasoning and edge case analysis
-   - See Story 1.3 for configuration examples with multiple providers
-3. Specialized prompts for: test strategy, coverage analysis, quality gates, ATDD methodology
-4. Methods: defineTestStrategy(), planTestInfrastructure(), specifyQualityGates(), designATDDWorkflow()
-5. Generate test pyramid recommendations (unit, integration, E2E ratios)
-6. Define unit/integration/E2E test requirements per epic
-7. Specify performance and security test needs
-8. **Collaborate with Winston on testability of architecture (required step)**
-9. **Execute automatically after Winston in architecture workflow (not optional)**
-10. Escalate if architecture has testability issues (e.g., tightly coupled components)
+1. Define TypeScript interfaces in `src/architecture/types.ts`:
+   - `ArchitectureSpec` (system overview, components, data models, APIs)
+   - `ComponentSpec` (name, responsibility, dependencies, interfaces)
+   - `APISpec` (endpoint, method, auth, request/response schemas)
+   - `SecuritySpec` (authentication, authorization, encryption, threats)
+   - `TestStrategy` (unit/integration/e2e approach, coverage targets)
+   - `TechnicalDecision` (context, decision, rationale, alternatives, date)
+2. Create JSON schema validation for each interface
+3. Implement `ArchitectureDocumentBuilder` class with methods:
+   - `buildFromTemplate()`: Load template and create empty structure
+   - `validateStructure()`: Check document completeness
+   - `toMarkdown()`: Convert to markdown format
+4. Create `docs/templates/architecture-template.md` (structure only, no content)
+5. Unit tests for schema validation and builder methods
+6. Zero external dependencies (pure data layer)
 
-**Prerequisites:** Epic 1, Story 2.1, Story 3.1 (Winston)
+**Prerequisites:** Epic 1 complete
 
 **Estimated Time:** 2-3 hours
 
+**Git Worktree:** Main development branch
+
 ---
 
-**Story 3.3: Architecture Workflow Executor**
+**Story 3.2: Architecture Workflow Engine Foundation**
 
-As a user wanting automated architecture design,
-I want to run the architecture workflow and get a complete technical spec **with test strategy**,
-So that I can move directly from PRD to implementation planning with quality baked in.
+As a workflow orchestrator,
+I want workflow engine infrastructure for architecture phase,
+So that subsequent stories can execute architecture generation steps.
 
 **Acceptance Criteria:**
-1. Load bmad/bmm/workflows/architecture/workflow.yaml
-2. Execute all architecture workflow steps **sequentially**
-3. **Step 1**: Spawn Winston agent for system design
-4. **Step 2**: Spawn Murat agent for test strategy (REQUIRED, not optional)
-5. **Step 3**: Execute security gate validation
-6. Read PRD.md as input
-7. Generate architecture.md with:
-   - System design, data models, API specs, tech stack (Winston)
-   - **Test strategy, infrastructure, quality gates (Murat)**
-   - Security architecture validation results
-8. Make autonomous decisions (target <2 escalations)
-9. Complete in <50 minutes (was <45, increased to accommodate test planning)
-10. Update workflow-status.yaml with:
-    - architecture_complete: true
-    - **test_strategy_defined: true**
-    - security_gate_passed: true
+1. Implement `ArchitectureWorkflowEngine` class extending `WorkflowEngine` (Epic 1)
+2. Load `bmad/bmm/workflows/architecture/workflow.yaml`
+3. Parse workflow steps and build execution plan
+4. Implement state machine transitions:
+   - `not_started` → `in_progress` → `review` → `complete`
+   - Track current step, progress percentage, timestamps
+5. Worktree management integration:
+   - Create worktree for architecture phase: `wt/architecture`
+   - Branch: `architecture/design`
+   - Cleanup on completion or failure
+6. State persistence to `bmad/workflow-status.yaml`
+7. Implement step execution hooks (pre/post step callbacks)
+8. Error handling with rollback capability
+9. Unit tests for workflow engine and state machine
+10. Does NOT execute actual architecture generation (infrastructure only)
 
-**Prerequisites:** Story 3.1, Story 3.2, Story 3.6 (Security Gate), Epic 2 complete
+**Prerequisites:** Story 3.1, Epic 1 (WorkflowEngine, WorktreeManager)
 
 **Estimated Time:** 3-4 hours
 
----
-
-**Story 3.4: Technical Decisions Logger**
-
-As Winston and Murat agents,
-I want to log architectural decisions with rationale,
-So that future developers understand why choices were made.
-
-**Acceptance Criteria:**
-1. Implement TechnicalDecisionsLogger class
-2. logDecision(decision, rationale, alternatives, tradeoffs)
-3. Append to docs/technical-decisions.md
-4. Format as ADR (Architecture Decision Record)
-5. Include: context, decision, consequences, date, author (agent)
-6. Support categories: data, api, infrastructure, security, testing
-7. Link decisions to PRD requirements
-8. Generate decision index for easy navigation
-
-**Prerequisites:** Story 3.1
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 3.5: Architecture Template & Content Generation**
+**Story 3.3: Agent Persona Infrastructure & Context Builder**
 
-As the architecture workflow,
-I want to generate comprehensive architecture documents,
-So that developers have clear technical guidance.
+As an agent system developer,
+I want Winston and Murat agent personas configured with LLM assignments,
+So that architecture generation stories can invoke agents with proper context.
 
 **Acceptance Criteria:**
-1. Load architecture-template.md
-2. Generate content for sections:
-   - System architecture overview (with diagrams)
+1. Load Winston persona from `bmad/bmm/agents/winston.md`
+2. Load Murat persona from `bmad/bmm/agents/murat.md`
+3. Read LLM assignments from `.bmad/project-config.yaml`:
+   - Winston: Recommended Claude Sonnet (or configured alternative)
+   - Murat: Recommended Claude Sonnet (or configured alternative)
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - See Story 1.3 for configuration examples with multiple providers
+4. Implement `ArchitectureAgentContextBuilder` class:
+   - `buildWinstonContext(prd, techDesignDoc)`: Prepare Winston's context
+   - `buildMuratContext(prd, architectureSpec)`: Prepare Murat's context
+   - Context includes: PRD sections, technical constraints, domain knowledge
+5. Implement agent invocation templates:
+   - `winstonSystemDesignPrompt(context)`
+   - `muratTestStrategyPrompt(context)`
+6. Token optimization: Prune PRD to relevant sections (<30k tokens per agent)
+7. Agent factory registration in `AgentPool` (Epic 1)
+8. Unit tests for context building and prompt generation
+9. Does NOT invoke agents or generate content (setup only)
+
+**Prerequisites:** Story 3.1, Epic 1 (AgentPool, LLMFactory)
+
+**Estimated Time:** 2-3 hours
+
+**Git Worktree:** Main development branch
+
+---
+
+### **PHASE 2: FEATURE DELIVERY (Parallel)**
+
+**Story 3.4: System Architecture Generation (Winston)**
+
+As a user wanting automated architecture design,
+I want Winston agent to generate system architecture from PRD,
+So that I have a technical specification for implementation.
+
+**Acceptance Criteria:**
+1. Implement `SystemArchitectureGenerator` class
+2. Invoke Winston agent with system design prompt (via Story 3.3)
+3. Generate architecture sections:
+   - System architecture overview (with mermaid diagrams)
    - Component architecture and responsibilities
    - Data models and schemas
-   - API specifications (endpoints, methods, auth)
-   - Technology stack decisions
-   - Security architecture
-   - Testing strategy
-3. Adapt to project type from PRD
-4. Include deployment architecture
-5. Add scalability and performance considerations
-6. Format with proper markdown, mermaid diagrams, code samples
+   - API specifications (REST endpoints, GraphQL, WebSocket)
+   - Technology stack decisions with rationale
+   - Deployment architecture
+   - Scalability and performance considerations
+4. Use `ArchitectureDocumentBuilder` (Story 3.1) to structure output
+5. Validate output against `ArchitectureSpec` schema
+6. Save to `docs/architecture.md` (system architecture sections only)
+7. Log technical decisions to `TechnicalDecisionsLogger` (Story 3.7)
+8. Make decisions with confidence scoring via DecisionEngine (Epic 2)
+9. Escalate if confidence <0.75 (target: <2 escalations)
+10. Complete in <25 minutes
+11. Unit tests + integration tests with mock agent responses
 
-**Prerequisites:** Story 3.3
+**Prerequisites:** Stories 3.1, 3.2, 3.3 (Foundation complete), Epic 2 (PRD)
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** `wt/story-3.4` (branch: `story/3.4-system-architecture`)
+
+---
+
+**Story 3.5: Test Strategy Generation (Murat - REQUIRED)**
+
+As a user wanting comprehensive test planning,
+I want Murat agent to generate test strategy from PRD and architecture,
+So that test infrastructure is defined before implementation.
+
+**Acceptance Criteria:**
+1. Implement `TestStrategyGenerator` class
+2. Invoke Murat agent with test strategy prompt (via Story 3.3)
+3. Generate test strategy sections:
+   - Test pyramid recommendations (unit/integration/E2E ratios)
+   - Unit test requirements per component
+   - Integration test scenarios
+   - E2E test critical paths
+   - Performance test targets
+   - Security test requirements (OWASP coverage)
+   - ATDD workflow design
+   - Quality gates and coverage targets
+4. Use `ArchitectureDocumentBuilder` to append test strategy
+5. Validate output against `TestStrategy` schema
+6. Append to `docs/architecture.md` (test strategy section)
+7. **Collaborate with Winston's architecture:**
+   - Review component testability
+   - Escalate if architecture has testability issues (e.g., tightly coupled components)
+8. Make decisions with confidence scoring via DecisionEngine (Epic 2)
+9. Escalate if confidence <0.75
+10. Complete in <20 minutes
+11. Unit tests + integration tests
+12. **REQUIRED status maintained**: Murat agent execution is mandatory (not optional)
+
+**Prerequisites:** Stories 3.1, 3.2, 3.3 (Foundation), Story 3.4 (System Architecture)
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** `wt/story-3.5` (branch: `story/3.5-test-strategy`)
+
+**Note:** Can begin development immediately (infrastructure work), but finalizes after Story 3.4 completes
 
 ---
 
@@ -734,19 +791,19 @@ So that developers have clear technical guidance.
 
 As an autonomous orchestrator prioritizing security,
 I want mandatory security validation after architecture design,
-So that security requirements are complete before proceeding to solutioning.
+So that security requirements are complete before solutioning.
 
 **Acceptance Criteria:**
-1. Implement SecurityGateValidator class with comprehensive security checks
-2. Execute automatically after Story 3.5 (Architecture Template generation)
-3. Validate required security sections in architecture.md:
-   - Authentication & Authorization strategy
-   - Secrets Management approach
-   - Input Validation strategy
-   - API Security measures (rate limiting, CORS, CSP)
-   - Data Encryption (at-rest and in-transit)
-   - Threat Model (OWASP Top 10 coverage)
-4. Generate SecurityGateResult with:
+1. Implement `SecurityGateValidator` class with comprehensive security checks
+2. Execute automatically after Stories 3.4 + 3.5 complete
+3. Validate required security sections in `architecture.md`:
+   - Authentication & Authorization strategy ✅
+   - Secrets Management approach ✅
+   - Input Validation strategy ✅
+   - API Security measures (rate limiting, CORS, CSP) ✅
+   - Data Encryption (at-rest and in-transit) ✅
+   - Threat Model (OWASP Top 10 coverage) ✅
+4. Generate `SecurityGateResult`:
    - Pass/fail status (≥95% score to pass)
    - Detailed check results per category
    - Gap analysis for failed checks
@@ -754,17 +811,55 @@ So that security requirements are complete before proceeding to solutioning.
 5. If gate fails (score <95%):
    - Generate gap report with specific missing elements
    - Escalate to user with recommendations
-   - Block progression to solutioning phase
+   - Block progression to Epic 4 (Solutioning)
 6. If gate passes:
-   - Update workflow-status.yaml (security_gate: passed)
+   - Update `workflow-status.yaml` (security_gate: passed)
+   - Log validation results to `docs/security-gate-results.json`
    - Proceed to Epic 4 (Solutioning)
 7. Log security gate decision with evidence for audit trail
-8. Complete gate validation in <5 minutes
+8. Complete validation in <5 minutes
 9. Track metrics: pass rate, common gaps, escalation frequency
+10. Unit tests for validation logic + integration tests
 
-**Prerequisites:** Story 3.5 (Architecture Template Generation)
+**Prerequisites:** Stories 3.1, 3.2, 3.3 (Foundation), Stories 3.4, 3.5 (Architecture + Test Strategy)
 
 **Estimated Time:** 2-3 hours
+
+**Git Worktree:** `wt/story-3.6` (branch: `story/3.6-security-gate`)
+
+**Note:** Can develop validation logic immediately, executes validation after 3.4 + 3.5 complete
+
+---
+
+**Story 3.7: Technical Decisions Logger**
+
+As Winston and Murat agents,
+I want to log architectural decisions with rationale,
+So that future developers understand why choices were made.
+
+**Acceptance Criteria:**
+1. Implement `TechnicalDecisionsLogger` class
+2. `logDecision(decision, rationale, alternatives, tradeoffs)` method
+3. Append to `docs/technical-decisions.md` in ADR format:
+   - **Context**: Problem or requirement driving decision
+   - **Decision**: What was chosen
+   - **Rationale**: Why this choice
+   - **Alternatives Considered**: What else was evaluated
+   - **Consequences**: Trade-offs and implications
+   - **Date & Author**: Timestamp and agent name
+4. Support categories: data, api, infrastructure, security, testing
+5. Link decisions to PRD requirements (FR-XXX references)
+6. Generate decision index for easy navigation
+7. Used by Stories 3.4 and 3.5 to log decisions
+8. Unit tests for logger + integration tests
+
+**Prerequisites:** Stories 3.1, 3.2, 3.3 (Foundation)
+
+**Estimated Time:** 1-2 hours
+
+**Git Worktree:** `wt/story-3.7` (branch: `story/3.7-tech-decisions`)
+
+**Note:** Fully independent, can complete and merge first to unblock Stories 3.4 and 3.5
 
 ---
 
@@ -775,18 +870,18 @@ I want to consult CIS specialists for strategic choices,
 So that architecture benefits from framework-specific analysis.
 
 **Acceptance Criteria:**
-1. Implement CISAgentRouter class with agent selection logic
-2. Integrate CIS router into architecture workflow
+1. Implement `CISAgentRouter` class with agent selection logic
+2. Integrate CIS router into architecture workflow (Story 3.2)
 3. Trigger CIS consultation automatically when:
    - Winston's confidence <0.70 on technology choice
    - Architectural pattern selection has multiple viable options
    - UX approach has high uncertainty
 4. Route decisions to appropriate CIS agent:
-   - Technology trade-offs → Dr. Quinn (pros/cons analysis, impact assessment)
-   - UX architecture → Maya (design thinking phases, user empathy)
-   - Product positioning → Sophia (narrative frameworks, story arcs)
-   - Innovative patterns → Victor (disruption opportunities, differentiation)
-5. CIS agent analyzes decision using specialized framework:
+   - Dr. Quinn (Problem-solving) → Technology trade-offs
+   - Maya (Design Thinking) → UX architecture
+   - Sophia (Storytelling) → Product positioning
+   - Victor (Innovation) → Innovative patterns
+5. CIS agent analyzes using specialized framework:
    - Dr. Quinn: Problem-solving canvas (problem, root causes, solutions, impact)
    - Maya: Design thinking (empathize, define, ideate, prototype, test)
    - Sophia: Storytelling structure (hero, journey, transformation)
@@ -797,158 +892,344 @@ So that architecture benefits from framework-specific analysis.
    - Confidence score for each recommendation
    - Rationale grounded in framework
 7. Winston evaluates CIS recommendations:
-   - If high confidence (>0.85): Accept top recommendation
-   - If medium confidence (0.70-0.85): Present to user for choice
-   - If low confidence (<0.70): Escalate with CIS analysis attached
-8. Log CIS consultation in technical decisions:
-   - Which agent consulted, which framework used
-   - Recommendations considered
-   - Final decision and rationale
-9. Track metrics:
-   - CIS invocation frequency
-   - Time to CIS response (<60 seconds target)
-   - Decision confidence after CIS consultation
-   - User acceptance rate of CIS recommendations
-10. Manual invocation support:
-    - User can request CIS via chat: "Ask Maya about authentication UX"
-    - System routes to appropriate agent
-    - Response presented in chat with framework context
+   - High confidence (>0.85): Accept top recommendation
+   - Medium (0.70-0.85): Present to user for choice
+   - Low (<0.70): Escalate with CIS analysis
+8. Log CIS consultation in technical decisions (Story 3.7)
+9. Track metrics: invocation frequency, response time (<60 seconds target), confidence
+10. Manual invocation support via chat
+11. Unit tests + integration tests with mock CIS agents
 
-**Prerequisites:** Story 3.3 (Architecture Workflow), Epic 1 (Agent Pool)
+**Prerequisites:** Stories 3.1, 3.2, 3.3 (Foundation), Story 3.7 (Logger - soft dependency), Epic 1 (Agent Pool)
 
 **Estimated Time:** 4-5 hours
 
+**Git Worktree:** `wt/story-3.8` (branch: `story/3.8-cis-integration`)
+
+**Note:** Optional enhancement, can develop in parallel with other feature stories
+
 ---
 
-## Epic 4: Solutioning Phase Automation
+### Epic 3 Summary
 
-**Goal:** Automatically decompose requirements into implementable epics and stories **with visual dependency mapping**, enabling immediate development kickoff.
+**Total Stories:** 8
+- **Foundation (Sequential):** 3 stories (3.1-3.3) ~8 hours
+- **Features (Parallel):** 5 stories (3.4-3.8) ~4-5 hours with 5 worktrees
 
-**Value Proposition:** Requirements break down into bite-sized stories autonomously. Dependencies mapped **and visualized**. Ready-to-develop stories generated in minutes.
+**Dependency Graph:**
+```
+FOUNDATION (Sequential)
+───────────────────────
+3.1 (Data Models) ──┐
+3.2 (Workflow)  ────┼──> [Foundation Complete]
+3.3 (Agents)    ────┘
 
-**Business Value:** Eliminates story writing bottleneck. Consistent quality. **Dependencies detected and visualized automatically for planning clarity**.
+FEATURES (Parallel)
+───────────────────
+                    ┌──> 3.4 (System Architecture) ──┐
+[Foundation] ───────┤                                  ├──> 3.6 (Security Gate)
+                    └──> 3.5 (Test Strategy) ─────────┘
+                    ┌──> 3.7 (Tech Decisions Logger)
+                    └──> 3.8 (CIS Integration)
+
+Note: 3.7 and 3.8 can start immediately after foundation
+      3.4 and 3.5 can run in parallel
+      3.6 waits for 3.4 + 3.5 (security validation)
+```
+
+**Time Savings:**
+- **Before (Sequential)**: 8 story-time-units
+- **After (Parallel with 5 worktrees)**: 3 foundation + 1 parallel = 4 story-time-units
+- **Speedup**: **2x faster!** 🚀
+
+**Completion Criteria:**
+- ✅ All 8 stories merged to main
+- ✅ Architecture.md generated with system design + test strategy
+- ✅ Security gate passed (≥95% score)
+- ✅ Technical decisions logged
+- ✅ Winston + Murat agents functional
+- ✅ CIS integration operational (optional)
+
+---
+
+## Epic 4: Solutioning Phase Automation (Restructured for Parallel Development)
+
+**Goal:** Automatically decompose requirements into implementable epics and stories **with visual dependency mapping**, using **foundation-first architecture** that maximizes git worktree parallelization.
+
+**Value Proposition:** Requirements break down into bite-sized stories autonomously. Dependencies mapped **and visualized**. **Foundation stories (4.1-4.3) establish shared infrastructure, enabling feature stories (4.4-4.9) to develop in parallel git worktrees for 1.8x faster completion.**
+
+**Business Value:** Eliminates story writing bottleneck. **1.8x parallel development speedup via worktrees.** Consistent quality. Dependencies detected and visualized automatically for planning clarity.
 
 **Technical Scope:**
-- Epic/story generation workflow
-- Bob (Scrum Master) agent
-- Story dependency detection
-- **Dependency graph generation and visualization** ← NEW
-- Sprint status file generation
+- Solutioning data models and story schema (foundation)
+- Bob (Scrum Master) agent infrastructure (foundation)
+- Solutioning workflow engine (foundation)
+- Epic/story generation (parallel)
+- Dependency detection and graph generation (parallel)
+- Story validation and quality check (parallel)
+- Sprint status file generation (parallel)
+- Story file writing (parallel)
+- Implementation readiness gate validation (parallel)
+
+**Implementation Strategy:**
+- **Phase 1 (Foundation)**: Stories 4.1-4.3 run sequentially (~6-7 hours) to establish shared infrastructure
+- **Phase 2 (Features)**: Stories 4.4-4.9 run in parallel git worktrees (~3-4 hours with 6 worktrees)
+- **Speedup**: 1.8x faster than original sequential approach (5 story-units vs 9)
 
 ### Stories
 
-**Story 4.1: Bob Agent - Scrum Master Persona**
+---
 
-As the orchestrator core,
-I want a Bob agent expert at story decomposition,
-So that solutioning workflows can break requirements into implementable units.
+### **PHASE 1: FOUNDATION (Sequential)**
+
+**Story 4.1: Solutioning Data Models & Story Schema**
+
+As a solutioning system developer,
+I want foundational data models and schemas for epics, stories, and dependencies,
+So that all solutioning stories can build on consistent types.
 
 **Acceptance Criteria:**
-1. Load Bob persona from bmad/bmm/agents/bob.md
-2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+1. Define TypeScript interfaces in `src/solutioning/types.ts`:
+   - `Epic` (id, title, goal, value_proposition, stories, business_value)
+   - `Story` (id, epic, title, description, acceptance_criteria, dependencies, status, technical_notes)
+   - `DependencyGraph` (nodes, edges, critical_path, bottlenecks, parallelizable)
+   - `StoryMetadata` (complexity, estimated_hours, affected_files, test_requirements)
+   - `ValidationResult` (pass/fail, score, checks, blockers, warnings)
+2. Create JSON schema validation for each interface
+3. Implement `StoryTemplateBuilder` class with methods:
+   - `buildFromTemplate()`: Load story template and create structure
+   - `validateStoryFormat()`: Check story completeness against schema
+   - `toMarkdown()`: Convert story object to story-XXX.md format
+   - `toYAMLFrontmatter()`: Generate YAML frontmatter for story files
+4. Define sprint-status.yaml schema structure (project, workflow, epics, stories)
+5. Define dependency-graph.json schema structure (nodes, edges, metadata)
+6. Create `docs/templates/story-template.md` (structure only, no content)
+7. Unit tests for schema validation and template builder methods
+8. Zero external dependencies (pure data layer)
+9. Export all types for use by other solutioning stories
+10. Documentation for type system and schema structure
+
+**Prerequisites:** Epic 1 complete
+
+**Estimated Time:** 2-3 hours
+
+**Git Worktree:** Main development branch
+
+---
+
+**Story 4.2: Bob Agent Infrastructure & Context Builder**
+
+As an agent system developer,
+I want Bob agent persona configured with LLM assignments and context building,
+So that solutioning stories can invoke Bob with proper context.
+
+**Acceptance Criteria:**
+1. Load Bob persona from `bmad/bmm/agents/bob.md`
+2. Read LLM assignments from `.bmad/project-config.yaml`:
+   - Bob: Recommended Claude Haiku (cost-effective for formulaic story decomposition)
    - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
-   - Recommended: Claude Haiku or similar cost-effective model for formulaic story decomposition work
    - See Story 1.3 for configuration examples with multiple providers
-3. Specialized prompts for: epic formation, story writing, dependency detection
-4. Context includes: PRD, architecture, BMAD story patterns
-5. Methods: formEpics(), decomposeIntoStories(), detectDependencies()
-6. Generate stories sized for single agent session (<200k context)
-7. Write clear acceptance criteria
-8. Make autonomous decisions on story boundaries
+3. Implement `SolutioningAgentContextBuilder` class:
+   - `buildBobContext(prd, architecture)`: Prepare Bob's context
+   - Context includes: PRD functional requirements, architecture overview, BMAD story patterns
+   - Token optimization: Prune PRD to relevant sections (<30k tokens)
+4. Implement agent invocation templates:
+   - `bobEpicFormationPrompt(context)`: Prompt for epic generation
+   - `bobStoryDecompositionPrompt(context, epic)`: Prompt for story generation
+   - `bobDependencyDetectionPrompt(context, stories)`: Prompt for dependency analysis
+5. Integrate with Story 4.1 types (Epic, Story schemas)
+6. Agent factory registration in `AgentPool` (Epic 1)
+7. Methods: `formEpics()`, `decomposeIntoStories()`, `detectDependencies()` as agent actions
+8. Generate stories sized for single agent session (<200k context)
+9. Write clear acceptance criteria in generated stories
+10. Make autonomous decisions on story boundaries (confidence scoring)
+11. Unit tests for context building and prompt generation
+12. Does NOT invoke agents or generate content (setup only)
 
-**Prerequisites:** Epic 1, Story 2.1
+**Prerequisites:** Story 4.1, Epic 1 (AgentPool, LLMFactory)
+
+**Estimated Time:** 2-3 hours
+
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 4.2: Epic Formation Logic**
+**Story 4.3: Solutioning Workflow Engine Foundation**
 
-As Bob agent,
-I want to group requirements into natural epic boundaries,
-So that features cluster by business capability or user journey.
+As a workflow orchestrator,
+I want workflow engine infrastructure for solutioning phase,
+So that subsequent stories can execute epic/story generation steps.
 
 **Acceptance Criteria:**
-1. Analyze PRD functional requirements
-2. Identify natural groupings (auth, payments, admin, etc.)
-3. Form epics with 3-8 related features each
-4. Name epics by business value (not technical components)
-5. Ensure each epic independently valuable
-6. Completable in 1-2 sprints
-7. Include domain-specific epics (compliance, validation) if applicable
-8. Generate epic descriptions with goals and value propositions
+1. Implement `SolutioningWorkflowEngine` class extending `WorkflowEngine` (Epic 1)
+2. Load `bmad/bmm/workflows/create-epics-and-stories/workflow.yaml`
+3. Parse workflow steps and build execution plan
+4. Implement state machine transitions:
+   - `not_started` → `in_progress` → `review` → `complete`
+   - Track current step, progress percentage, timestamps
+5. Worktree management integration:
+   - Create worktree for solutioning phase: `wt/solutioning`
+   - Branch: `solutioning/epics-stories`
+   - Cleanup on completion or failure
+6. State persistence to `bmad/workflow-status.yaml`
+7. Implement step execution hooks (pre/post step callbacks)
+8. Error handling with rollback capability
+9. Read PRD.md and architecture.md as inputs (from Epic 2 + Epic 3)
+10. Update workflow-status.yaml with solutioning progress
+11. Unit tests for workflow engine and state machine
+12. Does NOT execute actual epic/story generation (infrastructure only)
 
-**Prerequisites:** Story 4.1, Epic 2 complete
+**Prerequisites:** Story 4.1, Epic 1 (WorkflowEngine, WorktreeManager)
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 4.3: Story Decomposition Engine**
+### **PHASE 2: FEATURE DELIVERY (Parallel)**
 
-As Bob agent,
-I want to break epics into small, implementable stories,
-So that dev agents can complete each story in a single session.
+**Story 4.4: Epic Formation & Story Decomposition (Combined)**
+
+As a user wanting automated story decomposition,
+I want Bob to form epics and decompose them into implementable stories,
+So that requirements break down into bite-sized development units.
 
 **Acceptance Criteria:**
-1. For each epic, generate 3-10 stories
-2. Each story: clear user story format (As a..., I want..., So that...)
-3. Stories are vertical slices (end-to-end functionality)
-4. Story description <500 words
-5. Single responsibility per story
-6. Include technical notes: affected files, endpoints, data structures
-7. Check story size: fits in 200k context, <2 hour development time
-8. If story too large, split into smaller stories
-9. Generate 10-20 total stories for MVP
 
-**Prerequisites:** Story 4.2
+**Epic Formation (from original 4.2):**
+1. Invoke Bob agent via `SolutioningAgentContextBuilder` (Story 4.2)
+2. Analyze PRD functional requirements
+3. Identify natural groupings (auth, payments, admin, etc.)
+4. Form epics with 3-8 related features each
+5. Name epics by business value (not technical components)
+6. Ensure each epic independently valuable
+7. Completable in 1-2 sprints
+8. Include domain-specific epics (compliance, validation) if applicable
+9. Generate epic descriptions with goals and value propositions
+
+**Story Decomposition (from original 4.3):**
+10. For each epic, generate 3-10 stories
+11. Each story: clear user story format (As a..., I want..., So that...)
+12. Stories are vertical slices (end-to-end functionality)
+13. Story description <500 words
+14. Single responsibility per story
+15. Include technical notes: affected files, endpoints, data structures
+16. Check story size: fits in 200k context, <2 hour development time
+17. If story too large, split into smaller stories
+
+**Integration:**
+18. Use `Epic` and `Story` types from Story 4.1
+19. Execute formEpics() then decomposeIntoStories() methods (Story 4.2 AC#7)
+20. Generate 10-20 total stories for MVP
+21. Make autonomous decisions on story boundaries (confidence scoring)
+22. Write clear acceptance criteria (8-12 per story)
+23. Complete epic formation + story decomposition in <45 minutes
+24. Unit tests + integration tests with mock Bob responses
+
+**Prerequisites:** Stories 4.1, 4.2, 4.3 (Foundation), Epic 2 (PRD), Epic 3 (Architecture)
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-4.4` (branch: `story/4.4-epic-story-generation`)
 
 ---
 
-**Story 4.4: Dependency Detection & Sequencing**
+**Story 4.5: Dependency Detection & Graph Generation (Combined)**
 
-As Bob agent,
-I want to detect dependencies between stories and order them logically,
-So that stories can be developed in the correct sequence without blockers.
+As the solutioning system,
+I want to detect story dependencies and generate dependency graph data,
+So that story relationships are captured and visualized for planning.
 
 **Acceptance Criteria:**
-1. Analyze stories for technical dependencies
-2. Identify: auth before protected features, data models before logic, API before frontend
-3. Build dependency graph (topological sort)
-4. Phase stories: Foundation → Core → Enhancement → Growth
-5. Mark stories that can run in parallel
-6. Flag blocking dependencies clearly
-7. Generate implementation sequence recommendations
-8. Note domain-specific gates (security audit, compliance review)
 
-**Prerequisites:** Story 4.3
+**Dependency Detection (from original 4.4):**
+1. Invoke Bob agent's `detectDependencies()` method (Story 4.2 AC#7)
+2. Analyze stories for technical dependencies
+3. Identify patterns: auth before protected features, data models before logic, API before frontend
+4. Build dependency graph with topological sort
+5. Phase stories: Foundation → Core → Enhancement → Growth
+6. Mark stories that can run in parallel
+7. Flag blocking dependencies clearly
+8. Generate implementation sequence recommendations
+9. Note domain-specific gates (security audit, compliance review)
+
+**Graph Generation (from original 4.8):**
+10. Implement `DependencyGraphGenerator` class
+11. Execute automatically after dependency detection
+12. Analyze story prerequisites to build dependency edges:
+    - Hard dependencies (blocking): Story A must complete before Story B
+    - Soft dependencies (suggested): Story A should complete before Story B for logical flow
+13. Create dependency graph structure:
+    - Nodes: All stories with metadata (ID, title, status, epic, complexity)
+    - Edges: Dependency relationships with type (hard/soft) and blocking status
+14. Calculate graph metrics:
+    - Critical path (longest dependency chain from start to finish)
+    - Bottlenecks (stories blocking ≥3 other stories)
+    - Parallelizable stories (no blocking dependencies)
+15. Detect circular dependencies and escalate if found
+16. Save graph data to `docs/dependency-graph.json`:
+
+```json
+{
+  "nodes": [...],
+  "edges": [...],
+  "criticalPath": [...],
+  "metadata": {
+    "totalStories": N,
+    "parallelizable": M,
+    "bottlenecks": [...]
+  }
+}
+```
+
+17. Update sprint-status.yaml with graph generation timestamp
+18. Complete dependency detection + graph generation in <30 seconds
+19. Track metrics: graph complexity, critical path length, bottleneck count
+20. Unit tests + integration tests
+
+**Prerequisites:** Stories 4.1, 4.2, 4.3 (Foundation), Story 4.4 (Epic/Story Generation)
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** `wt/story-4.5` (branch: `story/4.5-dependency-graph`)
 
 ---
 
-**Story 4.5: Story Validation & Quality Check**
+**Story 4.6: Story Validation & Quality Check**
 
 As the solutioning workflow,
 I want to validate story quality before completion,
 So that all stories meet dev agent compatibility standards.
 
 **Acceptance Criteria:**
-1. Implement StoryValidator class
-2. SIZE CHECK: <500 words, single responsibility, no hidden complexity
-3. CLARITY CHECK: explicit acceptance criteria, clear technical approach, measurable success
-4. DEPENDENCY CHECK: dependencies documented, clear inputs/outputs
-5. COMPLETENESS CHECK: all required info for autonomous implementation
+1. Implement `StoryValidator` class
+2. **SIZE CHECK**: <500 words, single responsibility, no hidden complexity
+3. **CLARITY CHECK**: explicit acceptance criteria, clear technical approach, measurable success
+4. **DEPENDENCY CHECK**: dependencies documented, clear inputs/outputs
+5. **COMPLETENESS CHECK**: all required info for autonomous implementation
 6. If validation fails, regenerate or split story
 7. Generate validation report with quality score
 8. Ensure 100% stories pass validation before workflow completion
+9. Use `Story` and `ValidationResult` types from Story 4.1
+10. Unit tests + integration tests
 
-**Prerequisites:** Story 4.3
+**Prerequisites:** Stories 4.1, 4.2, 4.3 (Foundation), Story 4.4 (stories to validate)
+
+**Estimated Time:** 2-3 hours
+
+**Git Worktree:** `wt/story-4.6` (branch: `story/4.6-story-validation`)
 
 ---
 
-**Story 4.6: Sprint Status File Generation**
+**Story 4.7: Sprint Status File Generation**
 
 As the orchestrator,
 I want to generate sprint-status.yaml tracking all epics and stories,
 So that implementation progress can be tracked and visualized.
 
 **Acceptance Criteria:**
-1. Generate bmad/sprint-status.yaml with schema:
+1. Generate `bmad/sprint-status.yaml` with schema (from Story 4.1 AC#4):
    - project metadata (name, phase)
    - workflow tracking (current, step, status)
    - epics array with stories nested
@@ -958,77 +1239,45 @@ So that implementation progress can be tracked and visualized.
 4. Support status updates during implementation
 5. Human-readable format with inline comments
 6. Git commit after generation
+7. Use sprint-status.yaml schema from Story 4.1
+8. Unit tests for sprint status generation
 
-**Prerequisites:** Story 4.4
+**Prerequisites:** Stories 4.1, 4.2, 4.3 (Foundation), Stories 4.4, 4.5 (epics/stories/dependencies)
 
----
+**Estimated Time:** 1-2 hours
 
-**Story 4.7: Epics & Stories Workflow Executor**
-
-As a user wanting automated story decomposition,
-I want to run create-epics-and-stories workflow and get implementable stories,
-So that I can immediately begin development.
-
-**Acceptance Criteria:**
-1. Load bmad/bmm/workflows/create-epics-and-stories/workflow.yaml
-2. Execute all solutioning workflow steps
-3. Spawn Bob agent for decomposition
-4. Read PRD.md and architecture.md as inputs
-5. Generate epics.md with all epic descriptions and stories
-6. Generate individual docs/stories/story-*.md files with YAML frontmatter
-   - Include: id, epic, title, status, dependencies, acceptance_criteria
-   - Format: story-001.md, story-002.md, etc.
-7. Generate sprint-status.yaml
-8. Make autonomous decisions on story boundaries
-9. Complete in <1 hour
-10. Update workflow-status.yaml
-
-**Prerequisites:** Story 4.1 through 4.6, Epic 3 complete
-
-**Estimated Time:** 3-4 hours
+**Git Worktree:** `wt/story-4.7` (branch: `story/4.7-sprint-status`)
 
 ---
 
-**Story 4.8: Dependency Graph Data Generation**
+**Story 4.8: Story File Writer & Epics Document Generator**
 
 As the solutioning workflow,
-I want to generate dependency graph data during story decomposition,
-So that story relationships are captured for visualization and planning.
+I want to write individual story files and epics document,
+So that stories are available for implementation and tracking.
 
 **Acceptance Criteria:**
-1. Implement DependencyGraphGenerator class with graph generation logic
-2. Execute automatically after Story 4.4 (Dependency Detection)
-3. Analyze story prerequisites to build dependency edges:
-   - Hard dependencies (blocking): Story A must complete before Story B
-   - Soft dependencies (suggested): Story A should complete before Story B for logical flow
-4. Create dependency graph structure:
-   - Nodes: All stories with metadata (ID, title, status, epic, complexity)
-   - Edges: Dependency relationships with type (hard/soft) and blocking status
-5. Calculate graph metrics:
-   - Critical path (longest dependency chain from start to finish)
-   - Bottlenecks (stories blocking ≥3 other stories)
-   - Parallelizable stories (no blocking dependencies)
-6. Detect circular dependencies and escalate if found
-7. Save graph data to docs/dependency-graph.json:
-   ```json
-   {
-     "nodes": [...],
-     "edges": [...],
-     "criticalPath": [...],
-     "metadata": {
-       "totalStories": N,
-       "parallelizable": M,
-       "bottlenecks": [...]
-     }
-   }
-   ```
-8. Update sprint-status.yaml with graph generation timestamp
-9. Complete graph generation in <30 seconds
-10. Track metrics: graph complexity, critical path length, bottleneck count
+1. Implement `StoryFileWriter` class
+2. Use `StoryTemplateBuilder` from Story 4.1 to format stories
+3. Generate `docs/epics.md` with all epic descriptions and stories overview
+4. Generate individual `docs/stories/story-*.md` files with YAML frontmatter:
+   - Include: id, epic, title, status, dependencies, acceptance_criteria
+   - Format: story-001.md, story-002.md, etc.
+   - Use YAML frontmatter format from Story 4.1 AC#3
+5. Validate file writes using Story schema (Story 4.1)
+6. Create `docs/stories/` directory if it doesn't exist
+7. Git commit story files after generation
+8. Track metrics: number of files written, write time
+9. Unit tests for file writing logic
+10. Integration tests with mock file system
 
-**Prerequisites:** Story 4.4 (Dependency Detection & Sequencing)
+**Prerequisites:** Stories 4.1, 4.2, 4.3 (Foundation), Story 4.4 (stories to write)
 
 **Estimated Time:** 2-3 hours
+
+**Git Worktree:** `wt/story-4.8` (branch: `story/4.8-story-file-writer`)
+
+**Note:** Extracted from original Story 4.7 workflow execution (file writing portion)
 
 ---
 
@@ -1039,8 +1288,8 @@ I want to validate solutioning completeness before allowing implementation,
 So that dev agents have everything needed for successful autonomous development.
 
 **Acceptance Criteria:**
-1. Implement ImplementationReadinessValidator class
-2. Execute automatically after Story 4.8 (Dependency Graph Generation)
+1. Implement `ImplementationReadinessValidator` class
+2. Execute automatically after Stories 4.4-4.8 complete
 3. Perform comprehensive validation checks:
    - **Story Completeness**:
      - All stories have 8-12 acceptance criteria ✅
@@ -1066,7 +1315,7 @@ So that dev agents have everything needed for successful autonomous development.
    - **Sprint Status**:
      - sprint-status.yaml generated correctly ✅
      - All stories present in status file ✅
-4. Generate ReadinessGateResult with:
+4. Generate `ReadinessGateResult` (using type from Story 4.1):
    - Pass/fail status (100% required checks must pass)
    - Overall score (weighted average of all checks)
    - Detailed check results (category, pass/fail, details)
@@ -1079,8 +1328,8 @@ So that dev agents have everything needed for successful autonomous development.
    - Block transition to Epic 5 (Implementation)
    - Example blocker: "Story 005 has only 3 acceptance criteria (minimum 8 required)"
 6. If gate passes:
-   - Update workflow-status.yaml (readiness_gate: passed)
-   - Log validation results for audit trail
+   - Update `workflow-status.yaml` (readiness_gate: passed)
+   - Log validation results to `docs/readiness-gate-results.json`
    - Proceed to Epic 5 (Implementation)
 7. If warnings present (non-blocking):
    - Display warning summary to user
@@ -1092,10 +1341,60 @@ So that dev agents have everything needed for successful autonomous development.
    - Time to remediate blockers
    - Warning frequency
 9. Complete validation in <3 minutes
+10. Unit tests + integration tests
 
-**Prerequisites:** Story 4.8 (Dependency Graph), Story 4.7 (Epics Workflow), Story 3.2 (Test Strategy)
+**Prerequisites:** Stories 4.1-4.8 (all solutioning stories), Epic 3 Story 3.5 (Test Strategy)
 
 **Estimated Time:** 2-3 hours
+
+**Git Worktree:** `wt/story-4.9` (branch: `story/4.9-readiness-gate`)
+
+**Note:** Waits for all feature stories (4.4-4.8) to complete before executing validation
+
+---
+
+### Epic 4 Summary
+
+**Total Stories:** 9
+- **Foundation (Sequential):** 3 stories (4.1-4.3) ~6-7 hours
+- **Features (Parallel):** 6 stories (4.4-4.9) ~3-4 hours with 6 worktrees
+
+**Dependency Graph:**
+
+```
+FOUNDATION (Sequential)
+───────────────────────
+4.1 (Data Models) ──┐
+4.2 (Bob Agent)  ───┼──> [Foundation Complete]
+4.3 (Workflow)   ───┘
+
+FEATURES (Parallel)
+───────────────────
+                    ┌──> 4.4 (Epic/Story Generation) ──┐
+[Foundation] ───────┤                                   │
+                    ├──> 4.5 (Dependency Detection) ───┼──> 4.9 (Readiness Gate)
+                    ├──> 4.6 (Story Validation) ───────┤
+                    ├──> 4.7 (Sprint Status) ──────────┤
+                    └──> 4.8 (Story File Writer) ──────┘
+
+Note: 4.4-4.8 can develop in parallel after foundation
+      4.9 waits for all feature stories (4.4-4.8) to complete
+```
+
+**Time Savings:**
+- **Before (Sequential)**: 9 story-time-units
+- **After (Parallel with 6 worktrees)**: 3 foundation + 1 parallel = 4-5 story-time-units
+- **Speedup**: ~1.8x faster! 🚀
+
+**Completion Criteria:**
+- ✅ All 9 stories merged to main
+- ✅ Epics.md generated with epic descriptions
+- ✅ Individual story-*.md files created (10-20 stories)
+- ✅ Sprint-status.yaml generated
+- ✅ Dependency-graph.json created with visualization data
+- ✅ All stories validated (100% pass)
+- ✅ Readiness gate passed (100% required checks)
+- ✅ Bob agent infrastructure operational
 
 ---
 
@@ -1738,7 +2037,7 @@ Following ATDD methodology, each epic includes dedicated test stories:
 - Story 2.8: PRD Validation Tests
 
 **Epic 3 (Planning):**
-- Story 3.7: Architecture Validation Tests
+- Story 3.9: Architecture Validation Tests (placeholder - to be detailed in future epic update)
 
 **Epic 4 (Solutioning):**
 - Story 4.9: Story Decomposition Quality Tests
