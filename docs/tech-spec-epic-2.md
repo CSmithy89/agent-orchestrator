@@ -909,8 +909,242 @@ This mapping traces each acceptance criterion to its implementing component, API
 
 ## Risks, Assumptions, Open Questions
 
-{{risks_assumptions_questions}}
+### Risks
+
+| Risk | Severity | Probability | Mitigation | Owner |
+|------|----------|-------------|------------|-------|
+| **LLM API rate limits** during PRD workflow execution | High | Medium | Use Epic 1's RetryHandler with exponential backoff; implement request throttling; monitor rate limit headers | Story 2.1, 2.5 |
+| **Low confidence decisions** causing excessive escalations (>3) | High | Medium | Fine-tune confidence threshold (0.75); improve onboarding docs coverage; iterate on LLM prompts for clearer reasoning | Story 2.1, 2.2 |
+| **Mary/John agent collaboration** producing inconsistent PRD sections | Medium | Low | Enforce shared context via WorkflowEngine; implement validation checks for contradictions; review output quality metrics | Story 2.3, 2.4, 2.7 |
+| **PRD quality validation** missing subtle gaps/contradictions | Medium | Medium | Iterative refinement of PRDValidator rules based on real-world PRDs; human review of validator logic | Story 2.7 |
+| **Escalation queue file corruption** causing workflow failures | Low | Low | Use Epic 1's StateManager atomic writes; implement escalation backup/recovery mechanism | Story 2.2 |
+| **LLM cost overruns** (>$5 per PRD) | Medium | Low | Use CostQualityOptimizer to recommend cheaper models for non-critical tasks; monitor token usage; set budget alerts | Story 2.5, 2.6 |
+| **30-minute execution target** not met for complex projects | Medium | Medium | Optimize LLM prompts to reduce token usage; parallelize Mary/John where possible (future); profile workflow bottlenecks | Story 2.5 |
+| **Onboarding docs** insufficient for domain-specific decisions | Low | Medium | Provide clear onboarding doc templates; encourage users to document preferences; fallback to escalation gracefully | Story 2.1 |
+
+### Assumptions
+
+1. **Epic 1 foundation is stable**: DecisionEngine, EscalationQueue, and agents depend on Epic 1 components (WorkflowEngine, AgentPool, LLMFactory, StateManager) being production-ready
+2. **LLM providers are reliable**: Anthropic/OpenAI/Zhipu APIs have acceptable uptime (>99%) and rate limits accommodate workflow needs
+3. **User input quality**: Users provide meaningful requirements (not just "build an app"); workflow cannot generate quality PRD from vague input
+4. **Single-user execution**: Epic 2 assumes local CLI operation; no concurrent PRD workflows for same project (multi-user deferred to Epic 6)
+5. **File system availability**: .bmad-escalations/ directory is writable and accessible; no permission issues
+6. **Onboarding docs exist**: Users have created `.bmad/onboarding/` directory with project preferences (optional but improves autonomy)
+7. **Mary/John personas are effective**: Predefined agent personas generate quality output without extensive customization
+8. **Template structure is universal**: PRD template works for API/mobile/SaaS/game projects with minor domain adaptations
+9. **Confidence scoring is reliable**: 0.75 threshold balances autonomy and escalations appropriately (may need tuning)
+10. **Test coverage represents quality**: >80% coverage ensures adequate testing (not just metric gaming)
+
+### Open Questions
+
+| Question | Impact | Decision Needed By | Status |
+|----------|--------|---------------------|--------|
+| Should DecisionEngine support **learning from escalation responses** to improve future confidence scores? | High | Epic 2 or deferred to v1.1 | **Deferred**: Too complex for MVP; track escalation patterns manually for now |
+| What if **Mary and John disagree** on requirements scope? How to resolve conflicts autonomously? | Medium | Story 2.4 | **Resolved**: John has final authority on scope decisions (PM role); document in agent personas |
+| Should escalations support **priority levels** (critical, important, batch)? | Medium | Story 2.2 | **Resolved**: Yes, add priority field to Escalation schema; console shows all, Epic 6 dashboard filters by priority |
+| How to handle **PRD regeneration** when validation fails? Full regeneration or incremental fixes? | Medium | Story 2.7 | **Resolved**: Incremental fixes - PRDValidator identifies gaps, regenerate only missing sections (more efficient) |
+| Should workflow support **#yolo mode** to skip all escalations? | Low | Story 2.5 | **Resolved**: Yes, inherited from Epic 1's WorkflowEngine; useful for testing and confident users |
+| What happens if **user abandons escalation** (never responds)? | Medium | Story 2.2 | **Open**: Current design pauses indefinitely; consider timeout (48 hours?) with default response or workflow cancellation |
+| Can users **edit PRD.md manually** during workflow execution? | Low | Story 2.5 | **Open**: Not recommended; workflow may overwrite changes; consider workflow pause/resume for manual edits (future) |
+| Should **multi-language PRDs** be supported (e.g., Chinese for Zhipu users)? | Low | Epic 2 or future | **Deferred**: English-only for MVP; language support is template/prompt engineering work for v1.1 |
+| How to measure **PRD quality** beyond completeness score? User satisfaction? | Medium | Post-Epic 2 | **Open**: Track user ratings (manual); Epic 6 dashboard could include PRD rating feature |
+| Should Mary/John agents **retain memory** across multiple PRD workflows for same user? | Medium | Epic 2 or future | **Deferred**: Stateless for MVP; agent memory is complex (requires vector DB, embeddings) - v1.1+ |
+
+### Dependencies on Decisions
+
+- **Escalation priority levels** (resolved) → Affects Escalation schema (Story 2.2) and Epic 6 dashboard design
+- **Incremental PRD regeneration** (resolved) → Affects PRDValidator and PRDTemplateProcessor implementation (Story 2.7)
+- **John's authority on scope conflicts** (resolved) → Affects John agent prompts and decision logic (Story 2.4)
+- **Escalation timeout** (open) → May require EscalationQueue enhancement if decided before Epic 2 completion
 
 ## Test Strategy Summary
 
-{{test_strategy}}
+### Testing Approach
+
+Epic 2 follows **ATDD (Acceptance Test-Driven Development)** - tests written alongside implementation to verify acceptance criteria immediately.
+
+**Test Pyramid:**
+- **Unit Tests** (70%): DecisionEngine, EscalationQueue, Mary/John agents, PRDValidator, PRDTemplateProcessor
+- **Integration Tests** (25%): PRD workflow execution, Mary ↔ John collaboration, escalation flow
+- **E2E Tests** (5%): Full PRD workflow from user input to docs/PRD.md (deferred to Story 5.12)
+
+### Unit Test Strategy
+
+**Story 2.1 - DecisionEngine:**
+- Test confidence scoring (0.0-1.0 range)
+- Test onboarding doc lookup (confidence 0.95 when found)
+- Test LLM reasoning with temperature 0.3
+- Test escalation threshold (<0.75 triggers escalation)
+- Test decision metadata tracking (question, decision, confidence, reasoning)
+- Mock LLMFactory to control LLM responses
+- **Coverage target**: >90%
+
+**Story 2.2 - EscalationQueue:**
+- Test add() creates file in .bmad-escalations/ with correct schema
+- Test list() filters by status ('pending', 'resolved', 'cancelled')
+- Test list() filters by workflowId
+- Test getById() retrieves correct escalation
+- Test respond() updates escalation status and records response
+- Test respond() calculates resolutionTime correctly
+- Test getMetrics() aggregates counts and resolution times
+- Mock file system for isolated testing
+- **Coverage target**: >90%
+
+**Story 2.3 - MaryAgent:**
+- Test agent initialization with LLM config from project-config.yaml
+- Test analyzeRequirements() returns structured data (requirements, successCriteria, assumptions)
+- Test defineSuccessCriteria() generates measurable criteria
+- Test negotiateScope() splits requirements into MVP and growth features
+- Test DecisionEngine integration (confidence scoring for ambiguous requirements)
+- Mock LLMFactory and DecisionEngine
+- **Coverage target**: >80%
+
+**Story 2.4 - JohnAgent:**
+- Test agent initialization with LLM config
+- Test defineProductVision() generates vision, positioning, valueProposition
+- Test prioritizeFeatures() returns prioritized features with rationale
+- Test assessMarketFit() generates target market and competitive advantage
+- Test validation of Mary's requirements (scope challenge)
+- Mock LLMFactory and DecisionEngine
+- **Coverage target**: >80%
+
+**Story 2.6 - PRDTemplateProcessor:**
+- Test template loading and variable substitution
+- Test section generation for all required sections
+- Test domain adaptation (API vs mobile vs SaaS)
+- Test requirement count (≥67 functional requirements)
+- Test markdown formatting (tables, code blocks)
+- Mock TemplateProcessor (Epic 1)
+- **Coverage target**: >80%
+
+**Story 2.7 - PRDValidator:**
+- Test section presence checks (all required sections)
+- Test clarity checks (flag vague requirements like "handle X")
+- Test measurable criteria validation
+- Test acceptance criteria validation
+- Test contradiction detection
+- Test gap identification
+- Test completeness score calculation (0-100)
+- **Coverage target**: >90%
+
+### Integration Test Strategy
+
+**Story 2.5 - PRD Workflow:**
+- Test full workflow execution (initialization → finalization)
+- Test Mary agent spawning and requirements analysis
+- Test John agent spawning and strategic validation
+- Test Mary ↔ John collaboration (shared context)
+- Test template-output tag processing (incremental saves)
+- Test elicit-required tag handling (#yolo mode skips)
+- Test DecisionEngine integration (<3 escalations target)
+- Test execution time (<30 minutes)
+- Test docs/PRD.md generation (all sections populated)
+- Test workflow-status.yaml update (mark PRD complete)
+- Test quality validation (<85% triggers regeneration)
+- Test escalation flow:
+  1. DecisionEngine confidence <0.75 → escalation created
+  2. Workflow pauses at escalation point
+  3. User responds via EscalationQueue.respond()
+  4. Workflow resumes with response
+- Use test fixtures for user input and expected PRD output
+- Mock LLM responses for deterministic testing
+- **Coverage target**: >80%
+
+### Test Data & Fixtures
+
+**Test PRD inputs** (various project types):
+- Simple API project (minimal requirements)
+- Mobile app (UX-heavy)
+- SaaS platform (complex domain)
+- Game (narrative-heavy)
+- Each with varying ambiguity levels to test escalations
+
+**Expected outputs**:
+- Complete PRD.md for each test input
+- Escalation count metrics
+- Completeness scores
+- Execution time benchmarks
+
+### Performance Testing
+
+**Targets from NFRs:**
+- PRD workflow execution: <30 minutes
+- DecisionEngine: <5 seconds per decision
+- Agent invocations: <30 seconds per call
+- EscalationQueue operations: <100ms
+- Metrics calculation: <500ms
+
+**Performance tests:**
+- Measure PRD workflow execution time with realistic LLM response times
+- Measure DecisionEngine overhead for 10 decisions
+- Measure EscalationQueue.getMetrics() with 100 escalations
+
+### Mocking Strategy
+
+**Mock Epic 1 components**:
+- **LLMFactory**: Return deterministic LLM responses for tests
+- **WorkflowEngine**: Test workflow step execution without full YAML parsing
+- **AgentPool**: Control agent lifecycle for tests
+- **StateManager**: Use in-memory state instead of file system
+- **TemplateProcessor**: Return predictable template output
+
+**Mock external services**:
+- **Anthropic API**: Mock Claude responses (no real API calls in tests)
+- **File system**: Use in-memory FS or temp directories
+
+### Test Execution
+
+**Local development**:
+```bash
+npm run test                 # Run all tests
+npm run test:watch          # Watch mode for TDD
+npm run test:coverage       # Generate coverage report
+npm run test:unit           # Unit tests only
+npm run test:integration    # Integration tests only
+```
+
+**CI/CD pipeline** (GitHub Actions from Epic 1):
+- Run all tests on every commit
+- Enforce coverage thresholds (>80% overall, >90% core)
+- Block PRs if tests fail or coverage drops
+- Generate test report artifacts
+
+### Test Coverage Tracking
+
+**Coverage targets (from Story 2.8)**:
+- DecisionEngine: >90%
+- EscalationQueue: >90%
+- Mary/John agents: >80%
+- PRD workflow: >80%
+- Overall Epic 2: >85%
+
+**Coverage enforcement**:
+- Vitest coverage plugin (from Epic 1)
+- CI/CD blocks merge if coverage < threshold
+- Coverage reports uploaded to artifacts
+
+### Test Quality Standards
+
+**Test characteristics**:
+- Fast: Unit tests <1s each, integration tests <10s each
+- Isolated: No external dependencies (mock LLMs, file system)
+- Deterministic: Same input always produces same output
+- Readable: Clear test names, arrange-act-assert pattern
+- Maintainable: DRY test utilities, shared fixtures
+
+**Test patterns**:
+- Arrange-Act-Assert (AAA)
+- Given-When-Then for integration tests
+- Test factories for complex object creation
+- Shared test utilities in tests/utils/
+
+### Definition of Done for Tests (Story 2.8)
+
+Before Epic 2 is complete:
+- [ ] All acceptance criteria have corresponding tests
+- [ ] All unit tests passing (0 failures)
+- [ ] All integration tests passing (0 failures)
+- [ ] Coverage >85% overall, >90% for core components
+- [ ] CI/CD pipeline passing
+- [ ] No flaky tests (tests pass consistently)
+- [ ] Test documentation in README (how to run, how to add new tests)
