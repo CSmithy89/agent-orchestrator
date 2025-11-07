@@ -318,13 +318,16 @@ Format your response as JSON:
         // Validate confidence is in valid range
         let confidence = Math.max(0, Math.min(1, parsed.confidence || 0.5));
 
-        // Adjust confidence based on answer clarity
-        confidence = this.adjustConfidenceByClarity(parsed.decision, parsed.reasoning, confidence);
+        // Ensure reasoning is a string before passing to adjustConfidenceByClarity
+        const reasoningText = typeof parsed.reasoning === 'string' ? parsed.reasoning : '';
+        confidence = this.adjustConfidenceByClarity(parsed.decision, reasoningText, confidence);
+
+        const finalReasoning = reasoningText || 'No reasoning provided';
 
         return {
           value: parsed.decision,
           confidence,
-          reasoning: parsed.reasoning || 'No reasoning provided'
+          reasoning: finalReasoning
         };
       }
     } catch (error) {
