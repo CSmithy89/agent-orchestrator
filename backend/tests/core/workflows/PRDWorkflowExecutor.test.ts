@@ -277,9 +277,14 @@ workflows:
 
       const executionOrder: number[] = [];
       const originalExecuteStep = executor.executeStep.bind(executor);
-      executor.executeStep = vi.fn().mockImplementation(async (step: any) => {
+      executor.executeStep = vi.fn().mockImplementation(async (
+        step: any,
+        projectPath: string,
+        options: any,
+        sharedContext: Record<string, any>
+      ) => {
         executionOrder.push(step.id);
-        return originalExecuteStep(step);
+        return originalExecuteStep(step, projectPath, options, sharedContext);
       });
 
       await executor.execute(projectRoot, { yoloMode: true });
@@ -511,10 +516,7 @@ workflows:
     });
 
     it('should handle file write failures gracefully', async () => {
-      // Mock fs.writeFile to fail
-      const originalWriteFile = fs.writeFile;
-      vi.spyOn(fs, 'writeFile').mockRejectedValue(new Error('Disk full'));
-
+      // Create an executor with a mocked processTemplateOutput that fails
       const executor = new PRDWorkflowExecutor(
         mockAgentPool,
         mockDecisionEngine,
@@ -525,10 +527,13 @@ workflows:
       const workflowPath = path.join(bmadDir, 'workflow.yaml');
       await executor.loadWorkflowConfig(workflowPath);
 
-      await expect(executor.execute(projectRoot, { yoloMode: true })).rejects.toThrow();
+      // Mock processTemplateOutput to throw an error
+      const originalProcess = executor.processTemplateOutput.bind(executor);
+      executor.processTemplateOutput = vi.fn().mockImplementation(async () => {
+        throw new Error('Disk full - cannot write file');
+      });
 
-      // Restore original
-      vi.restoreAllMocks();
+      await expect(executor.execute(projectRoot, { yoloMode: true })).rejects.toThrow(/Disk full/);
     });
   });
 
@@ -753,8 +758,31 @@ workflows:
     });
 
     it('should timeout if execution exceeds configured limit', async () => {
+      // Create a slow mock Mary agent that takes longer than timeout
+      const slowMaryAgent = {
+        analyzeRequirements: vi.fn().mockImplementation(async () => {
+          await new Promise(resolve => setTimeout(resolve, 2000)); // 2 second delay
+          return {
+            requirementsList: [{ id: 'req-1', description: 'Test' }],
+            confidence: 0.9
+          };
+        }),
+        defineSuccessCriteria: vi.fn(),
+        negotiateScope: vi.fn()
+      };
+
+      // Create agent pool that returns slow agent
+      const slowAgentPool = {
+        spawn: vi.fn().mockImplementation((agentType: string) => {
+          if (agentType === 'mary') return Promise.resolve(slowMaryAgent);
+          if (agentType === 'john') return Promise.resolve(mockJohnAgent);
+          throw new Error(`Unknown agent type: ${agentType}`);
+        }),
+        destroy: vi.fn().mockResolvedValue(undefined)
+      } as any;
+
       const executor = new PRDWorkflowExecutor(
-        mockAgentPool,
+        slowAgentPool,
         mockDecisionEngine,
         mockEscalationQueue,
         mockStateManager
@@ -763,7 +791,7 @@ workflows:
       const workflowPath = path.join(bmadDir, 'workflow.yaml');
       await executor.loadWorkflowConfig(workflowPath);
 
-      // Set a very short timeout (1 second)
+      // Set a very short timeout (1 second) - less than the 2 second delay
       await expect(
         executor.execute(projectRoot, { yoloMode: true, timeout: 1000 })
       ).rejects.toThrow(/timeout/i);

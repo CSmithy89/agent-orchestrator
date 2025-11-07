@@ -266,7 +266,7 @@ steps:
     const workflowPath = path.join(bmadDir, 'workflow.yaml');
     await executor.loadWorkflowConfig(workflowPath);
 
-    const result = await executor.execute(projectPath, { yoloMode: true });
+    const result = await executor.execute(projectRoot, { yoloMode: true });
 
     expect(result.escalationsCount).toBeLessThan(3);
   });
