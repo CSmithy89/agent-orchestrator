@@ -1,6 +1,6 @@
 # Story 2.2: Escalation Queue System
 
-Status: review
+Status: done
 
 ## Story
 
