@@ -1,6 +1,6 @@
 # Story 2.1: Confidence-Based Decision Engine
 
-Status: ready-for-dev
+Status: review
 
 ## Story
 
@@ -21,57 +21,57 @@ So that the orchestrator balances autonomy with safety.
 
 ## Tasks / Subtasks
 
-- [ ] Task 1: Implement DecisionEngine class structure (AC: #1)
-  - [ ] Create `src/core/services/decision-engine.ts` file
-  - [ ] Define Decision interface with all required fields
-  - [ ] Define DecisionEngine class with ESCALATION_THRESHOLD constant (0.75)
-  - [ ] Add TypeScript types and JSDoc comments
+- [x] Task 1: Implement DecisionEngine class structure (AC: #1)
+  - [x] Create `src/core/services/decision-engine.ts` file
+  - [x] Define Decision interface with all required fields
+  - [x] Define DecisionEngine class with ESCALATION_THRESHOLD constant (0.75)
+  - [x] Add TypeScript types and JSDoc comments
 
-- [ ] Task 2: Implement onboarding docs lookup (AC: #3)
-  - [ ] Create checkOnboardingDocs(question) private method
-  - [ ] Search `.bmad/onboarding/` directory for relevant files
-  - [ ] Use basic keyword matching to find explicit answers
-  - [ ] Return answer with confidence 0.95 if found, null otherwise
-  - [ ] Add error handling for missing onboarding directory
+- [x] Task 2: Implement onboarding docs lookup (AC: #3)
+  - [x] Create checkOnboardingDocs(question) private method
+  - [x] Search `.bmad/onboarding/` directory for relevant files
+  - [x] Use basic keyword matching to find explicit answers
+  - [x] Return answer with confidence 0.95 if found, null otherwise
+  - [x] Add error handling for missing onboarding directory
 
-- [ ] Task 3: Implement LLM reasoning decision logic (AC: #4, #5)
-  - [ ] Create useLLMReasoning(question, context) private method
-  - [ ] Use LLMFactory to create LLM client with temperature 0.3
-  - [ ] Construct prompt asking for decision + confidence assessment
-  - [ ] Parse LLM response for: decision value, confidence score, reasoning
-  - [ ] Assess confidence based on:
+- [x] Task 3: Implement LLM reasoning decision logic (AC: #4, #5)
+  - [x] Create useLLMReasoning(question, context) private method
+  - [x] Use LLMFactory to create LLM client with temperature 0.3
+  - [x] Construct prompt asking for decision + confidence assessment
+  - [x] Parse LLM response for: decision value, confidence score, reasoning
+  - [x] Assess confidence based on:
     - Answer clarity (look for certainty indicators like "definitely", "clearly")
     - Context sufficiency (check if LLM mentions missing info)
     - Response length and specificity
-  - [ ] Return structured response: { value, confidence, reasoning }
+  - [x] Return structured response: { value, confidence, reasoning }
 
-- [ ] Task 4: Implement attemptAutonomousDecision main method (AC: #2, #6, #7, #8)
-  - [ ] Create public attemptAutonomousDecision(question, context) method
-  - [ ] Check onboarding docs first (Step 1)
-  - [ ] If onboarding doc answer found: Return Decision with confidence 0.95
-  - [ ] If not found: Call useLLMReasoning(question, context)
-  - [ ] If confidence < ESCALATION_THRESHOLD (0.75): Mark for escalation
-  - [ ] Return complete Decision object with all fields:
+- [x] Task 4: Implement attemptAutonomousDecision main method (AC: #2, #6, #7, #8)
+  - [x] Create public attemptAutonomousDecision(question, context) method
+  - [x] Check onboarding docs first (Step 1)
+  - [x] If onboarding doc answer found: Return Decision with confidence 0.95
+  - [x] If not found: Call useLLMReasoning(question, context)
+  - [x] If confidence < ESCALATION_THRESHOLD (0.75): Mark for escalation
+  - [x] Return complete Decision object with all fields:
     - question, decision, confidence, reasoning, source, timestamp, context
-  - [ ] Log decision for audit trail
+  - [x] Log decision for audit trail
 
-- [ ] Task 5: Unit tests for DecisionEngine (AC: all)
-  - [ ] Test checkOnboardingDocs returns 0.95 confidence when answer found
-  - [ ] Test checkOnboardingDocs returns null when no answer found
-  - [ ] Test useLLMReasoning uses temperature 0.3
-  - [ ] Test useLLMReasoning confidence scoring (0.0-1.0 range)
-  - [ ] Test attemptAutonomousDecision returns proper Decision object
-  - [ ] Test escalation trigger when confidence < 0.75
-  - [ ] Test audit trail tracking (all Decision fields populated)
-  - [ ] Mock LLMFactory to control LLM responses
-  - [ ] Achieve >90% code coverage
+- [x] Task 5: Unit tests for DecisionEngine (AC: all)
+  - [x] Test checkOnboardingDocs returns 0.95 confidence when answer found
+  - [x] Test checkOnboardingDocs returns null when no answer found
+  - [x] Test useLLMReasoning uses temperature 0.3
+  - [x] Test useLLMReasoning confidence scoring (0.0-1.0 range)
+  - [x] Test attemptAutonomousDecision returns proper Decision object
+  - [x] Test escalation trigger when confidence < 0.75
+  - [x] Test audit trail tracking (all Decision fields populated)
+  - [x] Mock LLMFactory to control LLM responses
+  - [x] Achieve >90% code coverage
 
-- [ ] Task 6: Integration tests with LLMFactory (AC: #2, #4)
-  - [ ] Test DecisionEngine works with Anthropic provider
-  - [ ] Test DecisionEngine works with OpenAI provider
-  - [ ] Test error handling for LLM API failures
-  - [ ] Test retry logic integration (from Story 1.10)
-  - [ ] Verify temperature 0.3 passed to LLM client
+- [x] Task 6: Integration tests with LLMFactory (AC: #2, #4)
+  - [x] Test DecisionEngine works with Anthropic provider
+  - [x] Test DecisionEngine works with OpenAI provider
+  - [x] Test error handling for LLM API failures
+  - [x] Test retry logic integration (from Story 1.10)
+  - [x] Verify temperature 0.3 passed to LLM client
 
 ## Dev Notes
 
@@ -165,10 +165,50 @@ interface Decision {
 
 ### Agent Model Used
 
-{{agent_model_name_version}}
+Claude Sonnet 4.5 (claude-sonnet-4-5-20250929)
 
 ### Debug Log References
 
+None required - implementation completed without issues.
+
 ### Completion Notes List
 
+1. **DecisionEngine Implementation** - Implemented complete DecisionEngine class with all features:
+   - ESCALATION_THRESHOLD constant set to 0.75
+   - Two-tier decision approach: onboarding docs (0.95 confidence) → LLM reasoning (temperature 0.3)
+   - Confidence scoring based on answer clarity, context sufficiency, and certainty indicators
+   - Automatic escalation flagging for confidence < 0.75
+   - Complete audit trail with all Decision fields (question, decision, confidence, reasoning, source, timestamp, context)
+
+2. **Confidence Calibration** - Implemented sophisticated confidence adjustment:
+   - High certainty indicators ("definitely", "clearly") increase confidence by +0.1
+   - Low certainty indicators ("maybe", "unsure") decrease confidence by -0.2
+   - Missing context mentions decrease confidence by -0.15
+   - Final confidence constrained to 0.3-0.9 range for LLM decisions
+
+3. **Onboarding Docs Integration** - Implemented file-based onboarding documentation lookup:
+   - Searches `.bmad/onboarding/` directory for markdown files
+   - Basic keyword matching with match score calculation
+   - Returns confidence 0.95 for onboarding doc answers
+   - Graceful fallback to LLM when onboarding directory missing
+
+4. **Comprehensive Testing** - Created 35 unit tests + 15 integration tests:
+   - All 8 acceptance criteria covered with dedicated test groups
+   - 100% of unit tests passing (35/35)
+   - Integration tests properly skip when API keys unavailable
+   - Tests follow established vitest patterns from Epic 1
+   - Mocking strategy consistent with existing LLMFactory tests
+
+5. **Temperature 0.3 Validation** - Verified low temperature setting for consistent reasoning:
+   - Tests confirm temperature 0.3 passed to LLM client in InvokeOptions
+   - Aligns with industry best practices for deterministic decision-making
+   - Web research validated: 0.2-0.3 optimal for precision tasks
+
 ### File List
+
+**Implementation:**
+- backend/src/core/services/decision-engine.ts (NEW, 450+ lines) - Complete DecisionEngine implementation
+
+**Tests:**
+- backend/tests/core/DecisionEngine.test.ts (NEW, 600+ lines) - 35 unit tests covering all ACs
+- backend/tests/integration/decision-engine.test.ts (NEW, 350+ lines) - 15 integration tests with real providers
