@@ -1,0 +1,624 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.3</storyId>
+    <title>Mary Agent - Business Analyst Persona</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-3-mary-agent-business-analyst-persona.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>orchestrator core</asA>
+    <iWant>a Mary agent that excels at requirements analysis</iWant>
+    <soThat>PRD workflows can extract and structure user requirements intelligently</soThat>
+    <tasks>
+      <task id="8" priority="1" ac="all">
+        <title>**WRITE TESTS FIRST** - Unit tests for MaryAgent (ATDD Start)</title>
+        <subtasks>
+          <subtask>Create backend/tests/core/agents/MaryAgent.test.ts</subtask>
+          <subtask>Set up test structure: describe blocks, beforeEach/afterEach</subtask>
+          <subtask>Mock LLMFactory for deterministic responses</subtask>
+          <subtask>Mock DecisionEngine for confidence scoring tests</subtask>
+          <subtask>Test agent initialization (persona loading, LLM client)</subtask>
+          <subtask>Test analyzeRequirements() with various inputs</subtask>
+          <subtask>Test defineSuccessCriteria() generates measurable criteria</subtask>
+          <subtask>Test negotiateScope() splits MVP vs growth</subtask>
+          <subtask>Test DecisionEngine integration (confidence thresholds)</subtask>
+          <subtask>Test error handling (persona not found, LLM failures)</subtask>
+          <subtask>Run tests (should FAIL - no implementation yet)</subtask>
+          <subtask>Target: >80% code coverage when complete</subtask>
+        </subtasks>
+      </task>
+      <task id="1" priority="2" ac="1,2">
+        <title>Implement MaryAgent class structure</title>
+        <subtasks>
+          <subtask>Create backend/src/core/agents/mary-agent.ts</subtask>
+          <subtask>Define MaryAgent class extending base pattern</subtask>
+          <subtask>Implement constructor accepting LLMConfig</subtask>
+          <subtask>Load Mary persona from bmad/bmm/agents/mary.md</subtask>
+          <subtask>Initialize LLM client via LLMFactory (multi-provider)</subtask>
+          <subtask>Parse persona markdown for system/specialized prompts</subtask>
+          <subtask>Add TypeScript types and JSDoc comments</subtask>
+        </subtasks>
+      </task>
+      <task id="2" priority="3" ac="3,4">
+        <title>Implement specialized prompt loading and context management</title>
+        <subtasks>
+          <subtask>Parse Mary persona sections: requirements extraction, user story, scope negotiation</subtask>
+          <subtask>Implement context injection: user input, product brief, domain knowledge, workflow state</subtask>
+          <subtask>Create PromptBuilder utility for dynamic assembly</subtask>
+          <subtask>Maintain Mary's analytical persona in prompts</subtask>
+        </subtasks>
+      </task>
+      <task id="3" priority="4" ac="5,6">
+        <title>Implement analyzeRequirements() method</title>
+        <subtasks>
+          <subtask>Signature: analyzeRequirements(userInput: string, productBrief?: string)</subtask>
+          <subtask>Define AnalysisResult interface: requirements, successCriteria, assumptions, clarifications</subtask>
+          <subtask>Use specialized "requirement extraction" prompt</subtask>
+          <subtask>Invoke LLM client with context</subtask>
+          <subtask>Parse LLM response into AnalysisResult</subtask>
+          <subtask>Return structured requirements documentation</subtask>
+        </subtasks>
+      </task>
+      <task id="4" priority="5" ac="5,6">
+        <title>Implement defineSuccessCriteria() method</title>
+        <subtasks>
+          <subtask>Signature: defineSuccessCriteria(features: string[])</subtask>
+          <subtask>Use specialized "success criteria" prompt</subtask>
+          <subtask>Generate measurable criteria: "Given [scenario], when [action], then [outcome]"</subtask>
+          <subtask>Ensure concrete, verifiable criteria (no vague terms)</subtask>
+          <subtask>Return array of success criteria strings</subtask>
+        </subtasks>
+      </task>
+      <task id="5" priority="6" ac="5,6">
+        <title>Implement negotiateScope() method</title>
+        <subtasks>
+          <subtask>Signature: negotiateScope(requirements: string[], constraints: Record&lt;string, any&gt;)</subtask>
+          <subtask>Define ScopeResult interface: mvpScope, growthFeatures, rationale</subtask>
+          <subtask>Use specialized "scope negotiation" prompt</subtask>
+          <subtask>Consider constraints: timeline, budget, team size</subtask>
+          <subtask>Apply 80/20 rule for MVP boundary</subtask>
+          <subtask>Generate clear rationale</subtask>
+        </subtasks>
+      </task>
+      <task id="6" priority="7" ac="7,8">
+        <title>Implement DecisionEngine integration for confidence scoring</title>
+        <subtasks>
+          <subtask>Import DecisionEngine from Story 2.1</subtask>
+          <subtask>Create makeDecision() helper wrapping DecisionEngine.attemptAutonomousDecision()</subtask>
+          <subtask>For ambiguous requirements: call DecisionEngine</subtask>
+          <subtask>If confidence &lt; 0.75: escalate via EscalationQueue</subtask>
+          <subtask>If confidence >= 0.75: proceed with decision</subtask>
+          <subtask>Track all decisions for audit trail</subtask>
+          <subtask>Handle decisions: "Is requirement clear?", "Does scope make sense?", "MVP or growth?"</subtask>
+        </subtasks>
+      </task>
+      <task id="7" priority="8" ac="all">
+        <title>Implement error handling and logging</title>
+        <subtasks>
+          <subtask>Handle LLM failures with RetryHandler from Epic 1</subtask>
+          <subtask>Handle persona file not found error</subtask>
+          <subtask>Handle invalid project config (missing LLM assignment)</subtask>
+          <subtask>Log all Mary invocations with input/output sizes</subtask>
+          <subtask>Format: [MaryAgent] analyzeRequirements(inputSize: X chars) -&gt; requirements: Y items</subtask>
+          <subtask>Use Epic 1 Logger for consistency</subtask>
+        </subtasks>
+      </task>
+      <task id="9" priority="9" ac="7,8">
+        <title>Integration tests with DecisionEngine and PRD workflow</title>
+        <subtasks>
+          <subtask>Test Mary in PRD workflow context via AgentPool</subtask>
+          <subtask>Test Mary + DecisionEngine escalation flow</subtask>
+          <subtask>Test Mary collaboration with John (Story 2.4 integration)</subtask>
+          <subtask>Test multi-provider support: Anthropic, OpenAI, Zhipu</subtask>
+          <subtask>Performance test: each method completes in &lt;30 seconds</subtask>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Load Mary persona from bmad/bmm/agents/mary.md</criterion>
+    <criterion id="2">Configure with project-assigned LLM from .bmad/project-config.yaml agent_assignments (Anthropic, OpenAI, Zhipu, Google)</criterion>
+    <criterion id="3">Specialized prompts for: requirement extraction, user story writing, scope negotiation</criterion>
+    <criterion id="4">Context includes: user input, product brief (if exists), domain knowledge</criterion>
+    <criterion id="5">Methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope()</criterion>
+    <criterion id="6">Generate clear, structured requirements documentation</criterion>
+    <criterion id="7">Make decisions with confidence scoring via DecisionEngine</criterion>
+    <criterion id="8">Escalate ambiguous or critical product decisions</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Analysis Phase Automation</title>
+        <section>Story 2.3: Mary Agent - Business Analyst Persona (AC lines 748-761)</section>
+        <snippet>Mary Agent loads persona from bmad/bmm/agents/mary.md, configured with project-assigned LLM (Anthropic/OpenAI/Zhipu/Google). Specialized prompts for requirement extraction, user story writing, scope negotiation. Methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope(). Uses DecisionEngine for confidence-based decisions, escalates when confidence &lt; 0.75.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Analysis Phase Automation</title>
+        <section>MaryAgent Interface (lines 254-292)</section>
+        <snippet>MaryAgent interface defines three core methods: analyzeRequirements(userInput, productBrief?) returns {requirements, successCriteria, assumptions}; defineSuccessCriteria(features) returns string[]; negotiateScope(requirements, constraints) returns {mvpScope, growthFeatures}.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Analysis Phase Automation</title>
+        <section>Agent Persona Schema (lines 142-154)</section>
+        <snippet>AgentPersona schema: name (e.g., "Mary"), role (e.g., "Business Analyst"), provider (e.g., "anthropic"), model (e.g., "claude-sonnet-4-5"), temperature (e.g., 0.3), systemPrompt, specializedPrompts map.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic Technical Specification: Analysis Phase Automation</title>
+        <section>PRD Workflow Integration (lines 346-353)</section>
+        <snippet>PRD workflow sequence: User Input → Mary (analyze requirements) → Requirements Draft → John (validate &amp; prioritize) → Strategic Feedback → Mary (refine requirements) → Final Requirements → PRD Template.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>2.2 Autonomous Intelligence Layer - Agent Personas</section>
+        <snippet>Mary (Business Analyst) agent is part of core BMAD agents in Autonomous Intelligence layer. Specialized in requirements analysis, user story writing, scope negotiation. Collaborates with John (PM) via shared workflow context.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Story 2.3: Mary Agent - Business Analyst Persona (lines 476-496)</section>
+        <snippet>Mary agent excels at requirements analysis for PRD workflows. Load persona from bmad/bmm/agents/mary.md, configure with project-assigned LLM (multi-provider support). Specialized prompts for requirement extraction, user stories, scope negotiation. Uses DecisionEngine for confidence scoring, escalates via EscalationQueue when confidence &lt; 0.75.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-1-confidence-based-decision-engine.md</path>
+        <title>Story 2.1 (Prerequisite): Confidence-Based Decision Engine</title>
+        <section>Dev Agent Record - Integration Pattern</section>
+        <snippet>DecisionEngine located at backend/src/core/services/decision-engine.ts. ESCALATION_THRESHOLD = 0.75 fixed. Mary should wrap ambiguous decisions with DecisionEngine.attemptAutonomousDecision(). Decision returns: {question, decision, confidence, reasoning, source, timestamp, context}. Two-tier: onboarding docs (0.95) → LLM reasoning (0.3-0.9) → escalation (&lt;0.75).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-2-escalation-queue-system.md</path>
+        <title>Story 2.2 (Prerequisite): Escalation Queue System</title>
+        <section>Dev Agent Record - Integration Pattern</section>
+        <snippet>EscalationQueue located at backend/src/core/services/escalation-queue.ts. Mary should call EscalationQueue.add() when confidence &lt; 0.75. Integration: DecisionEngine checks confidence → If &lt; 0.75 → EscalationQueue.add() → Workflow pauses. EscalationQueue provides add(), list(), getById(), respond(), getMetrics().</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/llm/LLMFactory.ts</path>
+        <kind>service</kind>
+        <symbol>LLMFactory.createClient(config: LLMConfig)</symbol>
+        <lines>44-80</lines>
+        <reason>Creates LLM clients for Mary Agent. Supports multi-provider: Anthropic, OpenAI, Zhipu, Google. Mary must use LLMFactory to initialize LLM client based on project config.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/providers/AnthropicProvider.ts</path>
+        <kind>provider</kind>
+        <symbol>AnthropicProvider</symbol>
+        <lines>1-200</lines>
+        <reason>Anthropic SDK integration. Recommended provider for Mary (Claude Sonnet for strong reasoning on requirements analysis).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/providers/OpenAIProvider.ts</path>
+        <kind>provider</kind>
+        <symbol>OpenAIProvider</symbol>
+        <lines>1-200</lines>
+        <reason>OpenAI SDK integration. Alternative provider for Mary (GPT-4 for requirements analysis).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/providers/ZhipuProvider.ts</path>
+        <kind>provider</kind>
+        <symbol>ZhipuProvider</symbol>
+        <lines>1-200</lines>
+        <reason>Zhipu SDK integration (GLM models via native or z.ai wrapper). Alternative provider for Mary.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/decision-engine.ts</path>
+        <kind>service</kind>
+        <symbol>DecisionEngine</symbol>
+        <lines>1-150</lines>
+        <reason>Integration point - Mary wraps ambiguous decisions with DecisionEngine.attemptAutonomousDecision(). ESCALATION_THRESHOLD = 0.75. Decision interface provides confidence, reasoning for escalation context.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/escalation-queue.ts</path>
+        <kind>service</kind>
+        <symbol>EscalationQueue</symbol>
+        <lines>1-150</lines>
+        <reason>Integration point - Mary calls EscalationQueue.add() when DecisionEngine confidence &lt; 0.75. Provides add(), respond() for workflow pause/resume.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/RetryHandler.ts</path>
+        <kind>service</kind>
+        <symbol>RetryHandler</symbol>
+        <lines>1-100</lines>
+        <reason>Exponential backoff retry logic for LLM API failures. Mary should integrate RetryHandler for reliability when calling LLM.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>service</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-200</lines>
+        <reason>Agent lifecycle management. PRD workflow will spawn Mary via AgentPool. Understanding AgentPool patterns helps with integration testing.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/llm.types.ts</path>
+        <kind>types</kind>
+        <symbol>LLMConfig, LLMError, InvokeOptions</symbol>
+        <lines>1-100</lines>
+        <reason>TypeScript types for LLM configuration. Mary will use LLMConfig to specify provider, model, temperature for specialized prompts.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/agent.ts</path>
+        <kind>types</kind>
+        <symbol>Agent types</symbol>
+        <lines>1-50</lines>
+        <reason>TypeScript types for agents. Defines base agent interfaces that Mary should follow.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/utils/logger.ts</path>
+        <kind>utility</kind>
+        <symbol>Logger</symbol>
+        <lines>1-100</lines>
+        <reason>Epic 1 Logger for consistent logging format. Mary should use Logger for all invocations: [MaryAgent] method(inputSize) -&gt; result.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/DecisionEngine.test.ts</path>
+        <kind>test</kind>
+        <symbol>DecisionEngine tests</symbol>
+        <lines>1-150</lines>
+        <reason>Testing patterns to follow: vitest with describe/it, mock LLMFactory for deterministic responses, beforeEach/afterEach setup, AC-driven organization. Target >80% coverage.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/decision-engine.test.ts</path>
+        <kind>test</kind>
+        <symbol>DecisionEngine integration tests</symbol>
+        <lines>1-150</lines>
+        <reason>Integration testing patterns for DecisionEngine with multiple providers. Mary integration tests should follow similar patterns.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@anthropic-ai/sdk" version="^0.68.0">Anthropic Claude API SDK - Recommended for Mary (strong reasoning)</package>
+        <package name="openai" version="^6.2.0">OpenAI GPT API SDK - Alternative provider for Mary</package>
+        <package name="uuid" version="^13.0.0">UUID generation - May be useful for decision/escalation tracking</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler - Strict mode enabled, no 'any' types</package>
+        <package name="vitest" version="^1.0.0">Testing framework - For unit and integration tests</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Code coverage - Target >80% for MaryAgent</package>
+        <package name="fs/promises">Built-in Node.js module - For reading persona markdown file</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>MaryAgent location: backend/src/core/agents/mary-agent.ts (architecture specification)</constraint>
+    <constraint>Mary persona file: bmad/bmm/agents/mary.md (to be created in this story)</constraint>
+    <constraint>Load LLM config from .bmad/project-config.yaml under agent_assignments.mary</constraint>
+    <constraint>Must support multi-provider: Anthropic (recommended), OpenAI, Zhipu, Google via LLMFactory</constraint>
+    <constraint>Recommended provider: Claude Sonnet (strong reasoning for requirements analysis)</constraint>
+    <constraint>Temperature: 0.3 for analytical reasoning (Mary's specialized prompts)</constraint>
+    <constraint>Must integrate with DecisionEngine from Story 2.1 for confidence scoring</constraint>
+    <constraint>Must integrate with EscalationQueue from Story 2.2 for escalations when confidence &lt; 0.75</constraint>
+    <constraint>ESCALATION_THRESHOLD = 0.75 (defined in DecisionEngine, referenced for decisions)</constraint>
+    <constraint>Performance: Each method (analyzeRequirements, defineSuccessCriteria, negotiateScope) must complete in &lt;30 seconds</constraint>
+    <constraint>TypeScript strict mode enabled - No 'any' types, explicit return types required</constraint>
+    <constraint>JSDoc comments required on all exported functions/classes</constraint>
+    <constraint>Follow ATDD approach: Task 8 (Write Tests First), then Tasks 1-7 (Implementation), then Task 9 (Integration)</constraint>
+    <constraint>Test coverage target: >80% for MaryAgent code</constraint>
+    <constraint>Success criteria format: "Given [scenario], when [action], then [outcome]" (measurable, verifiable)</constraint>
+    <constraint>Scope negotiation: Apply 80/20 rule (20% of features deliver 80% of value for MVP)</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>MaryAgent</name>
+      <kind>TypeScript class</kind>
+      <signature>
+class MaryAgent {
+  constructor(llmConfig: LLMConfig, personaPath?: string);
+
+  async analyzeRequirements(
+    userInput: string,
+    productBrief?: string
+  ): Promise&lt;AnalysisResult&gt;;
+
+  async defineSuccessCriteria(
+    features: string[]
+  ): Promise&lt;string[]&gt;;
+
+  async negotiateScope(
+    requirements: string[],
+    constraints: Record&lt;string, any&gt;
+  ): Promise&lt;ScopeResult&gt;;
+}
+      </signature>
+      <path>backend/src/core/agents/mary-agent.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>AnalysisResult</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface AnalysisResult {
+  requirements: string[];       // Structured functional requirements
+  successCriteria: string[];    // Measurable success criteria
+  assumptions: string[];        // Implicit assumptions identified
+  clarifications: string[];     // Questions needing answers
+}
+      </signature>
+      <path>backend/src/core/agents/mary-agent.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>ScopeResult</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface ScopeResult {
+  mvpScope: string[];          // Minimum viable product features
+  growthFeatures: string[];    // Post-MVP enhancements
+  rationale: string;           // Reasoning for MVP boundary
+}
+      </signature>
+      <path>backend/src/core/agents/mary-agent.ts (to be created)</path>
+    </interface>
+    <interface>
+      <name>AgentPersona</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface AgentPersona {
+  name: string;                // "Mary"
+  role: string;                // "Business Analyst"
+  provider: string;            // e.g., "anthropic", "openai", "zhipu"
+  model: string;               // e.g., "claude-sonnet-4-5", "gpt-4"
+  temperature: number;         // e.g., 0.3 for reasoning
+  systemPrompt: string;        // Persona definition from mary.md
+  specializedPrompts: {
+    [method: string]: string;  // e.g., analyzeRequirements: "..."
+  };
+}
+      </signature>
+      <path>docs/tech-spec-epic-2.md (lines 142-154)</path>
+    </interface>
+    <interface>
+      <name>DecisionEngine.attemptAutonomousDecision</name>
+      <kind>Integration method</kind>
+      <signature>
+async attemptAutonomousDecision(
+  question: string,
+  context: Record&lt;string, any&gt;
+): Promise&lt;Decision&gt;
+
+// Mary integration pattern:
+const decision = await this.decisionEngine.attemptAutonomousDecision(
+  'Is this requirement clear enough to proceed?',
+  { requirement: req, userInput, productBrief }
+);
+
+if (decision.confidence &lt; 0.75) {
+  // Escalate via EscalationQueue
+  await this.escalationQueue.add({
+    workflowId: this.currentWorkflow.id,
+    step: this.currentStep,
+    question: decision.question,
+    aiReasoning: decision.reasoning,
+    confidence: decision.confidence,
+    context: decision.context
+  });
+  // Workflow pauses here
+} else {
+  // Proceed with decision
+  return decision.decision;
+}
+      </signature>
+      <path>backend/src/core/services/decision-engine.ts</path>
+    </interface>
+    <interface>
+      <name>Mary Persona File Structure</name>
+      <kind>Markdown file</kind>
+      <signature>
+# Mary - Business Analyst
+
+## Role
+Business Analyst specializing in requirements extraction, user story writing, and scope negotiation.
+
+## System Prompt
+[Core persona definition - analytical, detail-oriented, user-focused]
+You are Mary, an expert Business Analyst...
+
+## Specialized Prompts
+
+### Requirements Extraction
+[Prompt for analyzeRequirements() method]
+Extract and structure requirements from user input...
+
+### Success Criteria Definition
+[Prompt for defineSuccessCriteria() method]
+Generate measurable success criteria in Given-When-Then format...
+
+### Scope Negotiation
+[Prompt for negotiateScope() method]
+Apply 80/20 rule to split features into MVP vs growth...
+      </signature>
+      <path>bmad/bmm/agents/mary.md (to be created)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Use Vitest testing framework (established in Epic 1). Follow ATDD approach: Task 8 (write tests first, should fail), Tasks 1-7 (implement to make tests pass), Task 9 (integration tests). Unit tests mock LLMFactory for deterministic responses, mock DecisionEngine for confidence tests. Integration tests use real providers (Anthropic, OpenAI, Zhipu) with test API keys. Achieve >80% code coverage for MaryAgent. Tests must verify all 8 acceptance criteria. Use describe/it pattern with clear test names. Arrange-Act-Assert structure.
+    </standards>
+    <locations>
+      <location>backend/tests/core/agents/MaryAgent.test.ts - Unit tests (Task 8, write first)</location>
+      <location>backend/tests/integration/mary-agent.test.ts - Integration tests (Task 9, after implementation)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Test MaryAgent loads persona from bmad/bmm/agents/mary.md</idea>
+      <idea ac="1">Test persona file not found throws descriptive error</idea>
+      <idea ac="1">Test persona markdown parsed correctly (system prompt, specialized prompts)</idea>
+      <idea ac="2">Test MaryAgent initialized with LLMConfig from project config</idea>
+      <idea ac="2">Test LLM client created via LLMFactory with correct provider/model</idea>
+      <idea ac="2">Test multi-provider support: Anthropic (Claude), OpenAI (GPT), Zhipu (GLM)</idea>
+      <idea ac="2">Test invalid project config (missing LLM assignment) throws error</idea>
+      <idea ac="3">Test specialized prompts loaded: requirement extraction, user story, scope negotiation</idea>
+      <idea ac="4">Test analyzeRequirements() includes user input context</idea>
+      <idea ac="4">Test analyzeRequirements() includes product brief context when provided</idea>
+      <idea ac="4">Test analyzeRequirements() includes domain knowledge from onboarding docs</idea>
+      <idea ac="5">Test analyzeRequirements(userInput) returns AnalysisResult with requirements, successCriteria, assumptions</idea>
+      <idea ac="5">Test analyzeRequirements() with empty/invalid input throws error</idea>
+      <idea ac="5">Test analyzeRequirements() with user input + product brief includes both contexts</idea>
+      <idea ac="5">Test defineSuccessCriteria(features) returns array of criteria strings</idea>
+      <idea ac="5">Test defineSuccessCriteria() generates Given-When-Then format criteria</idea>
+      <idea ac="5">Test defineSuccessCriteria() criteria are specific (no vague "improve X")</idea>
+      <idea ac="5">Test defineSuccessCriteria() handles empty feature list gracefully</idea>
+      <idea ac="5">Test negotiateScope(requirements, constraints) returns ScopeResult with mvpScope, growthFeatures, rationale</idea>
+      <idea ac="5">Test negotiateScope() splits features into MVP vs growth based on constraints</idea>
+      <idea ac="5">Test negotiateScope() applies 80/20 rule for MVP boundary</idea>
+      <idea ac="5">Test negotiateScope() with extreme constraints (1 week timeline) produces minimal MVP</idea>
+      <idea ac="6">Test analyzeRequirements() returns structured, clear requirements (not vague)</idea>
+      <idea ac="6">Test defineSuccessCriteria() produces measurable, testable criteria</idea>
+      <idea ac="6">Test negotiateScope() rationale explains MVP boundary clearly</idea>
+      <idea ac="7">Test analyzeRequirements() calls DecisionEngine for ambiguous requirements</idea>
+      <idea ac="7">Test defineSuccessCriteria() uses DecisionEngine for unclear criteria</idea>
+      <idea ac="7">Test negotiateScope() uses DecisionEngine for MVP boundary decisions</idea>
+      <idea ac="7">Test DecisionEngine integration: confidence >= 0.75 proceeds autonomously</idea>
+      <idea ac="8">Test DecisionEngine integration: confidence &lt; 0.75 escalates via EscalationQueue</idea>
+      <idea ac="8">Test EscalationQueue.add() called with correct parameters (workflowId, step, question, reasoning, confidence, context)</idea>
+      <idea ac="8">Test workflow pauses at escalation point</idea>
+      <idea ac="8">Test decision audit trail captured (all decisions tracked)</idea>
+      <idea ac="error">Test LLM failure retries with RetryHandler from Epic 1</idea>
+      <idea ac="error">Test persona file not found throws helpful error message</idea>
+      <idea ac="error">Test invalid project config throws helpful error</idea>
+      <idea ac="logging">Test all Mary invocations logged with input/output sizes</idea>
+      <idea ac="logging">Test log format: [MaryAgent] method(inputSize: X chars) -&gt; result: Y items</idea>
+      <idea ac="integration">Test Mary in PRD workflow context via AgentPool spawn</idea>
+      <idea ac="integration">Test Mary + DecisionEngine escalation flow end-to-end</idea>
+      <idea ac="integration">Test Mary collaboration with John (Story 2.4) via shared context</idea>
+      <idea ac="integration">Test Mary with Anthropic provider (Claude Sonnet) end-to-end</idea>
+      <idea ac="integration">Test Mary with OpenAI provider (GPT-4) end-to-end</idea>
+      <idea ac="integration">Test Mary with Zhipu provider (GLM) end-to-end</idea>
+      <idea ac="integration">Test same quality output across all providers</idea>
+      <idea ac="performance">Test analyzeRequirements() completes in &lt;30 seconds</idea>
+      <idea ac="performance">Test defineSuccessCriteria() completes in &lt;30 seconds</idea>
+      <idea ac="performance">Test negotiateScope() completes in &lt;30 seconds</idea>
+    </ideas>
+  </tests>
+
+  <developmentApproach>
+    <atdd>
+This story follows Acceptance Test-Driven Development (ATDD):
+
+1. **RED PHASE - Write Tests First (Task 8)**:
+   - Start with backend/tests/core/agents/MaryAgent.test.ts
+   - Write failing tests for each acceptance criterion
+   - Organize by describe blocks (one per AC or method)
+   - Mock LLMFactory, DecisionEngine, file system
+   - All tests should FAIL initially (no implementation yet)
+   - Run: npm run test -- MaryAgent.test.ts (expect failures)
+
+2. **GREEN PHASE - Implement Minimum Code (Tasks 1-7)**:
+   - Create backend/src/core/agents/mary-agent.ts
+   - Create bmad/bmm/agents/mary.md (persona definition)
+   - Implement just enough code to make tests pass
+   - Follow Tasks 1-7 in order
+   - Run tests frequently: npm run test:watch
+   - Ensure each AC's tests pass before moving to next AC
+
+3. **REFACTOR PHASE - Clean Up**:
+   - Clean up code while keeping tests green
+   - Extract duplicate logic, improve naming
+   - Ensure performance targets met (&lt;30s per method)
+   - Maintain >80% coverage: npm run test:coverage
+
+4. **INTEGRATION PHASE - End-to-End Tests (Task 9)**:
+   - Write backend/tests/integration/mary-agent.test.ts
+   - Test Mary → DecisionEngine → EscalationQueue flow
+   - Test Mary collaboration with John (after Story 2.4)
+   - Test multi-provider support end-to-end
+
+**Test-First Workflow:**
+```bash
+# 1. Write tests (should fail)
+npm run test -- MaryAgent.test.ts
+
+# 2. Implement code (make tests pass)
+npm run test:watch
+
+# 3. Check coverage (target >80%)
+npm run test:coverage
+
+# 4. Refactor and verify tests still pass
+npm run test
+```
+
+**Benefits of ATDD for this story:**
+- Ensures all 8 ACs are testable and verified
+- Catches integration issues with DecisionEngine/EscalationQueue early
+- Validates LLM response parsing works correctly
+- Confirms performance targets (&lt;30s) are met
+- Prevents regressions during refactoring
+- Enables confident multi-provider testing
+    </atdd>
+  </developmentApproach>
+
+  <codeQuality>
+    <preCommitChecklist>
+      <item>All tests passing (unit + integration)</item>
+      <item>Coverage >80% for MaryAgent code</item>
+      <item>TypeScript type-check passes (npm run type-check)</item>
+      <item>ESLint passes with no warnings (npm run lint)</item>
+      <item>No console.log (use Logger from Epic 1)</item>
+      <item>JSDoc comments on all public methods</item>
+      <item>Persona file (mary.md) created with complete prompts</item>
+      <item>Code follows patterns from Story 2.1/2.2</item>
+    </preCommitChecklist>
+    <standards>
+      <standard>TypeScript strict mode: No 'any' types (use 'unknown' if needed)</standard>
+      <standard>Naming: Classes PascalCase, methods camelCase, interfaces PascalCase, files kebab-case</standard>
+      <standard>Comments: JSDoc for public methods, inline for complex logic</standard>
+      <standard>Imports: ESM syntax (import/export), explicit .js extensions</standard>
+      <standard>Error handling: Try-catch with specific error types, helpful messages</standard>
+      <standard>ESLint: Follow project rules, disable only with justification</standard>
+    </standards>
+  </codeQuality>
+
+  <learnings>
+    <fromStory id="2.2" title="Escalation Queue System">
+      <learning>EscalationQueue integration: Located at backend/src/core/services/escalation-queue.ts. Mary calls EscalationQueue.add() when confidence &lt; 0.75. Pattern: DecisionEngine checks confidence → If &lt; 0.75 → EscalationQueue.add() → Workflow pauses.</learning>
+      <learning>File structure pattern: Agents in backend/src/core/agents/, Services in backend/src/core/services/. Mary follows: backend/src/core/agents/mary-agent.ts.</learning>
+      <learning>Testing patterns: Vitest with describe/it, mock external dependencies, beforeEach/afterEach, target >80% coverage.</learning>
+    </fromStory>
+    <fromStory id="2.1" title="Confidence-Based Decision Engine">
+      <learning>DecisionEngine integration: Located at backend/src/core/services/decision-engine.ts. ESCALATION_THRESHOLD = 0.75 fixed. Mary wraps ambiguous decisions with DecisionEngine.attemptAutonomousDecision(). Returns: {question, decision, confidence, reasoning, source, timestamp, context}.</learning>
+      <learning>Two-tier decision: Onboarding docs (0.95 confidence) → LLM reasoning (0.3-0.9) → Escalation (&lt;0.75).</learning>
+    </fromStory>
+    <fromEpic id="1" title="Core Infrastructure">
+      <learning>LLMFactory from Story 1.3: Creates LLM clients for any provider (Anthropic, OpenAI, Zhipu, Google). Mary uses LLMFactory.createClient(config).</learning>
+      <learning>AgentPool from Story 1.4: Manages agent lifecycle. PRD workflow spawns Mary via AgentPool.</learning>
+      <learning>RetryHandler from Story 1.10: Exponential backoff for LLM failures. Mary integrates for reliability.</learning>
+      <learning>Logger from Epic 1: Consistent logging format. Mary uses for all invocations.</learning>
+    </fromEpic>
+  </learnings>
+
+  <decisionPoints>
+    <decision>
+      <question>What temperature should Mary use for LLM reasoning?</question>
+      <answer>Temperature 0.3 for analytical reasoning (consistent with DecisionEngine)</answer>
+      <confidence>0.95</confidence>
+      <source>Architecture decision - low temperature for consistent, deterministic requirements analysis</source>
+    </decision>
+    <decision>
+      <question>Which LLM provider is recommended for Mary?</question>
+      <answer>Claude Sonnet (Anthropic) - strong reasoning capabilities for requirements analysis</answer>
+      <confidence>0.9</confidence>
+      <source>Tech spec recommendation (lines 751-753) - Anthropic Claude excels at analytical tasks</source>
+    </decision>
+    <decision>
+      <question>How should Mary handle ambiguous requirements?</question>
+      <answer>Use DecisionEngine for confidence scoring. If confidence &lt; 0.75, escalate via EscalationQueue</answer>
+      <confidence>1.0</confidence>
+      <source>Architecture requirement (AC #7, #8) - confidence-based escalation pattern</source>
+    </decision>
+    <decision>
+      <question>Should Mary decide MVP boundary autonomously?</question>
+      <answer>Yes (autonomous with confidence scoring). Mary uses DecisionEngine to assess confidence. Escalates only if uncertainty high (&lt;0.75).</answer>
+      <confidence>0.85</confidence>
+      <source>Story requirements note (lines 236-240) - MVP boundary is autonomous decision point</source>
+    </decision>
+  </decisionPoints>
+</story-context>
