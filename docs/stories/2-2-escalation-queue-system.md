@@ -21,6 +21,8 @@ So that autonomous workflows can continue after clarification.
 
 ## Tasks / Subtasks
 
+**⚠️ ATDD Approach: START WITH TASK 8 (Write Tests First), then proceed to Tasks 1-7 (Implementation), then Task 9 (Integration Tests)**
+
 - [ ] Task 1: Implement EscalationQueue class structure (AC: #1)
   - [ ] Create `backend/src/core/services/escalation-queue.ts` file
   - [ ] Define Escalation interface with all required fields (id, workflowId, step, question, aiReasoning, confidence, context, status, createdAt, resolvedAt, response, resolutionTime)
@@ -80,7 +82,11 @@ So that autonomous workflows can continue after clarification.
   - [ ] Return EscalationMetrics object
   - [ ] Optimize for performance (<500ms per NFRs)
 
-- [ ] Task 8: Unit tests for EscalationQueue (AC: all)
+- [ ] Task 8: **WRITE TESTS FIRST** - Unit tests for EscalationQueue (AC: all) - **START HERE per ATDD**
+  - [ ] **CRITICAL**: Write ALL tests below BEFORE implementing any code (Tests should FAIL initially)
+  - [ ] Create test file: `backend/tests/core/EscalationQueue.test.ts`
+  - [ ] Set up test structure: describe blocks for each AC, beforeEach/afterEach hooks
+  - [ ] Mock fs/promises for file system operations (in-memory or temp directories)
   - [ ] Test add() creates file in .bmad-escalations/ with correct schema
   - [ ] Test add() generates unique IDs (uuid v4)
   - [ ] Test add() sets status to 'pending' and createdAt timestamp
@@ -99,8 +105,9 @@ So that autonomous workflows can continue after clarification.
   - [ ] Test getMetrics() calculates resolvedCount correctly
   - [ ] Test getMetrics() calculates averageResolutionTime correctly
   - [ ] Test getMetrics() categoryBreakdown groups by workflow
-  - [ ] Mock file system using in-memory storage or temp directories
-  - [ ] Achieve >90% code coverage
+  - [ ] Run tests (should all FAIL - no implementation yet): `npm run test -- EscalationQueue.test.ts`
+  - [ ] **After all tests written and failing, proceed to Task 1 to implement code**
+  - [ ] Target: >90% code coverage when implementation complete
 
 - [ ] Task 9: Integration tests with DecisionEngine and WorkflowEngine (AC: #4, #7)
   - [ ] Test escalation flow: DecisionEngine confidence <0.75 → EscalationQueue.add()
@@ -252,6 +259,109 @@ class EscalationQueue {
 - [Epics - Story 2.2](docs/epics.md#Story-22-Escalation-Queue-System) - Lines 456-473
 - [Tech Spec - NFRs](docs/tech-spec-epic-2.md#Performance) - Lines 434-437 (Escalation performance targets)
 - [Story 2.1 - DecisionEngine](stories/2-1-confidence-based-decision-engine.md) - Integration pattern and ESCALATION_THRESHOLD
+
+### Development Approach (ATDD)
+
+**This story follows Acceptance Test-Driven Development (ATDD):**
+
+1. **Write Tests First** (Red Phase)
+   - Start with Task 8 (Unit tests) before implementing code
+   - Write failing tests for each acceptance criterion
+   - Create test file: `backend/tests/core/EscalationQueue.test.ts`
+   - Organize tests by AC (one describe block per AC)
+   - All tests should fail initially (no implementation yet)
+
+2. **Implement Minimum Code** (Green Phase)
+   - Create `backend/src/core/services/escalation-queue.ts`
+   - Implement just enough code to make tests pass
+   - Follow Tasks 1-7 in order
+   - Run tests frequently: `npm run test:watch`
+   - Ensure each AC's tests pass before moving to next AC
+
+3. **Refactor** (Refactor Phase)
+   - Clean up code while keeping tests green
+   - Extract duplicate logic, improve naming
+   - Ensure performance targets met (<100ms operations, <500ms metrics)
+   - Maintain >90% coverage: `npm run test:coverage`
+
+4. **Integration Tests** (Task 9)
+   - Write integration tests after unit tests pass
+   - Test DecisionEngine → EscalationQueue → WorkflowEngine flow
+   - Create `backend/tests/integration/escalation-queue.test.ts`
+
+**Test-First Workflow:**
+```bash
+# 1. Write tests (should fail)
+npm run test -- EscalationQueue.test.ts
+
+# 2. Implement code (make tests pass)
+npm run test:watch
+
+# 3. Check coverage (target >90%)
+npm run test:coverage
+
+# 4. Refactor and verify tests still pass
+npm run test
+```
+
+**Benefits of ATDD for this story:**
+- Ensures all 8 ACs are testable and verified
+- Catches integration issues with DecisionEngine early
+- Validates file I/O and atomic write patterns work correctly
+- Confirms performance targets (<100ms, <500ms) are met
+- Prevents regressions during refactoring
+
+### Linting & Code Quality
+
+**Before committing any code, run all quality checks:**
+
+```bash
+# 1. Type checking (must pass, no errors)
+npm run type-check
+
+# 2. ESLint (must pass, no errors or warnings)
+npm run lint
+
+# 3. Auto-fix lint issues (if possible)
+npm run lint -- --fix
+
+# 4. Run all tests (must pass, 0 failures)
+npm run test
+
+# 5. Check coverage (>90% for EscalationQueue)
+npm run test:coverage
+```
+
+**Code Quality Standards:**
+- **TypeScript**: Strict mode enabled, no `any` types (use `unknown` if needed)
+- **ESLint**: Follow project rules, disable rules only with justification comments
+- **Naming**:
+  - Classes: PascalCase (e.g., `EscalationQueue`)
+  - Methods: camelCase (e.g., `getMetrics`)
+  - Interfaces: PascalCase (e.g., `Escalation`)
+  - Files: kebab-case (e.g., `escalation-queue.ts`)
+- **Comments**: JSDoc for public methods, inline comments for complex logic
+- **Imports**: ESM syntax (`import`/`export`), explicit `.js` extensions in imports
+- **Error Handling**: Try-catch blocks with specific error types, helpful error messages
+
+**Pre-commit Checklist:**
+- [ ] All tests passing (unit + integration)
+- [ ] Coverage >90% for new code
+- [ ] TypeScript type-check passes
+- [ ] ESLint passes with no warnings
+- [ ] No console.log (except intentional logging in add() for AC #5)
+- [ ] JSDoc comments on all public methods
+- [ ] Code follows existing patterns from Story 2.1 (DecisionEngine)
+
+**Git Commit Message Format:**
+```
+Story 2.2: Brief description of changes
+
+- Bullet point of what was implemented
+- Reference AC numbers (e.g., AC #1, #2)
+- Note any architectural decisions
+- Mention test coverage achieved
+```
 
 ## Dev Agent Record
 
