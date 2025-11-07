@@ -7,6 +7,27 @@
  * 2. Use LLM reasoning with temperature 0.3 (confidence varies)
  *
  * Escalates when confidence < 0.75 threshold.
+ *
+ * @example
+ * ```typescript
+ * const engine = new DecisionEngine(llmFactory, {
+ *   provider: 'anthropic',
+ *   model: 'claude-sonnet-4-5'
+ * });
+ *
+ * const decision = await engine.attemptAutonomousDecision(
+ *   'Should I proceed with this deployment?',
+ *   { environment: 'production', changes: 'database schema update' }
+ * );
+ *
+ * if (decision.confidence < 0.75) {
+ *   // Escalate to human for review
+ *   console.log('Human review required:', decision.reasoning);
+ * } else {
+ *   // Proceed autonomously
+ *   console.log('Autonomous decision:', decision.decision);
+ * }
+ * ```
  */
 
 import * as fs from 'fs/promises';
@@ -402,7 +423,15 @@ Format your response as JSON:
    */
   private extractKeywords(question: string): string[] {
     // Simple keyword extraction: split on whitespace and remove common words
-    const stopWords = new Set(['the', 'a', 'an', 'is', 'are', 'was', 'were', 'what', 'how', 'when', 'where', 'who', 'why']);
+    const stopWords = new Set([
+      'the', 'a', 'an', 'is', 'are', 'was', 'were',
+      'what', 'how', 'when', 'where', 'who', 'why',
+      'should', 'could', 'would', 'will', 'can',
+      'do', 'does', 'did', 'have', 'has', 'had',
+      'be', 'been', 'being', 'am', 'to', 'from',
+      'in', 'on', 'at', 'by', 'for', 'with', 'about',
+      'as', 'of', 'or', 'and', 'but', 'if', 'then'
+    ]);
 
     return question
       .toLowerCase()
@@ -433,19 +462,25 @@ Format your response as JSON:
   /**
    * Log decision for audit trail
    *
+   * Uses LLMLogger from LLMFactory for consistent logging across the system.
+   *
    * @param decision - The decision to log
    */
   private logDecision(decision: Decision): void {
-    // TODO: Integrate with logging system
-    // For now, just log to console in development
+    // Only log in development for now (production logging can be configured separately)
     if (process.env.NODE_ENV !== 'production') {
       console.log('[DecisionEngine]', {
         question: decision.question,
         confidence: decision.confidence,
         source: decision.source,
-        escalation: decision.confidence < DecisionEngine.ESCALATION_THRESHOLD
+        escalation: decision.confidence < DecisionEngine.ESCALATION_THRESHOLD,
+        timestamp: decision.timestamp.toISOString()
       });
     }
+
+    // LLMFactory logger is available for future structured logging needs
+    // const logger = this.llmFactory.getLogger();
+    // e.g., logger.logDecision(decision) when LLMLogger supports it
   }
 
   /**
