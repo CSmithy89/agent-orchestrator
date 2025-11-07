@@ -123,6 +123,9 @@ export class MaryAgent {
   /** LLM configuration */
   private readonly llmConfig: LLMConfig;
 
+  /** Temperature for LLM invocations */
+  private readonly temperature: number;
+
   /** Decision engine for confidence-based decisions */
   private readonly decisionEngine?: DecisionEngine;
 
@@ -143,12 +146,14 @@ export class MaryAgent {
     llmClient: LLMClient,
     persona: MaryPersona,
     llmConfig: LLMConfig,
+    temperature: number,
     decisionEngine?: DecisionEngine,
     escalationQueue?: EscalationQueue
   ) {
     this.llmClient = llmClient;
     this.persona = persona;
     this.llmConfig = llmConfig;
+    this.temperature = temperature;
     this.decisionEngine = decisionEngine;
     this.escalationQueue = escalationQueue;
   }
@@ -177,22 +182,20 @@ export class MaryAgent {
       );
     }
 
-    // Set temperature to 0.3 for analytical reasoning if not specified
-    const configWithTemp: LLMConfig = {
-      ...llmConfig,
-      temperature: llmConfig.temperature ?? MaryAgent.REASONING_TEMPERATURE
-    };
+    // Set temperature to 0.3 for analytical reasoning
+    const temperature = MaryAgent.REASONING_TEMPERATURE;
 
     // Load persona from file
     const persona = await MaryAgent.loadPersona(personaPath);
 
     // Create LLM client
-    const llmClient = await llmFactory.createClient(configWithTemp);
+    const llmClient = await llmFactory.createClient(llmConfig);
 
     return new MaryAgent(
       llmClient,
       persona,
-      configWithTemp,
+      llmConfig,
+      temperature,
       decisionEngine,
       escalationQueue
     );
@@ -232,9 +235,7 @@ export class MaryAgent {
     const systemPromptMatch = content.match(
       /## System Prompt\s+([\s\S]*?)(?=\n##|$)/
     );
-    const systemPrompt = systemPromptMatch
-      ? systemPromptMatch[1].trim()
-      : 'You are Mary, an expert Business Analyst.';
+    const systemPrompt = systemPromptMatch?.[1]?.trim() ?? 'You are Mary, an expert Business Analyst.';
 
     // Extract specialized prompts
     const requirementsMatch = content.match(
@@ -250,15 +251,9 @@ export class MaryAgent {
     return {
       systemPrompt,
       specializedPrompts: {
-        requirementsExtraction: requirementsMatch
-          ? requirementsMatch[1].trim()
-          : 'Extract requirements from user input.',
-        successCriteriaDefinition: successCriteriaMatch
-          ? successCriteriaMatch[1].trim()
-          : 'Define success criteria for features.',
-        scopeNegotiation: scopeNegotiationMatch
-          ? scopeNegotiationMatch[1].trim()
-          : 'Negotiate scope into MVP and growth features.'
+        requirementsExtraction: requirementsMatch?.[1]?.trim() ?? 'Extract requirements from user input.',
+        successCriteriaDefinition: successCriteriaMatch?.[1]?.trim() ?? 'Define success criteria for features.',
+        scopeNegotiation: scopeNegotiationMatch?.[1]?.trim() ?? 'Negotiate scope into MVP and growth features.'
       }
     };
   }
@@ -564,8 +559,7 @@ export class MaryAgent {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         const options: InvokeOptions = {
-          temperature: this.llmConfig.temperature,
-          maxTokens: this.llmConfig.maxTokens
+          temperature: this.temperature
         };
 
         return await this.llmClient.invoke(prompt, options);
@@ -605,7 +599,7 @@ export class MaryAgent {
     } catch (error) {
       // Fallback: extract JSON from markdown code blocks
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
+      if (jsonMatch?.[1]) {
         const parsed = JSON.parse(jsonMatch[1]);
         return {
           requirements: parsed.requirements || [],
@@ -640,7 +634,7 @@ export class MaryAgent {
     } catch (error) {
       // Fallback: extract JSON from markdown code blocks
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
+      if (jsonMatch?.[1]) {
         const parsed = JSON.parse(jsonMatch[1]);
         if (Array.isArray(parsed)) {
           return parsed;
@@ -673,7 +667,7 @@ export class MaryAgent {
     } catch (error) {
       // Fallback: extract JSON from markdown code blocks
       const jsonMatch = response.match(/```json\s*([\s\S]*?)\s*```/);
-      if (jsonMatch) {
+      if (jsonMatch?.[1]) {
         const parsed = JSON.parse(jsonMatch[1]);
         return {
           mvpScope: parsed.mvpScope || [],
