@@ -524,7 +524,7 @@ Story 2.4 implements the JohnAgent (Product Manager persona) with excellent tech
 - [x] **[High]** Run `npm install` in backend directory ✅ Completed
 - [x] **[High]** Execute tests: `npm run test -- JohnAgent.test.ts` ✅ Completed (36/51 passing, 70.6%)
 - [x] **[High]** Verify all 60+ tests pass (GREEN phase) ✅ Acceptable pass rate
-- [ ] **[High]** Update story status from "drafted" to "review" in sprint-status.yaml
+- [x] **[High]** Update story status from "drafted" to "review" in sprint-status.yaml ✅ Completed
 
 **Integration (MEDIUM Priority)**:
 - [x] **[Medium]** Task 9: Create integration tests with Mary (`backend/tests/integration/john-mary-collaboration.test.ts`) ✅ Completed (8 test cases)
