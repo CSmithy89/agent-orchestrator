@@ -564,22 +564,27 @@ Epic 2 builds directly on Epic 1's foundation and requires these components:
 ```json
 {
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",      // Already present
-    "openai": "^4.20.0",                  // Already present
+    "@anthropic-ai/sdk": "^0.68.0",      // UPDATE REQUIRED (currently ^0.20.0)
+    "openai": "^6.2.0",                   // UPDATE REQUIRED (currently ^4.20.0)
     "js-yaml": "^4.1.0",                  // Already present (workflow parsing)
-    "uuid": "^9.0.0",                     // NEW - Generate escalation IDs
+    "uuid": "^13.0.0",                    // NEW - Generate escalation IDs (ESM-only)
     "handlebars": "^4.7.8"                // Already present (template processing)
   }
 }
 ```
 
 **New dependency to add:**
-- **uuid**: For generating unique escalation IDs (UUID v4)
+- **uuid**: For generating unique escalation IDs (UUID v4, v13+ is ESM-only, compatible with project's "type": "module")
+
+**Breaking changes to address:**
+- **@anthropic-ai/sdk v0.20 → v0.68**: Review 48 versions of changes, test LLMFactory integration
+- **openai v4.20 → v6.2**: Major version upgrade includes breaking changes, review migration guide at https://github.com/openai/openai-node/releases
+- **uuid v9 → v13**: ESM-only (CommonJS dropped), update imports to `import { v4 as uuidv4 } from 'uuid'`
 
 **Rationale for dependencies:**
-- `@anthropic-ai/sdk`: Mary/John agents and DecisionEngine use Claude (recommended)
-- `openai`: Support for GPT models (alternative to Claude)
-- `uuid`: Generate unique escalation IDs (`esc-abc123...`)
+- `@anthropic-ai/sdk` (v0.68+): Mary/John agents and DecisionEngine use Claude (recommended). Latest version includes prompt caching, enhanced tool use, and code execution support.
+- `openai` (v6.2+): Support for GPT models (alternative to Claude). v6+ includes realtime API support and improved streaming.
+- `uuid` (v13+): Generate unique escalation IDs (`esc-abc123...`). ESM-only, uses `import { v4 as uuidv4 } from 'uuid'`.
 - `handlebars`: Template variable substitution in PRD template
 - `js-yaml`: Parse workflow.yaml and project-config.yaml
 
@@ -641,7 +646,7 @@ Epic 2 builds directly on Epic 1's foundation and requires these components:
 - **OpenAI API** (alternative): GPT models
   - API key: `OPENAI_API_KEY`
   - Endpoints: `https://api.openai.com/v1/chat/completions`
-  - Rate limits: 500 requests/min (tier 1)
+  - Rate limits: Vary by tier and model (Tier 1: ~500 RPM for GPT-4, ~5000 RPM for GPT-4o; check account settings for current limits)
 - **Zhipu API** (optional): GLM models for Chinese language projects
   - API key: `ZHIPU_API_KEY`
   - Endpoints: Zhipu GLM API
