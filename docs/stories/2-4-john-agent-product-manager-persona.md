@@ -27,13 +27,13 @@ So that PRD workflows benefit from PM-level thinking.
 **⚠️ ATDD Approach: START WITH TASK 8 (Write Tests First), then proceed to Tasks 1-7 (Implementation), then Task 9 (Integration Tests)**
 
 - [ ] Task 1: Implement JohnAgent class structure (AC: #1, #2)
-  - [ ] Create `backend/src/agents/john-agent.ts` file
+  - [ ] Create `backend/src/core/agents/john-agent.ts` file (same directory as MaryAgent from Story 2.3)
   - [ ] Define JohnAgent class extending base Agent class (from Epic 1, Story 1.4)
   - [ ] Load persona from `bmad/bmm/agents/pm.md` (name: "John", role: "Product Manager")
   - [ ] Configure with LLM from project config agent_assignments section
   - [ ] Support multi-provider LLM assignment (Anthropic, OpenAI, Zhipu, Google)
   - [ ] Add TypeScript types and JSDoc comments
-  - [ ] Set recommended temperature: 0.5 for balanced strategy/creativity
+  - [ ] Set recommended temperature: 0.5 for balanced strategy/creativity (same as Mary)
 
 - [ ] Task 2: Implement specialized prompts for product management (AC: #3)
   - [ ] Create prompt templates directory: `backend/src/agents/prompts/john/`
@@ -85,8 +85,8 @@ So that PRD workflows benefit from PM-level thinking.
 
 - [ ] Task 8: **WRITE TESTS FIRST** - Unit tests for JohnAgent (AC: all) - **START HERE per ATDD**
   - [ ] **CRITICAL**: Write ALL tests below BEFORE implementing any code (Tests should FAIL initially)
-  - [ ] Create test file: `backend/tests/agents/JohnAgent.test.ts`
-  - [ ] Set up test structure: describe blocks for each AC, beforeEach/afterEach hooks
+  - [ ] Create test file: `backend/tests/core/agents/JohnAgent.test.ts` (same directory as MaryAgent.test.ts)
+  - [ ] Set up test structure: describe blocks for each AC, beforeEach/afterEach hooks (follow Mary's test pattern)
   - [ ] Mock LLMFactory and AgentPool dependencies
   - [ ] Test persona loading from bmad/bmm/agents/pm.md
   - [ ] Test LLM configuration from project config (all providers)
@@ -99,7 +99,7 @@ So that PRD workflows benefit from PM-level thinking.
   - [ ] Test collaboration with Mary via shared workflow context
   - [ ] Run tests (should all FAIL - no implementation yet): `npm run test -- JohnAgent.test.ts`
   - [ ] **After all tests written and failing, proceed to Task 1 to implement code**
-  - [ ] Target: >90% code coverage when implementation complete
+  - [ ] Target: >80% code coverage when implementation complete (following Mary's standard)
 
 - [ ] Task 9: Integration tests with Mary and PRD workflow (AC: #5, #8)
   - [ ] Test Mary → John collaboration flow (shared workflow context)
@@ -176,73 +176,77 @@ agent_assignments:
 
 ### Learnings from Previous Story
 
-**From Story 2.2: Escalation Queue System (Status: done)**
+**From Story 2.3: Mary Agent - Business Analyst Persona (Status: drafted, under review)**
 
-- **File Structure Pattern**: Services go in `backend/src/core/services/`, Agents go in `backend/src/agents/`
-  - JohnAgent should be at `backend/src/agents/john-agent.ts`
-  - Follow consistent naming: kebab-case files, PascalCase classes
+- **New Files Created**: Use these for collaboration and testing:
+  - `backend/src/core/agents/mary-agent.ts` (693 lines) - MaryAgent class implementation
+  - `bmad/bmm/agents/mary.md` (462 lines) - Mary persona with specialized prompts
+  - `backend/tests/core/agents/MaryAgent.test.ts` (800+ lines) - Unit test patterns to follow
+  - `backend/tests/integration/mary-agent.test.ts` (550+ lines) - Integration test patterns
 
-- **Testing Patterns**: ATDD approach works well
-  - Start with Task 8 (write ALL tests first)
-  - All tests should fail initially (no implementation)
-  - Implement code to make tests pass
-  - Target >90% coverage for core agents
-  - Use vitest with established patterns from Epic 1
+- **Architectural Patterns Established**:
+  - Agent location: `backend/src/core/agents/` (NOT `backend/src/agents/`)
+  - Persona file location: `bmad/bmm/agents/{name}.md` with specialized prompts for each method
+  - Agent methods return typed interfaces (AnalysisResult, RequirementsDocument, etc.)
+  - Structured logging format: `[AgentName] method(inputSize) -> result`
+  - Temperature: Mary uses 0.5 for balanced analysis/creativity
 
-- **Dependencies Available**:
-  - LLMFactory (Story 1.3) for multi-provider LLM support
-  - AgentPool (Story 1.4) for agent lifecycle management
-  - DecisionEngine (Story 2.1) for confidence scoring in decisions
-  - EscalationQueue (Story 2.2) for escalating low-confidence decisions
-  - All dependencies upgraded in Story 2.0 (uuid v13 ESM, etc.)
+- **Integration Patterns from Mary**:
+  - DecisionEngine integration for confidence scoring (ESCALATION_THRESHOLD = 0.75)
+  - EscalationQueue integration when confidence < 0.75
+  - LLMFactory for multi-provider support (Anthropic, OpenAI, Zhipu, Google)
+  - AgentPool registration via factory pattern
+  - Comprehensive error handling with exponential backoff retry logic
 
-- **Integration Patterns**:
-  - Agents integrate with AgentPool via factory registration
-  - Persona loaded from markdown files in bmad/bmm/agents/
-  - LLM configured via project config agent_assignments section
-  - Workflow context shared between agents (Mary ↔ John collaboration)
+- **Testing Approach from Story 2.3**:
+  - ATDD: Task 8 first (write ALL tests), then Tasks 1-7 (implementation)
+  - 40+ unit tests, 25+ integration tests
+  - Target >80% coverage for agents
+  - Performance targets: All methods complete in <30 seconds
+  - Test structure: One describe block per AC/method
 
-- **Key Architectural Decisions**:
-  - Base Agent class pattern established in Story 1.4
-  - Agent methods return typed interfaces (ProductVision, MarketFitAssessment, etc.)
-  - Confidence scoring applied to strategic decisions
-  - Temperature 0.5 recommended for John (balanced strategy/creativity)
+- **Pending Review Items from Story 2.3**:
+  - ⚠️ Mary+John collaboration tests will be completed in **this story** (Story 2.4)
+  - Task 9 in this story must test Mary ↔ John collaboration flow
+  - Shared workflow context is the integration point between Mary and John
+  - Story 2.3 has housekeeping action items (marking tasks complete, updating status)
 
-- **Quality Standards**:
-  - TypeScript strict mode, no `any` types
-  - JSDoc comments on all public methods
-  - Explicit return types
-  - Error handling with clear messages
-  - ESLint must pass with no warnings
+- **Technical Debt to Address**:
+  - None specific to this story (Story 2.3 technical implementation is excellent)
+  - Story 2.3's review noted documentation/tracking issues (tasks not marked complete)
+  - These are Story 2.3 housekeeping items, not blockers for Story 2.4
 
 **Key Takeaways for Story 2.4**:
-- Follow agent architecture pattern from Story 1.4 (AgentPool, base Agent class)
-- Use ATDD approach (write tests first in Task 8)
-- Integrate with Mary via shared workflow context
-- Apply confidence scoring to product decisions
-- Use LLMFactory for multi-provider support
-- Test collaboration with Mary and PRD workflow in Task 9
+- Follow exact agent pattern from Story 2.3 (location, structure, logging)
+- Use ATDD approach (Task 8 first, write all tests before implementation)
+- JohnAgent location: `backend/src/core/agents/john-agent.ts` (same directory as MaryAgent)
+- Persona file: `bmad/bmm/agents/john.md` (already exists as pm.md - name="John")
+- Temperature 0.5 for John (same as Mary, balanced strategy/creativity)
+- Task 9 MUST include Mary ↔ John collaboration integration tests
+- Reuse Mary's test patterns (structure, mocking, assertions)
+- Apply same quality standards (>80% coverage, <30s per method, no `any` types)
 
-[Source: stories/2-2-escalation-queue-system.md#Dev-Agent-Record]
+[Source: stories/2-3-mary-agent-business-analyst-persona.md#Dev-Agent-Record]
+[Source: stories/2-3-mary-agent-business-analyst-persona.md#Senior-Developer-Review-AI]
 
 ### Project Structure Notes
 
 **New File to Create**:
-- `backend/src/agents/john-agent.ts` - JohnAgent class implementation
+- `backend/src/core/agents/john-agent.ts` - JohnAgent class implementation (**Corrected location from Story 2.3**)
 
 **New Directory to Create**:
-- `backend/src/agents/prompts/john/` - John's specialized prompts (optional, can inline in class)
+- `backend/src/core/agents/prompts/john/` - John's specialized prompts (optional, can inline in persona file like Mary)
 
 **Files to Reference**:
-- `bmad/bmm/agents/pm.md` - John persona definition (already exists)
+- `bmad/bmm/agents/pm.md` - John persona definition (already exists, name="John")
 - `backend/src/core/AgentPool.ts` - AgentPool for registration (Story 1.4)
 - `backend/src/core/LLMFactory.ts` - LLMFactory for multi-provider support (Story 1.3)
 - `backend/src/core/services/decision-engine.ts` - DecisionEngine integration (Story 2.1)
-- `backend/src/agents/mary-agent.ts` - MaryAgent for collaboration pattern (Story 2.3)
+- `backend/src/core/agents/mary-agent.ts` - MaryAgent for collaboration pattern (Story 2.3)
 
 **Test Files to Create**:
-- `backend/tests/agents/JohnAgent.test.ts` - Unit tests (>90% coverage target)
-- `backend/tests/integration/john-mary-collaboration.test.ts` - Integration tests with Mary
+- `backend/tests/core/agents/JohnAgent.test.ts` - Unit tests (>80% coverage target, following Mary's pattern)
+- `backend/tests/integration/john-mary-collaboration.test.ts` - Integration tests with Mary (completes Story 2.3's pending item)
 
 **Agent Methods Interface**:
 ```typescript
