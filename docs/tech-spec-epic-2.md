@@ -88,37 +88,457 @@ This epic implements components from the **Autonomous Intelligence** layer and t
 
 ### Services and Modules
 
-{{services_modules}}
+| Module | Responsibilities | Inputs | Outputs | Owner Story |
+|--------|------------------|--------|---------|-------------|
+| **DecisionEngine** | Assess decision confidence and determine escalation | question, context, onboarding docs | Decision (value, confidence, reasoning) | Story 2.1 |
+| **EscalationQueue** | Manage human intervention requests, pause/resume workflows | escalation metadata | Escalation ID, response when resolved | Story 2.2 |
+| **MaryAgent** | Requirements analysis, user story writing, scope negotiation | user input, product brief, domain knowledge | requirements, success criteria, scope proposals | Story 2.3 |
+| **JohnAgent** | Product strategy, prioritization, market fit assessment | Mary's requirements, product vision | strategic validation, prioritized features, executive summaries | Story 2.4 |
+| **PRDWorkflowExecutor** | Orchestrate PRD generation workflow | workflow.yaml, user input | docs/PRD.md, workflow state | Story 2.5 |
+| **PRDTemplateProcessor** | Generate PRD content from templates | template.md, variables, domain context | populated PRD sections | Story 2.6 |
+| **PRDValidator** | Validate PRD completeness and quality | generated PRD | completeness score, gap identification | Story 2.7 |
 
 ### Data Models and Contracts
 
-{{data_models}}
+**Decision Schema:**
+```typescript
+interface Decision {
+  question: string;              // Original question requiring decision
+  decision: any;                 // Decision value (varies by question type)
+  confidence: number;            // 0.0-1.0, triggers escalation if <0.75
+  reasoning: string;             // AI rationale for audit trail
+  source: 'onboarding' | 'llm';  // Onboarding doc (0.95) or LLM reasoning (0.3-0.9)
+  timestamp: Date;
+  context: Record<string, any>;  // Relevant context used in decision
+}
+```
+
+**Escalation Schema:**
+```typescript
+interface Escalation {
+  id: string;                    // UUID for tracking
+  workflowId: string;            // Which workflow triggered escalation
+  step: number;                  // Which step in workflow
+  question: string;              // What decision is needed
+  aiReasoning: string;           // Why AI couldn't decide confidently
+  confidence: number;            // AI's confidence (< 0.75)
+  context: Record<string, any>;  // Relevant context for human
+  status: 'pending' | 'resolved' | 'cancelled';
+  createdAt: Date;
+  resolvedAt?: Date;
+  response?: any;                // Human response when resolved
+  resolutionTime?: number;       // Milliseconds to resolution
+}
+
+interface EscalationMetrics {
+  totalEscalations: number;
+  resolvedCount: number;
+  averageResolutionTime: number;  // milliseconds
+  categoryBreakdown: Record<string, number>;  // e.g., {requirements: 5, scope: 2}
+}
+```
+
+**Agent Persona Schema:**
+```typescript
+interface AgentPersona {
+  name: string;                  // e.g., "Mary", "John"
+  role: string;                  // e.g., "Business Analyst", "Product Manager"
+  provider: string;              // e.g., "anthropic", "openai", "zhipu"
+  model: string;                 // e.g., "claude-sonnet-4-5", "gpt-4"
+  temperature: number;           // e.g., 0.3 for reasoning, 0.7 for creativity
+  systemPrompt: string;          // Persona definition and capabilities
+  specializedPrompts: {
+    [method: string]: string;    // e.g., analyzeRequirements: "..."
+  };
+}
+```
+
+**PRD Validation Result:**
+```typescript
+interface PRDValidationResult {
+  completenessScore: number;     // 0-100, target >85
+  sectionsPresent: string[];     // All required sections found
+  sectionsMissing: string[];     // Required sections not found
+  requirementsCount: number;     // Total functional requirements
+  clarityIssues: Array<{
+    section: string;
+    issue: string;
+    severity: 'high' | 'medium' | 'low';
+  }>;
+  contradictions: string[];      // Conflicting requirements identified
+  gaps: string[];                // Missing information
+  passesQualityGate: boolean;    // True if score >85 and no high-severity issues
+}
+```
 
 ### APIs and Interfaces
 
-{{apis_interfaces}}
+**DecisionEngine Interface:**
+```typescript
+class DecisionEngine {
+  /**
+   * Attempt autonomous decision with confidence scoring
+   * @param question - Decision to be made
+   * @param context - Relevant context for decision
+   * @returns Decision with confidence score
+   */
+  async attemptAutonomousDecision(
+    question: string,
+    context: Record<string, any>
+  ): Promise<Decision>;
+
+  /**
+   * Check onboarding docs for explicit answers
+   * @param question - Question to search
+   * @returns Answer if found, null otherwise
+   */
+  private async checkOnboardingDocs(question: string): Promise<string | null>;
+
+  /**
+   * Use LLM reasoning for decision
+   * @param question - Question for LLM
+   * @param context - Context to provide
+   * @returns Decision with reasoning
+   */
+  private async useLLMReasoning(
+    question: string,
+    context: Record<string, any>
+  ): Promise<{ value: any; confidence: number; reasoning: string }>;
+}
+```
+
+**EscalationQueue Interface:**
+```typescript
+class EscalationQueue {
+  /**
+   * Add escalation to queue and pause workflow
+   * @param escalation - Escalation details
+   * @returns Escalation ID
+   */
+  async add(escalation: Omit<Escalation, 'id' | 'status' | 'createdAt'>): Promise<string>;
+
+  /**
+   * List escalations with optional filtering
+   * @param filters - Filter criteria
+   * @returns Filtered escalations
+   */
+  async list(filters?: {
+    status?: 'pending' | 'resolved' | 'cancelled';
+    workflowId?: string;
+  }): Promise<Escalation[]>;
+
+  /**
+   * Get specific escalation by ID
+   * @param escalationId - Escalation UUID
+   * @returns Escalation details
+   */
+  async getById(escalationId: string): Promise<Escalation>;
+
+  /**
+   * Respond to escalation and resume workflow
+   * @param escalationId - Escalation to resolve
+   * @param response - Human response
+   * @returns Updated escalation
+   */
+  async respond(escalationId: string, response: any): Promise<Escalation>;
+
+  /**
+   * Get escalation metrics
+   * @returns Aggregated metrics
+   */
+  async getMetrics(): Promise<EscalationMetrics>;
+}
+```
+
+**Agent Persona Interfaces:**
+```typescript
+// Mary Agent (Business Analyst)
+interface MaryAgent {
+  /**
+   * Analyze requirements from user input
+   * @param userInput - Raw requirements
+   * @param productBrief - Optional product brief
+   * @returns Structured requirements
+   */
+  analyzeRequirements(
+    userInput: string,
+    productBrief?: string
+  ): Promise<{
+    requirements: string[];
+    successCriteria: string[];
+    assumptions: string[];
+  }>;
+
+  /**
+   * Define success criteria for features
+   * @param features - Feature list
+   * @returns Measurable success criteria
+   */
+  defineSuccessCriteria(features: string[]): Promise<string[]>;
+
+  /**
+   * Negotiate scope based on constraints
+   * @param requirements - Full requirements
+   * @param constraints - Time/budget/team constraints
+   * @returns MVP scope and growth features
+   */
+  negotiateScope(
+    requirements: string[],
+    constraints: Record<string, any>
+  ): Promise<{
+    mvpScope: string[];
+    growthFeatures: string[];
+  }>;
+}
+
+// John Agent (Product Manager)
+interface JohnAgent {
+  /**
+   * Define product vision
+   * @param requirements - Mary's requirements
+   * @returns Product vision and positioning
+   */
+  defineProductVision(
+    requirements: string[]
+  ): Promise<{
+    vision: string;
+    positioning: string;
+    valueProposition: string;
+  }>;
+
+  /**
+   * Prioritize features by value and effort
+   * @param features - Feature list
+   * @returns Prioritized features with rationale
+   */
+  prioritizeFeatures(
+    features: string[]
+  ): Promise<Array<{
+    feature: string;
+    priority: 'high' | 'medium' | 'low';
+    rationale: string;
+  }>>;
+
+  /**
+   * Assess market fit
+   * @param productConcept - Product description
+   * @returns Market analysis and recommendations
+   */
+  assessMarketFit(
+    productConcept: string
+  ): Promise<{
+    targetMarket: string;
+    competitiveAdvantage: string;
+    risks: string[];
+  }>;
+}
+```
 
 ### Workflows and Sequencing
 
-{{workflows_sequencing}}
+**PRD Workflow Sequence:**
+
+1. **Initialization** (Story 2.5)
+   - Load PRD workflow.yaml
+   - Initialize template with placeholders
+   - Create workflow state
+
+2. **Requirements Gathering** (Story 2.3 - Mary)
+   - Mary analyzes user input
+   - Extract functional requirements
+   - Identify success criteria
+   - Use DecisionEngine for ambiguous requirements (confidence check)
+   - Escalate if confidence < 0.75
+
+3. **Strategic Validation** (Story 2.4 - John)
+   - John reviews Mary's requirements
+   - Define product vision and positioning
+   - Prioritize features (MVP vs growth)
+   - Challenge scope creep
+   - Validate business viability
+
+4. **Content Generation** (Story 2.6)
+   - Generate PRD sections from template
+   - Vision & alignment
+   - Success criteria & metrics
+   - Functional requirements (67+ items)
+   - Non-functional requirements
+   - Adapt to project domain (API, mobile, SaaS, game, etc.)
+
+5. **Incremental Saves** (Story 2.5)
+   - Save after each major section (template-output tags)
+   - Show user generated content
+   - Get approval to continue [c] or edit [e]
+
+6. **Quality Validation** (Story 2.7)
+   - Run PRDValidator on completed document
+   - Check completeness score (target >85%)
+   - Identify gaps and contradictions
+   - If score <85%, regenerate missing content
+
+7. **Finalization** (Story 2.5)
+   - Save final PRD to docs/PRD.md
+   - Update workflow-status.yaml (mark PRD complete)
+   - Log metrics (escalations, time, quality score)
+
+**Collaboration Pattern (Mary ↔ John):**
+```
+User Input
+    ↓
+  Mary (analyze)
+    ↓
+Requirements Draft
+    ↓
+  John (validate & prioritize)
+    ↓
+Strategic Feedback
+    ↓
+  Mary (refine)
+    ↓
+Final Requirements
+    ↓
+Template Generation
+    ↓
+Quality Validation
+    ↓
+docs/PRD.md
+```
+
+**Decision Points (with DecisionEngine):**
+- Unclear requirement scope → Escalate
+- Ambiguous acceptance criteria → Escalate
+- Technology choice (if mentioned) → Escalate
+- MVP feature boundary → Autonomous (Mary/John collaborate)
+- Success metric definition → Autonomous (John defines)
+- User story format → Autonomous (Mary decides)
 
 ## Non-Functional Requirements
 
 ### Performance
 
-{{nfr_performance}}
+**PRD Workflow Execution Time:**
+- **Target**: Complete PRD generation in <30 minutes (10x faster than manual 2-4 hours)
+- **Breakdown**:
+  - Workflow initialization: <1 minute
+  - Requirements gathering (Mary): 5-10 minutes
+  - Strategic validation (John): 5-10 minutes
+  - Content generation: 10-15 minutes
+  - Quality validation: 2-3 minutes
+- **Measurement**: Track workflow execution time from start to completion, log in workflow state
+
+**LLM Response Time:**
+- **DecisionEngine**: <5 seconds per autonomous decision attempt
+- **Agent invocations**: <30 seconds per Mary/John method call
+- **Temperature optimization**: Use 0.3 for reasoning tasks (DecisionEngine) to improve response consistency and speed
+
+**Escalation Performance:**
+- **Queue operations**: <100ms for add/list/getById/respond operations
+- **File I/O**: Atomic writes to .bmad-escalations/{id}.json using Epic 1's StateManager patterns
+- **Metrics calculation**: <500ms for getMetrics() across all escalations
+
+**Resource Constraints:**
+- **Memory**: <500MB for PRD workflow execution (agent contexts, templates, state)
+- **Concurrent agents**: Max 2 agents active simultaneously (Mary + John)
+- **LLM token limits**: Stay within provider context windows (100K for Claude, 128K for GPT-4)
+
+**Cost Targets (from PRD):**
+- **PRD generation**: <$5 in LLM fees
+- **Breakdown**: Mary ($2-3), John ($1-2), DecisionEngine ($0.50-1)
+- **Token optimization**: Use Epic 1's CostQualityOptimizer to recommend optimal models
 
 ### Security
 
-{{nfr_security}}
+**Sensitive Data Handling:**
+- **Escalation storage**: .bmad-escalations/ directory contains project-specific questions and AI reasoning
+  - **Risk**: May contain proprietary product ideas, business strategies, or competitive information
+  - **Mitigation**: Store in project directory (not shared), add to .gitignore if needed, consider encryption at rest
+- **LLM API keys**: Accessed via Epic 1's LLMFactory, not stored in Epic 2 components
+- **PRD content**: May contain confidential product roadmaps and market strategies
+  - **Mitigation**: File permissions restrict to project owner, warn users about LLM provider data policies
+
+**Agent Persona Security:**
+- **Prompt injection risks**: Mary/John agents receive user input that could contain malicious prompts
+  - **Mitigation**: Use system prompts that establish role boundaries, Epic 1's LLMFactory handles input sanitization
+- **Decision escalation**: DecisionEngine should not auto-approve security-sensitive decisions (e.g., auth mechanisms)
+  - **Mitigation**: Technology choices always escalate, low confidence threshold (0.75) for safety
+
+**Authentication/Authorization:**
+- **Not applicable in Epic 2**: Local CLI operation only, no multi-user concerns
+- **Epic 6 consideration**: When API is added, escalation responses must be authenticated
+
+**Data Privacy:**
+- **LLM provider data**: User requirements sent to Anthropic/OpenAI/Zhipu APIs
+  - **User responsibility**: Ensure compliance with provider data policies (retention, training usage)
+  - **Recommendation**: Use providers with zero-retention policies for sensitive projects
 
 ### Reliability/Availability
 
-{{nfr_reliability}}
+**Error Handling:**
+- **LLM failures**: Use Epic 1's RetryHandler with exponential backoff (see epic-2-action-items.md Task 3)
+  - Rate limits (429): Retry with Retry-After header
+  - Server errors (500-599): Retry up to 3 times
+  - Auth errors (401/403): Don't retry, escalate immediately
+- **Agent failures**: If Mary or John fail, pause workflow and escalate (don't auto-retry agent logic)
+- **DecisionEngine failures**: If LLM reasoning fails, fall back to escalation (fail-safe)
+
+**State Persistence:**
+- **Workflow state**: Use Epic 1's StateManager to persist after each template-output checkpoint
+- **Escalation persistence**: Each escalation immediately saved to disk (atomic write)
+- **Crash recovery**: Workflow can resume from last checkpoint if orchestrator crashes
+
+**Graceful Degradation:**
+- **Missing onboarding docs**: DecisionEngine falls back to LLM reasoning (lower confidence)
+- **Quality validation failure**: If PRDValidator score <85%, regenerate gaps rather than failing workflow
+- **Escalation queue unavailable**: Log error, pause workflow, notify user via console
+
+**Availability Targets:**
+- **PRD workflow**: Available 24/7 for local CLI execution
+- **Escalation queue**: File-based, no external dependencies, 99.9% availability
+- **LLM providers**: Accept provider SLA variability, use retry logic for transient failures
 
 ### Observability
 
-{{nfr_observability}}
+**Logging:**
+- **Workflow execution**: Log each PRD workflow step (start, completion, duration)
+  - Format: `[PRD-Workflow] Step 3: Requirements Gathering (Mary) - Duration: 8m 23s`
+- **Agent invocations**: Log each Mary/John method call with input/output sizes
+  - Format: `[MaryAgent] analyzeRequirements(inputSize: 1200 chars) -> requirements: 45 items`
+- **Decision tracking**: Log all DecisionEngine attempts with confidence scores
+  - Format: `[DecisionEngine] Question: "MVP feature boundary?" - Decision: [list] - Confidence: 0.82 - Source: llm`
+- **Escalations**: Log creation, resolution, and cancellation events
+  - Format: `[Escalation] Created: esc-abc123 - Question: "Technology choice?" - Confidence: 0.68`
+
+**Metrics:**
+- **PRD workflow metrics** (tracked in workflow state):
+  - Execution time (total, per step)
+  - Escalation count (target <3)
+  - PRD completeness score (target >85%)
+  - LLM cost (target <$5)
+  - Token usage (input/output per agent)
+- **Escalation metrics** (via EscalationQueue.getMetrics()):
+  - Total escalations count
+  - Resolution time (average, min, max)
+  - Category breakdown (requirements, scope, technology, etc.)
+  - Resolution status distribution (pending/resolved/cancelled)
+- **Agent performance metrics**:
+  - Mary invocation count, average duration
+  - John invocation count, average duration
+  - LLM token usage per agent
+
+**Debugging:**
+- **Decision audit trail**: Each Decision object contains question, reasoning, confidence, context
+- **Escalation context**: Each Escalation includes AI reasoning and relevant context for debugging
+- **Workflow state inspection**: StateManager persists full workflow state for post-mortem analysis
+- **Verbose mode**: CLI flag to enable detailed logging of agent prompts and LLM responses
+
+**Monitoring:**
+- **Epic 2 scope**: Console logging only
+- **Epic 6 integration**: WebSocket events for real-time workflow progress
+  - `workflow.step.started`
+  - `workflow.step.completed`
+  - `escalation.created`
+  - `escalation.resolved`
+- **Alerting**: Not implemented in Epic 2 (console warnings only)
 
 ## Dependencies and Integrations
 
