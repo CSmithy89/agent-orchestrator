@@ -542,15 +542,370 @@ docs/PRD.md
 
 ## Dependencies and Integrations
 
-{{dependencies_integrations}}
+### Epic 1 Dependencies (Required)
+
+Epic 2 builds directly on Epic 1's foundation and requires these components:
+
+| Component | Usage in Epic 2 | Interface |
+|-----------|-----------------|-----------|
+| **WorkflowEngine** | Execute PRD workflow.yaml, process instructions.md | `executeWorkflow(workflowConfig)` |
+| **AgentPool** | Spawn and manage Mary/John agent instances | `createAgent(name, config)`, `invokeAgent(id, prompt)` |
+| **LLMFactory** | Create LLM clients for agents and DecisionEngine | `createClient(provider, model, config)` |
+| **TemplateProcessor** | Generate PRD content from template.md | `processTemplate(template, variables)` |
+| **StateManager** | Persist workflow state and escalations | `saveState(state)`, `loadState(workflowId)` |
+| **ErrorHandler** | Handle LLM and workflow failures | `handleError(error, context)` |
+| **RetryHandler** | Retry LLM API calls with backoff | `executeWithRetry(fn, isRetryable)` |
+| **Logger** | Log workflow execution and decisions | `info()`, `warn()`, `error()`, `debug()` |
+
+### External Library Dependencies
+
+**Required for Epic 2 (to be added to backend/package.json):**
+
+```json
+{
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",      // Already present
+    "openai": "^4.20.0",                  // Already present
+    "js-yaml": "^4.1.0",                  // Already present (workflow parsing)
+    "uuid": "^9.0.0",                     // NEW - Generate escalation IDs
+    "handlebars": "^4.7.8"                // Already present (template processing)
+  }
+}
+```
+
+**New dependency to add:**
+- **uuid**: For generating unique escalation IDs (UUID v4)
+
+**Rationale for dependencies:**
+- `@anthropic-ai/sdk`: Mary/John agents and DecisionEngine use Claude (recommended)
+- `openai`: Support for GPT models (alternative to Claude)
+- `uuid`: Generate unique escalation IDs (`esc-abc123...`)
+- `handlebars`: Template variable substitution in PRD template
+- `js-yaml`: Parse workflow.yaml and project-config.yaml
+
+### Integration Points
+
+**1. LLMFactory Integration (Epic 1 Story 1.3)**
+- **Used by**: DecisionEngine, MaryAgent, JohnAgent
+- **Purpose**: Create LLM clients for autonomous reasoning
+- **Configuration**: Agent assignments from `.bmad/project-config.yaml`
+- **Example**:
+  ```yaml
+  agent_assignments:
+    mary:
+      provider: anthropic
+      model: claude-sonnet-4-5
+      temperature: 0.3
+    john:
+      provider: anthropic
+      model: claude-sonnet-4-5
+      temperature: 0.5
+  ```
+
+**2. AgentPool Integration (Epic 1 Story 1.4)**
+- **Used by**: PRDWorkflowExecutor
+- **Purpose**: Spawn Mary and John agents, manage lifecycles
+- **Pattern**: Create agents at workflow start, destroy at workflow end
+- **Concurrency**: Max 2 agents (Mary + John) per workflow
+
+**3. WorkflowEngine Integration (Epic 1 Story 1.7)**
+- **Used by**: PRDWorkflowExecutor
+- **Purpose**: Execute PRD workflow steps, handle template-output and elicit-required tags
+- **Workflow file**: `bmad/bmm/workflows/prd/workflow.yaml`
+- **Instructions**: `bmad/bmm/workflows/prd/instructions.md`
+
+**4. StateManager Integration (Epic 1 Story 1.5)**
+- **Used by**: PRDWorkflowExecutor, EscalationQueue
+- **Purpose**: Persist workflow state after each checkpoint, save escalations
+- **Files**:
+  - Workflow state: `.bmad/workflows/{workflowId}/state.yaml`
+  - Escalations: `.bmad-escalations/{escalationId}.json`
+
+**5. ErrorHandler Integration (Epic 1 Story 1.10)**
+- **Used by**: All Epic 2 components
+- **Purpose**: Handle LLM failures, workflow errors
+- **Deferred work**: LLM client retry integration (see epic-2-action-items.md Task 3)
+
+**6. TemplateProcessor Integration (Epic 1 Story 1.8)**
+- **Used by**: PRDTemplateProcessor
+- **Purpose**: Render PRD template with variable substitution
+- **Template**: `bmad/bmm/workflows/prd/template.md`
+
+### External Service Dependencies
+
+**LLM Provider APIs:**
+- **Anthropic API** (recommended): Claude models for Mary, John, DecisionEngine
+  - API key: `ANTHROPIC_API_KEY` or `CLAUDE_CODE_OAUTH_TOKEN`
+  - Endpoints: `https://api.anthropic.com/v1/messages`
+  - Rate limits: 50 requests/min (tier 1), 1000/min (tier 2)
+- **OpenAI API** (alternative): GPT models
+  - API key: `OPENAI_API_KEY`
+  - Endpoints: `https://api.openai.com/v1/chat/completions`
+  - Rate limits: 500 requests/min (tier 1)
+- **Zhipu API** (optional): GLM models for Chinese language projects
+  - API key: `ZHIPU_API_KEY`
+  - Endpoints: Zhipu GLM API
+
+**File System:**
+- **Read**: PRD workflow files, templates, project config, onboarding docs
+- **Write**: docs/PRD.md, .bmad-escalations/*.json, workflow state files
+
+**Git (via simple-git):**
+- **Used by**: StateManager for auto-commit (Epic 1)
+- **Purpose**: Version control for PRD.md and escalation files
+- **Not directly used in Epic 2**: Inherited from Epic 1 infrastructure
+
+### Integration with Future Epics
+
+**Epic 3 (Architecture Phase):**
+- **Input dependency**: Epic 3's Architecture workflow will read `docs/PRD.md` generated by Epic 2
+- **Traceability**: Architecture decisions reference PRD requirements
+
+**Epic 6 (Remote Access & Monitoring):**
+- **Dashboard integration**: Escalation UI will call `EscalationQueue.list()` and `.respond()`
+- **WebSocket events**: Real-time workflow progress notifications
+- **API endpoints**:
+  - `GET /api/escalations` → `EscalationQueue.list()`
+  - `POST /api/escalations/{id}/respond` → `EscalationQueue.respond()`
+
+### Configuration Files
+
+**Project Configuration (.bmad/project-config.yaml):**
+```yaml
+# Required for Epic 2
+agent_assignments:
+  mary:
+    provider: anthropic
+    model: claude-sonnet-4-5
+    temperature: 0.3
+  john:
+    provider: anthropic
+    model: claude-sonnet-4-5
+    temperature: 0.5
+
+decision_engine:
+  confidence_threshold: 0.75
+  onboarding_docs_path: .bmad/onboarding/
+
+escalation_config:
+  storage_path: .bmad-escalations/
+  notification_method: console  # Epic 6: dashboard
+```
+
+**Environment Variables (.env):**
+```bash
+# LLM Provider Keys (one required)
+ANTHROPIC_API_KEY=sk-ant-xxx
+CLAUDE_CODE_OAUTH_TOKEN=xxx  # Preferred
+OPENAI_API_KEY=sk-xxx         # Alternative
+ZHIPU_API_KEY=xxx             # Optional
+
+# Logging
+LOG_LEVEL=info                # debug for verbose mode
+```
+
+### Version Constraints
+
+**Node.js**: >=20.0.0 (ESM support, modern async/await)
+**TypeScript**: ^5.3.0 (type safety for interfaces)
+**Vitest**: ^1.0.0 (testing framework from Epic 1)
+
+### Breaking Changes / Migration Notes
+
+**None**: Epic 2 is additive, no breaking changes to Epic 1 components
 
 ## Acceptance Criteria (Authoritative)
 
-{{acceptance_criteria}}
+This section consolidates all acceptance criteria from Epic 2 stories. Each story's criteria are testable and must be verified before marking the story as done.
+
+### Story 2.1: Confidence-Based Decision Engine
+
+1. ✅ Implement DecisionEngine class with confidence scoring
+2. ✅ attemptAutonomousDecision(question, context) returns Decision with confidence (0-1)
+3. ✅ Check onboarding docs first for explicit answers (confidence 0.95)
+4. ✅ Use LLM reasoning with low temperature (0.3) for decisions
+5. ✅ Assess confidence based on answer clarity and context sufficiency
+6. ✅ Escalate if confidence < 0.75 (ESCALATION_THRESHOLD)
+7. ✅ Return decision value and reasoning for audit trail
+8. ✅ Track: question, decision, confidence, reasoning, outcome
+
+### Story 2.2: Escalation Queue System
+
+1. ✅ Implement EscalationQueue class
+2. ✅ add(escalation) saves to .bmad-escalations/{id}.json
+3. ✅ Escalation includes: workflow, step, question, AI reasoning, confidence, context
+4. ✅ Pause workflow execution at escalation point
+5. ✅ Notify via console (dashboard integration in Epic 6)
+6. ✅ respond(escalationId, response) records human answer
+7. ✅ Resume workflow from escalation step with response
+8. ✅ Track escalation metrics: count, resolution time, categories
+
+### Story 2.3: Mary Agent - Business Analyst Persona
+
+1. ✅ Load Mary persona from bmad/bmm/agents/mary.md
+2. ✅ Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for strong reasoning on requirements analysis
+   - See Story 1.3 for configuration examples with multiple providers
+3. ✅ Specialized prompts for: requirement extraction, user story writing, scope negotiation
+4. ✅ Context includes: user input, product brief (if exists), domain knowledge
+5. ✅ Methods: analyzeRequirements(), defineSuccessCriteria(), negotiateScope()
+6. ✅ Generate clear, structured requirements documentation
+7. ✅ Make decisions with confidence scoring via DecisionEngine
+8. ✅ Escalate ambiguous or critical product decisions
+
+### Story 2.4: John Agent - Product Manager Persona
+
+1. ✅ Load John persona from bmad/bmm/agents/john.md
+2. ✅ Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+   - Recommended: Claude Sonnet for strategic reasoning and product decisions
+   - See Story 1.3 for configuration examples with multiple providers
+3. ✅ Specialized prompts for: product strategy, prioritization, roadmap planning
+4. ✅ Methods: defineProductVision(), prioritizeFeatures(), assessMarketFit()
+5. ✅ Validate Mary's requirements for business viability
+6. ✅ Challenge scope creep and unrealistic timelines
+7. ✅ Generate executive summaries and success metrics
+8. ✅ Collaborate with Mary through shared workflow context
+
+### Story 2.5: PRD Workflow Executor
+
+1. ✅ Load bmad/bmm/workflows/prd/workflow.yaml
+2. ✅ Execute all PRD workflow steps in order
+3. ✅ Spawn Mary agent for requirements analysis
+4. ✅ Spawn John agent for strategic validation
+5. ✅ Process template-output tags by generating content and saving to PRD.md
+6. ✅ Handle elicit-required tags (skip in #yolo mode)
+7. ✅ Make autonomous decisions via DecisionEngine (target <3 escalations)
+8. ✅ Complete execution in <30 minutes
+9. ✅ Generate docs/PRD.md with all sections filled
+10. ✅ Update workflow-status.yaml to mark PRD complete
+
+### Story 2.6: PRD Template & Content Generation
+
+1. ✅ Load prd-template.md with proper structure
+2. ✅ Generate content for each template section:
+   - vision_alignment, product_magic_essence
+   - success_criteria, mvp_scope, growth_features
+   - functional_requirements_complete
+   - performance/security/scalability requirements (if applicable)
+3. ✅ Adapt content to project type (API, mobile, SaaS, etc.)
+4. ✅ Include domain-specific sections if complex domain detected
+5. ✅ Generate 67+ functional requirements from user input
+6. ✅ Format with proper markdown, tables, code blocks
+7. ✅ Save incrementally as sections complete
+
+### Story 2.7: PRD Quality Validation
+
+1. ✅ Implement PRDValidator class with quality checks
+2. ✅ Verify all required sections present
+3. ✅ Check requirements clarity (no vague "handle X" requirements)
+4. ✅ Validate success criteria are measurable
+5. ✅ Ensure acceptance criteria for key features
+6. ✅ Check for contradictions or gaps
+7. ✅ Generate completeness score (target >85%)
+8. ✅ If score <85%, identify gaps and regenerate missing content
+9. ✅ Log validation results for improvement
+
+### Story 2.8: PRD Validation Tests
+
+1. ✅ Unit tests for DecisionEngine:
+   - Test confidence scoring (0.0-1.0 range)
+   - Test onboarding doc lookup (confidence 0.95)
+   - Test LLM reasoning with temperature 0.3
+   - Test escalation threshold (< 0.75 triggers escalation)
+2. ✅ Unit tests for EscalationQueue:
+   - Test add() creates file in .bmad-escalations/
+   - Test list() filters by status and workflowId
+   - Test getById() retrieves correct escalation
+   - Test respond() updates escalation and resumes workflow
+   - Test getMetrics() calculates correct aggregates
+3. ✅ Unit tests for Mary/John agents:
+   - Test agent initialization with LLM config
+   - Test analyzeRequirements() returns structured data
+   - Test defineProductVision() generates vision/positioning
+   - Test DecisionEngine integration (confidence scoring)
+4. ✅ Integration tests for PRD workflow:
+   - Test full workflow execution (initialization → finalization)
+   - Test Mary ↔ John collaboration (shared context)
+   - Test template processing and incremental saves
+   - Test quality validation (<85% triggers regeneration)
+   - Test escalation flow (pause → respond → resume)
+5. ✅ Test coverage targets:
+   - DecisionEngine: >90% coverage
+   - EscalationQueue: >90% coverage
+   - Mary/John agents: >80% coverage
+   - PRD workflow: >80% coverage
+6. ✅ Test execution in CI/CD pipeline
+7. ✅ All tests passing (0 failures, 0 errors)
+
+**Note**: Story 2.8 follows ATDD (Acceptance Test-Driven Development) - tests written alongside implementation, not as separate story
 
 ## Traceability Mapping
 
-{{traceability_mapping}}
+This mapping traces each acceptance criterion to its implementing component, API method, and test case.
+
+| AC# | Story | Acceptance Criterion | Component | API/Method | Test Case |
+|-----|-------|---------------------|-----------|------------|-----------|
+| 2.1.1 | 2.1 | Implement DecisionEngine class | DecisionEngine | class DecisionEngine | tests/core/DecisionEngine.test.ts |
+| 2.1.2 | 2.1 | attemptAutonomousDecision() returns Decision | DecisionEngine | attemptAutonomousDecision() | DecisionEngine: should return Decision object |
+| 2.1.3 | 2.1 | Check onboarding docs first (0.95 confidence) | DecisionEngine | checkOnboardingDocs() | DecisionEngine: should return 0.95 confidence for onboarding matches |
+| 2.1.4 | 2.1 | Use LLM reasoning (temp 0.3) | DecisionEngine | useLLMReasoning() | DecisionEngine: should use temperature 0.3 |
+| 2.1.5 | 2.1 | Assess confidence | DecisionEngine | useLLMReasoning() | DecisionEngine: should assess confidence 0.3-0.9 |
+| 2.1.6 | 2.1 | Escalate if confidence < 0.75 | DecisionEngine | attemptAutonomousDecision() | DecisionEngine: should escalate when confidence <0.75 |
+| 2.1.7 | 2.1 | Return decision and reasoning | DecisionEngine | attemptAutonomousDecision() | DecisionEngine: should include reasoning in Decision |
+| 2.1.8 | 2.1 | Track decision metadata | DecisionEngine | Decision interface | DecisionEngine: should track question, decision, confidence, reasoning |
+| 2.2.1 | 2.2 | Implement EscalationQueue class | EscalationQueue | class EscalationQueue | tests/core/EscalationQueue.test.ts |
+| 2.2.2 | 2.2 | add() saves to .bmad-escalations/{id}.json | EscalationQueue | add() | EscalationQueue: should save escalation to file |
+| 2.2.3 | 2.2 | Escalation includes metadata | EscalationQueue | Escalation interface | EscalationQueue: should include workflow, step, question, etc |
+| 2.2.4 | 2.2 | Pause workflow at escalation | WorkflowEngine | (integration) | PRDWorkflow: should pause at escalation point |
+| 2.2.5 | 2.2 | Notify via console | EscalationQueue | add() | EscalationQueue: should log to console |
+| 2.2.6 | 2.2 | respond() records answer | EscalationQueue | respond() | EscalationQueue: should update escalation with response |
+| 2.2.7 | 2.2 | Resume workflow after response | WorkflowEngine | (integration) | PRDWorkflow: should resume from escalation step |
+| 2.2.8 | 2.2 | Track escalation metrics | EscalationQueue | getMetrics() | EscalationQueue: should calculate metrics |
+| 2.3.1 | 2.3 | Load Mary persona | MaryAgent | constructor | tests/agents/MaryAgent.test.ts |
+| 2.3.2 | 2.3 | Configure with LLM from config | MaryAgent | constructor | MaryAgent: should use LLM from project-config |
+| 2.3.3 | 2.3 | Specialized prompts | MaryAgent | system/specialized prompts | MaryAgent: should load specialized prompts |
+| 2.3.4 | 2.3 | Context includes user input/brief | MaryAgent | analyzeRequirements() | MaryAgent: should process user input and product brief |
+| 2.3.5 | 2.3 | Methods implemented | MaryAgent | analyzeRequirements(), defineSuccessCriteria(), negotiateScope() | MaryAgent: should implement all methods |
+| 2.3.6 | 2.3 | Generate requirements | MaryAgent | analyzeRequirements() | MaryAgent: should return structured requirements |
+| 2.3.7 | 2.3 | Use DecisionEngine | MaryAgent | (integration) | MaryAgent: should call DecisionEngine for decisions |
+| 2.3.8 | 2.3 | Escalate ambiguous decisions | MaryAgent | (integration) | MaryAgent: should escalate when confidence <0.75 |
+| 2.4.1 | 2.4 | Load John persona | JohnAgent | constructor | tests/agents/JohnAgent.test.ts |
+| 2.4.2 | 2.4 | Configure with LLM from config | JohnAgent | constructor | JohnAgent: should use LLM from project-config |
+| 2.4.3 | 2.4 | Specialized prompts | JohnAgent | system/specialized prompts | JohnAgent: should load specialized prompts |
+| 2.4.4 | 2.4 | Methods implemented | JohnAgent | defineProductVision(), prioritizeFeatures(), assessMarketFit() | JohnAgent: should implement all methods |
+| 2.4.5 | 2.4 | Validate requirements | JohnAgent | (integration) | JohnAgent: should validate Mary's requirements |
+| 2.4.6 | 2.4 | Challenge scope creep | JohnAgent | (integration) | JohnAgent: should identify scope creep |
+| 2.4.7 | 2.4 | Generate summaries | JohnAgent | defineProductVision() | JohnAgent: should generate executive summary |
+| 2.4.8 | 2.4 | Collaborate with Mary | PRDWorkflowExecutor | (integration) | PRDWorkflow: Mary and John share context |
+| 2.5.1 | 2.5 | Load PRD workflow.yaml | PRDWorkflowExecutor | constructor | tests/workflows/PRDWorkflow.test.ts |
+| 2.5.2 | 2.5 | Execute steps in order | PRDWorkflowExecutor | executeWorkflow() | PRDWorkflow: should execute steps sequentially |
+| 2.5.3 | 2.5 | Spawn Mary agent | PRDWorkflowExecutor | (via AgentPool) | PRDWorkflow: should spawn Mary agent |
+| 2.5.4 | 2.5 | Spawn John agent | PRDWorkflowExecutor | (via AgentPool) | PRDWorkflow: should spawn John agent |
+| 2.5.5 | 2.5 | Process template-output tags | PRDWorkflowExecutor | (via WorkflowEngine) | PRDWorkflow: should save after template-output |
+| 2.5.6 | 2.5 | Handle elicit-required | PRDWorkflowExecutor | (via WorkflowEngine) | PRDWorkflow: should skip elicit in #yolo mode |
+| 2.5.7 | 2.5 | Target <3 escalations | PRDWorkflowExecutor | (integration) | PRDWorkflow: should have <3 escalations |
+| 2.5.8 | 2.5 | Complete in <30 minutes | PRDWorkflowExecutor | executeWorkflow() | PRDWorkflow: should complete in <30min |
+| 2.5.9 | 2.5 | Generate docs/PRD.md | PRDWorkflowExecutor | (via TemplateProcessor) | PRDWorkflow: should create PRD.md |
+| 2.5.10 | 2.5 | Update workflow-status.yaml | PRDWorkflowExecutor | (via StateManager) | PRDWorkflow: should mark PRD complete |
+| 2.6.1 | 2.6 | Load prd-template.md | PRDTemplateProcessor | constructor | tests/workflows/PRDTemplateProcessor.test.ts |
+| 2.6.2 | 2.6 | Generate all sections | PRDTemplateProcessor | generateContent() | PRDTemplateProcessor: should populate all sections |
+| 2.6.3 | 2.6 | Adapt to project type | PRDTemplateProcessor | generateContent() | PRDTemplateProcessor: should adapt to API/mobile/SaaS |
+| 2.6.4 | 2.6 | Domain-specific sections | PRDTemplateProcessor | generateContent() | PRDTemplateProcessor: should add domain sections |
+| 2.6.5 | 2.6 | Generate 67+ requirements | PRDTemplateProcessor | generateContent() | PRDTemplateProcessor: should generate ≥67 requirements |
+| 2.6.6 | 2.6 | Format markdown | PRDTemplateProcessor | generateContent() | PRDTemplateProcessor: should format with markdown |
+| 2.6.7 | 2.6 | Save incrementally | PRDTemplateProcessor | (via TemplateProcessor) | PRDTemplateProcessor: should save after each section |
+| 2.7.1 | 2.7 | Implement PRDValidator | PRDValidator | class PRDValidator | tests/workflows/PRDValidator.test.ts |
+| 2.7.2 | 2.7 | Verify sections present | PRDValidator | validate() | PRDValidator: should check all required sections |
+| 2.7.3 | 2.7 | Check clarity | PRDValidator | validate() | PRDValidator: should flag vague requirements |
+| 2.7.4 | 2.7 | Validate measurable criteria | PRDValidator | validate() | PRDValidator: should validate success criteria |
+| 2.7.5 | 2.7 | Check acceptance criteria | PRDValidator | validate() | PRDValidator: should verify acceptance criteria |
+| 2.7.6 | 2.7 | Check contradictions/gaps | PRDValidator | validate() | PRDValidator: should identify contradictions |
+| 2.7.7 | 2.7 | Generate completeness score | PRDValidator | validate() | PRDValidator: should calculate score 0-100 |
+| 2.7.8 | 2.7 | Regenerate if <85% | PRDWorkflowExecutor | (integration) | PRDWorkflow: should regenerate gaps if score <85% |
+| 2.7.9 | 2.7 | Log validation results | PRDValidator | validate() | PRDValidator: should log results |
+| 2.8.1-7 | 2.8 | All test coverage | All components | All methods | See Story 2.8 acceptance criteria above |
 
 ## Risks, Assumptions, Open Questions
 
