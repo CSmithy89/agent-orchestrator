@@ -1,0 +1,225 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.2</storyId>
+    <title>Escalation Queue System</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-07</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-2-escalation-queue-system.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a workflow orchestrator</asA>
+    <iWant>to queue decisions that need human input and resume after response</iWant>
+    <soThat>autonomous workflows can continue after clarification</soThat>
+    <tasks>
+      - Task 1: Implement EscalationQueue class structure (AC: #1)
+      - Task 2: Implement file-based storage for escalations (AC: #2, #3)
+      - Task 3: Implement escalation retrieval methods (AC: #2)
+      - Task 4: Implement workflow pause/resume integration (AC: #4, #7)
+      - Task 5: Implement console notification (AC: #5)
+      - Task 6: Implement respond() method (AC: #6, #7)
+      - Task 7: Implement escalation metrics tracking (AC: #8)
+      - Task 8: Unit tests for EscalationQueue (AC: all) - >90% coverage
+      - Task 9: Integration tests with DecisionEngine and WorkflowEngine (AC: #4, #7)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. Implement EscalationQueue class
+    2. add(escalation) saves to .bmad-escalations/{id}.json
+    3. Escalation includes: workflow, step, question, AI reasoning, confidence, context
+    4. Pause workflow execution at escalation point
+    5. Notify via console (dashboard integration in Epic 6)
+    6. respond(escalationId, response) records human answer
+    7. Resume workflow from escalation step with response
+    8. Track escalation metrics: count, resolution time, categories
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/tech-spec-epic-2.md" title="Epic 2 Technical Specification" section="Story 2.2: Escalation Queue System">
+        AC lines 738-747: All 8 acceptance criteria for EscalationQueue implementation. Escalation Schema lines 117-139 defines Escalation and EscalationMetrics interfaces. EscalationQueue Interface lines 210-250 defines all methods: add(), list(), getById(), respond(), getMetrics().
+      </doc>
+      <doc path="docs/architecture.md" title="System Architecture" section="2.3.2 Escalation Queue">
+        Lines 494-539: EscalationQueue responsibility, key classes, escalation workflow (trigger, pause, notify, respond, resume). Storage strategy: .bmad-escalations/{id}.json with metrics tracking. Notification strategy: console in Epic 2, dashboard in Epic 6.
+      </doc>
+      <doc path="docs/epics.md" title="Project Epics" section="Story 2.2">
+        Lines 456-473: User story and acceptance criteria. Prerequisites: Story 2.1 (DecisionEngine). Integration with DecisionEngine confidence threshold < 0.75.
+      </doc>
+      <doc path="docs/tech-spec-epic-2.md" title="Epic 2 Technical Specification" section="Performance NFRs">
+        Lines 434-437: Escalation performance targets - Queue operations <100ms, Metrics calculation <500ms, File I/O atomic writes using StateManager patterns.
+      </doc>
+      <doc path="docs/stories/2-1-confidence-based-decision-engine.md" title="Story 2.1 (Previous Story)" section="Dev Agent Record">
+        DecisionEngine integration pattern: confidence < 0.75 triggers escalation. ESCALATION_THRESHOLD = 0.75 fixed. Decision interface includes question, confidence, reasoning, context - all needed for escalation metadata.
+      </doc>
+    </docs>
+
+    <code>
+      <artifact path="backend/src/core/services/decision-engine.ts" kind="service" symbol="DecisionEngine" lines="1-100" reason="Integration point - DecisionEngine will call EscalationQueue.add() when confidence < 0.75. Decision interface (lines 41-62) provides data for escalation context. ESCALATION_THRESHOLD = 0.75 (line 91)."/>
+
+      <artifact path="backend/src/core/StateManager.ts" kind="service" symbol="StateManager.atomicWrite" lines="74-80" reason="Pattern to follow for atomic file writes to .bmad-escalations/{id}.json. Uses temp file + rename to prevent corruption during crashes."/>
+
+      <artifact path="backend/src/core/RetryHandler.ts" kind="error-handling" symbol="RetryHandler" reason="Available for file I/O retry logic if needed. Handles retryable errors with exponential backoff."/>
+
+      <artifact path="backend/tests/core/DecisionEngine.test.ts" kind="test" symbol="DecisionEngine tests" lines="1-80" reason="Testing patterns to follow: vitest with describe/it, mock LLMFactory and fs/promises, beforeEach/afterEach setup, AC-driven test organization. Target >90% coverage."/>
+    </code>
+
+    <dependencies>
+      <node>
+        uuid: ^13.0.0 (ESM-only, use: import { v4 as uuidv4 } from 'uuid')
+        fs/promises: Built-in (for file I/O)
+        js-yaml: ^4.1.0 (if YAML needed)
+        vitest: ^1.0.0 (testing framework)
+        @types/node: ^20.0.0 (TypeScript types)
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - File location: backend/src/core/services/escalation-queue.ts (follow Epic 1/2.1 patterns)
+    - Use uuid v13 ESM import: import { v4 as uuidv4 } from 'uuid'
+    - Escalation ID format: 'esc-{uuid}' (e.g., 'esc-abc123-def456-...')
+    - Storage: .bmad-escalations/{id}.json (one file per escalation, created programmatically)
+    - Use atomic writes pattern from StateManager.atomicWrite (temp file + rename)
+    - ESCALATION_THRESHOLD = 0.75 (defined in DecisionEngine, referenced for documentation)
+    - Performance: add/list/getById/respond <100ms, getMetrics <500ms
+    - Console notification required in Epic 2, dashboard notification deferred to Epic 6
+    - Status values: 'pending' | 'resolved' | 'cancelled'
+    - WorkflowEngine pause/resume integration documented but tested in Story 2.5 (PRD Workflow)
+  </constraints>
+
+  <interfaces>
+    <interface name="Escalation" kind="TypeScript interface">
+      interface Escalation {
+        id: string;                    // UUID for tracking
+        workflowId: string;            // Which workflow triggered escalation
+        step: number;                  // Which step in workflow
+        question: string;              // What decision is needed
+        aiReasoning: string;           // Why AI couldn't decide confidently
+        confidence: number;            // AI's confidence (< 0.75)
+        context: Record&lt;string, any&gt;;  // Relevant context for human
+        status: 'pending' | 'resolved' | 'cancelled';
+        createdAt: Date;
+        resolvedAt?: Date;
+        response?: any;                // Human response when resolved
+        resolutionTime?: number;       // Milliseconds to resolution
+      }
+
+      Path: backend/src/core/services/escalation-queue.ts (to be created)
+    </interface>
+
+    <interface name="EscalationMetrics" kind="TypeScript interface">
+      interface EscalationMetrics {
+        totalEscalations: number;
+        resolvedCount: number;
+        averageResolutionTime: number;  // milliseconds
+        categoryBreakdown: Record&lt;string, number&gt;;  // e.g., {requirements: 5, scope: 2}
+      }
+
+      Path: backend/src/core/services/escalation-queue.ts (to be created)
+    </interface>
+
+    <interface name="EscalationQueue" kind="TypeScript class">
+      class EscalationQueue {
+        async add(escalation: Omit&lt;Escalation, 'id' | 'status' | 'createdAt'&gt;): Promise&lt;string&gt;;
+        async list(filters?: { status?: string; workflowId?: string }): Promise&lt;Escalation[]&gt;;
+        async getById(escalationId: string): Promise&lt;Escalation&gt;;
+        async respond(escalationId: string, response: any): Promise&lt;Escalation&gt;;
+        async getMetrics(): Promise&lt;EscalationMetrics&gt;;
+      }
+
+      Path: backend/src/core/services/escalation-queue.ts (to be created)
+    </interface>
+
+    <interface name="DecisionEngine.attemptAutonomousDecision" kind="Integration point">
+      When DecisionEngine returns Decision with confidence < 0.75, call:
+      const escalationId = await escalationQueue.add({
+        workflowId: currentWorkflow.id,
+        step: currentStep,
+        question: decision.question,
+        aiReasoning: decision.reasoning,
+        confidence: decision.confidence,
+        context: decision.context
+      });
+
+      Path: Integration in WorkflowEngine (tested in Story 2.5)
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use vitest testing framework with describe/it structure. Follow AC-driven test organization (one describe block per AC). Mock external dependencies (fs/promises for file system, LLMFactory for LLM calls). Use beforeEach for setup, afterEach for cleanup. Target >90% code coverage for core services. Test file location: backend/tests/core/EscalationQueue.test.ts for unit tests, backend/tests/integration/escalation-queue.test.ts for integration tests.
+    </standards>
+
+    <locations>
+      backend/tests/core/ - Unit tests
+      backend/tests/integration/ - Integration tests
+    </locations>
+
+    <ideas>
+      <test ac="1" desc="AC #1: EscalationQueue class">
+        - Test EscalationQueue instance creation
+        - Test class has all required methods (add, list, getById, respond, getMetrics)
+      </test>
+
+      <test ac="2" desc="AC #2: add() saves to file">
+        - Test add() creates file in .bmad-escalations/ directory
+        - Test add() generates unique UUID (format: esc-{uuid})
+        - Test add() sets status to 'pending' and createdAt timestamp
+        - Test add() returns escalation ID string
+        - Test add() uses atomic write (temp file pattern)
+      </test>
+
+      <test ac="3" desc="AC #3: Escalation metadata">
+        - Test escalation includes workflowId, step, question
+        - Test escalation includes aiReasoning, confidence, context
+        - Test escalation includes status, createdAt
+        - Test file content matches Escalation interface schema
+      </test>
+
+      <test ac="2,3" desc="AC #2,3: list() and getById()">
+        - Test list() returns all escalations when no filters
+        - Test list() filters by status='pending'
+        - Test list() filters by status='resolved'
+        - Test list() filters by workflowId
+        - Test getById() retrieves correct escalation by ID
+        - Test getById() throws error for non-existent ID
+        - Test file read errors handled gracefully
+      </test>
+
+      <test ac="6,7" desc="AC #6,7: respond() method">
+        - Test respond() updates escalation with response
+        - Test respond() sets status to 'resolved'
+        - Test respond() sets resolvedAt timestamp
+        - Test respond() calculates resolutionTime correctly (resolvedAt - createdAt)
+        - Test respond() throws error for non-existent escalation
+        - Test respond() throws error if escalation not 'pending'
+        - Test respond() returns updated Escalation object
+      </test>
+
+      <test ac="8" desc="AC #8: Metrics tracking">
+        - Test getMetrics() calculates totalEscalations count
+        - Test getMetrics() calculates resolvedCount (status='resolved')
+        - Test getMetrics() calculates averageResolutionTime
+        - Test getMetrics() categoryBreakdown groups by workflow
+        - Test getMetrics() completes in <500ms (performance target)
+      </test>
+
+      <test ac="5" desc="AC #5: Console notification">
+        - Test add() logs to console with escalation details
+        - Test notification includes: escalation ID, workflow name, question, confidence
+        - Verify console.log called with expected format
+      </test>
+
+      <test ac="4,7" desc="AC #4,7: Integration - Workflow pause/resume">
+        - Test DecisionEngine confidence <0.75 triggers EscalationQueue.add()
+        - Test workflow pause at escalation point (WorkflowEngine integration)
+        - Test respond() signals workflow to resume
+        - Test workflow resumes from escalation step with response
+        - Test concurrent escalation handling (multiple workflows)
+      </test>
+    </ideas>
+  </tests>
+</story-context>
