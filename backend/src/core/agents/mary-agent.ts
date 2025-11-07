@@ -37,7 +37,7 @@ import { LLMFactory } from '../../llm/LLMFactory.js';
 import { LLMClient } from '../../llm/LLMClient.interface.js';
 import { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
 import { DecisionEngine, Decision } from '../services/decision-engine.js';
-import { EscalationQueue, Escalation } from '../services/escalation-queue.js';
+import { EscalationQueue } from '../services/escalation-queue.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);

@@ -182,7 +182,7 @@ describe('MaryAgent Integration Tests', () => {
       // This should trigger DecisionEngine to assess clarity
       // May escalate or proceed depending on LLM confidence
       try {
-        const result = await mary.analyzeRequirements(vague);
+        const _result = await mary.analyzeRequirements(vague);
         // If it succeeds, check audit trail
         const auditTrail = mary.getDecisionAuditTrail();
         expect(auditTrail.length).toBeGreaterThan(0);
