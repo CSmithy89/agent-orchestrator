@@ -1,6 +1,6 @@
 # Story 2.6: PRD Template & Content Generation
 
-Status: ready-for-dev
+Status: in-progress
 
 ## Story
 
