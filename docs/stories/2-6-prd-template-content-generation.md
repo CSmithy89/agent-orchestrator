@@ -1,6 +1,6 @@
 # Story 2.6: PRD Template & Content Generation
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -476,7 +476,7 @@ Story 2.6: Brief description of changes
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/stories/2-6-prd-template-content-generation.context.xml
 
 ### Agent Model Used
 

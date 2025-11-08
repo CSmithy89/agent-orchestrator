@@ -1,0 +1,499 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <story>
+    <id>2.6</id>
+    <key>2-6-prd-template-content-generation</key>
+    <title>PRD Template &amp; Content Generation</title>
+    <epic>2</epic>
+    <status>drafted</status>
+  </story>
+
+  <user-story>
+    <as-a>the PRD workflow</as-a>
+    <i-want>to generate high-quality PRD content from templates</i-want>
+    <so-that>output matches professional documentation standards</so-that>
+  </user-story>
+
+  <acceptance-criteria>
+    <criterion id="1">
+      <text>Load prd-template.md with proper structure</text>
+    </criterion>
+    <criterion id="2">
+      <text>Generate content for each template section: vision_alignment, product_magic_essence, success_criteria, mvp_scope, growth_features, functional_requirements_complete, performance/security/scalability requirements (if applicable)</text>
+    </criterion>
+    <criterion id="3">
+      <text>Adapt content to project type (API, mobile, SaaS, etc.)</text>
+    </criterion>
+    <criterion id="4">
+      <text>Include domain-specific sections if complex domain detected</text>
+    </criterion>
+    <criterion id="5">
+      <text>Generate 67+ functional requirements from user input</text>
+    </criterion>
+    <criterion id="6">
+      <text>Format with proper markdown, tables, code blocks</text>
+    </criterion>
+    <criterion id="7">
+      <text>Save incrementally as sections complete</text>
+    </criterion>
+  </acceptance-criteria>
+
+  <tasks>
+    <task id="1" ac-ref="1">
+      <text>Implement PRDTemplateProcessor class structure</text>
+      <subtasks>
+        <subtask>Create backend/src/core/workflows/prd-template-processor.ts file</subtask>
+        <subtask>Define PRDTemplateProcessor class with TemplateProcessor integration</subtask>
+        <subtask>Load template from bmad/bmm/workflows/prd/template.md</subtask>
+        <subtask>Parse template sections and identify placeholders</subtask>
+        <subtask>Initialize section state tracking</subtask>
+        <subtask>Add TypeScript types and JSDoc comments</subtask>
+        <subtask>Handle template loading errors</subtask>
+      </subtasks>
+    </task>
+    <task id="2" ac-ref="2,3,4">
+      <text>Implement section content generation</text>
+      <subtasks>
+        <subtask>Method signature: async generateSection(sectionName: string, context: GenerationContext): Promise&lt;string&gt;</subtask>
+        <subtask>Generate vision_alignment section (strategic product vision)</subtask>
+        <subtask>Generate product_magic_essence section (unique value proposition)</subtask>
+        <subtask>Generate success_criteria section (measurable outcomes)</subtask>
+        <subtask>Generate mvp_scope section (Phase 1 features)</subtask>
+        <subtask>Generate growth_features section (Phase 2+ features)</subtask>
+        <subtask>Generate functional_requirements_complete section (67+ requirements)</subtask>
+        <subtask>Generate performance requirements (if applicable)</subtask>
+        <subtask>Generate security requirements (if applicable)</subtask>
+        <subtask>Generate scalability requirements (if applicable)</subtask>
+        <subtask>Adapt content based on project type (API, mobile, SaaS, game, etc.)</subtask>
+        <subtask>Add domain-specific sections for complex domains (e.g., healthcare, finance)</subtask>
+      </subtasks>
+    </task>
+    <task id="3" ac-ref="5">
+      <text>Implement functional requirements generation</text>
+      <subtasks>
+        <subtask>Method signature: async generateFunctionalRequirements(context: GenerationContext): Promise&lt;Requirement[]&gt;</subtask>
+        <subtask>Extract user requirements from product brief/user input</subtask>
+        <subtask>Collaborate with Mary agent for requirements analysis</subtask>
+        <subtask>Generate 67+ granular functional requirements (target: 70-100 requirements)</subtask>
+        <subtask>Ensure requirements are specific, testable, and actionable (not vague)</subtask>
+        <subtask>Group requirements by feature area</subtask>
+        <subtask>Include acceptance criteria for each requirement</subtask>
+        <subtask>Validate requirement quality (no "handle X" or vague statements)</subtask>
+      </subtasks>
+    </task>
+    <task id="4" ac-ref="6">
+      <text>Implement markdown formatting engine</text>
+      <subtasks>
+        <subtask>Method signature: formatAsMarkdown(content: any, formatType: string): string</subtask>
+        <subtask>Format sections with proper markdown headers (##, ###, ####)</subtask>
+        <subtask>Generate markdown tables for requirements, features, criteria</subtask>
+        <subtask>Format code blocks for technical specifications</subtask>
+        <subtask>Create bulleted lists for features, capabilities, constraints</subtask>
+        <subtask>Add bold/italic formatting for emphasis</subtask>
+        <subtask>Ensure proper line breaks and spacing</subtask>
+        <subtask>Validate markdown syntax</subtask>
+      </subtasks>
+    </task>
+    <task id="5" ac-ref="7">
+      <text>Implement incremental save functionality</text>
+      <subtasks>
+        <subtask>Method signature: async saveSection(sectionName: string, content: string): Promise&lt;void&gt;</subtask>
+        <subtask>Integrate with Epic 1's StateManager for atomic file writes</subtask>
+        <subtask>Save each section to docs/PRD.md as it completes</subtask>
+        <subtask>Append sections to existing file (don't overwrite previous sections)</subtask>
+        <subtask>Create docs/ directory if it doesn't exist</subtask>
+        <subtask>Handle concurrent write conflicts gracefully</subtask>
+        <subtask>Log save operations for debugging</subtask>
+        <subtask>Trigger template-output event for workflow to proceed</subtask>
+      </subtasks>
+    </task>
+    <task id="6" ac-ref="3,4">
+      <text>Implement project type adaptation logic</text>
+      <subtasks>
+        <subtask>Method signature: detectProjectType(context: GenerationContext): ProjectType</subtask>
+        <subtask>Detect project type from product brief (API, mobile app, SaaS, game, etc.)</subtask>
+        <subtask>Load type-specific template sections</subtask>
+        <subtask>Detect complex domain (healthcare, finance, education, etc.)</subtask>
+        <subtask>Add domain-specific sections (e.g., HIPAA compliance for healthcare)</subtask>
+        <subtask>Customize terminology based on domain (e.g., "patient" vs "user")</subtask>
+      </subtasks>
+    </task>
+    <task id="7" ac-ref="2,5">
+      <text>Integrate with Mary and John agents</text>
+      <subtasks>
+        <subtask>Method signature: async collaborateWithAgents(context: GenerationContext): Promise&lt;void&gt;</subtask>
+        <subtask>Spawn Mary agent for requirements analysis (via AgentPool from Story 1.4)</subtask>
+        <subtask>Call Mary's analyzeRequirements() method</subtask>
+        <subtask>Spawn John agent for strategic validation (via AgentPool)</subtask>
+        <subtask>Call John's defineProductVision() and prioritizeFeatures() methods</subtask>
+        <subtask>Pass shared workflow context to both agents</subtask>
+        <subtask>Merge agent outputs into template sections</subtask>
+        <subtask>Handle agent failures gracefully (retry with exponential backoff)</subtask>
+      </subtasks>
+    </task>
+    <task id="8" ac-ref="all" priority="CRITICAL">
+      <text>WRITE TESTS FIRST - Unit tests for PRDTemplateProcessor (START HERE per ATDD)</text>
+      <subtasks>
+        <subtask>CRITICAL: Write ALL tests below BEFORE implementing any code (Tests should FAIL initially)</subtask>
+        <subtask>Create test file: backend/tests/core/workflows/PRDTemplateProcessor.test.ts</subtask>
+        <subtask>Set up test structure: describe blocks for each AC, beforeEach/afterEach hooks</subtask>
+        <subtask>Mock TemplateProcessor, AgentPool, Mary/John agents, StateManager dependencies</subtask>
+        <subtask>Test template loading from bmad/bmm/workflows/prd/template.md (AC #1)</subtask>
+        <subtask>Test vision_alignment section generation (AC #2)</subtask>
+        <subtask>Test functional_requirements_complete section generation (AC #2, #5)</subtask>
+        <subtask>Test project type adaptation (API, mobile, SaaS, game) (AC #3)</subtask>
+        <subtask>Test domain-specific sections (healthcare, finance) (AC #4)</subtask>
+        <subtask>Test functional requirements count (must be ≥67) (AC #5)</subtask>
+        <subtask>Test markdown formatting (headers, tables, code blocks, lists) (AC #6)</subtask>
+        <subtask>Test incremental saves to docs/PRD.md (AC #7)</subtask>
+        <subtask>Run tests (should all FAIL - no implementation yet): npm run test -- PRDTemplateProcessor.test.ts</subtask>
+        <subtask>After all tests written and failing, proceed to Task 1 to implement code</subtask>
+        <subtask>Target: &gt;80% code coverage when implementation complete</subtask>
+      </subtasks>
+    </task>
+    <task id="9" ac-ref="all">
+      <text>Integration tests with Mary, John, and workflow</text>
+      <subtasks>
+        <subtask>Test full template processing: load → generate sections → save → validate</subtask>
+        <subtask>Test Mary agent collaboration for requirements (call analyzeRequirements())</subtask>
+        <subtask>Test John agent collaboration for vision (call defineProductVision())</subtask>
+        <subtask>Test incremental saves create valid docs/PRD.md file</subtask>
+        <subtask>Test project type detection and adaptation (API vs mobile vs SaaS)</subtask>
+        <subtask>Test domain-specific section inclusion</subtask>
+        <subtask>Test functional requirements count (≥67 requirements)</subtask>
+        <subtask>Test markdown formatting in final PRD.md output</subtask>
+        <subtask>Test error recovery (agent failure, file write failure)</subtask>
+        <subtask>Verify PRD.md is valid markdown and passes parsing</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification: Analysis Phase Automation</title>
+        <section>Story 2.6: PRD Template &amp; Content Generation</section>
+        <snippet>AC 2.6.1-2.6.7: Load prd-template.md, generate content sections (vision, requirements, features), adapt to project type, generate 67+ requirements, format markdown, save incrementally. PRDTemplateProcessor integrates with TemplateProcessor (Story 1.8), Mary/John agents, and StateManager.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Epic 2: Story 2.6 - PRD Template &amp; Content Generation</section>
+        <snippet>As the PRD workflow, I want to generate high-quality PRD content from templates, so that output matches professional documentation standards. Prerequisites: Story 2.5 (PRD Workflow Executor).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator System Architecture</title>
+        <section>2.2 Workflow Plugins</section>
+        <snippet>PRD workflow plugin processes templates to generate documentation. Uses TemplateProcessor for base template handling and integrates with Mary/John agents for content generation. Saves incrementally via StateManager.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator Product Requirements Document</title>
+        <section>FR-CORE-001: Autonomous PRD Generation</section>
+        <snippet>System shall generate complete PRD documents from user requirements automatically, targeting 67+ functional requirements with proper markdown formatting and professional quality.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-5-prd-workflow-executor.md</path>
+        <title>Story 2.5: PRD Workflow Executor</title>
+        <section>Dev Notes - Integration Patterns</section>
+        <snippet>PRDWorkflowExecutor.processTemplateOutput() calls template processor for content generation. Template processor saves sections incrementally via StateManager. Shared workflow context passed between agents for coherent output.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-mary-agent-business-analyst-persona.md</path>
+        <title>Story 2.3: Mary Agent - Business Analyst Persona</title>
+        <section>Dev Notes - Agent Methods</section>
+        <snippet>MaryAgent provides analyzeRequirements() for extracting functional requirements from user input. Returns structured requirements with acceptance criteria. Temperature 0.3 for analytical reasoning.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-4-john-agent-product-manager-persona.md</path>
+        <title>Story 2.4: John Agent - Product Manager Persona</title>
+        <section>Dev Notes - Agent Methods</section>
+        <snippet>JohnAgent provides defineProductVision() for strategic product thinking and prioritizeFeatures() for feature prioritization. Temperature 0.5 for balanced strategy/creativity. Validates Mary's requirements for business viability.</snippet>
+      </doc>
+      <doc>
+        <path>docs/test-setup-guide.md</path>
+        <title>Test Setup and Standards</title>
+        <section>Testing Framework</section>
+        <snippet>Use Vitest for all tests. Coverage target >80% for new code. ATDD approach: write tests first, implement code, refactor. Mock external dependencies (LLMs, file system).</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <artifact>
+        <path>backend/src/core/TemplateProcessor.ts</path>
+        <kind>service</kind>
+        <symbol>TemplateProcessor</symbol>
+        <lines>48-400</lines>
+        <reason>Base template processing class that PRDTemplateProcessor should extend or integrate with. Provides loadTemplate(), processTemplate(), registerHelper() methods and Handlebars integration.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/workflows/prd-workflow-executor.ts</path>
+        <kind>workflow</kind>
+        <symbol>PRDWorkflowExecutor</symbol>
+        <lines>1-907</lines>
+        <reason>Orchestrates PRD workflow and calls PRDTemplateProcessor. Provides pattern for dependency injection (AgentPool, StateManager, DecisionEngine). Shows how to spawn agents and handle workflow state.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/mary-agent.ts</path>
+        <kind>agent</kind>
+        <symbol>MaryAgent</symbol>
+        <lines>107-600</lines>
+        <reason>Business Analyst agent for requirements analysis. PRDTemplateProcessor should call analyzeRequirements() method to generate functional requirements. Returns structured RequirementsAnalysis with requirements array.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/john-agent.ts</path>
+        <kind>agent</kind>
+        <symbol>JohnAgent</symbol>
+        <lines>216-800</lines>
+        <reason>Product Manager agent for strategic validation. PRDTemplateProcessor should call defineProductVision() and prioritizeFeatures() methods for vision and feature sections.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>service</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-300</lines>
+        <reason>Agent lifecycle management. PRDTemplateProcessor should use AgentPool to spawn/cleanup Mary and John agents. Provides spawn(), get(), release() methods.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>service</kind>
+        <symbol>StateManager</symbol>
+        <lines>1-400</lines>
+        <reason>File persistence and atomic writes. PRDTemplateProcessor should use StateManager.appendToFile() for incremental PRD.md saves. Ensures atomic writes and handles concurrent access.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/template.types.ts</path>
+        <kind>types</kind>
+        <symbol>TemplateOptions, TemplateError</symbol>
+        <lines>1-150</lines>
+        <reason>TypeScript interfaces for template processing. PRDTemplateProcessor should extend or reference these types for consistency with Epic 1 patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/workflows/PRDWorkflowExecutor.test.ts</path>
+        <kind>test</kind>
+        <symbol>PRDWorkflowExecutor tests</symbol>
+        <lines>1-1076</lines>
+        <reason>Test patterns to follow for PRDTemplateProcessor. Shows how to mock AgentPool, Mary/John agents, StateManager. ATDD approach with describe blocks per AC.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="handlebars" version="^4.7.8">Template processing engine</package>
+        <package name="js-yaml" version="^4.1.0">YAML parsing for workflow config</package>
+        <package name="@anthropic-ai/sdk" version="^0.68.0">Anthropic Claude SDK for LLM calls</package>
+        <package name="openai" version="^6.2.0">OpenAI SDK for GPT models</package>
+        <package name="uuid" version="^13.0.0">Unique ID generation</package>
+        <package name="chalk" version="^5.6.2">Terminal styling</package>
+      </node>
+      <dev-dependencies>
+        <package name="vitest" version="^1.0.0">Testing framework</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Coverage reporting</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler</package>
+        <package name="@types/node" version="^20.0.0">Node.js type definitions</package>
+        <package name="@typescript-eslint/eslint-plugin" version="^6.20.0">ESLint TypeScript rules</package>
+      </dev-dependencies>
+    </dependencies>
+  </artifacts>
+
+  <interfaces>
+    <interface>
+      <name>TemplateProcessor.loadTemplate</name>
+      <kind>method</kind>
+      <signature>async loadTemplate(templatePath: string): Promise&lt;string&gt;</signature>
+      <path>backend/src/core/TemplateProcessor.ts</path>
+      <description>Loads template file from filesystem with caching. PRDTemplateProcessor should use this to load bmad/bmm/workflows/prd/template.md</description>
+    </interface>
+    <interface>
+      <name>TemplateProcessor.processTemplate</name>
+      <kind>method</kind>
+      <signature>async processTemplate(templateContent: string, context: Record&lt;string, any&gt;): Promise&lt;string&gt;</signature>
+      <path>backend/src/core/TemplateProcessor.ts</path>
+      <description>Processes Handlebars template with context variables. PRDTemplateProcessor should use this for variable substitution.</description>
+    </interface>
+    <interface>
+      <name>MaryAgent.analyzeRequirements</name>
+      <kind>method</kind>
+      <signature>async analyzeRequirements(input: string, productBrief?: string): Promise&lt;RequirementsAnalysis&gt;</signature>
+      <path>backend/src/core/agents/mary-agent.ts</path>
+      <description>Analyzes user requirements and returns structured functional requirements. Use this to generate 67+ requirements for PRD.</description>
+    </interface>
+    <interface>
+      <name>JohnAgent.defineProductVision</name>
+      <kind>method</kind>
+      <signature>async defineProductVision(input: string): Promise&lt;ProductVision&gt;</signature>
+      <path>backend/src/core/agents/john-agent.ts</path>
+      <description>Generates strategic product vision and positioning. Use this for vision_alignment section.</description>
+    </interface>
+    <interface>
+      <name>JohnAgent.prioritizeFeatures</name>
+      <kind>method</kind>
+      <signature>async prioritizeFeatures(features: string[]): Promise&lt;PrioritizedFeatures&gt;</signature>
+      <path>backend/src/core/agents/john-agent.ts</path>
+      <description>Prioritizes features using RICE/MoSCoW frameworks. Use this for mvp_scope and growth_features sections.</description>
+    </interface>
+    <interface>
+      <name>StateManager.appendToFile</name>
+      <kind>method</kind>
+      <signature>async appendToFile(filePath: string, content: string): Promise&lt;void&gt;</signature>
+      <path>backend/src/core/StateManager.ts</path>
+      <description>Atomically appends content to file. Use this for incremental PRD.md saves as sections complete.</description>
+    </interface>
+    <interface>
+      <name>AgentPool.spawn</name>
+      <kind>method</kind>
+      <signature>async spawn(agentType: string, context: any): Promise&lt;Agent&gt;</signature>
+      <path>backend/src/core/AgentPool.ts</path>
+      <description>Spawns agent instance from pool. Use to get Mary ('mary') and John ('john') agents.</description>
+    </interface>
+  </interfaces>
+
+  <constraints>
+    <constraint>
+      <text>Must generate ≥67 functional requirements (target: 70-100 requirements) per AC #5</text>
+      <source>docs/tech-spec-epic-2.md#Story-2.6, docs/epics.md#Story-2.6</source>
+    </constraint>
+    <constraint>
+      <text>Follow ATDD approach: Write tests first (Task 8), then implement code (Tasks 1-7)</text>
+      <source>docs/stories/2-5-prd-workflow-executor.md#Development-Approach</source>
+    </constraint>
+    <constraint>
+      <text>Use dependency injection pattern: Pass TemplateProcessor, AgentPool, StateManager as constructor params</text>
+      <source>backend/src/core/workflows/prd-workflow-executor.ts, docs/architecture.md#2.2</source>
+    </constraint>
+    <constraint>
+      <text>Save PRD sections incrementally to docs/PRD.md using StateManager.appendToFile() per AC #7</text>
+      <source>docs/tech-spec-epic-2.md#Architecture-Patterns</source>
+    </constraint>
+    <constraint>
+      <text>Requirements must be specific, testable, and actionable (no vague "handle X" statements) per AC #5</text>
+      <source>docs/tech-spec-epic-2.md#Story-2.6</source>
+    </constraint>
+    <constraint>
+      <text>Adapt content to project type (API, mobile, SaaS, game) with type-specific sections per AC #3</text>
+      <source>docs/tech-spec-epic-2.md#Project-Type-Adaptation</source>
+    </constraint>
+    <constraint>
+      <text>Add domain-specific sections for complex domains (healthcare, finance, education) per AC #4</text>
+      <source>docs/tech-spec-epic-2.md#Story-2.6</source>
+    </constraint>
+    <constraint>
+      <text>Format with proper markdown: headers (##, ###), tables, code blocks, bullet lists per AC #6</text>
+      <source>docs/tech-spec-epic-2.md#Story-2.6</source>
+    </constraint>
+    <constraint>
+      <text>Target >80% test coverage for PRDTemplateProcessor per testing standards</text>
+      <source>docs/test-setup-guide.md, docs/stories/2-5-prd-workflow-executor.md#Testing-Approach</source>
+    </constraint>
+    <constraint>
+      <text>Use TypeScript strict mode, no 'any' types, explicit .js extensions in imports</text>
+      <source>docs/stories/2-5-prd-workflow-executor.md#Code-Quality-Standards</source>
+    </constraint>
+    <constraint>
+      <text>Collaborate with Mary agent for requirements analysis via analyzeRequirements() method</text>
+      <source>docs/stories/2-3-mary-agent-business-analyst-persona.md, backend/src/core/agents/mary-agent.ts</source>
+    </constraint>
+    <constraint>
+      <text>Collaborate with John agent for vision via defineProductVision() and prioritizeFeatures() methods</text>
+      <source>docs/stories/2-4-john-agent-product-manager-persona.md, backend/src/core/agents/john-agent.ts</source>
+    </constraint>
+    <constraint>
+      <text>Handle agent failures gracefully with exponential backoff retry (3 attempts: 1s, 2s, 4s delays)</text>
+      <source>docs/stories/2-4-john-agent-product-manager-persona.md#Architectural-Patterns</source>
+    </constraint>
+    <constraint>
+      <text>Create file at backend/src/core/workflows/prd-template-processor.ts following project structure</text>
+      <source>docs/stories/2-5-prd-workflow-executor.md#Project-Structure-Notes</source>
+    </constraint>
+    <constraint>
+      <text>PRDWorkflowExecutor calls PRDTemplateProcessor via processTemplateOutput() method</text>
+      <source>docs/stories/2-5-prd-workflow-executor.md#Dev-Notes</source>
+    </constraint>
+  </constraints>
+
+  <tests>
+    <standards>
+      This project uses Vitest as the testing framework with TypeScript support. All tests follow ATDD (Acceptance Test-Driven Development): write tests first before implementation. Tests are organized in backend/tests/ mirroring src/ structure. Use describe blocks for each acceptance criterion, mock external dependencies (LLMs, file system, agents), and target >80% code coverage. Run tests with: npm run test, watch mode: npm run test:watch, coverage: npm run test:coverage.
+    </standards>
+    <locations>
+      <location>backend/tests/core/workflows/PRDTemplateProcessor.test.ts</location>
+      <location>backend/tests/integration/prd-workflow.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac-ref="1">Test loadTemplate() loads bmad/bmm/workflows/prd/template.md successfully</idea>
+      <idea ac-ref="1">Test loadTemplate() throws error if template file not found</idea>
+      <idea ac-ref="2">Test generateSection() creates vision_alignment section with John's input</idea>
+      <idea ac-ref="2">Test generateSection() creates product_magic_essence section</idea>
+      <idea ac-ref="2">Test generateSection() creates success_criteria section</idea>
+      <idea ac-ref="2">Test generateSection() creates mvp_scope and growth_features sections</idea>
+      <idea ac-ref="2">Test generateSection() creates functional_requirements_complete with ≥67 requirements</idea>
+      <idea ac-ref="2">Test generateSection() creates performance/security/scalability sections when applicable</idea>
+      <idea ac-ref="3">Test detectProjectType() identifies API, mobile, SaaS, game types</idea>
+      <idea ac-ref="3">Test project type adaptation adds type-specific sections (REST API for API projects)</idea>
+      <idea ac-ref="4">Test detectDomain() identifies healthcare, finance, education domains</idea>
+      <idea ac-ref="4">Test domain-specific sections added (HIPAA compliance for healthcare)</idea>
+      <idea ac-ref="5">Test generateFunctionalRequirements() returns ≥67 requirements</idea>
+      <idea ac-ref="5">Test requirements are specific and testable (no vague "handle X")</idea>
+      <idea ac-ref="5">Test Mary agent collaboration via analyzeRequirements()</idea>
+      <idea ac-ref="6">Test formatAsMarkdown() creates proper headers (##, ###)</idea>
+      <idea ac-ref="6">Test formatAsMarkdown() creates markdown tables</idea>
+      <idea ac-ref="6">Test formatAsMarkdown() creates code blocks</idea>
+      <idea ac-ref="6">Test formatAsMarkdown() creates bullet lists</idea>
+      <idea ac-ref="7">Test saveSection() appends to docs/PRD.md incrementally</idea>
+      <idea ac-ref="7">Test saveSection() creates docs/ directory if not exists</idea>
+      <idea ac-ref="7">Test saveSection() uses StateManager for atomic writes</idea>
+      <idea ac-ref="all">Test integration: full template processing flow with Mary + John agents</idea>
+      <idea ac-ref="all">Test error handling: agent spawn failure, file write failure, template parse error</idea>
+    </ideas>
+  </tests>
+
+  <dev-notes>
+    <note>PRDTemplateProcessor extends/integrates with TemplateProcessor from Story 1.8 for base template handling</note>
+    <note>Follow dependency injection pattern from PRDWorkflowExecutor (Story 2.5): constructor accepts TemplateProcessor, AgentPool, StateManager</note>
+    <note>Use AgentPool.spawn() to get Mary and John agents, call their methods (analyzeRequirements, defineProductVision, prioritizeFeatures)</note>
+    <note>Save sections incrementally using StateManager.appendToFile() as each section completes (AC #7)</note>
+    <note>Target 67+ functional requirements (actual target: 70-100) - call Mary.analyzeRequirements() to generate (AC #5)</note>
+    <note>Adapt content based on project type: API (REST endpoints), Mobile (iOS/Android), SaaS (multi-tenancy), Game (mechanics) (AC #3)</note>
+    <note>Add domain-specific sections for healthcare (HIPAA), finance (PCI-DSS), education (FERPA) (AC #4)</note>
+    <note>Format with markdown: headers, tables, code blocks, lists - validate syntax (AC #6)</note>
+    <note>Follow ATDD: Task 8 first (write all tests), then Tasks 1-7 (implementation), then Task 9 (integration)</note>
+    <note>Reuse test patterns from PRDWorkflowExecutor.test.ts: describe blocks per AC, mock dependencies, >80% coverage</note>
+    <note>Handle errors gracefully: retry with exponential backoff (3 attempts: 1s, 2s, 4s)</note>
+    <note>PRDWorkflowExecutor calls this via processTemplateOutput() - ensure compatibility</note>
+    <note>Template location: bmad/bmm/workflows/prd/template.md (create if not exists)</note>
+    <note>Output location: docs/PRD.md (append sections incrementally)</note>
+  </dev-notes>
+
+  <learnings-from-previous>
+    <learning source="2-5-prd-workflow-executor">
+      <category>architectural-patterns</category>
+      <text>Dependency injection pattern: PRDWorkflowExecutor constructor accepts AgentPool, StateManager, DecisionEngine, EscalationQueue. PRDTemplateProcessor should follow same pattern.</text>
+    </learning>
+    <learning source="2-5-prd-workflow-executor">
+      <category>agent-collaboration</category>
+      <text>Spawn agents via AgentPool.spawn('mary'/'john', context). Pass shared workflow context for coherent output. Clean up agents after use.</text>
+    </learning>
+    <learning source="2-5-prd-workflow-executor">
+      <category>incremental-saves</category>
+      <text>PRDWorkflowExecutor.processTemplateOutput() triggers saves via StateManager. PRDTemplateProcessor should use StateManager.appendToFile() for incremental PRD.md updates.</text>
+    </learning>
+    <learning source="2-5-prd-workflow-executor">
+      <category>testing-approach</category>
+      <text>ATDD: Task 8 first (38 unit tests), then Tasks 1-7 (implementation), then Task 9 (8 integration tests). Target >80% coverage. Follow describe block per AC pattern.</text>
+    </learning>
+    <learning source="2-5-prd-workflow-executor">
+      <category>code-quality</category>
+      <text>TypeScript strict mode, no 'any' types, explicit .js extensions, JSDoc on public methods, ESLint compliance, comprehensive error handling.</text>
+    </learning>
+    <learning source="2-3-mary-agent">
+      <category>mary-integration</category>
+      <text>MaryAgent.analyzeRequirements() returns RequirementsAnalysis with requirements array. Use for generating functional requirements (AC #5). Temperature 0.3 for analytical reasoning.</text>
+    </learning>
+    <learning source="2-4-john-agent">
+      <category>john-integration</category>
+      <text>JohnAgent.defineProductVision() generates strategic vision. JohnAgent.prioritizeFeatures() prioritizes with RICE/MoSCoW. Use for vision_alignment, mvp_scope, growth_features sections. Temperature 0.5 for balanced strategy.</text>
+    </learning>
+  </learnings-from-previous>
+</story-context>
