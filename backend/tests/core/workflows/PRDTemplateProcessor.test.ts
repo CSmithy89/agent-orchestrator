@@ -12,21 +12,8 @@
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import type { Mock } from 'vitest';
-
-// Types for mocking (will be defined when implementing)
-interface GenerationContext {
-  productBrief: string;
-  userInput: string;
-  projectType?: string;
-  domain?: string;
-}
-
-interface Requirement {
-  id: string;
-  statement: string;
-  acceptanceCriteria: string[];
-  priority: 'must-have' | 'should-have' | 'nice-to-have';
-}
+import { PRDTemplateProcessor, ProjectType } from '../../../src/core/workflows/prd-template-processor.js';
+import type { GenerationContext, Requirement } from '../../../src/core/workflows/prd-template-processor.js';
 
 // Mock dependencies
 const mockTemplateProcessor = {
@@ -62,7 +49,7 @@ const mockJohnAgent = {
 };
 
 describe('PRDTemplateProcessor', () => {
-  let processor: any; // Will be typed when implemented
+  let processor: PRDTemplateProcessor;
 
   beforeEach(() => {
     // Reset all mocks before each test
@@ -80,6 +67,14 @@ describe('PRDTemplateProcessor', () => {
       if (agentType === 'john') return mockJohnAgent;
       return null;
     });
+
+    // Instantiate PRDTemplateProcessor with mocked dependencies
+    processor = new PRDTemplateProcessor(
+      mockTemplateProcessor as any,
+      mockAgentPool as any,
+      mockStateManager as any,
+      '/test/project'
+    );
   });
 
   afterEach(() => {
