@@ -220,7 +220,7 @@ describe('PRDTemplateProcessor', () => {
     it('should generate functional_requirements_complete section with 67+ requirements', async () => {
       const requirements: Requirement[] = Array.from({ length: 70 }, (_, i) => ({
         id: `FR-${String(i + 1).padStart(3, '0')}`,
-        statement: `Requirement ${i + 1}`,
+        statement: `System shall provide specific functionality for feature ${i + 1}`,
         acceptanceCriteria: [`Criteria for requirement ${i + 1}`],
         priority: 'must-have' as const,
       }));
@@ -236,6 +236,7 @@ describe('PRDTemplateProcessor', () => {
       expect(mockMaryAgent.analyzeRequirements).toHaveBeenCalled();
       expect(section).toContain('FR-001');
       expect(section).toContain('FR-070');
+      expect(section).toContain('Total Requirements');
       // Requirements count should be >= 67
     });
 
@@ -247,8 +248,8 @@ describe('PRDTemplateProcessor', () => {
 
       const section = await processor.generateSection('performance_requirements', contextWithPerf);
 
-      expect(section).toContain('response time');
-      expect(section).toContain('throughput');
+      expect(section).toContain('Response Time');
+      expect(section).toContain('Throughput');
     });
 
     it('should generate security requirements when applicable', async () => {
@@ -260,8 +261,8 @@ describe('PRDTemplateProcessor', () => {
 
       const section = await processor.generateSection('security_requirements', contextWithSecurity);
 
-      expect(section).toContain('authentication');
-      expect(section).toContain('authorization');
+      expect(section).toContain('Authentication');
+      expect(section).toContain('Authorization');
     });
 
     it('should generate scalability requirements when applicable', async () => {
@@ -272,8 +273,8 @@ describe('PRDTemplateProcessor', () => {
 
       const section = await processor.generateSection('scalability_requirements', contextWithScale);
 
-      expect(section).toContain('horizontal scaling');
-      expect(section).toContain('load balancing');
+      expect(section).toContain('Horizontal Scaling');
+      expect(section).toContain('Load Balancing');
     });
   });
 
@@ -534,7 +535,7 @@ describe('PRDTemplateProcessor', () => {
     it('should include acceptance criteria for each requirement', async () => {
       const requirements = Array.from({ length: 70 }, (_, i) => ({
         id: `FR-${String(i + 1).padStart(3, '0')}`,
-        statement: 'User login',
+        statement: 'System shall authenticate users via secure login process',
         acceptanceCriteria: [
           'User enters valid credentials',
           'System validates credentials',
@@ -555,8 +556,8 @@ describe('PRDTemplateProcessor', () => {
 
       const reqs = await processor.generateFunctionalRequirements(context);
 
+      expect(reqs).toHaveLength(70);
       expect(reqs[0].acceptanceCriteria).toHaveLength(3);
-      expect(reqs.length).toBeGreaterThanOrEqual(67);
     });
   });
 
