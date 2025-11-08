@@ -10,8 +10,9 @@
  * Run: npm run test -- PRDTemplateProcessor.test.ts
  */
 
+/* eslint-disable @typescript-eslint/no-unused-vars */
+
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import type { Mock } from 'vitest';
 import { PRDTemplateProcessor, ProjectType } from '../../../src/core/workflows/prd-template-processor.js';
 import type { GenerationContext, Requirement } from '../../../src/core/workflows/prd-template-processor.js';
 

@@ -64,9 +64,9 @@ export interface Requirement {
 }
 
 /**
- * Template section definition
+ * Template section definition (reserved for future use)
  */
-interface TemplateSection {
+interface _TemplateSection {
   name: string;
   placeholders: string[];
   required: boolean;
