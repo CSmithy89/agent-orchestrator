@@ -473,15 +473,15 @@ describe('PRDTemplateProcessor', () => {
     });
 
     it('should ensure requirements are specific and testable', async () => {
+      const requirements = Array.from({ length: 70 }, (_, i) => ({
+        id: `FR-${String(i + 1).padStart(3, '0')}`,
+        statement: 'System shall authenticate users via JWT tokens with expiry',
+        acceptanceCriteria: ['User receives valid JWT on successful login', 'Token expires after 24 hours'],
+        priority: 'must-have' as const,
+      }));
+
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
-        requirements: [
-          {
-            id: 'FR-001',
-            statement: 'System shall authenticate users via JWT tokens with expiry',
-            acceptanceCriteria: ['User receives valid JWT on successful login', 'Token expires after 24 hours'],
-            priority: 'must-have',
-          },
-        ],
+        requirements,
       });
 
       const context: GenerationContext = {
@@ -495,6 +495,7 @@ describe('PRDTemplateProcessor', () => {
       expect(mockMaryAgent.analyzeRequirements).toHaveBeenCalled();
       // Each requirement should have specific statement and acceptance criteria
       expect(reqs[0].acceptanceCriteria.length).toBeGreaterThan(0);
+      expect(reqs.length).toBeGreaterThanOrEqual(67);
     });
 
     it('should reject vague requirements like "handle authentication"', async () => {
@@ -531,19 +532,19 @@ describe('PRDTemplateProcessor', () => {
     });
 
     it('should include acceptance criteria for each requirement', async () => {
-      mockMaryAgent.analyzeRequirements.mockResolvedValue({
-        requirements: [
-          {
-            id: 'FR-001',
-            statement: 'User login',
-            acceptanceCriteria: [
-              'User enters valid credentials',
-              'System validates credentials',
-              'User receives JWT token',
-            ],
-            priority: 'must-have',
-          },
+      const requirements = Array.from({ length: 70 }, (_, i) => ({
+        id: `FR-${String(i + 1).padStart(3, '0')}`,
+        statement: 'User login',
+        acceptanceCriteria: [
+          'User enters valid credentials',
+          'System validates credentials',
+          'User receives JWT token',
         ],
+        priority: 'must-have' as const,
+      }));
+
+      mockMaryAgent.analyzeRequirements.mockResolvedValue({
+        requirements,
       });
 
       const context: GenerationContext = {
@@ -555,6 +556,7 @@ describe('PRDTemplateProcessor', () => {
       const reqs = await processor.generateFunctionalRequirements(context);
 
       expect(reqs[0].acceptanceCriteria).toHaveLength(3);
+      expect(reqs.length).toBeGreaterThanOrEqual(67);
     });
   });
 
@@ -756,7 +758,8 @@ describe('PRDTemplateProcessor', () => {
       mockAgentPool.spawn
         .mockRejectedValueOnce(new Error('Agent spawn failed'))
         .mockRejectedValueOnce(new Error('Agent spawn failed'))
-        .mockResolvedValueOnce(mockMaryAgent);
+        .mockResolvedValueOnce(mockMaryAgent)
+        .mockResolvedValueOnce(mockJohnAgent);
 
       const context: GenerationContext = {
         productBrief: 'Test project',
@@ -765,8 +768,8 @@ describe('PRDTemplateProcessor', () => {
 
       await processor.collaborateWithAgents(context);
 
-      // Should retry 3 times with delays: 1s, 2s, 4s
-      expect(mockAgentPool.spawn).toHaveBeenCalledTimes(3);
+      // Should spawn both Mary and John agents (4 calls: 2 retries for Mary + 1 success Mary + 1 success John)
+      expect(mockAgentPool.spawn).toHaveBeenCalledTimes(4);
     });
 
     it('should handle agent method failures gracefully', async () => {
