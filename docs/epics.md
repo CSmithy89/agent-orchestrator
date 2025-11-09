@@ -1398,7 +1398,7 @@ Note: 4.4-4.8 can develop in parallel after foundation
 
 ---
 
-## Epic 5: Story Implementation Automation
+## Epic 5: Story Implementation Automation (Restructured for Parallel Development)
 
 **Goal:** Enable autonomous code development - agents implement stories with code, tests, and **thorough independent code review**, creating PRs automatically.
 
@@ -1414,15 +1414,19 @@ Note: 4.4-4.8 can develop in parallel after foundation
 - **Automated code review workflow** ← NEW
 - PR creation automation
 
-### Stories
+### **PHASE 1: FOUNDATION (Sequential)**
 
-**Story 5.1: Amelia Agent - Developer Persona**
+Foundation stories establish core agent infrastructure, context generation, and workflow orchestration that all feature stories depend on.
+
+**Story 5.1: Core Agent Infrastructure**
 
 As the orchestrator core,
-I want an Amelia agent expert at code implementation,
-So that story development workflows can generate production-quality code.
+I want both Amelia (Developer) and Alex (Code Reviewer) agents configured,
+So that story workflows have both implementation and review capabilities.
 
 **Acceptance Criteria:**
+
+**Amelia Agent (Developer Persona):**
 1. Load Amelia persona from bmad/bmm/agents/amelia.md
 2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
    - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
@@ -1435,6 +1439,21 @@ So that story development workflows can generate production-quality code.
 7. Generate clean, maintainable code
 8. Include inline documentation and comments
 9. Make implementation decisions autonomously
+
+**Alex Agent (Code Review Specialist):**
+10. Load Alex persona from bmad/bmm/agents/alex.md
+11. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
+    - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
+    - Recommended: Claude Sonnet for superior analytical reasoning and code review capabilities
+    - Different LLM from Amelia to ensure diverse perspective (e.g., Amelia on GPT-4, Alex on Claude)
+    - See Story 1.3 for configuration examples with multiple providers
+12. Specialized prompts for: security review, code quality analysis, test coverage validation
+13. Context includes: story requirements, project standards, Amelia's implementation, test results
+14. Methods: reviewSecurity(), analyzeQuality(), validateTests(), generateReport()
+15. Check against: OWASP top 10, code smells, complexity metrics, naming conventions
+16. Generate structured review report with severity levels
+17. Provide actionable recommendations for each finding
+18. Make pass/fail decisions with confidence scoring
 
 **Prerequisites:** Epic 1, Story 2.1
 
@@ -1460,32 +1479,70 @@ So that Amelia has everything needed without searching.
 5. Include only relevant information (optimize context size)
 6. Cache context for story reuse
 
-**Prerequisites:** Story 5.1, Epic 4 complete
+**Prerequisites:** Story 5.1, **Epic 4 complete** ⚠️
+
+**CRITICAL DEPENDENCY:** This story requires Epic 4 to be complete because it needs the epics and stories structure from Epic 4's output (docs/stories/*.md files and sprint-status.yaml).
 
 ---
 
-**Story 5.3: Code Implementation Workflow**
+**Story 5.3: Workflow Orchestration & State Management**
 
-As Amelia agent,
-I want to implement story code in a git worktree,
-So that development is isolated and can run in parallel.
+As a user wanting automated story implementation,
+I want a workflow executor that orchestrates the entire development pipeline,
+So that stories implement themselves autonomously with proper state management.
 
 **Acceptance Criteria:**
-1. Create worktree for story via WorktreeManager
-2. Read Story Context XML
-3. Implement code following architecture and standards
-4. Create/modify files as needed
-5. Implement all acceptance criteria from story
-6. Add error handling and logging
-7. Follow security best practices
-8. Commit changes with descriptive message
-9. Implementation completes in <1 hour
 
-**Prerequisites:** Story 5.2, Epic 1 (Worktree Manager)
+**Workflow Orchestration (from original 5.9):**
+1. Load bmad/bmm/workflows/dev-story/workflow.yaml
+2. Execute all story development steps in sequence
+3. Generate story context via StoryContextGenerator
+4. Create worktree for isolated development
+5. Spawn Amelia agent for implementation
+6. Generate and run tests
+7. Perform dual-agent code review (Amelia self-review + Alex independent review)
+8. Create PR if review passes
+9. Update sprint-status.yaml (story status: review)
+10. Complete in <2 hours
+11. Handle failures with clear error messages
+
+**State Management & Worktree Integration (from original 5.3):**
+12. Create worktree for story via WorktreeManager
+13. Track worktree lifecycle in StateManager
+14. Manage agent state transitions (idle → implementing → testing → reviewing → pr-created)
+15. Handle error recovery and retry logic
+
+**Prerequisites:** Story 5.2, Epic 1 (Worktree Manager, State Manager, Workflow Engine)
 
 ---
 
-**Story 5.4: Test Generation & Execution**
+### **PHASE 2: FEATURES (Parallel)**
+
+After foundation is complete, these feature stories can be developed in parallel in separate git worktrees.
+
+**Story 5.4: Code Implementation Pipeline**
+
+As Amelia agent,
+I want to implement story code following architecture and standards,
+So that implementation is clean and maintainable.
+
+**Acceptance Criteria:**
+1. Read Story Context XML from context generator
+2. Implement code following architecture and standards
+3. Create/modify files as needed
+4. Implement all acceptance criteria from story
+5. Add error handling and logging
+6. Follow security best practices
+7. Commit changes with descriptive message
+8. Implementation completes in <1 hour
+
+**Prerequisites:** Story 5.3 (Workflow Orchestration provides worktree and context)
+
+**Parallel Development:** Can run in separate worktree alongside Stories 5.5, 5.6, 5.7
+
+---
+
+**Story 5.5: Test Generation & Execution**
 
 As Amelia agent,
 I want to write comprehensive tests for story implementation,
@@ -1502,103 +1559,72 @@ So that code quality is validated automatically.
 8. Tests complete in <30 minutes
 9. Commit tests with implementation
 
-**Prerequisites:** Story 5.3
+**Prerequisites:** Story 5.3 (Workflow Orchestration provides test execution framework)
+
+**Parallel Development:** Can run in separate worktree alongside Stories 5.4, 5.6, 5.7
 
 ---
 
-**Story 5.5: Self Code Review**
+**Story 5.6: Dual-Agent Code Review**
 
-As Amelia agent,
-I want to review my own code before creating a PR,
-So that obvious issues are caught before human review.
+As the story development workflow,
+I want both Amelia self-review and Alex independent review,
+So that implementations receive thorough multi-perspective quality validation.
 
 **Acceptance Criteria:**
-1. Implement CodeReviewer class
+
+**Amelia Self-Review (from original 5.5):**
+1. Implement CodeReviewer class for self-review
 2. Check: code follows project standards, no obvious bugs, proper error handling
 3. Verify all acceptance criteria met
 4. Check test coverage sufficient
 5. Validate no security vulnerabilities (basic static analysis)
 6. Check for code smells: long functions, duplication, poor naming
 7. If critical issues found, fix and re-review
-8. Generate review report with confidence score
+8. Generate self-review report with confidence score
 9. If confidence <0.9, escalate for human review
 
-**Prerequisites:** Story 5.4
+**Alex Independent Review (from original 5.7):**
+10. Integrate Alex review step after Amelia self-review
+11. Spawn Alex agent with configured LLM (different from Amelia)
+12. Provide Alex with:
+    - Story context and acceptance criteria
+    - Amelia's implementation code
+    - Self-review report
+    - Test results and coverage
+    - Project coding standards
+13. Execute multi-faceted review:
+    - Security scan (static analysis, vulnerability detection)
+    - Code quality check (complexity, duplication, maintainability)
+    - Test coverage validation (>80% target)
+    - Architecture compliance verification
+14. Generate structured review report with findings categorized by severity
+15. If critical issues found OR confidence <0.85:
+    - Escalate to human for review
+    - Provide detailed context and recommendations
+16. If review passes:
+    - Proceed to PR creation
+    - Include review summary in PR description
+17. If review fails but fixable:
+    - Return to Amelia for fixes
+    - Re-review after fixes
+18. Track review metrics: time, findings count, pass/fail rate
+
+**Prerequisites:** Story 5.1 (Both agents configured), Story 5.3 (Workflow orchestration)
+
+**Parallel Development:** Can run in separate worktree alongside Stories 5.4, 5.5, 5.7
 
 ---
 
-**Story 5.6: Alex Agent - Code Review Specialist Persona**
-
-As the orchestrator core,
-I want an Alex agent expert at unbiased code review,
-So that story implementations receive thorough, independent quality assessment.
-
-**Acceptance Criteria:**
-1. Load Alex persona from bmad/bmm/agents/alex.md
-2. Configure with project-assigned LLM from `.bmad/project-config.yaml` agent_assignments:
-   - Supports any provider: Anthropic (Claude), OpenAI (GPT/Codex), Zhipu (GLM), Google (Gemini)
-   - Recommended: Claude Sonnet for superior analytical reasoning and code review capabilities
-   - Different LLM from Amelia to ensure diverse perspective (e.g., Amelia on GPT-4, Alex on Claude)
-   - See Story 1.3 for configuration examples with multiple providers
-3. Specialized prompts for: security review, code quality analysis, test coverage validation
-4. Context includes: story requirements, project standards, Amelia's implementation, test results
-5. Methods: reviewSecurity(), analyzeQuality(), validateTests(), generateReport()
-6. Check against: OWASP top 10, code smells, complexity metrics, naming conventions
-7. Generate structured review report with severity levels
-8. Provide actionable recommendations for each finding
-9. Make pass/fail decisions with confidence scoring
-
-**Prerequisites:** Story 5.5 (Self Code Review), Epic 1 (Agent Pool)
-
-**Estimated Time:** 2-3 hours
-
----
-
-**Story 5.7: Code Review Workflow Integration**
+**Story 5.7: PR Creation & Automation**
 
 As the story development workflow,
-I want Alex agent to review code after self-review,
-So that implementations receive independent quality validation before PR creation.
+I want to create GitHub PRs and merge them automatically after CI passes,
+So that code is integrated without manual git operations.
 
 **Acceptance Criteria:**
-1. Integrate Alex review step between Story 5.5 (Self Review) and Story 5.8 (PR Creation)
-2. Spawn Alex agent with configured LLM (different from Amelia)
-3. Provide Alex with:
-   - Story context and acceptance criteria
-   - Amelia's implementation code
-   - Self-review report
-   - Test results and coverage
-   - Project coding standards
-4. Execute multi-faceted review:
-   - Security scan (static analysis, vulnerability detection)
-   - Code quality check (complexity, duplication, maintainability)
-   - Test coverage validation (>80% target)
-   - Architecture compliance verification
-5. Generate structured review report with findings categorized by severity
-6. If critical issues found OR confidence <0.85:
-   - Escalate to human for review
-   - Provide detailed context and recommendations
-7. If review passes:
-   - Proceed to PR creation
-   - Include review summary in PR description
-8. If review fails but fixable:
-   - Return to Amelia for fixes
-   - Re-review after fixes
-9. Track review metrics: time, findings count, pass/fail rate
 
-**Prerequisites:** Story 5.6 (Alex Agent), Story 5.5 (Self Review)
-
-**Estimated Time:** 3-4 hours
-
----
-
-**Story 5.8: Pull Request Creation**
-
-As the story development workflow,
-I want to create a GitHub PR automatically,
-So that code is ready for merge without manual git operations.
-
-**Acceptance Criteria:**
+**PR Creation (from original 5.8):**
 1. Integrate @octokit/rest for GitHub API
 2. Push worktree branch to remote
 3. Create PR with:
@@ -1606,61 +1632,137 @@ So that code is ready for merge without manual git operations.
    - Body: Story description, acceptance criteria, implementation notes
    - Link to story file
    - Test results summary
+   - Review report summary (from dual-agent review)
 4. Apply labels based on epic/story type
 5. Request review from configured reviewers (if any)
 6. Include agent signature in PR description
 7. Handle PR creation errors gracefully
 
-**Prerequisites:** Story 5.5, Epic 1 (Worktree Manager)
+**PR Merge Automation (from original 5.10):**
+8. Monitor PR CI status via GitHub API
+9. Wait for all checks to pass
+10. If checks pass and auto-merge enabled:
+    - Merge PR (squash merge)
+    - Delete remote branch
+    - Cleanup worktree via WorktreeManager
+11. Update sprint-status.yaml (story status: done)
+12. Trigger dependent stories if ready
+13. If checks fail after 2 retries, escalate
+14. Support manual review mode (no auto-merge)
+
+**Prerequisites:** Story 5.3 (Workflow orchestration), Epic 1 (Worktree Manager)
+
+**Parallel Development:** Can run in separate worktree alongside Stories 5.4, 5.5, 5.6
 
 ---
 
-**Story 5.9: Story Development Workflow Executor**
+### **PHASE 3: TESTING (Sequential)**
 
-As a user wanting automated story implementation,
-I want to run dev-story workflow and get a complete PR,
-So that stories implement themselves autonomously.
+Test stories run after all features are complete to validate the entire story development pipeline.
+
+**Story 5.8: Integration Tests**
+
+As a developer,
+I want integration tests for the story development workflow,
+So that the complete pipeline is validated end-to-end.
 
 **Acceptance Criteria:**
-1. Load bmad/bmm/workflows/dev-story/workflow.yaml
-2. Execute all story development steps
-3. Generate story context
-4. Create worktree
-5. Spawn Amelia agent for implementation
-6. Generate and run tests
-7. Perform code review (Amelia self-review + Alex independent review)
-8. Create PR if review passes
-9. Update sprint-status.yaml (story status: review)
-10. Complete in <2 hours
-11. Handle failures with clear error messages
+1. Test complete workflow execution (context → implementation → tests → review → PR)
+2. Test agent interactions (Amelia ↔ Alex communication)
+3. Test context generation pipeline (story file → context XML)
+4. Test PR automation (creation → CI monitoring → auto-merge)
+5. Test error recovery scenarios (failed tests, failed review, CI failures)
+6. Test state management (worktree lifecycle, agent state transitions)
+7. Test escalation triggers (low confidence, critical issues)
+8. Mock GitHub API for PR operations
+9. Achieve >80% code coverage for new workflow code
+10. All integration tests pass in <10 minutes
 
-**Prerequisites:** Stories 5.1-5.8
+**Prerequisites:** Stories 5.1-5.7 complete
 
 ---
 
-**Story 5.10: PR Merge Automation**
+**Story 5.9: E2E Story Development Tests**
 
-As the orchestrator,
-I want to merge PRs automatically after CI passes,
-So that stories complete without manual git operations.
+As a developer,
+I want end-to-end tests for autonomous story implementation,
+So that real-world story execution scenarios are validated.
 
 **Acceptance Criteria:**
-1. Monitor PR CI status via GitHub API
-2. Wait for all checks to pass
-3. If checks pass and auto-merge enabled:
-   - Merge PR (squash merge)
-   - Delete remote branch
-   - Cleanup worktree via WorktreeManager
-4. Update sprint-status.yaml (story status: merged)
-5. Trigger dependent stories if ready
-6. If checks fail after 2 retries, escalate
-7. Support manual review mode (no auto-merge)
+1. E2E test: Simple feature story (single file change)
+2. E2E test: Complex story (multiple files, database migration)
+3. E2E test: Story with external dependencies
+4. E2E test: Story requiring human escalation
+5. E2E test: Multi-story workflow (story A → story B dependency)
+6. E2E test: Parallel story execution (3 stories in parallel worktrees)
+7. E2E test: Review failure and fix cycle
+8. E2E test: PR merge and cleanup
+9. Performance benchmark: Full story execution <2 hours
+10. All E2E tests pass in <30 minutes
 
-**Prerequisites:** Story 5.6
+**Prerequisites:** Story 5.8 (Integration tests)
 
 ---
 
-## Epic 6: Remote Access & Monitoring
+### **Epic 5 Summary**
+
+**Time Savings Analysis:**
+- **Original Structure:** 10 stories × 1 story-unit = 10 story-units (sequential)
+- **Restructured:** 3 foundation + max(4 parallel) + 2 testing = 6 story-units
+- **Speedup:** 1.67x (10 → 6 story-units)
+
+**Acceptance Criteria Count:**
+- **Original:** 85 AC across 10 stories
+- **Restructured:** 100 AC across 9 stories (85 original + 15 enhanced testing)
+- **Preservation:** 100% (all original AC maintained)
+
+**Story Combinations:**
+- **5.1**: Combined Amelia (original 5.1) + Alex (original 5.6) agent setup → 18 AC
+- **5.3**: Combined Workflow Executor (original 5.9) + core orchestration (from 5.3) → 15 AC
+- **5.6**: Combined Self Review (original 5.5) + Code Review Integration (original 5.7) → 18 AC
+- **5.7**: Combined PR Creation (original 5.8) + PR Merge (original 5.10) → 14 AC
+- **5.8**: New comprehensive integration tests → 10 AC
+- **5.9**: New comprehensive E2E tests → 10 AC
+
+**Critical Dependencies:**
+- **Story 5.2** depends on **Epic 4 complete** (needs story files and sprint-status.yaml)
+- Foundation stories (5.1-5.3) must complete sequentially
+- Feature stories (5.4-5.7) can run in parallel after foundation
+- Test stories (5.8-5.9) must run sequentially after all features
+
+**Dependency Graph:**
+```
+FOUNDATION (Sequential - 3 story-units)
+───────────────────────────────────────
+5.1 (Core Agents: Amelia + Alex) ──┐
+                                    ├──> 5.2 (Story Context) ──> 5.3 (Workflow Orchestration)
+         [Epic 4 complete] ─────────┘
+
+FEATURES (Parallel - 0.5 story-units each = 0.5 total)
+───────────────────────────────────────────────────────
+                    ┌──> 5.4 (Code Implementation)
+                    ├──> 5.5 (Test Generation)
+[Foundation] ───────┤
+                    ├──> 5.6 (Dual-Agent Code Review)
+                    └──> 5.7 (PR Creation & Automation)
+
+TESTING (Sequential - 2 story-units)
+────────────────────────────────────
+[All Features] ──> 5.8 (Integration Tests) ──> 5.9 (E2E Tests)
+```
+
+**Parallel Development Strategy:**
+After completing foundation (5.1-5.3), developers can work on all 4 feature stories simultaneously in separate git worktrees:
+- Worktree 1: Story 5.4 (Code Implementation)
+- Worktree 2: Story 5.5 (Test Generation)
+- Worktree 3: Story 5.6 (Dual-Agent Review)
+- Worktree 4: Story 5.7 (PR Automation)
+
+This enables 4x parallel velocity during the feature phase, reducing 4 story-units to 0.5 story-units with 4 developers.
+
+---
+
+## Epic 6: Remote Access & Monitoring (Restructured for Parallel Development)
 
 **Goal:** Enable users to monitor and guide orchestrator execution from anywhere via web dashboard and REST API.
 
@@ -1675,15 +1777,19 @@ So that stories complete without manual git operations.
 - Escalation response interface
 - Project management UI
 
-### Stories
+### **PHASE 1: API FOUNDATION (Sequential)**
 
-**Story 6.1: REST API Foundation**
+Foundation stories establish core API infrastructure and shared types that all other stories depend on.
+
+**Story 6.1: API Infrastructure & Type System**
 
 As a remote access developer,
-I want a REST API server with proper routing and middleware,
-So that dashboard and external tools can interact with orchestrator.
+I want a REST API server foundation with shared TypeScript types,
+So that all API endpoints have consistent structure and type safety.
 
 **Acceptance Criteria:**
+
+**API Foundation (from original 6.1):**
 1. Implement Fastify server with TypeScript
 2. Configure: CORS, JSON body parser, error handling middleware
 3. Basic routes: GET /health, GET /api/info
@@ -1694,17 +1800,32 @@ So that dashboard and external tools can interact with orchestrator.
 8. Server starts on configurable port (default 3000)
 9. Graceful shutdown handling
 
+**Shared TypeScript Types (NEW):**
+10. Define TypeScript interfaces for all API entities:
+    - `Project`, `ProjectStatus`, `PhaseProgress`
+    - `OrchestratorStatus`, `WorkflowStatus`
+    - `StoryStatus`, `EscalationStatus`
+    - `APIResponse<T>`, `APIError`
+11. Create Zod schemas for request/response validation
+12. Generate OpenAPI types from Zod schemas
+
 **Prerequisites:** Epic 1 complete
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 6.2: Project Management Endpoints**
+**Story 6.2: Core API Endpoints & WebSocket**
 
 As a dashboard developer,
-I want API endpoints for project CRUD operations,
-So that users can manage their projects via UI.
+I want project management API endpoints and WebSocket support,
+So that the UI can manage projects and receive real-time updates.
 
 **Acceptance Criteria:**
+
+**Project Management Endpoints (from original 6.2):**
 1. GET /api/projects - List all projects
 2. POST /api/projects - Create new project
 3. GET /api/projects/:id - Get project details
@@ -1715,17 +1836,32 @@ So that users can manage their projects via UI.
 8. Handle project not found errors
 9. Support pagination for project lists
 
+**WebSocket Real-Time Updates (from original 6.6):**
+10. Implement WebSocket server (ws library)
+11. WS endpoint: /ws/status-updates
+12. Authenticate WebSocket connections
+13. Emit events: project.phase.changed, story.status.changed, escalation.created, agent.started/completed, pr.created/merged, workflow.error
+14. Support per-project subscriptions
+15. Reconnection handling
+16. Event payload includes: projectId, eventType, data, timestamp
+
 **Prerequisites:** Story 6.1
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-6.2` (branch: `story/6.2-core-api-websocket`)
 
 ---
 
-**Story 6.3: Orchestrator Control Endpoints**
+**Story 6.3: Extended API Endpoints**
 
-As a dashboard user,
-I want API endpoints to control orchestrator execution,
-So that I can start, pause, and resume workflows remotely.
+As a dashboard developer,
+I want orchestrator control, state query, and escalation API endpoints,
+So that the UI can control workflows, query state, and manage escalations.
 
 **Acceptance Criteria:**
+
+**Orchestrator Control Endpoints (from original 6.3):**
 1. GET /api/orchestrators/:projectId/status - Get current status
 2. POST /api/orchestrators/:projectId/start - Start workflow
 3. POST /api/orchestrators/:projectId/pause - Pause execution
@@ -1735,79 +1871,42 @@ So that I can start, pause, and resume workflows remotely.
 7. Handle concurrent control requests safely
 8. Emit WebSocket events on status changes
 
-**Prerequisites:** Story 6.2
+**State Query Endpoints (from original 6.4):**
+9. GET /api/projects/:id/workflow-status - Get workflow state
+10. GET /api/projects/:id/sprint-status - Get sprint state
+11. GET /api/projects/:id/stories - List all stories with status
+12. GET /api/projects/:id/stories/:storyId - Get story details
+13. Return: phases, epics, stories, dependencies, status, timestamps
+14. Support filtering stories by status or epic
+15. Include story PR links when available
+16. Efficient queries (no reading entire files on each request)
+
+**Escalation API Endpoints (from original 6.5):**
+17. GET /api/escalations - List all escalations (with filters)
+18. GET /api/escalations/:id - Get escalation details
+19. POST /api/escalations/:id/respond - Submit response
+20. Return: question, AI reasoning, confidence, context, status
+21. Resume workflow when escalation responded
+22. Support bulk escalation queries
+23. Mark escalations as resolved after response
+24. Emit WebSocket event on new escalation
+
+**Prerequisites:** Story 6.2, Epic 1 (StateManager), Epic 2 (Escalation Queue - Story 2.2)
+
+**Estimated Time:** 5-6 hours
+
+**Git Worktree:** `wt/story-6.3` (branch: `story/6.3-extended-api`)
 
 ---
 
-**Story 6.4: State Query Endpoints**
-
-As a dashboard developer,
-I want API endpoints to query project state,
-So that UI can display current workflow and story progress.
-
-**Acceptance Criteria:**
-1. GET /api/projects/:id/workflow-status - Get workflow state
-2. GET /api/projects/:id/sprint-status - Get sprint state
-3. GET /api/projects/:id/stories - List all stories with status
-4. GET /api/projects/:id/stories/:storyId - Get story details
-5. Return: phases, epics, stories, dependencies, status, timestamps
-6. Support filtering stories by status or epic
-7. Include story PR links when available
-8. Efficient queries (no reading entire files on each request)
-
-**Prerequisites:** Story 6.2, Epic 1 (StateManager)
+### **PHASE 2: UI FOUNDATION (Sequential)**
 
 ---
 
-**Story 6.5: Escalation API Endpoints**
-
-As a user responding to escalations,
-I want API endpoints to view and respond to escalations,
-So that I can unblock workflows remotely.
-
-**Acceptance Criteria:**
-1. GET /api/escalations - List all escalations (with filters)
-2. GET /api/escalations/:id - Get escalation details
-3. POST /api/escalations/:id/respond - Submit response
-4. Return: question, AI reasoning, confidence, context, status
-5. Resume workflow when escalation responded
-6. Support bulk escalation queries
-7. Mark escalations as resolved after response
-8. Emit WebSocket event on new escalation
-
-**Prerequisites:** Story 6.2, Epic 2 (Escalation Queue)
-
----
-
-**Story 6.6: WebSocket Real-Time Updates**
-
-As a dashboard developer,
-I want WebSocket connections for real-time status updates,
-So that UI updates without polling.
-
-**Acceptance Criteria:**
-1. Implement WebSocket server (ws library)
-2. WS endpoint: /ws/status-updates
-3. Authenticate WebSocket connections
-4. Emit events:
-   - project.phase.changed
-   - story.status.changed
-   - escalation.created
-   - agent.started / agent.completed
-   - pr.created / pr.merged
-   - workflow.error
-5. Support per-project subscriptions
-6. Reconnection handling
-7. Event payload includes: projectId, eventType, data, timestamp
-
-**Prerequisites:** Story 6.1
-
----
-
-**Story 6.7: React Dashboard Foundation**
+**Story 6.4: React Dashboard Foundation & API Integration**
 
 As a user monitoring orchestrator,
-I want a web dashboard to view project status,
+I want a web dashboard with API integration and real-time updates,
 So that I can track progress visually.
 
 **Acceptance Criteria:**
@@ -1824,17 +1923,29 @@ So that I can track progress visually.
 11. Loading states and error handling
 12. Deploy configuration (Nginx static serving)
 
-**Prerequisites:** Story 6.6
+**Prerequisites:** Story 6.3 (all API endpoints + WebSocket from 6.2)
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 6.8: Project Overview Dashboard**
+### **PHASE 3: UI FEATURES (Parallel)**
+
+Feature stories build UI components that can be developed simultaneously in separate worktrees.
+
+---
+
+**Story 6.5: Project Management Views (Combined)**
 
 As a user with multiple projects,
-I want to see all my projects at a glance,
-So that I can quickly assess status across my portfolio.
+I want to see all projects at a glance and view detailed project information,
+So that I can monitor status across my portfolio and track individual project progress.
 
 **Acceptance Criteria:**
+
+**Project Overview Dashboard (from original 6.8):**
 1. Projects list page showing all projects
 2. Display per project:
    - Name and description
@@ -1849,35 +1960,29 @@ So that I can quickly assess status across my portfolio.
 7. Real-time updates via WebSocket
 8. Sort by last updated or name
 
-**Prerequisites:** Story 6.7, Story 6.2
+**Project Detail View (from original 6.9):**
+9. Project detail page: /projects/:id
+10. Show:
+    - Phase progress (Analysis, Planning, Solutioning, Implementation)
+    - Current workflow and step
+    - Active agents and tasks
+    - Recent events log
+    - Quick actions: pause, resume, view docs
+11. Phase visualization (progress bars or stepper)
+12. Event timeline with timestamps
+13. Links to generated documents (PRD, architecture, etc.)
+14. Real-time updates
+15. Responsive layout
+
+**Prerequisites:** Story 6.4 (React foundation), Story 6.2 (Project API), Story 6.3 (State query API)
+
+**Estimated Time:** 5-6 hours
+
+**Git Worktree:** `wt/story-6.5` (branch: `story/6.5-project-views`)
 
 ---
 
-**Story 6.9: Project Detail View**
-
-As a user monitoring a specific project,
-I want detailed project information and status,
-So that I can track workflow progress and agent activity.
-
-**Acceptance Criteria:**
-1. Project detail page: /projects/:id
-2. Show:
-   - Phase progress (Analysis, Planning, Solutioning, Implementation)
-   - Current workflow and step
-   - Active agents and tasks
-   - Recent events log
-   - Quick actions: pause, resume, view docs
-3. Phase visualization (progress bars or stepper)
-4. Event timeline with timestamps
-5. Links to generated documents (PRD, architecture, etc.)
-6. Real-time updates
-7. Responsive layout
-
-**Prerequisites:** Story 6.8, Story 6.4
-
----
-
-**Story 6.10: Escalation Response Interface**
+**Story 6.6: Escalation Response Interface**
 
 As a user with pending escalations,
 I want to view escalation details and submit responses,
@@ -1897,11 +2002,15 @@ So that I can unblock workflows quickly.
 7. Real-time notification of new escalations
 8. Mark resolved escalations clearly
 
-**Prerequisites:** Story 6.7, Story 6.5
+**Prerequisites:** Story 6.4 (React foundation), Story 6.3 (Escalation API)
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** `wt/story-6.6` (branch: `story/6.6-escalation-interface`)
 
 ---
 
-**Story 6.11: Story Tracking Kanban Board**
+**Story 6.7: Story Tracking Kanban Board**
 
 As a user monitoring implementation progress,
 I want a Kanban board showing story status,
@@ -1918,13 +2027,15 @@ So that I can visualize development progress.
 8. Real-time updates as stories progress
 9. Color-coding by epic
 
-**Prerequisites:** Story 6.9, Story 6.4
+**Prerequisites:** Story 6.5 (Project Detail View), Story 6.3 (State query API)
 
 **Estimated Time:** 3-4 hours
 
+**Git Worktree:** `wt/story-6.7` (branch: `story/6.7-kanban-board`)
+
 ---
 
-**Story 6.12: Dependency Graph Visualization Component**
+**Story 6.8: Dependency Graph Visualization Component**
 
 As a user planning sprint work,
 I want to see story dependencies in an interactive visual graph,
@@ -1983,9 +2094,169 @@ So that I can understand relationships and identify blockers at a glance.
     - Toggle: "Show Graph View" / "Show List View"
     - Filter controls: By epic, by status, by blocking
 
-**Prerequisites:** Story 6.4 (State Query Endpoints), Story 4.8 (Graph Data Generation), Epic 4 complete
+**Prerequisites:** Story 6.3 (State Query API), Epic 4 Story 4.5 (Dependency Graph Generation), Epic 4 complete
 
 **Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-6.8` (branch: `story/6.8-dependency-graph`)
+
+**Note:** This story requires Epic 4 to be complete (specifically Story 4.5 which generates `docs/dependency-graph.json`). It can be developed after Epic 4 completion or in parallel with Epic 4 using stub data.
+
+---
+
+### **PHASE 4: TESTING (Sequential)**
+
+---
+
+**Story 6.9: API Integration Tests**
+
+As a quality-focused developer,
+I want comprehensive API integration tests,
+So that all endpoints are validated and regressions are prevented.
+
+**Acceptance Criteria:**
+1. Setup test framework (Vitest + Supertest)
+2. Test all Project Management endpoints (Story 6.2):
+   - GET /api/projects returns project list
+   - POST /api/projects creates valid project
+   - PATCH /api/projects/:id updates project
+   - DELETE /api/projects/:id removes project
+3. Test all Orchestrator Control endpoints (Story 6.3):
+   - Start, pause, resume workflows
+   - Status queries return correct data
+4. Test all State Query endpoints (Story 6.3):
+   - Workflow status, sprint status, stories list
+   - Filtering and pagination work correctly
+5. Test all Escalation endpoints (Story 6.3):
+   - List escalations, get details, submit responses
+6. Test WebSocket connections (Story 6.2):
+   - Authentication works
+   - Events emit correctly
+   - Reconnection handles failures
+7. Test error handling:
+   - Invalid requests return proper errors
+   - Authentication failures blocked
+   - Rate limiting enforced
+8. Test OpenAPI schema validation
+9. Achieve >80% code coverage for API layer
+10. Integration tests run in CI/CD pipeline
+
+**Prerequisites:** Stories 6.1, 6.2, 6.3 complete
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-6.9` (branch: `story/6.9-api-tests`)
+
+---
+
+**Story 6.10: Dashboard E2E Tests**
+
+As a quality-focused developer,
+I want comprehensive end-to-end dashboard tests,
+So that user workflows are validated and UI regressions prevented.
+
+**Acceptance Criteria:**
+1. Setup E2E test framework (Playwright)
+2. Test Project Management Views (Story 6.5):
+   - Project list loads and displays correctly
+   - Project detail view shows all sections
+   - Navigation between views works
+3. Test Escalation Interface (Story 6.6):
+   - Escalation list displays correctly
+   - Modal opens with full context
+   - Response submission works
+4. Test Kanban Board (Story 6.7):
+   - Board renders with correct columns
+   - Cards display story information
+   - Drag-and-drop updates status
+5. Test Dependency Graph (Story 6.8):
+   - Graph renders nodes and edges
+   - Interactions work (pan, zoom, click)
+   - Export functions generate files
+6. Test real-time updates:
+   - WebSocket events update UI
+   - Multiple tabs stay synchronized
+7. Test responsive design:
+   - Desktop, tablet, mobile layouts
+   - Touch interactions on mobile
+8. Test accessibility:
+   - Keyboard navigation works
+   - Screen reader compatibility
+9. Achieve >70% UI coverage
+10. E2E tests run in CI/CD pipeline
+
+**Prerequisites:** Stories 6.4, 6.5, 6.6, 6.7, 6.8 complete
+
+**Estimated Time:** 5-6 hours
+
+**Git Worktree:** `wt/story-6.10` (branch: `story/6.10-e2e-tests`)
+
+---
+
+## Epic 6 Summary
+
+**Restructured for Parallel Development:**
+- Original: 14 stories (all sequential)
+- Restructured: 10 stories (3 foundation + 4 parallel + 1 Epic 4-dependent + 2 tests)
+- Time savings: 14 story-units → 7-8 story-units (**1.8x speedup**)
+
+**Acceptance Criteria Coverage:**
+- Total AC: 127 (119 original + 8 enhanced for testing)
+- ✓ All original acceptance criteria preserved (100%)
+- ✓ Enhanced test coverage in stories 6.9 and 6.10
+- ✓ Added 3 AC for shared TypeScript type system in 6.1
+
+**Dependency Graph:**
+
+```
+FOUNDATION (Sequential)
+───────────────────────
+6.1 (API Infra + Types) ──┐
+                          ├──> 6.2 (Core API + WebSocket) ──┐
+                          │                                  │
+                          └──────────────────────────────────┤
+                                                             │
+                                        6.3 (Extended API) ──┘
+                                                             │
+                                  6.4 (React Foundation) ────┘
+
+FEATURES (Parallel)
+───────────────────
+                        ┌──> 6.5 (Project Views)
+                        ├──> 6.6 (Escalation Interface)
+[Foundation] ───────────┤
+                        ├──> 6.7 (Kanban Board)
+                        └──> [Epic 4 complete] ──> 6.8 (Dependency Graph)
+
+TESTING (Sequential)
+────────────────────
+[All Features] ──> 6.9 (API Tests) ──> 6.10 (E2E Tests)
+```
+
+**Story Combinations:**
+- 6.2 = old 6.2 + old 6.6 (Project API + WebSocket)
+- 6.3 = old 6.3 + old 6.4 + old 6.5 (Control + State + Escalation APIs)
+- 6.5 = old 6.8 + old 6.9 (Overview + Detail views)
+
+**External Dependencies:**
+- Story 6.8 requires Epic 4 complete (specifically Story 4.5 for dependency graph data)
+- Can be developed with stub data in parallel or after Epic 4
+
+**PRD Alignment:**
+- ✓ FR-API-101 to FR-API-105: All API requirements covered
+- ✓ FR-DASH-001 to FR-DASH-005: All dashboard requirements covered
+- ✓ NFR-PERF-002: API response time requirements addressed
+- ✓ FR-AUTH-001: JWT authentication implemented
+
+**Completion Criteria:**
+1. All 3 foundation stories complete (API + React setup)
+2. All 4 parallel UI features implemented
+3. Story 6.8 complete (after Epic 4 or with stub data)
+4. Both test stories passing in CI/CD
+5. >80% API test coverage, >70% UI test coverage
+6. All acceptance criteria validated
+7. OpenAPI documentation generated
+8. Dashboard deployed and accessible
 
 ---
 
