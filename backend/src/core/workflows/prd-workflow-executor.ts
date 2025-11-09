@@ -130,7 +130,7 @@ export interface ElicitResult {
 /**
  * Decision interface
  */
-export interface Decision {
+export interface WorkflowDecision {
   decision: string;
   confidence: number;
   reasoning: string;
@@ -156,7 +156,7 @@ export class PRDWorkflowExecutor {
   private stateManager: StateManager;
   private workflowConfig?: WorkflowConfig;
   private stepStatuses: StepStatus[] = [];
-  private decisionLog: Decision[] = [];
+  private decisionLog: WorkflowDecision[] = [];
   private escalationsCount: number = 0;
   private startTime: number = 0;
   private endTime: number = 0;
@@ -560,7 +560,7 @@ export class PRDWorkflowExecutor {
    * @param context Decision context
    * @returns Decision with confidence score and reasoning
    */
-  async makeDecision(question: string, context: DecisionContext): Promise<Decision> {
+  async makeDecision(question: string, context: DecisionContext): Promise<WorkflowDecision> {
     try {
       // Use DecisionEngine to make autonomous decision
       const decision = await this.decisionEngine.attemptAutonomousDecision(question, context);
@@ -595,7 +595,12 @@ export class PRDWorkflowExecutor {
       }
 
       // High confidence: proceed autonomously
-      return decision;
+      // Convert DecisionEngine's Decision to WorkflowDecision
+      return {
+        decision: String(decision.decision),
+        confidence: decision.confidence,
+        reasoning: decision.reasoning
+      };
     } catch (error: any) {
       throw new WorkflowExecutionError(`Failed to make decision: ${error.message}`);
     }
@@ -682,7 +687,7 @@ export class PRDWorkflowExecutor {
 
     for (const [agentType, agent] of this.spawnedAgents.entries()) {
       try {
-        await this.agentPool.destroy(agent);
+        await this.agentPool.destroyAgent(agent.id);
         console.log(`[PRDWorkflowExecutor] Destroyed ${agentType} agent`);
       } catch (error: any) {
         console.error(`[PRDWorkflowExecutor] Failed to destroy ${agentType} agent: ${error.message}`);
@@ -786,7 +791,7 @@ export class PRDWorkflowExecutor {
    * Get decision log
    * @returns Array of decisions made during workflow
    */
-  getDecisionLog(): Decision[] {
+  getDecisionLog(): WorkflowDecision[] {
     return this.decisionLog;
   }
 }

@@ -13,6 +13,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import * as path from 'path';
 import { PRDTemplateProcessor, ProjectType } from '../../../src/core/workflows/prd-template-processor.js';
 import type { GenerationContext, Requirement } from '../../../src/core/workflows/prd-template-processor.js';
 
@@ -70,11 +71,12 @@ describe('PRDTemplateProcessor', () => {
     });
 
     // Instantiate PRDTemplateProcessor with mocked dependencies
+    const testProjectPath = path.join(__dirname, '__test_data__', 'prd-template-processor', 'test-project');
     processor = new PRDTemplateProcessor(
       mockTemplateProcessor as any,
       mockAgentPool as any,
       mockStateManager as any,
-      '/test/project'
+      testProjectPath
     );
   });
 

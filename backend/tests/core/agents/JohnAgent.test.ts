@@ -972,7 +972,7 @@ Generate concise executive summaries for stakeholders...
       mockEscalationQueue.add = vi.fn().mockResolvedValue('esc-789');
 
       // Should trigger escalation
-      const result = await johnAgent.assessMarketFit({}, {});
+      const _result = await johnAgent.assessMarketFit({}, {});
 
       // Escalation should be added (in real integration)
       // For unit test, we just verify the flow exists
