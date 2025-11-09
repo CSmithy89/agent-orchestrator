@@ -430,7 +430,7 @@ export class PRDTemplateProcessor {
       context.productBrief
     );
 
-    const requirements: Requirement[] = analysis.requirements || [];
+    let requirements: Requirement[] = analysis.requirements || [];
 
     // Ensure we have at least 67 requirements (AC #5)
     if (requirements.length < 67) {
@@ -447,6 +447,26 @@ export class PRDTemplateProcessor {
     const validRequirements = requirements.filter((req) =>
       this.validateRequirementQuality([req])
     );
+
+    // Re-check: If validation dropped us below 67, generate more requirements
+    while (validRequirements.length < 67) {
+      const shortfall = 67 - validRequirements.length;
+      console.warn(`Validation reduced requirements to ${validRequirements.length}. Generating ${shortfall} more...`);
+      const supplementalReqs = this.generateAdditionalRequirements(shortfall, context);
+
+      // Validate new requirements before adding
+      const validSupplemental = supplementalReqs.filter((req) =>
+        this.validateRequirementQuality([req])
+      );
+
+      validRequirements.push(...validSupplemental);
+
+      // Safety check: avoid infinite loop if we can't generate valid requirements
+      if (validSupplemental.length === 0) {
+        console.error('Unable to generate valid requirements. Breaking to avoid infinite loop.');
+        break;
+      }
+    }
 
     return validRequirements;
   }
@@ -905,19 +925,27 @@ export class PRDTemplateProcessor {
       }
 
       // Generate optional sections based on project type
+      const optionalSections: string[] = [];
       if (projectType === ProjectType.API) {
-        sections.push('rest_api_specification', 'authentication', 'rate_limiting');
+        optionalSections.push('rest_api_specification', 'authentication', 'rate_limiting');
       } else if (projectType === ProjectType.Mobile) {
-        sections.push('platform_requirements', 'ux_patterns', 'offline_support');
+        optionalSections.push('platform_requirements', 'ux_patterns', 'offline_support');
       } else if (projectType === ProjectType.SaaS) {
-        sections.push('multi_tenancy', 'subscription_models', 'billing_integration');
+        optionalSections.push('multi_tenancy', 'subscription_models', 'billing_integration');
       }
 
       // Generate domain-specific sections
       if (domain === 'healthcare') {
-        sections.push('hipaa_compliance', 'phi_protection');
+        optionalSections.push('hipaa_compliance', 'phi_protection');
       } else if (domain === 'finance') {
-        sections.push('pci_dss_compliance', 'payment_security');
+        optionalSections.push('pci_dss_compliance', 'payment_security');
+      }
+
+      // Generate and save optional sections
+      for (const sectionName of optionalSections) {
+        const content = await this.generateSection(sectionName, context);
+        await this.saveSection(sectionName, content);
+        sections.push(sectionName);
       }
 
       return sections;

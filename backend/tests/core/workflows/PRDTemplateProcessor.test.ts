@@ -13,9 +13,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
-import * as path from 'path';
 import { PRDTemplateProcessor, ProjectType } from '../../../src/core/workflows/prd-template-processor.js';
 import type { GenerationContext, Requirement } from '../../../src/core/workflows/prd-template-processor.js';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 
 // Mock dependencies
 const mockTemplateProcessor = {
@@ -52,23 +54,44 @@ const mockJohnAgent = {
 
 describe('PRDTemplateProcessor', () => {
   let processor: PRDTemplateProcessor;
+  let tempDir: string;
 
   beforeEach(() => {
     // Reset all mocks before each test
     vi.clearAllMocks();
 
-    // Instantiate PRDTemplateProcessor with mocked dependencies
-    const testProjectPath = path.join(__dirname, '__test_data__', 'prd-template-processor', 'test-project');
+    // Create a temporary directory for tests
+    tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prd-test-'));
+
+    // Mock AgentPool to return mock agents
+    mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
+      if (agentType === 'mary') return mockMaryAgent;
+      if (agentType === 'john') return mockJohnAgent;
+      throw new Error(`Unknown agent type: ${agentType}`);
+    });
+
+    mockAgentPool.get.mockImplementation((agentType: string) => {
+      if (agentType === 'mary') return mockMaryAgent;
+      if (agentType === 'john') return mockJohnAgent;
+      return null;
+    });
+
+    // Instantiate PRDTemplateProcessor with mocked dependencies and temp directory
     processor = new PRDTemplateProcessor(
       mockTemplateProcessor as any,
       mockAgentPool as any,
       mockStateManager as any,
-      testProjectPath
+      tempDir
     );
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
+
+    // Clean up temporary directory
+    if (tempDir && fs.existsSync(tempDir)) {
+      fs.rmSync(tempDir, { recursive: true, force: true });
+    }
   });
 
   // ====================
