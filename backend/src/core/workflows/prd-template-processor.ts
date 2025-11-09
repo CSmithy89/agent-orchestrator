@@ -24,7 +24,6 @@ import * as path from 'path';
 import { TemplateProcessor } from '../TemplateProcessor.js';
 import type { AgentPool } from '../AgentPool.js';
 import type { StateManager } from '../StateManager.js';
-import type { Agent } from '../../types/agent.js';
 
 /**
  * Project types supported by PRDTemplateProcessor
@@ -430,7 +429,7 @@ export class PRDTemplateProcessor {
       context.productBrief
     );
 
-    let requirements: Requirement[] = analysis.requirements || [];
+    const requirements: Requirement[] = analysis.requirements || [];
 
     // Ensure we have at least 67 requirements (AC #5)
     if (requirements.length < 67) {
