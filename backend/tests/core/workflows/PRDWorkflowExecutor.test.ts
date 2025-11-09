@@ -10,7 +10,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { PRDWorkflowExecutor } from '../../../src/core/workflows/prd-workflow-executor.js';
-import { WorkflowEngine } from '../../../src/core/WorkflowEngine.js';
 import { AgentPool } from '../../../src/core/AgentPool.js';
 import { DecisionEngine } from '../../../src/core/services/decision-engine.js';
 import { EscalationQueue } from '../../../src/core/services/escalation-queue.js';
@@ -528,7 +527,6 @@ workflows:
       await executor.loadWorkflowConfig(workflowPath);
 
       // Mock processTemplateOutput to throw an error
-      const originalProcess = executor.processTemplateOutput.bind(executor);
       executor.processTemplateOutput = vi.fn().mockImplementation(async () => {
         throw new Error('Disk full - cannot write file');
       });

@@ -11,8 +11,6 @@ import { AgentPool } from '../../src/core/AgentPool.js';
 import { DecisionEngine } from '../../src/core/services/decision-engine.js';
 import { EscalationQueue } from '../../src/core/services/escalation-queue.js';
 import { StateManager } from '../../src/core/StateManager.js';
-import { MaryAgent } from '../../src/core/agents/mary-agent.js';
-import { JohnAgent } from '../../src/core/agents/john-agent.js';
 
 describe('PRD Workflow Integration Tests', () => {
   const testDir = path.join(__dirname, '__test_data__', 'prd-integration');
