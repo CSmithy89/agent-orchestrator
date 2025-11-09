@@ -1,6 +1,6 @@
 # Story 2.7: PRD Quality Validation
 
-Status: drafted
+Status: ready-for-dev
 
 ## Story
 
@@ -508,7 +508,7 @@ Story 2.7: Brief description of changes
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/stories/2-7-prd-quality-validation.context.xml
 
 ### Agent Model Used
 
