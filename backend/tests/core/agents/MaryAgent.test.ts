@@ -133,7 +133,7 @@ Apply 80/20 rule to split features...
 
       await expect(MaryAgent.create(llmConfig, mockLLMFactory))
         .rejects
-        .toThrow(/persona file.*not found/i);
+        .toThrow(/Failed to load Mary persona file.*ENOENT/i);
     });
 
     it('should parse persona markdown into sections', async () => {
@@ -438,6 +438,12 @@ Apply 80/20 rule to split features...
     });
 
     it('should return measurable success criteria', async () => {
+      // Override mock for this test to return JSON array
+      vi.mocked(mockLLMClient.invoke).mockResolvedValueOnce(JSON.stringify([
+        'Given a user enters valid credentials, when they submit the login form, then they should be authenticated',
+        'Given a user enters invalid credentials, when they submit the login form, then they should see an error message'
+      ]));
+
       const features = ['User authentication'];
 
       const result = await maryAgent.defineSuccessCriteria(features);
@@ -624,6 +630,13 @@ Apply 80/20 rule to split features...
     }, 35000);
 
     it('should complete defineSuccessCriteria() in <30 seconds', async () => {
+      // Override mock for this test to return JSON array
+      vi.mocked(mockLLMClient.invoke).mockResolvedValueOnce(JSON.stringify([
+        'Given feature 1 is enabled, when user interacts, then expected outcome occurs',
+        'Given feature 2 is enabled, when user interacts, then expected outcome occurs',
+        'Given feature 3 is enabled, when user interacts, then expected outcome occurs'
+      ]));
+
       const features = ['Feature 1', 'Feature 2', 'Feature 3'];
       const startTime = Date.now();
 
