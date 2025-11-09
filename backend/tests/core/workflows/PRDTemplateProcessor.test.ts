@@ -57,19 +57,6 @@ describe('PRDTemplateProcessor', () => {
     // Reset all mocks before each test
     vi.clearAllMocks();
 
-    // Mock AgentPool to return mock agents
-    mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-      if (agentType === 'mary') return mockMaryAgent;
-      if (agentType === 'john') return mockJohnAgent;
-      throw new Error(`Unknown agent type: ${agentType}`);
-    });
-
-    mockAgentPool.get.mockImplementation((agentType: string) => {
-      if (agentType === 'mary') return mockMaryAgent;
-      if (agentType === 'john') return mockJohnAgent;
-      return null;
-    });
-
     // Instantiate PRDTemplateProcessor with mocked dependencies
     const testProjectPath = path.join(__dirname, '__test_data__', 'prd-template-processor', 'test-project');
     processor = new PRDTemplateProcessor(
@@ -823,13 +810,6 @@ describe('PRDTemplateProcessor', () => {
       // Reset and setup mocks for this test
       vi.clearAllMocks();
 
-      // Setup agent spawn mock to return proper agents
-      mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-        if (agentType === 'mary') return mockMaryAgent;
-        if (agentType === 'john') return mockJohnAgent;
-        throw new Error(`Unknown agent type: ${agentType}`);
-      });
-
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
         requirements: Array.from({ length: 70 }, (_, i) => ({
           id: `FR-${String(i + 1).padStart(3, '0')}`,
@@ -853,6 +833,8 @@ describe('PRDTemplateProcessor', () => {
       const context: GenerationContext = {
         productBrief: 'API for data management',
         userInput: 'Build REST API',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
       const sections = await processor.generateContent(context);
@@ -867,18 +849,10 @@ describe('PRDTemplateProcessor', () => {
 
       // Should save each section
       expect(mockStateManager.appendToFile).toHaveBeenCalled();
-
-      // Should collaborate with agents
-      expect(mockAgentPool.spawn).toHaveBeenCalled();
     });
 
     it('should add API-specific sections for API projects', async () => {
       vi.clearAllMocks();
-      mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-        if (agentType === 'mary') return mockMaryAgent;
-        if (agentType === 'john') return mockJohnAgent;
-        throw new Error(`Unknown agent type: ${agentType}`);
-      });
 
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
         requirements: Array.from({ length: 70 }, (_, i) => ({
@@ -895,6 +869,8 @@ describe('PRDTemplateProcessor', () => {
       const context: GenerationContext = {
         productBrief: 'REST API for data management',
         userInput: 'API endpoints',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
       const sections = await processor.generateContent(context);
@@ -907,11 +883,6 @@ describe('PRDTemplateProcessor', () => {
 
     it('should add mobile-specific sections for mobile projects', async () => {
       vi.clearAllMocks();
-      mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-        if (agentType === 'mary') return mockMaryAgent;
-        if (agentType === 'john') return mockJohnAgent;
-        throw new Error(`Unknown agent type: ${agentType}`);
-      });
 
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
         requirements: Array.from({ length: 70 }, (_, i) => ({
@@ -928,6 +899,8 @@ describe('PRDTemplateProcessor', () => {
       const context: GenerationContext = {
         productBrief: 'iOS and Android mobile app',
         userInput: 'mobile application',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
       const sections = await processor.generateContent(context);
@@ -940,11 +913,6 @@ describe('PRDTemplateProcessor', () => {
 
     it('should add SaaS-specific sections for SaaS projects', async () => {
       vi.clearAllMocks();
-      mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-        if (agentType === 'mary') return mockMaryAgent;
-        if (agentType === 'john') return mockJohnAgent;
-        throw new Error(`Unknown agent type: ${agentType}`);
-      });
 
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
         requirements: Array.from({ length: 70 }, (_, i) => ({
@@ -961,6 +929,8 @@ describe('PRDTemplateProcessor', () => {
       const context: GenerationContext = {
         productBrief: 'SaaS platform with multi-tenancy',
         userInput: 'subscription based',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
       const sections = await processor.generateContent(context);
@@ -973,11 +943,6 @@ describe('PRDTemplateProcessor', () => {
 
     it('should add healthcare compliance sections for healthcare domain', async () => {
       vi.clearAllMocks();
-      mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-        if (agentType === 'mary') return mockMaryAgent;
-        if (agentType === 'john') return mockJohnAgent;
-        throw new Error(`Unknown agent type: ${agentType}`);
-      });
 
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
         requirements: Array.from({ length: 70 }, (_, i) => ({
@@ -994,6 +959,8 @@ describe('PRDTemplateProcessor', () => {
       const context: GenerationContext = {
         productBrief: 'Healthcare patient management system',
         userInput: 'HIPAA compliant medical records',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
       const sections = await processor.generateContent(context);
@@ -1005,11 +972,6 @@ describe('PRDTemplateProcessor', () => {
 
     it('should add finance compliance sections for finance domain', async () => {
       vi.clearAllMocks();
-      mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
-        if (agentType === 'mary') return mockMaryAgent;
-        if (agentType === 'john') return mockJohnAgent;
-        throw new Error(`Unknown agent type: ${agentType}`);
-      });
 
       mockMaryAgent.analyzeRequirements.mockResolvedValue({
         requirements: Array.from({ length: 70 }, (_, i) => ({
@@ -1026,6 +988,8 @@ describe('PRDTemplateProcessor', () => {
       const context: GenerationContext = {
         productBrief: 'Financial payment processing system',
         userInput: 'PCI-DSS compliant transactions',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
       const sections = await processor.generateContent(context);
@@ -1036,14 +1000,13 @@ describe('PRDTemplateProcessor', () => {
     });
 
     it('should handle errors during content generation gracefully', async () => {
-      mockAgentPool.spawn.mockRejectedValue(new Error('Agent spawn failed permanently'));
-
       const context: GenerationContext = {
         productBrief: 'Test',
         userInput: 'Test',
       };
 
-      await expect(processor.generateContent(context)).rejects.toThrow('Content generation failed');
+      // Not providing agents should cause an error
+      await expect(processor.generateContent(context)).rejects.toThrow();
     });
   });
 

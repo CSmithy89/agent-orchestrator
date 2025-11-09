@@ -24,6 +24,7 @@ import * as path from 'path';
 import { TemplateProcessor } from '../TemplateProcessor.js';
 import type { AgentPool } from '../AgentPool.js';
 import type { StateManager } from '../StateManager.js';
+import type { Agent } from '../../types/agent.js';
 
 /**
  * Project types supported by PRDTemplateProcessor
@@ -326,33 +327,44 @@ export class PRDTemplateProcessor {
    */
   async generateSection(sectionName: string, context: GenerationContext): Promise<string> {
     try {
-      // Get agents from context or spawn them
-      const maryAgent = context.maryAgent || (await this.agentPool.get('mary'));
-      const johnAgent = context.johnAgent || (await this.agentPool.get('john'));
-
       switch (sectionName) {
         case 'vision_alignment': {
-          const vision = await johnAgent.defineProductVision(context.productBrief);
+          if (!context.johnAgent) {
+            throw new Error('John agent must be provided in context to generate vision_alignment section');
+          }
+          const vision = await context.johnAgent.defineProductVision(context.productBrief);
           return this.formatVisionSection(vision);
         }
 
         case 'product_magic_essence': {
-          const vision = await johnAgent.defineProductVision(context.productBrief);
+          if (!context.johnAgent) {
+            throw new Error('John agent must be provided in context to generate product_magic_essence section');
+          }
+          const vision = await context.johnAgent.defineProductVision(context.productBrief);
           return this.formatMagicEssenceSection(vision);
         }
 
         case 'success_criteria': {
-          const criteria = await maryAgent.defineSuccessCriteria(context.productBrief);
+          if (!context.maryAgent) {
+            throw new Error('Mary agent must be provided in context to generate success_criteria section');
+          }
+          const criteria = await context.maryAgent.defineSuccessCriteria(context.productBrief);
           return this.formatSuccessCriteriaSection(criteria);
         }
 
         case 'mvp_scope': {
-          const features = await johnAgent.prioritizeFeatures([context.productBrief]);
+          if (!context.johnAgent) {
+            throw new Error('John agent must be provided in context to generate mvp_scope section');
+          }
+          const features = await context.johnAgent.prioritizeFeatures([context.productBrief]);
           return this.formatMVPScopeSection(features);
         }
 
         case 'growth_features': {
-          const features = await johnAgent.prioritizeFeatures([context.productBrief]);
+          if (!context.johnAgent) {
+            throw new Error('John agent must be provided in context to generate growth_features section');
+          }
+          const features = await context.johnAgent.prioritizeFeatures([context.productBrief]);
           return this.formatGrowthFeaturesSection(features);
         }
 
@@ -406,7 +418,11 @@ export class PRDTemplateProcessor {
    * ```
    */
   async generateFunctionalRequirements(context: GenerationContext): Promise<Requirement[]> {
-    const maryAgent = context.maryAgent || (await this.agentPool.get('mary'));
+    const maryAgent = context.maryAgent;
+
+    if (!maryAgent) {
+      throw new Error('Mary agent must be provided in the generation context');
+    }
 
     // Call Mary's analyzeRequirements method
     const analysis = await maryAgent.analyzeRequirements(
@@ -724,54 +740,16 @@ export class PRDTemplateProcessor {
   /**
    * Collaborate with Mary and John agents
    *
-   * Spawns agents if not already available in context
+   * Validates that agents are available in context
    */
   async collaborateWithAgents(context: GenerationContext): Promise<void> {
-    try {
-      // Spawn Mary agent for requirements analysis
-      if (!context.maryAgent) {
-        context.maryAgent = await this.spawnAgentWithRetry('mary', context);
-      }
-
-      // Spawn John agent for strategic validation
-      if (!context.johnAgent) {
-        context.johnAgent = await this.spawnAgentWithRetry('john', context);
-      }
-    } catch (error) {
-      console.error('Error collaborating with agents:', error);
-      throw new Error(`Agent collaboration failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    // Validate that both agents are provided
+    if (!context.maryAgent) {
+      throw new Error('Mary agent must be provided in the generation context');
     }
-  }
-
-  /**
-   * Spawn agent with exponential backoff retry
-   *
-   * @param agentType - Agent type ('mary' or 'john')
-   * @param context - Generation context
-   * @returns Agent instance
-   */
-  private async spawnAgentWithRetry(
-    agentType: string,
-    context: any,
-    maxRetries: number = 3
-  ): Promise<any> {
-    const delays = [1000, 2000, 4000]; // 1s, 2s, 4s exponential backoff
-
-    for (let attempt = 0; attempt < maxRetries; attempt++) {
-      try {
-        return await this.agentPool.spawn(agentType, context);
-      } catch (error) {
-        if (attempt === maxRetries - 1) {
-          throw error; // Last attempt failed
-        }
-
-        const delay = delays[attempt];
-        console.warn(`Agent spawn failed (attempt ${attempt + 1}/${maxRetries}). Retrying in ${delay}ms...`);
-        await new Promise((resolve) => setTimeout(resolve, delay));
-      }
+    if (!context.johnAgent) {
+      throw new Error('John agent must be provided in the generation context');
     }
-
-    throw new Error(`Failed to spawn ${agentType} agent after ${maxRetries} attempts`);
   }
 
   // ==================== Private Formatting Helpers ====================
