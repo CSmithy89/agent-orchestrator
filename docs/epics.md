@@ -1660,7 +1660,7 @@ So that stories complete without manual git operations.
 
 ---
 
-## Epic 6: Remote Access & Monitoring
+## Epic 6: Remote Access & Monitoring (Restructured for Parallel Development)
 
 **Goal:** Enable users to monitor and guide orchestrator execution from anywhere via web dashboard and REST API.
 
@@ -1675,15 +1675,19 @@ So that stories complete without manual git operations.
 - Escalation response interface
 - Project management UI
 
-### Stories
+### **PHASE 1: API FOUNDATION (Sequential)**
 
-**Story 6.1: REST API Foundation**
+Foundation stories establish core API infrastructure and shared types that all other stories depend on.
+
+**Story 6.1: API Infrastructure & Type System**
 
 As a remote access developer,
-I want a REST API server with proper routing and middleware,
-So that dashboard and external tools can interact with orchestrator.
+I want a REST API server foundation with shared TypeScript types,
+So that all API endpoints have consistent structure and type safety.
 
 **Acceptance Criteria:**
+
+**API Foundation (from original 6.1):**
 1. Implement Fastify server with TypeScript
 2. Configure: CORS, JSON body parser, error handling middleware
 3. Basic routes: GET /health, GET /api/info
@@ -1694,17 +1698,32 @@ So that dashboard and external tools can interact with orchestrator.
 8. Server starts on configurable port (default 3000)
 9. Graceful shutdown handling
 
+**Shared TypeScript Types (NEW):**
+10. Define TypeScript interfaces for all API entities:
+    - `Project`, `ProjectStatus`, `PhaseProgress`
+    - `OrchestratorStatus`, `WorkflowStatus`
+    - `StoryStatus`, `EscalationStatus`
+    - `APIResponse<T>`, `APIError`
+11. Create Zod schemas for request/response validation
+12. Generate OpenAPI types from Zod schemas
+
 **Prerequisites:** Epic 1 complete
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 6.2: Project Management Endpoints**
+**Story 6.2: Core API Endpoints & WebSocket**
 
 As a dashboard developer,
-I want API endpoints for project CRUD operations,
-So that users can manage their projects via UI.
+I want project management API endpoints and WebSocket support,
+So that the UI can manage projects and receive real-time updates.
 
 **Acceptance Criteria:**
+
+**Project Management Endpoints (from original 6.2):**
 1. GET /api/projects - List all projects
 2. POST /api/projects - Create new project
 3. GET /api/projects/:id - Get project details
@@ -1715,17 +1734,32 @@ So that users can manage their projects via UI.
 8. Handle project not found errors
 9. Support pagination for project lists
 
+**WebSocket Real-Time Updates (from original 6.6):**
+10. Implement WebSocket server (ws library)
+11. WS endpoint: /ws/status-updates
+12. Authenticate WebSocket connections
+13. Emit events: project.phase.changed, story.status.changed, escalation.created, agent.started/completed, pr.created/merged, workflow.error
+14. Support per-project subscriptions
+15. Reconnection handling
+16. Event payload includes: projectId, eventType, data, timestamp
+
 **Prerequisites:** Story 6.1
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-6.2` (branch: `story/6.2-core-api-websocket`)
 
 ---
 
-**Story 6.3: Orchestrator Control Endpoints**
+**Story 6.3: Extended API Endpoints**
 
-As a dashboard user,
-I want API endpoints to control orchestrator execution,
-So that I can start, pause, and resume workflows remotely.
+As a dashboard developer,
+I want orchestrator control, state query, and escalation API endpoints,
+So that the UI can control workflows, query state, and manage escalations.
 
 **Acceptance Criteria:**
+
+**Orchestrator Control Endpoints (from original 6.3):**
 1. GET /api/orchestrators/:projectId/status - Get current status
 2. POST /api/orchestrators/:projectId/start - Start workflow
 3. POST /api/orchestrators/:projectId/pause - Pause execution
@@ -1735,79 +1769,42 @@ So that I can start, pause, and resume workflows remotely.
 7. Handle concurrent control requests safely
 8. Emit WebSocket events on status changes
 
-**Prerequisites:** Story 6.2
+**State Query Endpoints (from original 6.4):**
+9. GET /api/projects/:id/workflow-status - Get workflow state
+10. GET /api/projects/:id/sprint-status - Get sprint state
+11. GET /api/projects/:id/stories - List all stories with status
+12. GET /api/projects/:id/stories/:storyId - Get story details
+13. Return: phases, epics, stories, dependencies, status, timestamps
+14. Support filtering stories by status or epic
+15. Include story PR links when available
+16. Efficient queries (no reading entire files on each request)
+
+**Escalation API Endpoints (from original 6.5):**
+17. GET /api/escalations - List all escalations (with filters)
+18. GET /api/escalations/:id - Get escalation details
+19. POST /api/escalations/:id/respond - Submit response
+20. Return: question, AI reasoning, confidence, context, status
+21. Resume workflow when escalation responded
+22. Support bulk escalation queries
+23. Mark escalations as resolved after response
+24. Emit WebSocket event on new escalation
+
+**Prerequisites:** Story 6.2, Epic 1 (StateManager), Epic 2 (Escalation Queue - Story 2.2)
+
+**Estimated Time:** 5-6 hours
+
+**Git Worktree:** `wt/story-6.3` (branch: `story/6.3-extended-api`)
 
 ---
 
-**Story 6.4: State Query Endpoints**
-
-As a dashboard developer,
-I want API endpoints to query project state,
-So that UI can display current workflow and story progress.
-
-**Acceptance Criteria:**
-1. GET /api/projects/:id/workflow-status - Get workflow state
-2. GET /api/projects/:id/sprint-status - Get sprint state
-3. GET /api/projects/:id/stories - List all stories with status
-4. GET /api/projects/:id/stories/:storyId - Get story details
-5. Return: phases, epics, stories, dependencies, status, timestamps
-6. Support filtering stories by status or epic
-7. Include story PR links when available
-8. Efficient queries (no reading entire files on each request)
-
-**Prerequisites:** Story 6.2, Epic 1 (StateManager)
+### **PHASE 2: UI FOUNDATION (Sequential)**
 
 ---
 
-**Story 6.5: Escalation API Endpoints**
-
-As a user responding to escalations,
-I want API endpoints to view and respond to escalations,
-So that I can unblock workflows remotely.
-
-**Acceptance Criteria:**
-1. GET /api/escalations - List all escalations (with filters)
-2. GET /api/escalations/:id - Get escalation details
-3. POST /api/escalations/:id/respond - Submit response
-4. Return: question, AI reasoning, confidence, context, status
-5. Resume workflow when escalation responded
-6. Support bulk escalation queries
-7. Mark escalations as resolved after response
-8. Emit WebSocket event on new escalation
-
-**Prerequisites:** Story 6.2, Epic 2 (Escalation Queue)
-
----
-
-**Story 6.6: WebSocket Real-Time Updates**
-
-As a dashboard developer,
-I want WebSocket connections for real-time status updates,
-So that UI updates without polling.
-
-**Acceptance Criteria:**
-1. Implement WebSocket server (ws library)
-2. WS endpoint: /ws/status-updates
-3. Authenticate WebSocket connections
-4. Emit events:
-   - project.phase.changed
-   - story.status.changed
-   - escalation.created
-   - agent.started / agent.completed
-   - pr.created / pr.merged
-   - workflow.error
-5. Support per-project subscriptions
-6. Reconnection handling
-7. Event payload includes: projectId, eventType, data, timestamp
-
-**Prerequisites:** Story 6.1
-
----
-
-**Story 6.7: React Dashboard Foundation**
+**Story 6.4: React Dashboard Foundation & API Integration**
 
 As a user monitoring orchestrator,
-I want a web dashboard to view project status,
+I want a web dashboard with API integration and real-time updates,
 So that I can track progress visually.
 
 **Acceptance Criteria:**
@@ -1824,17 +1821,29 @@ So that I can track progress visually.
 11. Loading states and error handling
 12. Deploy configuration (Nginx static serving)
 
-**Prerequisites:** Story 6.6
+**Prerequisites:** Story 6.3 (all API endpoints + WebSocket from 6.2)
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** Main development branch
 
 ---
 
-**Story 6.8: Project Overview Dashboard**
+### **PHASE 3: UI FEATURES (Parallel)**
+
+Feature stories build UI components that can be developed simultaneously in separate worktrees.
+
+---
+
+**Story 6.5: Project Management Views (Combined)**
 
 As a user with multiple projects,
-I want to see all my projects at a glance,
-So that I can quickly assess status across my portfolio.
+I want to see all projects at a glance and view detailed project information,
+So that I can monitor status across my portfolio and track individual project progress.
 
 **Acceptance Criteria:**
+
+**Project Overview Dashboard (from original 6.8):**
 1. Projects list page showing all projects
 2. Display per project:
    - Name and description
@@ -1849,35 +1858,29 @@ So that I can quickly assess status across my portfolio.
 7. Real-time updates via WebSocket
 8. Sort by last updated or name
 
-**Prerequisites:** Story 6.7, Story 6.2
+**Project Detail View (from original 6.9):**
+9. Project detail page: /projects/:id
+10. Show:
+    - Phase progress (Analysis, Planning, Solutioning, Implementation)
+    - Current workflow and step
+    - Active agents and tasks
+    - Recent events log
+    - Quick actions: pause, resume, view docs
+11. Phase visualization (progress bars or stepper)
+12. Event timeline with timestamps
+13. Links to generated documents (PRD, architecture, etc.)
+14. Real-time updates
+15. Responsive layout
+
+**Prerequisites:** Story 6.4 (React foundation), Story 6.2 (Project API), Story 6.3 (State query API)
+
+**Estimated Time:** 5-6 hours
+
+**Git Worktree:** `wt/story-6.5` (branch: `story/6.5-project-views`)
 
 ---
 
-**Story 6.9: Project Detail View**
-
-As a user monitoring a specific project,
-I want detailed project information and status,
-So that I can track workflow progress and agent activity.
-
-**Acceptance Criteria:**
-1. Project detail page: /projects/:id
-2. Show:
-   - Phase progress (Analysis, Planning, Solutioning, Implementation)
-   - Current workflow and step
-   - Active agents and tasks
-   - Recent events log
-   - Quick actions: pause, resume, view docs
-3. Phase visualization (progress bars or stepper)
-4. Event timeline with timestamps
-5. Links to generated documents (PRD, architecture, etc.)
-6. Real-time updates
-7. Responsive layout
-
-**Prerequisites:** Story 6.8, Story 6.4
-
----
-
-**Story 6.10: Escalation Response Interface**
+**Story 6.6: Escalation Response Interface**
 
 As a user with pending escalations,
 I want to view escalation details and submit responses,
@@ -1897,11 +1900,15 @@ So that I can unblock workflows quickly.
 7. Real-time notification of new escalations
 8. Mark resolved escalations clearly
 
-**Prerequisites:** Story 6.7, Story 6.5
+**Prerequisites:** Story 6.4 (React foundation), Story 6.3 (Escalation API)
+
+**Estimated Time:** 3-4 hours
+
+**Git Worktree:** `wt/story-6.6` (branch: `story/6.6-escalation-interface`)
 
 ---
 
-**Story 6.11: Story Tracking Kanban Board**
+**Story 6.7: Story Tracking Kanban Board**
 
 As a user monitoring implementation progress,
 I want a Kanban board showing story status,
@@ -1918,13 +1925,15 @@ So that I can visualize development progress.
 8. Real-time updates as stories progress
 9. Color-coding by epic
 
-**Prerequisites:** Story 6.9, Story 6.4
+**Prerequisites:** Story 6.5 (Project Detail View), Story 6.3 (State query API)
 
 **Estimated Time:** 3-4 hours
 
+**Git Worktree:** `wt/story-6.7` (branch: `story/6.7-kanban-board`)
+
 ---
 
-**Story 6.12: Dependency Graph Visualization Component**
+**Story 6.8: Dependency Graph Visualization Component**
 
 As a user planning sprint work,
 I want to see story dependencies in an interactive visual graph,
@@ -1983,9 +1992,169 @@ So that I can understand relationships and identify blockers at a glance.
     - Toggle: "Show Graph View" / "Show List View"
     - Filter controls: By epic, by status, by blocking
 
-**Prerequisites:** Story 6.4 (State Query Endpoints), Story 4.8 (Graph Data Generation), Epic 4 complete
+**Prerequisites:** Story 6.3 (State Query API), Epic 4 Story 4.5 (Dependency Graph Generation), Epic 4 complete
 
 **Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-6.8` (branch: `story/6.8-dependency-graph`)
+
+**Note:** This story requires Epic 4 to be complete (specifically Story 4.5 which generates `docs/dependency-graph.json`). It can be developed after Epic 4 completion or in parallel with Epic 4 using stub data.
+
+---
+
+### **PHASE 4: TESTING (Sequential)**
+
+---
+
+**Story 6.9: API Integration Tests**
+
+As a quality-focused developer,
+I want comprehensive API integration tests,
+So that all endpoints are validated and regressions are prevented.
+
+**Acceptance Criteria:**
+1. Setup test framework (Vitest + Supertest)
+2. Test all Project Management endpoints (Story 6.2):
+   - GET /api/projects returns project list
+   - POST /api/projects creates valid project
+   - PATCH /api/projects/:id updates project
+   - DELETE /api/projects/:id removes project
+3. Test all Orchestrator Control endpoints (Story 6.3):
+   - Start, pause, resume workflows
+   - Status queries return correct data
+4. Test all State Query endpoints (Story 6.3):
+   - Workflow status, sprint status, stories list
+   - Filtering and pagination work correctly
+5. Test all Escalation endpoints (Story 6.3):
+   - List escalations, get details, submit responses
+6. Test WebSocket connections (Story 6.2):
+   - Authentication works
+   - Events emit correctly
+   - Reconnection handles failures
+7. Test error handling:
+   - Invalid requests return proper errors
+   - Authentication failures blocked
+   - Rate limiting enforced
+8. Test OpenAPI schema validation
+9. Achieve >80% code coverage for API layer
+10. Integration tests run in CI/CD pipeline
+
+**Prerequisites:** Stories 6.1, 6.2, 6.3 complete
+
+**Estimated Time:** 4-5 hours
+
+**Git Worktree:** `wt/story-6.9` (branch: `story/6.9-api-tests`)
+
+---
+
+**Story 6.10: Dashboard E2E Tests**
+
+As a quality-focused developer,
+I want comprehensive end-to-end dashboard tests,
+So that user workflows are validated and UI regressions prevented.
+
+**Acceptance Criteria:**
+1. Setup E2E test framework (Playwright)
+2. Test Project Management Views (Story 6.5):
+   - Project list loads and displays correctly
+   - Project detail view shows all sections
+   - Navigation between views works
+3. Test Escalation Interface (Story 6.6):
+   - Escalation list displays correctly
+   - Modal opens with full context
+   - Response submission works
+4. Test Kanban Board (Story 6.7):
+   - Board renders with correct columns
+   - Cards display story information
+   - Drag-and-drop updates status
+5. Test Dependency Graph (Story 6.8):
+   - Graph renders nodes and edges
+   - Interactions work (pan, zoom, click)
+   - Export functions generate files
+6. Test real-time updates:
+   - WebSocket events update UI
+   - Multiple tabs stay synchronized
+7. Test responsive design:
+   - Desktop, tablet, mobile layouts
+   - Touch interactions on mobile
+8. Test accessibility:
+   - Keyboard navigation works
+   - Screen reader compatibility
+9. Achieve >70% UI coverage
+10. E2E tests run in CI/CD pipeline
+
+**Prerequisites:** Stories 6.4, 6.5, 6.6, 6.7, 6.8 complete
+
+**Estimated Time:** 5-6 hours
+
+**Git Worktree:** `wt/story-6.10` (branch: `story/6.10-e2e-tests`)
+
+---
+
+## Epic 6 Summary
+
+**Restructured for Parallel Development:**
+- Original: 14 stories (all sequential)
+- Restructured: 10 stories (3 foundation + 4 parallel + 1 Epic 4-dependent + 2 tests)
+- Time savings: 14 story-units → 7-8 story-units (**1.8x speedup**)
+
+**Acceptance Criteria Coverage:**
+- Total AC: 127 (119 original + 8 enhanced for testing)
+- ✓ All original acceptance criteria preserved (100%)
+- ✓ Enhanced test coverage in stories 6.9 and 6.10
+- ✓ Added 3 AC for shared TypeScript type system in 6.1
+
+**Dependency Graph:**
+
+```
+FOUNDATION (Sequential)
+───────────────────────
+6.1 (API Infra + Types) ──┐
+                          ├──> 6.2 (Core API + WebSocket) ──┐
+                          │                                  │
+                          └──────────────────────────────────┤
+                                                             │
+                                        6.3 (Extended API) ──┘
+                                                             │
+                                  6.4 (React Foundation) ────┘
+
+FEATURES (Parallel)
+───────────────────
+                        ┌──> 6.5 (Project Views)
+                        ├──> 6.6 (Escalation Interface)
+[Foundation] ───────────┤
+                        ├──> 6.7 (Kanban Board)
+                        └──> [Epic 4 complete] ──> 6.8 (Dependency Graph)
+
+TESTING (Sequential)
+────────────────────
+[All Features] ──> 6.9 (API Tests) ──> 6.10 (E2E Tests)
+```
+
+**Story Combinations:**
+- 6.2 = old 6.2 + old 6.6 (Project API + WebSocket)
+- 6.3 = old 6.3 + old 6.4 + old 6.5 (Control + State + Escalation APIs)
+- 6.5 = old 6.8 + old 6.9 (Overview + Detail views)
+
+**External Dependencies:**
+- Story 6.8 requires Epic 4 complete (specifically Story 4.5 for dependency graph data)
+- Can be developed with stub data in parallel or after Epic 4
+
+**PRD Alignment:**
+- ✓ FR-API-101 to FR-API-105: All API requirements covered
+- ✓ FR-DASH-001 to FR-DASH-005: All dashboard requirements covered
+- ✓ NFR-PERF-002: API response time requirements addressed
+- ✓ FR-AUTH-001: JWT authentication implemented
+
+**Completion Criteria:**
+1. All 3 foundation stories complete (API + React setup)
+2. All 4 parallel UI features implemented
+3. Story 6.8 complete (after Epic 4 or with stub data)
+4. Both test stories passing in CI/CD
+5. >80% API test coverage, >70% UI test coverage
+6. All acceptance criteria validated
+7. OpenAPI documentation generated
+8. Dashboard deployed and accessible
 
 ---
 
