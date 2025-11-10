@@ -15,7 +15,7 @@
  * @example
  * ```typescript
  * const mary = await MaryAgent.create(
- *   { provider: 'anthropic', model: 'claude-sonnet-4-5', temperature: 0.3 },
+ *   { provider: 'claude-code', model: 'claude-sonnet-4-5', temperature: 0.3 },
  *   llmFactory,
  *   decisionEngine,
  *   escalationQueue

@@ -15,7 +15,7 @@
  * @example
  * ```typescript
  * const john = await JohnAgent.create(
- *   { provider: 'anthropic', model: 'claude-sonnet-4-5', temperature: 0.5 },
+ *   { provider: 'claude-code', model: 'claude-sonnet-4-5', temperature: 0.5 },
  *   llmFactory,
  *   decisionEngine,
  *   escalationQueue

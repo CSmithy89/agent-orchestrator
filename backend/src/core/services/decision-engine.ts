@@ -11,7 +11,7 @@
  * @example
  * ```typescript
  * const engine = new DecisionEngine(llmFactory, {
- *   provider: 'anthropic',
+ *   provider: 'claude-code',
  *   model: 'claude-sonnet-4-5'
  * });
  *
