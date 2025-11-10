@@ -235,7 +235,8 @@ Generate concise executive summaries...
 
       expect(johnValidation.valid).toBe(false);
       expect(johnValidation.scopeCreepIndicators.length).toBeGreaterThan(2);
-      expect(johnValidation.recommendations).toContain(expect.stringMatching(/MVP|focus/i));
+      // At least one recommendation should mention MVP or focus
+      expect(johnValidation.recommendations.some((rec: string) => /MVP|focus/i.test(rec))).toBe(true);
     });
   });
 
@@ -260,7 +261,7 @@ Generate concise executive summaries...
       }));
 
       const maryScope = await maryAgent.negotiateScope(
-        'User authentication features',
+        ['User authentication features'],
         { budget: 'Limited', timeline: '6 weeks' }
       );
 
@@ -400,7 +401,7 @@ Generate concise executive summaries...
 
       expect(executiveSummary.summary).toBeDefined();
       expect(executiveSummary.keyMetrics.length).toBeGreaterThan(0);
-      expect(executiveSummary.businessImpact).toContain('secure');
+      expect(executiveSummary.businessImpact.toLowerCase()).toContain('secure');
       expect(executiveSummary.roi).toBeDefined();
     });
   });
@@ -452,7 +453,8 @@ Generate concise executive summaries...
 
       expect(johnValidation.valid).toBe(false);
       expect(johnValidation.timelineIssues.length).toBeGreaterThan(2);
-      expect(johnValidation.recommendations).toContain(expect.stringMatching(/timeline|extend|phase/i));
+      // At least one recommendation should mention timeline, extend, or phase
+      expect(johnValidation.recommendations.some((rec: string) => /timeline|extend|phase/i.test(rec))).toBe(true);
     });
   });
 

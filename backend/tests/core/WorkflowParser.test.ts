@@ -10,7 +10,7 @@ import { WorkflowParser } from '../../src/core/WorkflowParser.js';
 import { WorkflowParseError } from '../../src/types/errors.types.js';
 import { ProjectConfig } from '../../src/config/ProjectConfig.js';
 
-describe('WorkflowParser', () => {
+describe.sequential('WorkflowParser', () => {
   let parser: WorkflowParser;
   let tempDir: string;
 
@@ -67,8 +67,10 @@ config_source: "{project-root}/config.yaml"
       await fs.writeFile(workflowPath, workflowContent);
 
       // Act & Assert
-      await expect(parser.parseYAML(workflowPath)).rejects.toThrow(WorkflowParseError);
-      await expect(parser.parseYAML(workflowPath)).rejects.toThrow(/name/);
+      await expect(parser.parseYAML(workflowPath)).rejects.toThrow(expect.objectContaining({
+        name: 'WorkflowParseError',
+        message: expect.stringMatching(/name/)
+      }));
     });
 
     it('should throw WorkflowParseError when instructions field is missing', async () => {

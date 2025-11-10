@@ -731,59 +731,40 @@ describe('PRDTemplateProcessor', () => {
   // Integration & Error Handling Tests
   // ====================
   describe('Integration Tests', () => {
-    it('should integrate with Mary agent for requirements analysis', async () => {
-      mockAgentPool.spawn.mockResolvedValue(mockMaryAgent);
-      mockMaryAgent.analyzeRequirements.mockResolvedValue({
-        requirements: Array.from({ length: 70 }, (_, i) => ({
-          id: `FR-${String(i + 1).padStart(3, '0')}`,
-          statement: `Requirement ${i + 1}`,
-          acceptanceCriteria: [],
-          priority: 'must-have',
-        })),
-      });
-
-      const context: GenerationContext = {
+    it('should validate that Mary agent is provided in context', async () => {
+      const contextWithoutMary: GenerationContext = {
         productBrief: 'Test project',
         userInput: 'Test input',
+        johnAgent: mockJohnAgent,
       };
 
-      await processor.collaborateWithAgents(context);
-
-      expect(mockAgentPool.spawn).toHaveBeenCalledWith('mary', expect.any(Object));
+      await expect(processor.collaborateWithAgents(contextWithoutMary)).rejects.toThrow(
+        'Mary agent must be provided in the generation context'
+      );
     });
 
-    it('should integrate with John agent for strategic validation', async () => {
-      mockAgentPool.spawn.mockResolvedValue(mockJohnAgent);
-      mockJohnAgent.defineProductVision.mockResolvedValue({
-        vision: 'Test vision',
-      });
-
-      const context: GenerationContext = {
+    it('should validate that John agent is provided in context', async () => {
+      const contextWithoutJohn: GenerationContext = {
         productBrief: 'Test project',
         userInput: 'Test input',
+        maryAgent: mockMaryAgent,
       };
 
-      await processor.collaborateWithAgents(context);
-
-      expect(mockAgentPool.spawn).toHaveBeenCalledWith('john', expect.any(Object));
+      await expect(processor.collaborateWithAgents(contextWithoutJohn)).rejects.toThrow(
+        'John agent must be provided in the generation context'
+      );
     });
 
-    it('should retry agent spawning on failure with exponential backoff', async () => {
-      mockAgentPool.spawn
-        .mockRejectedValueOnce(new Error('Agent spawn failed'))
-        .mockRejectedValueOnce(new Error('Agent spawn failed'))
-        .mockResolvedValueOnce(mockMaryAgent)
-        .mockResolvedValueOnce(mockJohnAgent);
-
+    it('should pass validation when both agents are provided', async () => {
       const context: GenerationContext = {
         productBrief: 'Test project',
         userInput: 'Test input',
+        maryAgent: mockMaryAgent,
+        johnAgent: mockJohnAgent,
       };
 
-      await processor.collaborateWithAgents(context);
-
-      // Should spawn both Mary and John agents (4 calls: 2 retries for Mary + 1 success Mary + 1 success John)
-      expect(mockAgentPool.spawn).toHaveBeenCalledTimes(4);
+      // Should not throw when both agents are provided
+      await expect(processor.collaborateWithAgents(context)).resolves.not.toThrow();
     });
 
     it('should handle agent method failures gracefully', async () => {

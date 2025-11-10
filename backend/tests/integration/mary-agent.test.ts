@@ -20,6 +20,11 @@ import { AnthropicProvider } from '../../src/llm/providers/AnthropicProvider.js'
 import { OpenAIProvider } from '../../src/llm/providers/OpenAIProvider.js';
 import { ZhipuProvider } from '../../src/llm/providers/ZhipuProvider.js';
 
+// Helper to check if API keys are available
+const hasApiKeys = () => {
+  return !!(process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_CODE_OAUTH_TOKEN);
+};
+
 describe('MaryAgent Integration Tests', () => {
   let llmFactory: LLMFactory;
   let decisionEngine: DecisionEngine;
@@ -54,7 +59,7 @@ describe('MaryAgent Integration Tests', () => {
   // Multi-Provider Support
   // ==========================================
   describe('Multi-Provider Support', () => {
-    it('should work with Anthropic provider (Claude Sonnet)', async () => {
+    it.skipIf(!hasApiKeys())('should work with Anthropic provider (Claude Sonnet)', async () => {
       const anthropicConfig: LLMConfig = {
         provider: 'anthropic',
         model: 'claude-sonnet-4-5',
@@ -124,7 +129,7 @@ describe('MaryAgent Integration Tests', () => {
       expect(result.requirements).toBeDefined();
     }, 60000);
 
-    it('should produce same quality output across providers', async () => {
+    it.skipIf(!hasApiKeys())('should produce same quality output across providers', async () => {
       // Compare Anthropic vs OpenAI for same input
       const userInput = 'Build a simple todo list app';
 
@@ -176,7 +181,7 @@ describe('MaryAgent Integration Tests', () => {
       );
     });
 
-    it('should use DecisionEngine for ambiguous requirements', async () => {
+    it.skipIf(!hasApiKeys())('should use DecisionEngine for ambiguous requirements', async () => {
       const vague = 'Build something cool';
 
       // This should trigger DecisionEngine to assess clarity
@@ -192,7 +197,7 @@ describe('MaryAgent Integration Tests', () => {
       }
     }, 60000);
 
-    it('should proceed autonomously when requirements are clear', async () => {
+    it.skipIf(!hasApiKeys())('should proceed autonomously when requirements are clear', async () => {
       const clear = 'Build a user authentication system with email, password, and password reset via email';
 
       const result = await mary.analyzeRequirements(clear);
@@ -208,7 +213,7 @@ describe('MaryAgent Integration Tests', () => {
       }
     }, 60000);
 
-    it('should track all decisions in audit trail', async () => {
+    it.skipIf(!hasApiKeys())('should track all decisions in audit trail', async () => {
       const userInput = 'Build authentication system';
 
       await mary.analyzeRequirements(userInput);
@@ -272,7 +277,7 @@ describe('MaryAgent Integration Tests', () => {
       }
     }, 60000);
 
-    it('should include correct escalation metadata', async () => {
+    it.skipIf(!hasApiKeys())('should include correct escalation metadata', async () => {
       const requirements = ['Feature 1', 'Feature 2'];
       const constraints = { timeline: '1 day' }; // Extreme constraint
 
@@ -296,7 +301,7 @@ describe('MaryAgent Integration Tests', () => {
   // PRD Workflow Context (Future: with AgentPool)
   // ==========================================
   describe('PRD Workflow Context', () => {
-    it('should support workflow context for escalation tracking', async () => {
+    it.skipIf(!hasApiKeys())('should support workflow context for escalation tracking', async () => {
       const llmConfig: LLMConfig = {
         provider: 'anthropic',
         model: 'claude-sonnet-4-5',
@@ -338,7 +343,7 @@ describe('MaryAgent Integration Tests', () => {
       mary = await MaryAgent.create(llmConfig, llmFactory);
     });
 
-    it('analyzeRequirements() should complete in <30 seconds', async () => {
+    it.skipIf(!hasApiKeys())('analyzeRequirements() should complete in <30 seconds', async () => {
       const userInput = 'Build a comprehensive user authentication system with email, password, social login (Google, Facebook), two-factor authentication, password reset, and account recovery';
 
       const startTime = Date.now();
@@ -349,7 +354,7 @@ describe('MaryAgent Integration Tests', () => {
       expect(result.requirements).toBeDefined();
     }, 35000);
 
-    it('defineSuccessCriteria() should complete in <30 seconds', async () => {
+    it.skipIf(!hasApiKeys())('defineSuccessCriteria() should complete in <30 seconds', async () => {
       const features = [
         'User registration',
         'User login',
@@ -367,7 +372,7 @@ describe('MaryAgent Integration Tests', () => {
       expect(result.length).toBeGreaterThan(0);
     }, 35000);
 
-    it('negotiateScope() should complete in <30 seconds', async () => {
+    it.skipIf(!hasApiKeys())('negotiateScope() should complete in <30 seconds', async () => {
       const requirements = [
         'User registration',
         'User login',
@@ -412,7 +417,7 @@ describe('MaryAgent Integration Tests', () => {
       mary = await MaryAgent.create(llmConfig, llmFactory);
     });
 
-    it('should produce specific, non-vague requirements', async () => {
+    it.skipIf(!hasApiKeys())('should produce specific, non-vague requirements', async () => {
       const userInput = 'Make the app better for users';
 
       const result = await mary.analyzeRequirements(userInput);
@@ -425,7 +430,7 @@ describe('MaryAgent Integration Tests', () => {
       });
     }, 60000);
 
-    it('should produce measurable success criteria in Given-When-Then format', async () => {
+    it.skipIf(!hasApiKeys())('should produce measurable success criteria in Given-When-Then format', async () => {
       const features = ['User login', 'Password reset'];
 
       const result = await mary.defineSuccessCriteria(features);
@@ -438,7 +443,7 @@ describe('MaryAgent Integration Tests', () => {
       });
     }, 60000);
 
-    it('should apply 80/20 rule in scope negotiation', async () => {
+    it.skipIf(!hasApiKeys())('should apply 80/20 rule in scope negotiation', async () => {
       const requirements = [
         'Feature 1', 'Feature 2', 'Feature 3', 'Feature 4',
         'Feature 5', 'Feature 6', 'Feature 7', 'Feature 8',
