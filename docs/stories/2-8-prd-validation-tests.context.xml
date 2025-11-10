@@ -1,0 +1,214 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>2</epicId>
+    <storyId>2.8</storyId>
+    <title>PRD Validation Tests</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-10</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/2-8-prd-validation-tests.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>PRD workflow development team</asA>
+    <iWant>comprehensive test coverage for all Epic 2 components</iWant>
+    <soThat>PRD automation is reliable and regressions are prevented</soThat>
+    <tasks>
+- Task 1: Verify DecisionEngine tests exist and are comprehensive
+- Task 2: Verify EscalationQueue tests exist and are comprehensive
+- Task 3: Verify Mary and John agent tests exist and are comprehensive
+- Task 4: Verify PRD workflow integration tests exist and are comprehensive
+- Task 5: Verify PRDWorkflowExecutor tests exist
+- Task 6: Verify PRDTemplateProcessor tests exist
+- Task 7: Verify PRDValidator tests exist
+- Task 8: Run complete Epic 2 test suite
+- Task 9: Verify CI/CD pipeline integration
+- Task 10: Create Epic 2 test summary document
+- Task 11: Fix any remaining test issues
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Unit tests for DecisionEngine exist and pass (confidence scoring, onboarding lookup, LLM reasoning, escalation threshold)
+2. Unit tests for EscalationQueue exist and pass (add, list, getById, respond, getMetrics)
+3. Unit tests for Mary/John agents exist and pass (initialization, methods, DecisionEngine integration)
+4. Integration tests for PRD workflow exist and pass (full execution, collaboration, template processing, quality validation, escalation flow)
+5. Test coverage targets are met (DecisionEngine >90%, EscalationQueue >90%, Mary/John agents >80%, PRD workflow >80%)
+6. Test execution in CI/CD pipeline works (automatic runs, coverage reports, PR blocking)
+7. All tests passing with 0 failures, 0 errors (no flaky tests, no skipped tests, TypeScript errors resolved)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Story 2.8: PRD Validation Tests (lines 815-825)</section>
+        <snippet>Story 2.8 defines test coverage requirements for all Epic 2 components. CRITICAL NOTE: "Story 2.8 follows ATDD (Acceptance Test-Driven Development) - tests written alongside implementation, not as separate story" (line 825). This means tests already exist from Stories 2.1-2.7; Story 2.8 verifies and validates them.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-2.md</path>
+        <title>Epic 2 Technical Specification</title>
+        <section>Traceability Mapping (lines 854-913)</section>
+        <snippet>Comprehensive mapping of each acceptance criterion to implementing component, API method, and test case. All 7 ACs for Story 2.8 are traced to specific test files and methods.</snippet>
+      </doc>
+      <doc>
+        <path>docs/test-setup-guide.md</path>
+        <title>Test Setup Guide</title>
+        <section>All sections</section>
+        <snippet>Standard test configuration and best practices established during Epic 1. Covers Vitest setup, git config in tests, fork pool vs thread pool, async/await patterns, file system operations, coverage requirements (90%+ for core, 80%+ overall), and common pitfalls.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Testing and Quality (scattered references)</section>
+        <snippet>Architecture emphasizes testability (line 114), test strategy definition by Murat agent (lines 426-432), test coverage requirements >80% (line 634), and implementation readiness checks including test strategy (lines 898, 925-926).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-7-prd-quality-validation.md</path>
+        <title>Story 2.7: PRD Quality Validation</title>
+        <section>Dev Notes and Completion Notes (lines 230-343)</section>
+        <snippet>Example of complete ATDD implementation: 65/65 tests passing (58 unit + 7 integration), >90% coverage achieved, test-first approach (RED-GREEN-REFACTOR). Known issue: 7 TypeScript strict mode warnings that must be fixed in Story 2.8.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <!-- Test files to verify - created in Stories 2.1-2.7 -->
+      <artifact>
+        <path>backend/tests/core/DecisionEngine.test.ts</path>
+        <kind>test</kind>
+        <symbol>DecisionEngine test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.1 tests - confidence scoring, onboarding lookup, LLM reasoning, escalation threshold (AC #1)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/EscalationQueue.test.ts</path>
+        <kind>test</kind>
+        <symbol>EscalationQueue test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.2 tests - add, list, getById, respond, getMetrics operations (AC #2)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/agents/MaryAgent.test.ts</path>
+        <kind>test</kind>
+        <symbol>MaryAgent test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.3 tests - agent initialization, analyzeRequirements, DecisionEngine integration (AC #3)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/agents/JohnAgent.test.ts</path>
+        <kind>test</kind>
+        <symbol>JohnAgent test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.4 tests - agent initialization, defineProductVision, DecisionEngine integration (AC #3)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/workflows/PRDWorkflowExecutor.test.ts</path>
+        <kind>test</kind>
+        <symbol>PRDWorkflowExecutor test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.5 tests - workflow orchestration and execution (AC #4)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/workflows/PRDTemplateProcessor.test.ts</path>
+        <kind>test</kind>
+        <symbol>PRDTemplateProcessor test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.6 tests - content generation and template processing (AC #4)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/core/workflows/PRDValidator.test.ts</path>
+        <kind>test</kind>
+        <symbol>PRDValidator test suite</symbol>
+        <lines>full file</lines>
+        <reason>Story 2.7 tests - quality validation, 65 tests (58 unit + 7 integration), >90% coverage, ATDD reference example (AC #4, #5)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/prd-workflow.test.ts</path>
+        <kind>test</kind>
+        <symbol>PRD workflow integration tests</symbol>
+        <lines>full file</lines>
+        <reason>Integration tests across all Epic 2 stories - full execution, Mary/John collaboration, escalation flow (AC #4)</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/workflows/prd-validator.ts</path>
+        <kind>implementation</kind>
+        <symbol>PRDValidator class</symbol>
+        <lines>219, 283, 318, 331, 388, 399, 406</lines>
+        <reason>Known TypeScript strict mode warnings (7 locations) that must be fixed in Task 11 for AC #7 to pass</reason>
+      </artifact>
+      <artifact>
+        <path>.github/workflows</path>
+        <kind>ci-config</kind>
+        <symbol>CI/CD test automation</symbol>
+        <lines>N/A</lines>
+        <reason>Story 1.12 CI/CD configuration - verify test commands, coverage enforcement, PR blocking (AC #6)</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <vitest>Test framework (from Story 1.11)</vitest>
+        <typescript>Strict mode compliance required</typescript>
+        <v8>Coverage provider</v8>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- VERIFICATION STORY: This is NOT an implementation story. Tests were already written during Stories 2.1-2.7 using ATDD methodology. Story 2.8 verifies these tests exist, pass, and meet coverage targets.
+- QUALITY GATE: Story 2.8 acts as Epic 2 quality gate before moving to Epic 3. All acceptance criteria must be validated and documented.
+- TypeScript Strict Mode: Must fix 7 warnings in prd-validator.ts (lines 219, 283, 318, 331, 388, 399, 406) for AC #7 to pass
+- Test Framework: Vitest with fork pool (for process.chdir isolation), v8 coverage provider
+- Coverage Targets: DecisionEngine >90%, EscalationQueue >90%, Mary/John agents >80%, PRD workflow >80%
+- Test Pass Rate: 100% required (0 failures, 0 errors, no flaky tests, no skipped tests)
+- Test Organization: Unit tests in backend/tests/core/ or backend/tests/agents/, integration tests in backend/tests/integration/
+- ATDD Pattern: Tests organized by AC (describe blocks per AC), comprehensive coverage (happy path + error cases + edge cases)
+- Performance Target: Epic 2 test suite should complete in <30 seconds
+- Documentation Required: Create docs/test-reports/epic-2-test-summary.md with test counts, coverage percentages, execution time
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>npm run test</name>
+      <kind>CLI command</kind>
+      <signature>Runs all tests</signature>
+      <path>package.json scripts</path>
+    </interface>
+    <interface>
+      <name>npm run test:coverage</name>
+      <kind>CLI command</kind>
+      <signature>Generates coverage report</signature>
+      <path>package.json scripts</path>
+    </interface>
+    <interface>
+      <name>npm run type-check</name>
+      <kind>CLI command</kind>
+      <signature>TypeScript type checking</signature>
+      <path>package.json scripts</path>
+    </interface>
+    <interface>
+      <name>npm run lint</name>
+      <kind>CLI command</kind>
+      <signature>ESLint validation</signature>
+      <path>package.json scripts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Vitest test framework with v8 coverage provider. Fork pool for process isolation. Standard git config in tests (GPG signing disabled, hooks disabled, main branch explicit). Async/await patterns (no callbacks, explicit await, expect().rejects for errors). Coverage targets: 90%+ for core components, 80%+ overall. Test organization: describe blocks per AC, beforeEach/afterEach for setup/cleanup. Naming convention: "should do X when Y". No flaky tests allowed. Real file system for integration, mocks for unit tests. TypeScript strict mode compliance required.
+    </standards>
+    <locations>
+backend/tests/core/ (unit tests for DecisionEngine, EscalationQueue, workflows)
+backend/tests/agents/ (unit tests for MaryAgent, JohnAgent)
+backend/tests/integration/ (integration tests for PRD workflow)
+backend/tests/fixtures/ (shared test utilities)
+    </locations>
+    <ideas>
+Task 1-7: Verify all test files exist, run individually, confirm 0 failures, check coverage meets targets
+Task 8: Run complete suite (npm test), verify all passing, generate coverage report, validate targets met for all components
+Task 9: Check CI/CD config in .github/workflows/, verify test commands present, coverage enforcement active, PR blocking configured
+Task 10: Create test summary document with per-component test counts, coverage percentages, execution time, known limitations
+Task 11: Fix TypeScript strict mode warnings (add null guards at 7 locations in prd-validator.ts), re-run tests to confirm still passing
+    </ideas>
+  </tests>
+</story-context>

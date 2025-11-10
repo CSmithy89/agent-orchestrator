@@ -70,7 +70,7 @@ development_status:
   2-5-prd-workflow-executor: done
   2-6-prd-template-content-generation: done
   2-7-prd-quality-validation: done
-  2-8-prd-validation-tests: backlog
+  2-8-prd-validation-tests: ready-for-dev
   epic-2-retrospective: optional
 
   # Epic 3: Planning Phase Automation
