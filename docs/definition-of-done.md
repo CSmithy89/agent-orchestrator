@@ -32,12 +32,16 @@ A story is considered **DONE** when ALL of the following criteria are met:
 - [ ] Tests follow patterns in `docs/test-setup-guide.md`
 - [ ] No flaky tests (tests pass consistently)
 
-### 4. Code Review ✅
+### 4. Code Review ✅ (UPDATED - Story 2.9 Task 3)
+- [ ] **Pull request created and linked to story**
+- [ ] PR template completed with all sections (`.github/pull_request_template.md`)
+- [ ] Self-review completed against PR checklist
 - [ ] Code review completed by senior developer (Alex agent or human)
 - [ ] Review status: **APPROVED** ✅
 - [ ] All high-priority review findings addressed
 - [ ] All medium-priority review findings addressed or documented as technical debt
 - [ ] Review notes appended to story file
+- [ ] Branch protection enforced (no direct commits to `main`)
 
 ### 5. LLM Provider Configuration ✅ (NEW - Epic 2 Post-Completion)
 
@@ -207,7 +211,9 @@ Use this checklist in the `story-done` workflow:
 - [ ] Coverage targets met (90%+ core, 80%+ overall)
 - [ ] No flaky tests
 
-### Review
+### Review (UPDATED - Story 2.9)
+- [ ] Pull request created and linked to story
+- [ ] PR template completed
 - [ ] Code review completed
 - [ ] Review status: APPROVED
 - [ ] All high/medium priority findings addressed
@@ -240,7 +246,9 @@ Use this checklist in the `story-done` workflow:
 
 - **Epic 1 Retrospective**: `docs/retrospective-epic-1.md` - Identified documentation tracking issues
 - **Epic 2 Retrospective**: `docs/retrospective-epic-2.md` - OAuth authentication pattern learning
-- **LLM Provider Patterns**: `docs/llm-provider-patterns.md` - OAuth authentication guide (NEW)
+- **Epic 3 Process Commitments**: `docs/epic-3-process-commitments.md` - Code review process enforcement (NEW)
+- **PR Template**: `.github/pull_request_template.md` - Pull request template with checklists (NEW)
+- **LLM Provider Patterns**: `docs/llm-provider-patterns.md` - OAuth authentication guide
 - **Implementation Workflow Guide**: `docs/implementation-workflow-guide.md` - Overall workflow
 - **Test Setup Guide**: `docs/test-setup-guide.md` - Testing standards
 - **Async Patterns Guide**: `docs/async-patterns-guide.md` - Code quality standards
@@ -254,9 +262,11 @@ Use this checklist in the `story-done` workflow:
 | 1.0 | 2025-11-04 | Initial DoD established |
 | 1.1 | 2025-11-07 | **Enhanced documentation tracking** (Epic 1 Retrospective Action Item #3) |
 | 1.2 | 2025-11-10 | **Added LLM Provider Configuration** (Epic 2 Retrospective Action Item #9) - OAuth authentication requirements for agent stories |
+| 1.3 | 2025-11-10 | **Added Pull Request Requirements** (Story 2.9 Task 3 / Action Item #3) - Enforced PR review process with branch protection |
 
 ---
 
 **Last Updated**: 2025-11-10
+**Version**: 1.3
 **Status**: Active - Apply to all stories in Epic 3 and beyond
 **Owner**: Scrum Master (Bob agent)
