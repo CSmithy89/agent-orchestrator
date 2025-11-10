@@ -39,13 +39,41 @@ A story is considered **DONE** when ALL of the following criteria are met:
 - [ ] All medium-priority review findings addressed or documented as technical debt
 - [ ] Review notes appended to story file
 
-### 5. Security ✅
+### 5. LLM Provider Configuration ✅ (NEW - Epic 2 Post-Completion)
+
+**Applies to: Agent implementations, DecisionEngine, and any component using LLM services**
+
+- [ ] **All LLM configurations use `'claude-code'` provider** (OAuth authentication)
+  - [ ] Check all `LLMConfig` objects use `provider: 'claude-code'`
+  - [ ] No usage of `'anthropic'` provider in agent configurations
+  - [ ] Environment variable documented: `CLAUDE_CODE_OAUTH_TOKEN`
+
+- [ ] **JSDoc examples show `'claude-code'` provider**
+  - [ ] Class-level documentation examples use correct provider
+  - [ ] Method-level documentation examples use correct provider
+  - [ ] No examples showing `'anthropic'` provider for agent usage
+
+- [ ] **Integration tests use `'claude-code'` provider**
+  - [ ] Real LLM integration tests configured with OAuth-compatible provider
+  - [ ] Unit tests with mocked providers acceptable
+  - [ ] Test environment variables documented
+
+- [ ] **OAuth authentication pattern followed**
+  - [ ] Reference to `docs/llm-provider-patterns.md` in code comments (if applicable)
+  - [ ] Token format validated: `sk-ant-oat01-*` (not `sk-ant-api01-*`)
+  - [ ] Authentication error handling implemented
+
+**Reference**: See `docs/llm-provider-patterns.md` for complete OAuth authentication guide.
+
+**Why this matters**: System designed for OAuth token authentication (Claude Code subscriptions), not API key authentication. Using wrong provider causes 401 authentication failures.
+
+### 6. Security ✅
 - [ ] Security scan completed (automated + manual if needed)
 - [ ] No critical or high-severity security vulnerabilities
 - [ ] Security score ≥90/100
 - [ ] Security scan results documented in story file
 
-### 6. Documentation Tracking ✅ (NEW - Epic 2)
+### 7. Documentation Tracking ✅ (NEW - Epic 2)
 
 **This is the key improvement from Epic 1 Retrospective!**
 
@@ -74,13 +102,13 @@ A story is considered **DONE** when ALL of the following criteria are met:
   - [ ] Status reflects current state (should be "review" before DoD check)
   - [ ] Status updated to "done" only after ALL DoD criteria met
 
-### 7. Integration ✅
+### 8. Integration ✅
 - [ ] Code integrates cleanly with existing codebase
 - [ ] No merge conflicts
 - [ ] All dependencies properly declared in package.json
 - [ ] No breaking changes to existing APIs (or migration path documented)
 
-### 8. Build & CI/CD ✅
+### 9. Build & CI/CD ✅
 - [ ] Code builds successfully: `npm run build`
 - [ ] CI/CD pipeline passes all checks
 - [ ] No new warnings introduced in build process
@@ -184,6 +212,11 @@ Use this checklist in the `story-done` workflow:
 - [ ] Review status: APPROVED
 - [ ] All high/medium priority findings addressed
 
+### LLM Provider (For Agent Stories)
+- [ ] All LLM configurations use 'claude-code' provider
+- [ ] JSDoc examples show 'claude-code' provider
+- [ ] OAuth authentication pattern followed
+
 ### Security
 - [ ] Security scan completed
 - [ ] Security score ≥90/100
@@ -206,6 +239,8 @@ Use this checklist in the `story-done` workflow:
 ## References
 
 - **Epic 1 Retrospective**: `docs/retrospective-epic-1.md` - Identified documentation tracking issues
+- **Epic 2 Retrospective**: `docs/retrospective-epic-2.md` - OAuth authentication pattern learning
+- **LLM Provider Patterns**: `docs/llm-provider-patterns.md` - OAuth authentication guide (NEW)
 - **Implementation Workflow Guide**: `docs/implementation-workflow-guide.md` - Overall workflow
 - **Test Setup Guide**: `docs/test-setup-guide.md` - Testing standards
 - **Async Patterns Guide**: `docs/async-patterns-guide.md` - Code quality standards
@@ -218,9 +253,10 @@ Use this checklist in the `story-done` workflow:
 |---------|------|---------|
 | 1.0 | 2025-11-04 | Initial DoD established |
 | 1.1 | 2025-11-07 | **Enhanced documentation tracking** (Epic 1 Retrospective Action Item #3) |
+| 1.2 | 2025-11-10 | **Added LLM Provider Configuration** (Epic 2 Retrospective Action Item #9) - OAuth authentication requirements for agent stories |
 
 ---
 
-**Last Updated**: 2025-11-07
-**Status**: Active - Apply to all stories in Epic 2 and beyond
+**Last Updated**: 2025-11-10
+**Status**: Active - Apply to all stories in Epic 3 and beyond
 **Owner**: Scrum Master (Bob agent)
