@@ -447,7 +447,11 @@ When a system is designed around OAuth vs API keys, that's not an implementation
      - Code reviewers check OAuth pattern compliance
    - **Timeline**: Before Epic 3 Story 3.1 (agent infrastructure)
    - **Estimated Effort**: 2-3 hours (documentation + checklist updates)
-   - **Status**: ✅ PARTIALLY COMPLETE - Documentation examples already fixed (commit f2012e6), pattern documentation pending
+   - **Status**: ✅ **COMPLETE** (2025-11-10)
+     - ✅ Documentation examples fixed (commit f2012e6)
+     - ✅ Pattern documentation created: `docs/llm-provider-patterns.md` (commit e466928)
+     - ✅ Definition of Done updated with OAuth requirements (commit e466928)
+     - ✅ Code review checklist includes OAuth verification
 
 ---
 
@@ -499,10 +503,15 @@ When a system is designed around OAuth vs API keys, that's not an implementation
 
 ### Technical Debt
 - **Epic 1 Action Items Addressed**: 0/7 (0%)
-- **Epic 2 Action Items Created**: 8 (3 critical/blocking, 3 high priority, 2 medium priority)
+- **Epic 2 Action Items Created**: 9 total
+  - 3 critical/blocking (items #1-3)
+  - 3 high priority (items #4-6)
+  - 2 medium priority (items #7-8)
+  - 1 post-completion (item #9 - ✅ **COMPLETE**)
 - **Integration Test Gaps**: 33 skipped tests (API key dependency)
 - **Process Deviations**: 2 stories without PR review
-- **Net Debt**: +8 action items, +33 skipped tests, +0% action item completion rate
+- **Net Debt Before #9**: +8 action items, +33 skipped tests, +0% action item completion rate
+- **After Action Item #9**: OAuth pattern documented and enforced in DoD ✅
 
 ### Coverage by Component
 - **DecisionEngine**: High coverage, unit tests comprehensive
@@ -532,7 +541,7 @@ When a system is designed around OAuth vs API keys, that's not an implementation
 - ⚠️ 33 skipped integration tests (4.4% of test suite)
 - ⚠️ Test configuration issues resurfaced (same as Epic 1.11)
 - ⚠️ No integration testing strategy documented
-- ⚠️ Technical debt accumulation (8 new action items)
+- ⚠️ Technical debt accumulation (9 new action items, 1 completed post-epic)
 
 **Critical Strengths to Maintain**:
 - TDD approach with comprehensive test coverage
@@ -546,6 +555,7 @@ When a system is designed around OAuth vs API keys, that's not an implementation
 - **FIX**: Code review process (restore branch protection, PR requirements)
 - **DOCUMENT**: Async patterns, integration testing strategy
 - **TRACK**: Action items with owners, timelines, blocking dependencies
+- ✅ **DONE**: OAuth authentication pattern documented (Action Item #9 completed post-epic)
 
 **Epic 3 Recommendation: BLOCK until technical debt resolution.**
 
