@@ -17,6 +17,7 @@ import { LLMConfig } from '../../src/types/llm.types.js';
 import { DecisionEngine } from '../../src/core/services/decision-engine.js';
 import { EscalationQueue } from '../../src/core/services/escalation-queue.js';
 import { AnthropicProvider } from '../../src/llm/providers/AnthropicProvider.js';
+import { ClaudeCodeProvider } from '../../src/llm/providers/ClaudeCodeProvider.js';
 import { OpenAIProvider } from '../../src/llm/providers/OpenAIProvider.js';
 import { ZhipuProvider } from '../../src/llm/providers/ZhipuProvider.js';
 
@@ -34,12 +35,13 @@ describe('MaryAgent Integration Tests', () => {
     // Create LLM factory with providers
     llmFactory = new LLMFactory();
     llmFactory.registerProvider('anthropic', new AnthropicProvider());
+    llmFactory.registerProvider('claude-code', new ClaudeCodeProvider());
     llmFactory.registerProvider('openai', new OpenAIProvider());
     llmFactory.registerProvider('zhipu', new ZhipuProvider());
 
     // Create DecisionEngine (using Anthropic for decision-making)
     const decisionConfig: LLMConfig = {
-      provider: 'anthropic',
+      provider: 'claude-code',
       model: 'claude-sonnet-4-5',
       temperature: 0.3,
       maxTokens: 2000
@@ -59,16 +61,16 @@ describe('MaryAgent Integration Tests', () => {
   // Multi-Provider Support
   // ==========================================
   describe('Multi-Provider Support', () => {
-    it.skipIf(!hasApiKeys())('should work with Anthropic provider (Claude Sonnet)', async () => {
-      const anthropicConfig: LLMConfig = {
-        provider: 'anthropic',
+    it.skipIf(!hasApiKeys())('should work with Claude Code provider (Claude Sonnet)', async () => {
+      const claudeCodeConfig: LLMConfig = {
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
       };
 
       const mary = await MaryAgent.create(
-        anthropicConfig,
+        claudeCodeConfig,
         llmFactory,
         decisionEngine,
         escalationQueue
@@ -130,22 +132,22 @@ describe('MaryAgent Integration Tests', () => {
     }, 60000);
 
     it.skipIf(!hasApiKeys())('should produce same quality output across providers', async () => {
-      // Compare Anthropic vs OpenAI for same input
+      // Test Claude Code provider output quality
       const userInput = 'Build a simple todo list app';
 
-      const anthropicConfig: LLMConfig = {
-        provider: 'anthropic',
+      const claudeCodeConfig: LLMConfig = {
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
       };
 
-      const maryAnthropic = await MaryAgent.create(
-        anthropicConfig,
+      const maryClaudeCode = await MaryAgent.create(
+        claudeCodeConfig,
         llmFactory
       );
 
-      const anthropicResult = await maryAnthropic.analyzeRequirements(userInput);
+      const anthropicResult = await maryClaudeCode.analyzeRequirements(userInput);
 
       // Both should produce structured requirements
       expect(anthropicResult.requirements.length).toBeGreaterThan(0);
@@ -167,7 +169,7 @@ describe('MaryAgent Integration Tests', () => {
 
     beforeEach(async () => {
       const llmConfig: LLMConfig = {
-        provider: 'anthropic',
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
@@ -239,7 +241,7 @@ describe('MaryAgent Integration Tests', () => {
 
     beforeEach(async () => {
       const llmConfig: LLMConfig = {
-        provider: 'anthropic',
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
@@ -303,7 +305,7 @@ describe('MaryAgent Integration Tests', () => {
   describe('PRD Workflow Context', () => {
     it.skipIf(!hasApiKeys())('should support workflow context for escalation tracking', async () => {
       const llmConfig: LLMConfig = {
-        provider: 'anthropic',
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
@@ -334,7 +336,7 @@ describe('MaryAgent Integration Tests', () => {
 
     beforeEach(async () => {
       const llmConfig: LLMConfig = {
-        provider: 'anthropic',
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
@@ -408,7 +410,7 @@ describe('MaryAgent Integration Tests', () => {
 
     beforeEach(async () => {
       const llmConfig: LLMConfig = {
-        provider: 'anthropic',
+        provider: 'claude-code',
         model: 'claude-sonnet-4-5',
         temperature: 0.3,
         maxTokens: 4000
