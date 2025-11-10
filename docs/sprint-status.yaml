@@ -71,7 +71,7 @@ development_status:
   2-6-prd-template-content-generation: done
   2-7-prd-quality-validation: done
   2-8-prd-validation-tests: done
-  epic-2-retrospective: optional
+  epic-2-retrospective: completed
 
   # Epic 3: Planning Phase Automation
   epic-3: backlog
