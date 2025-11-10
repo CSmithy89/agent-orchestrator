@@ -32,6 +32,16 @@ jobs:
         run: cd backend && npm ci
 
       - name: Run tests with coverage
+        env:
+          # Claude Code OAuth token (primary authentication for agents)
+          CLAUDE_CODE_OAUTH_TOKEN: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+
+          # Alternative/fallback authentication
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          # Multi-provider support (optional for Epic 2-3, required for Epic 5)
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ZHIPU_API_KEY: ${{ secrets.ZHIPU_API_KEY }}
         run: cd backend && npm run test:coverage
 
       - name: Upload coverage reports
