@@ -21,10 +21,9 @@ import { ClaudeCodeProvider } from '../../src/llm/providers/ClaudeCodeProvider.j
 import { OpenAIProvider } from '../../src/llm/providers/OpenAIProvider.js';
 import { ZhipuProvider } from '../../src/llm/providers/ZhipuProvider.js';
 
-// Helper to check if API keys are available
-const hasApiKeys = () => {
-  return !!(process.env.ANTHROPIC_API_KEY || process.env.CLAUDE_CODE_OAUTH_TOKEN);
-};
+// Shared test utilities
+import { hasApiKeys, getTestProvider } from '../utils/apiKeys.js';
+import { sampleLLMConfig, sampleUserPrompt, complexUserPrompt } from '../utils/fixtures.js';
 
 describe('MaryAgent Integration Tests', () => {
   let llmFactory: LLMFactory;
