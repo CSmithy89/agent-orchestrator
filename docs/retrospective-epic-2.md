@@ -219,6 +219,32 @@ Epic 1 retrospective identified **7 action items** for Epic 2. **0/7 were addres
 
 **Lesson**: Velocity is not the only success metric. Sustainable pace requires process discipline. Rushing through stories without addressing technical debt creates compounding problems for future epics.
 
+### 6. Documentation Must Reflect Fundamental Design Decisions
+
+**Finding**: Documentation examples throughout the codebase used `provider: 'anthropic'` instead of `provider: 'claude-code'`, contradicting the fundamental design decision to use Claude Agent SDK with OAuth authentication.
+
+**Evidence** (discovered post-Epic 2 completion):
+- Mary Agent JSDoc example (line 18): Used 'anthropic' provider
+- John Agent JSDoc example (line 18): Used 'anthropic' provider
+- DecisionEngine JSDoc example (line 14): Used 'anthropic' provider
+- System was designed from the start to use `@anthropic-ai/claude-agent-sdk` with OAuth tokens (sk-ant-oat01-*)
+- Standard `@anthropic-ai/sdk` only supports API keys and was never intended to be used
+
+**Impact**:
+- Future developers would copy incorrect examples from documentation
+- Tests could be written with wrong provider configuration
+- OAuth authentication pattern would be lost over time
+- Epic 3 agents (Winston, Murat) could have been implemented incorrectly
+
+**Lesson**: Fundamental design decisions must be:
+1. **Documented explicitly** in architecture and coding standards (not just in implementation)
+2. **Reflected consistently** in all JSDoc examples and documentation
+3. **Enforced in code reviews** (reviewer checklist: "Does this use claude-code provider?")
+4. **Validated in Definition of Done** for agent implementations
+5. **Captured early** in tech specs and patterns documents
+
+When a system is designed around OAuth vs API keys, that's not an implementation detail - it's an architectural constraint that must be visible and enforced.
+
 ---
 
 ## Key Challenges Deep Dive
@@ -402,6 +428,26 @@ Epic 1 retrospective identified **7 action items** for Epic 2. **0/7 were addres
      - Documentation accurately reflects implementation
    - **Timeline**: Before Epic 3 Story 3.1
    - **Estimated Effort**: 2-3 hours (process), or 8-10 hours (tooling)
+
+9. **Document OAuth Authentication Pattern** (Post-Epic 2 Discovery)
+   - **Owner**: Architect (Winston) + Developer (Amelia)
+   - **Action**:
+     - Create `docs/llm-provider-patterns.md` documenting:
+       - Why `claude-code` provider must be used (OAuth authentication)
+       - Difference between `@anthropic-ai/claude-agent-sdk` (OAuth) and `@anthropic-ai/sdk` (API key)
+       - When to use 'claude-code' vs 'anthropic' in configurations
+       - Examples of correct usage in agents, tests, and documentation
+     - Add OAuth pattern to code review checklist
+     - Update Definition of Done for agent stories: "All LLM configurations use 'claude-code' provider"
+     - Add validation to PR template: "Does this agent use 'claude-code' provider?"
+   - **Success Criteria**:
+     - Pattern doc exists and is referenced in Epic 3 tech spec
+     - All Epic 3 agent implementations (Winston, Murat) use 'claude-code' provider
+     - No JSDoc examples use 'anthropic' provider for Claude Code authentication
+     - Code reviewers check OAuth pattern compliance
+   - **Timeline**: Before Epic 3 Story 3.1 (agent infrastructure)
+   - **Estimated Effort**: 2-3 hours (documentation + checklist updates)
+   - **Status**: ✅ PARTIALLY COMPLETE - Documentation examples already fixed (commit f2012e6), pattern documentation pending
 
 ---
 
