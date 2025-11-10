@@ -447,9 +447,16 @@ describe('MaryAgent Integration Tests', () => {
 
     it.skipIf(!hasApiKeys())('should apply 80/20 rule in scope negotiation', async () => {
       const requirements = [
-        'Feature 1', 'Feature 2', 'Feature 3', 'Feature 4',
-        'Feature 5', 'Feature 6', 'Feature 7', 'Feature 8',
-        'Feature 9', 'Feature 10'
+        'User authentication with email and password',
+        'Social login (Google, Facebook)',
+        'Password reset via email',
+        'Two-factor authentication',
+        'User profile management',
+        'Avatar upload',
+        'Email notifications',
+        'Push notifications',
+        'Activity feed',
+        'Search functionality'
       ];
       const constraints = { timeline: '2 weeks', teamSize: 1 };
 

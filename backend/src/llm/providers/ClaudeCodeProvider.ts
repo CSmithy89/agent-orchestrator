@@ -94,23 +94,29 @@ class ClaudeCodeClient implements LLMClient {
         messages.push(message);
       }
 
-      // Extract text content from messages
+      // Extract text content from assistant messages
+      // Claude Agent SDK structure: message.type === 'assistant' → message.message.content[].text
       const textContent = messages
-        .filter(msg => msg.role === 'assistant')
+        .filter(msg => msg.type === 'assistant')
         .map(msg => {
-          if (typeof msg.text === 'string') {
-            return msg.text;
+          // Extract text from nested message structure
+          if (msg.message?.content && Array.isArray(msg.message.content)) {
+            return msg.message.content
+              .filter((c: any) => c.type === 'text')
+              .map((c: any) => c.text || '')
+              .join('\n');
           }
           return '';
         })
+        .filter(text => text.length > 0)
         .join('\n');
 
-      // Update token usage if available from last message
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage?.usage) {
+      // Update token usage from the result message
+      const resultMessage = messages.find(msg => msg.type === 'result');
+      if (resultMessage?.usage) {
         this.lastTokenUsage = {
-          input_tokens: lastMessage.usage.input_tokens || 0,
-          output_tokens: lastMessage.usage.output_tokens || 0
+          input_tokens: resultMessage.usage.input_tokens || 0,
+          output_tokens: resultMessage.usage.output_tokens || 0
         };
       }
 
@@ -143,13 +149,22 @@ class ClaudeCodeClient implements LLMClient {
       });
 
       for await (const message of result as any) {
-        // Yield text content from assistant messages
-        if (message.role === 'assistant' && typeof message.text === 'string') {
-          yield message.text;
+        // Extract text from assistant messages
+        // Claude Agent SDK structure: message.type === 'assistant' → message.message.content[].text
+        if (message.type === 'assistant' && message.message?.content) {
+          const textChunks = message.message.content
+            .filter((c: any) => c.type === 'text')
+            .map((c: any) => c.text || '');
+
+          for (const chunk of textChunks) {
+            if (chunk) {
+              yield chunk;
+            }
+          }
         }
 
-        // Update token usage if available
-        if (message.usage) {
+        // Update token usage from result message
+        if (message.type === 'result' && message.usage) {
           this.lastTokenUsage = {
             input_tokens: message.usage.input_tokens || 0,
             output_tokens: message.usage.output_tokens || 0
