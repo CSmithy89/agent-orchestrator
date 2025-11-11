@@ -34,7 +34,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             node-modules-${{ runner.os }}-
 
@@ -61,7 +61,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Run tests (PR - fast mode)
         if: github.event_name == 'pull_request'
@@ -108,7 +108,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Run ESLint
         run: cd backend && npm run lint
@@ -132,7 +132,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Run TypeScript type check
         run: cd backend && npm run type-check
@@ -156,7 +156,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: backend/node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('backend/package-lock.json') }}
+          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Build backend
         run: cd backend && npm run build
