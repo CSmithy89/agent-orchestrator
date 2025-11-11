@@ -74,15 +74,50 @@ describe('MaryAgent Integration Tests', () => {
         escalationQueue
       );
 
-      const result = await mary.analyzeRequirements(
-        'Build a user authentication system with email and password'
-      );
+      const detailedInput = `
+Build a user authentication system for our web application with the following features:
+
+**Core Requirements:**
+- User registration with email and password (bcrypt hashing, minimum 8 characters)
+- Email verification with time-limited tokens (24-hour expiry)
+- Login with email/password
+- Password reset functionality via email
+- Session management with JWT tokens (24-hour expiry, refresh tokens)
+- Account lockout after 5 failed login attempts (15-minute cooldown)
+
+**Security Requirements:**
+- Passwords must meet complexity requirements (uppercase, lowercase, number, special char)
+- HTTPS required for all authentication endpoints
+- Rate limiting on login/registration endpoints (10 requests per minute per IP)
+- CSRF protection for all forms
+
+**User Experience:**
+- Clear error messages for validation failures
+- "Remember me" option for extended sessions (30 days)
+- Account recovery options if email is inaccessible
+- Profile management (update email, change password)
+
+**Technical Constraints:**
+- Node.js backend with Express
+- PostgreSQL database
+- Redis for session storage and rate limiting
+- SendGrid for email delivery
+
+**Success Criteria:**
+- Users can register and verify email within 5 minutes
+- Login completes in under 2 seconds
+- Password reset process completes in under 5 minutes
+- System handles 1000 concurrent users
+- 99.9% uptime for authentication service
+`;
+
+      const result = await mary.analyzeRequirements(detailedInput);
 
       expect(result.requirements).toBeDefined();
       expect(result.requirements.length).toBeGreaterThan(0);
       expect(result.successCriteria).toBeDefined();
       expect(result.successCriteria.length).toBeGreaterThan(0);
-    }, 60000); // 60s timeout for LLM call
+    }, 90000); // 90s timeout for LLM call with detailed input
 
     it.skip('should work with OpenAI provider (GPT-4)', async () => {
       const openaiConfig: LLMConfig = {
@@ -318,12 +353,38 @@ describe('MaryAgent Integration Tests', () => {
 
       mary.setWorkflowContext('prd-workflow', 3);
 
-      const result = await mary.analyzeRequirements(
-        'Build user authentication with social login'
-      );
+      const detailedInput = `
+Build user authentication system with the following requirements:
+
+**Core Features:**
+- Standard email/password registration and login
+- Social login integration with Google OAuth 2.0 and Facebook Login
+- Email verification for new registrations (verification link expires in 24 hours)
+- Password reset via email with secure token (expires in 1 hour)
+
+**Security:**
+- Passwords hashed using bcrypt (cost factor 12)
+- JWT tokens for session management (expires after 24 hours)
+- HTTPS required for all authentication endpoints
+- Rate limiting on login attempts (5 attempts per 15 minutes)
+
+**User Experience:**
+- Single sign-on across all social providers
+- Profile data automatically populated from social accounts
+- Users can link multiple social accounts to one profile
+
+**Technical Stack:**
+- Node.js backend with Express
+- PostgreSQL for user data storage
+- Passport.js for authentication strategies
+`;
+
+      const result = await mary.analyzeRequirements(detailedInput);
 
       expect(result).toBeDefined();
-    }, 60000);
+      expect(result.requirements).toBeDefined();
+      expect(result.requirements.length).toBeGreaterThan(0);
+    }, 90000);
   });
 
   // ==========================================
