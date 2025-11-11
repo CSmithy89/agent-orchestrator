@@ -60,8 +60,8 @@ export default defineConfig({
         // GitHub Actions sets both CI and GITHUB_ACTIONS
         maxForks: (process.env.CI || process.env.GITHUB_ACTIONS) ? 1 : Math.max(1, os.cpus().length - 1),
         minForks: 1,
-        // Single fork mode in CI for stability (prevents worker exit during cleanup)
-        singleFork: !!(process.env.CI || process.env.GITHUB_ACTIONS),
+        // Allow worker to restart naturally to free memory (singleFork was causing memory accumulation)
+        singleFork: false,
         // Enable isolation for integration tests (required for file system operations)
         isolate: true,
       }
