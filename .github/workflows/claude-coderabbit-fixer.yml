@@ -1,4 +1,4 @@
-name: Claude Auto-Fix CodeRabbit Suggestions
+name: Claude Dual Review + Auto-Fix
 
 on:
   pull_request_review:
@@ -7,7 +7,7 @@ on:
     types: [created]
 
 jobs:
-  auto-fix-coderabbit:
+  dual-review-and-fix:
     # Only run if CodeRabbit posted a review or comment
     if: |
       (github.event_name == 'pull_request_review' && github.event.review.user.login == 'coderabbitai[bot]') ||
@@ -29,13 +29,23 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        run: cd backend && npm ci
+
       - name: Configure Git
         run: |
           git config --global user.name "Claude Code Bot"
           git config --global user.email "claude-code[bot]@users.noreply.github.com"
 
-      - name: Run Claude to Fix CodeRabbit Suggestions
-        id: claude-fix
+      - name: Run Claude Dual Review + Auto-Fix
+        id: claude-dual-review
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -43,31 +53,133 @@ jobs:
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
 
-            CodeRabbit has reviewed this PR and provided suggestions. Your task is to:
+            # DUAL CODE REVIEW + AUTO-FIX WORKFLOW
 
-            1. Read the CodeRabbit review comments using `gh pr view` and `gh api` commands
-            2. Analyze each suggestion carefully
-            3. Implement the fixes that are valid and improve code quality
-            4. Make the necessary code changes using your file editing tools
-            5. Commit the changes with a clear message like "fix: apply CodeRabbit suggestions"
-            6. Push the changes to the PR branch
+            You are performing a comprehensive dual code review and auto-fix process. Follow these steps precisely:
 
-            Important guidelines:
-            - Only apply suggestions that are genuinely improvements
-            - If a suggestion is unclear or potentially incorrect, skip it and leave a comment explaining why
-            - Test that your changes don't break anything (review tests if available)
-            - Use the repository's code style and conventions
-            - Group related fixes into logical commits
+            ## STEP 1: Perform Your Own Code Review
 
-            After making changes, leave a comment on the PR summarizing what you fixed using `gh pr comment`.
+            Analyze the PR changes using `gh pr diff` and review for:
+            - Code quality and best practices
+            - Potential bugs or logic errors
+            - Performance considerations
+            - Security vulnerabilities
+            - Test coverage gaps
+            - TypeScript type safety
+            - Architecture and design patterns
+
+            Document your findings internally (don't post yet).
+
+            ## STEP 2: Read CodeRabbit's Review
+
+            Use `gh pr view` and `gh api` to retrieve ALL CodeRabbit comments and suggestions.
+            Parse and categorize CodeRabbit's feedback.
+
+            ## STEP 3: Evaluate Both Reviews
+
+            Compare your analysis with CodeRabbit's suggestions:
+            - Which suggestions are valid improvements?
+            - Which suggestions might be false positives?
+            - Are there issues you found that CodeRabbit missed?
+            - Are there issues CodeRabbit found that you missed?
+            - Prioritize fixes: Critical > High > Medium > Low
+
+            Create a consolidated fix plan with rationale for each change.
+
+            ## STEP 4: Implement Fixes
+
+            Apply the approved fixes using Read, Edit, and Write tools:
+            - Make code changes based on consolidated review
+            - Group related changes logically
+            - Ensure code follows repository conventions
+            - Use descriptive variable names and add comments where needed
+
+            ## STEP 5: Validate Changes
+
+            CRITICAL: Before committing, you MUST validate:
+
+            1. Run lint check:
+               ```bash
+               cd backend && npm run lint
+               ```
+               If lint fails, fix the issues and re-run until it passes.
+
+            2. Run type check:
+               ```bash
+               cd backend && npm run type-check
+               ```
+               If type-check fails, fix the TypeScript errors and re-run until it passes.
+
+            3. ONLY proceed to commit if BOTH lint and type-check pass.
+
+            ## STEP 6: Commit and Push
+
+            If validation passes:
+            ```bash
+            git add .
+            git commit -m "fix: apply dual code review suggestions
+
+            Applied fixes from Claude + CodeRabbit dual review:
+            - [List key changes]
+
+            Validated:
+            ✓ ESLint passing
+            ✓ TypeScript type-check passing"
+
+            git push
+            ```
+
+            ## STEP 7: Post Summary Comment
+
+            Use `gh pr comment` to post a comprehensive summary:
+
+            ```markdown
+            ## 🤖 Dual Code Review + Auto-Fix Complete
+
+            ### Claude's Review Findings
+            - [Your key findings]
+
+            ### CodeRabbit's Review Findings
+            - [CodeRabbit's key findings]
+
+            ### Changes Applied
+            - [Detailed list of changes made]
+
+            ### Validation Results
+            ✅ ESLint: Passing
+            ✅ TypeScript: Passing
+
+            ### Skipped Suggestions
+            - [Any suggestions skipped with rationale]
+            ```
+
+            ## IMPORTANT GUIDELINES
+
+            - Be thorough but pragmatic
+            - Skip suggestions that would break functionality
+            - Explain your reasoning for skipped suggestions
+            - If you're unsure about a change, skip it and note why
+            - NEVER commit if lint or type-check fails
+            - If you can't fix validation errors, post a comment explaining what's blocked
 
           claude_args: |
-            --allowed-tools "Bash(gh pr:*),Bash(gh api:*),Bash(gh issue:*),Bash(git:*),Read,Edit,Write,Grep,Glob"
+            --allowed-tools "Bash(gh pr:*),Bash(gh api:*),Bash(gh issue:*),Bash(git:*),Bash(cd:*),Bash(npm run lint:*),Bash(npm run type-check:*),Read,Edit,Write,Grep,Glob"
 
-      - name: Comment on PR if no changes needed
+      - name: Comment on PR if workflow fails
         if: failure()
         run: |
           gh pr comment ${{ github.event.pull_request.number || github.event.issue.number }} \
-            --body "👋 I reviewed the CodeRabbit suggestions but encountered an issue while trying to apply them. Please review the workflow logs for details."
+            --body "❌ **Dual Review Workflow Failed**
+
+            I encountered an issue while performing the dual code review and auto-fix process.
+
+            Please check the [workflow logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.
+
+            Common issues:
+            - Merge conflicts in the PR branch
+            - Lint or type-check errors that couldn't be auto-fixed
+            - API rate limits
+
+            You may need to manually review and apply the suggestions."
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
