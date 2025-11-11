@@ -80,7 +80,6 @@ export class PRDTemplateProcessor {
   private templateProcessor: TemplateProcessor;
   // @ts-expect-error - Reserved for future use
   private agentPool: AgentPool;
-  // @ts-expect-error - Reserved for future use
   private stateManager: StateManager;
   private projectRoot: string;
 
@@ -749,7 +748,7 @@ export class PRDTemplateProcessor {
       await fs.mkdir(docsDir, { recursive: true });
 
       // Append section to file
-      await fs.appendFile(outputPath, content, 'utf-8');
+      await this.stateManager.appendToFile(outputPath, content);
 
       console.log(`✓ Saved section: ${sectionName}`);
 

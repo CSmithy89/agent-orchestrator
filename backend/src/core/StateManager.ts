@@ -496,6 +496,48 @@ export class StateManager {
   }
 
   /**
+   * Append content to a file
+   * Creates the directory if it doesn't exist
+   *
+   * @param filePath - Path to the file
+   * @param content - Content to append
+   */
+  async appendToFile(filePath: string, content: string): Promise<void> {
+    try {
+      // Ensure directory exists
+      const dir = path.dirname(filePath);
+      await fs.mkdir(dir, { recursive: true });
+
+      // Append content to file
+      await fs.appendFile(filePath, content, 'utf-8');
+    } catch (error) {
+      throw new StateManagerError(
+        `Failed to append to file ${filePath}: ${(error as Error).message}`,
+        'appendToFile',
+        filePath
+      );
+    }
+  }
+
+  /**
+   * Read file content
+   *
+   * @param filePath - Path to the file
+   * @returns File content
+   */
+  async readFile(filePath: string): Promise<string> {
+    try {
+      return await fs.readFile(filePath, 'utf-8');
+    } catch (error) {
+      throw new StateManagerError(
+        `Failed to read file ${filePath}: ${(error as Error).message}`,
+        'readFile',
+        filePath
+      );
+    }
+  }
+
+  /**
    * Clear the state cache
    * Useful for testing or when state is modified externally
    */
