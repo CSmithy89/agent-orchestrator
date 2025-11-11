@@ -27,7 +27,8 @@ const mockTemplateProcessor = {
 };
 
 const mockAgentPool = {
-  spawn: vi.fn(),
+  createAgent: vi.fn(),
+  destroyAgent: vi.fn(),
   get: vi.fn(),
   release: vi.fn(),
 };
@@ -64,7 +65,7 @@ describe('PRDTemplateProcessor', () => {
     tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'prd-test-'));
 
     // Mock AgentPool to return mock agents
-    mockAgentPool.spawn.mockImplementation(async (agentType: string) => {
+    mockAgentPool.createAgent.mockImplementation(async (agentType: string) => {
       if (agentType === 'mary') return mockMaryAgent;
       if (agentType === 'john') return mockJohnAgent;
       throw new Error(`Unknown agent type: ${agentType}`);

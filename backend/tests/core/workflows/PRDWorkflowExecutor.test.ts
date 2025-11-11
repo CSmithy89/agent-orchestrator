@@ -350,7 +350,7 @@ workflows:
 
       await executor.execute(projectRoot, { yoloMode: true });
 
-      expect(mockAgentPool.spawn).toHaveBeenCalledWith('mary', expect.any(Object));
+      expect(mockAgentPool.createAgent).toHaveBeenCalledWith('mary', expect.any(Object));
     });
 
     it('should call Mary agent methods for requirements analysis', async () => {
@@ -370,7 +370,7 @@ workflows:
     });
 
     it('should handle Mary agent spawn failures', async () => {
-      mockAgentPool.spawn = vi.fn().mockRejectedValue(new Error('Agent spawn failed'));
+      mockAgentPool.createAgent = vi.fn().mockRejectedValue(new Error('Agent spawn failed'));
 
       const executor = new PRDWorkflowExecutor(
         mockAgentPool,
@@ -403,7 +403,7 @@ workflows:
 
       await executor.execute(projectRoot, { yoloMode: true });
 
-      expect(mockAgentPool.spawn).toHaveBeenCalledWith('john', expect.any(Object));
+      expect(mockAgentPool.createAgent).toHaveBeenCalledWith('john', expect.any(Object));
     });
 
     it('should call John agent methods for strategic validation', async () => {
@@ -438,8 +438,8 @@ workflows:
       await executor.execute(projectRoot, { yoloMode: true });
 
       // Verify both agents were spawned with the same context
-      const maryContext = (mockAgentPool.spawn as any).mock.calls.find((call: any) => call[0] === 'mary')[1];
-      const johnContext = (mockAgentPool.spawn as any).mock.calls.find((call: any) => call[0] === 'john')[1];
+      const maryContext = (mockAgentPool.createAgent as any).mock.calls.find((call: any) => call[0] === 'mary')[1];
+      const johnContext = (mockAgentPool.createAgent as any).mock.calls.find((call: any) => call[0] === 'john')[1];
 
       expect(maryContext).toBeDefined();
       expect(johnContext).toBeDefined();
@@ -773,12 +773,12 @@ workflows:
 
       // Create agent pool that returns slow agent
       const slowAgentPool = {
-        spawn: vi.fn().mockImplementation((agentType: string) => {
+        createAgent: vi.fn().mockImplementation((agentType: string) => {
           if (agentType === 'mary') return Promise.resolve(slowMaryAgent);
           if (agentType === 'john') return Promise.resolve(mockJohnAgent);
           throw new Error(`Unknown agent type: ${agentType}`);
         }),
-        destroy: vi.fn().mockResolvedValue(undefined)
+        destroyAgent: vi.fn().mockResolvedValue(undefined)
       } as any;
 
       const executor = new PRDWorkflowExecutor(
