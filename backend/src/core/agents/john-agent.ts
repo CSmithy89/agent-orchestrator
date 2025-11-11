@@ -218,7 +218,7 @@ export class JohnAgent {
   private static readonly DEFAULT_PERSONA_PATH = '../../../../bmad/bmm/agents/pm.md';
 
   /** Escalation threshold (from DecisionEngine) */
-  private static readonly ESCALATION_THRESHOLD = 0.75;
+  private static readonly _ESCALATION_THRESHOLD = 0.75;
 
   /** Temperature for strategic reasoning (balanced strategy/creativity) */
   private static readonly STRATEGY_TEMPERATURE = 0.5;
@@ -242,17 +242,17 @@ export class JohnAgent {
   private readonly temperature: number;
 
   /** Decision engine for confidence-based decisions */
-  private readonly decisionEngine?: DecisionEngine;
+  private readonly _decisionEngine?: DecisionEngine;
 
   /** Escalation queue for human intervention */
-  private readonly escalationQueue?: EscalationQueue;
+  private readonly _escalationQueue?: EscalationQueue;
 
   /** Current workflow context */
-  private workflowId: string = 'john-session';
-  private currentStep: number = 0;
+  private _workflowId: string = 'john-session';
+  private _currentStep: number = 0;
 
   /** Decision audit trail */
-  private readonly decisions: DecisionRecord[] = [];
+  private readonly _decisions: DecisionRecord[] = [];
 
   /**
    * Private constructor - use JohnAgent.create() instead
@@ -269,8 +269,8 @@ export class JohnAgent {
     this.persona = persona;
     this.llmConfig = llmConfig;
     this.temperature = temperature;
-    this.decisionEngine = decisionEngine;
-    this.escalationQueue = escalationQueue;
+    this._decisionEngine = decisionEngine;
+    this._escalationQueue = escalationQueue;
   }
 
   /**

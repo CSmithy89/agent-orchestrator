@@ -8,7 +8,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { PRDWorkflowExecutor } from '../../src/core/workflows/prd-workflow-executor.js';
 import { PRDValidator } from '../../src/core/workflows/prd-validator.js';
-import { PRDTemplateProcessor } from '../../src/core/workflows/prd-template-processor.js';
 import { AgentPool } from '../../src/core/AgentPool.js';
 import { DecisionEngine } from '../../src/core/services/decision-engine.js';
 import { EscalationQueue } from '../../src/core/services/escalation-queue.js';

@@ -3,7 +3,7 @@
  * Uses Claude Agent SDK which wraps Claude Code CLI for subscription authentication
  */
 
-import { query, SDKMessage } from '@anthropic-ai/claude-agent-sdk';
+import { query } from '@anthropic-ai/claude-agent-sdk';
 import { LLMProvider } from '../LLMProvider.interface.js';
 import { LLMClient } from '../LLMClient.interface.js';
 import { LLMConfig, LLMError, LLMErrorType, InvokeOptions, StreamOptions, TokenUsage } from '../../types/llm.types.js';
@@ -73,7 +73,7 @@ class ClaudeCodeClient implements LLMClient {
    * Synchronous invocation
    * Wraps Claude Agent SDK's async generator to match LLMClient interface
    */
-  async invoke(prompt: string, options?: InvokeOptions): Promise<string> {
+  async invoke(prompt: string, _options?: InvokeOptions): Promise<string> {
     try {
       const messages: any[] = [];
 
@@ -136,7 +136,7 @@ class ClaudeCodeClient implements LLMClient {
    * Streaming invocation
    * Passes through Claude Agent SDK's streaming messages
    */
-  async *invokeStream(prompt: string, options?: StreamOptions): AsyncGenerator<string> {
+  async *invokeStream(prompt: string, _options?: StreamOptions): AsyncGenerator<string> {
     try {
       const result = query({
         prompt,

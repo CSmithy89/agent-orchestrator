@@ -11,6 +11,7 @@ import { DecisionEngine } from '../../core/services/decision-engine.js';
 import { EscalationQueue } from '../../core/services/escalation-queue.js';
 import { StateManager } from '../../core/StateManager.js';
 import { ProjectConfig } from '../../config/ProjectConfig.js';
+import { LLMFactory } from '../../llm/LLMFactory.js';
 import { colors } from '../utils/colors.js';
 import { handleError, ProjectNotFoundError, WorkflowNotFoundError, exitWithCode } from '../utils/error-handler.js';
 
@@ -66,8 +67,13 @@ export async function runPRDWorkflow(options: RunPRDWorkflowOptions): Promise<vo
     console.log(colors.dim('→ Initializing workflow components...'));
 
     const stateManager = new StateManager(projectRoot);
-    const agentPool = new AgentPool(projectConfig);
-    const decisionEngine = new DecisionEngine();
+    const llmFactory = new LLMFactory();
+    const agentPool = new AgentPool(llmFactory, projectConfig);
+    const decisionEngine = new DecisionEngine(
+      llmFactory,
+      { provider: 'claude-code', model: 'claude-sonnet-4-5', maxTokens: 2000 },
+      path.join(projectRoot, '.bmad', 'onboarding')
+    );
     const escalationQueue = new EscalationQueue(path.join(projectRoot, '.bmad-escalations'));
 
     console.log(colors.success(`✓ Components initialized`));
@@ -105,7 +111,7 @@ export async function runPRDWorkflow(options: RunPRDWorkflowOptions): Promise<vo
     console.log(colors.info(`   Escalations: ${result.escalationsCount} (target: <3)`));
 
     if (result.escalationsCount >= 3) {
-      console.log(colors.warn(`   ⚠️  Escalation count is at or above target`));
+      console.log(colors.warning(`   ⚠️  Escalation count is at or above target`));
     }
 
     console.log();
