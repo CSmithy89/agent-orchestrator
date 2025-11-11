@@ -40,6 +40,7 @@ describe('PRDWorkflowExecutor', () => {
 
     // Create mock agents
     mockMaryAgent = {
+      id: 'mary-agent-id',
       analyzeRequirements: vi.fn().mockResolvedValue({
         requirementsList: [
           { id: 'req-1', description: 'User authentication' },
@@ -58,6 +59,7 @@ describe('PRDWorkflowExecutor', () => {
     };
 
     mockJohnAgent = {
+      id: 'john-agent-id',
       defineProductVision: vi.fn().mockResolvedValue({
         vision: 'Streamline workflow automation',
         targetUsers: 'Development teams',
@@ -93,12 +95,12 @@ describe('PRDWorkflowExecutor', () => {
 
     // Create mock AgentPool
     mockAgentPool = {
-      spawn: vi.fn().mockImplementation((agentType: string) => {
+      createAgent: vi.fn().mockImplementation((agentType: string, _context?: any) => {
         if (agentType === 'mary') return Promise.resolve(mockMaryAgent);
         if (agentType === 'john') return Promise.resolve(mockJohnAgent);
         throw new Error(`Unknown agent type: ${agentType}`);
       }),
-      destroy: vi.fn().mockResolvedValue(undefined)
+      destroyAgent: vi.fn().mockResolvedValue(undefined)
     } as any;
 
     // Create mock DecisionEngine

@@ -74,9 +74,10 @@ steps:
     } as any;
 
     mockAgentPool = {
-      spawn: vi.fn().mockImplementation((agentType: string) => {
+      createAgent: vi.fn().mockImplementation((agentType: string, _context?: any) => {
         if (agentType === 'mary') {
           return Promise.resolve({
+            id: 'mary-agent-id',
             analyzeRequirements: vi.fn().mockResolvedValue({
               requirementsList: ['Req 1', 'Req 2'],
               confidence: 0.85
@@ -85,6 +86,7 @@ steps:
         }
         if (agentType === 'john') {
           return Promise.resolve({
+            id: 'john-agent-id',
             defineProductVision: vi.fn().mockResolvedValue({
               vision: 'Test vision',
               confidence: 0.88
@@ -93,7 +95,7 @@ steps:
         }
         throw new Error(`Unknown agent: ${agentType}`);
       }),
-      destroy: vi.fn().mockResolvedValue(undefined)
+      destroyAgent: vi.fn().mockResolvedValue(undefined)
     } as any;
   });
 
@@ -118,8 +120,8 @@ steps:
     expect(result.success).toBe(true);
 
     // Verify both agents were spawned
-    expect(mockAgentPool.spawn).toHaveBeenCalledWith('mary', expect.any(Object));
-    expect(mockAgentPool.spawn).toHaveBeenCalledWith('john', expect.any(Object));
+    expect(mockAgentPool.createAgent).toHaveBeenCalledWith('mary', expect.any(Object));
+    expect(mockAgentPool.createAgent).toHaveBeenCalledWith('john', expect.any(Object));
 
     // Verify PRD.md was generated
     const prdPath = path.join(docsDir, 'PRD.md');
@@ -141,8 +143,8 @@ steps:
     await executor.execute(projectRoot, { yoloMode: true });
 
     // Verify both agents received context
-    const maryCall = (mockAgentPool.spawn as any).mock.calls.find((c: any) => c[0] === 'mary');
-    const johnCall = (mockAgentPool.spawn as any).mock.calls.find((c: any) => c[0] === 'john');
+    const maryCall = (mockAgentPool.createAgent as any).mock.calls.find((c: any) => c[0] === 'mary');
+    const johnCall = (mockAgentPool.createAgent as any).mock.calls.find((c: any) => c[0] === 'john');
 
     expect(maryCall).toBeDefined();
     expect(johnCall).toBeDefined();
