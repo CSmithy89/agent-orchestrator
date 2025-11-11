@@ -228,11 +228,10 @@ export class JohnAgent {
   /** Temperature for LLM invocations */
   private readonly temperature: number;
 
-  // Future work: Decision engine integration and workflow tracking
-  // Uncomment when implementing decision confidence and escalation features
-  // private static readonly ESCALATION_THRESHOLD = 0.75;
-  // private readonly decisionEngine?: DecisionEngine;
-  // private readonly escalationQueue?: EscalationQueue;
+  // Decision engine integration and workflow tracking
+  private static readonly ESCALATION_THRESHOLD = 0.75;
+  private readonly decisionEngine?: DecisionEngine;
+  private readonly escalationQueue?: EscalationQueue;
   // private workflowId: string = 'john-session';
   // private currentStep: number = 0;
   // private readonly decisions: DecisionRecord[] = [];
@@ -244,12 +243,16 @@ export class JohnAgent {
     llmClient: LLMClient,
     persona: JohnPersona,
     llmConfig: LLMConfig,
-    temperature: number
+    temperature: number,
+    decisionEngine?: DecisionEngine,
+    escalationQueue?: EscalationQueue
   ) {
     this.llmClient = llmClient;
     this.persona = persona;
     this._llmConfig = llmConfig;
     this.temperature = temperature;
+    this.decisionEngine = decisionEngine;
+    this.escalationQueue = escalationQueue;
   }
 
   /**
@@ -263,6 +266,8 @@ export class JohnAgent {
   static async create(
     llmConfig: LLMConfig,
     llmFactory: LLMFactory,
+    decisionEngine?: DecisionEngine,
+    escalationQueue?: EscalationQueue,
     personaPath?: string
   ): Promise<JohnAgent> {
     // Validate LLM config
@@ -292,7 +297,9 @@ export class JohnAgent {
       llmClient,
       persona,
       llmConfig,
-      temperature
+      temperature,
+      decisionEngine,
+      escalationQueue
     );
   }
 
