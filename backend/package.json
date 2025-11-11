@@ -11,7 +11,7 @@
     "test": "NODE_OPTIONS='--max-old-space-size=3072' vitest run",
     "test:watch": "vitest watch",
     "test:ui": "vitest --ui",
-    "test:coverage": "NODE_OPTIONS='--max-old-space-size=3072' vitest run --coverage",
+    "test:coverage": "NODE_OPTIONS='--max-old-space-size=4096' vitest run --coverage",
     "lint": "eslint src tests --ext .ts",
     "type-check": "tsc --noEmit",
     "orchestrator": "tsx src/cli/index.ts"
