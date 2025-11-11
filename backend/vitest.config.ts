@@ -60,6 +60,10 @@ export default defineConfig({
         // GitHub Actions sets both CI and GITHUB_ACTIONS
         maxForks: (process.env.CI || process.env.GITHUB_ACTIONS) ? 1 : Math.max(1, os.cpus().length - 1),
         minForks: 1,
+        // Single fork mode in CI for stability (prevents worker exit during cleanup)
+        singleFork: !!(process.env.CI || process.env.GITHUB_ACTIONS),
+        // Disable isolation to reduce overhead and prevent cleanup issues
+        isolate: false,
       }
     },
 
@@ -67,6 +71,7 @@ export default defineConfig({
     // Unit tests: 5000ms, Integration tests: 30000ms (set per-test as needed)
     testTimeout: 5000,      // Default for unit tests
     hookTimeout: 10000,     // Hook timeout
+    teardownTimeout: 15000, // Extended teardown timeout for CI cleanup (prevents worker exit)
 
     // Watch mode configuration (AC #5)
     watch: false, // Disabled by default, enabled via --watch flag
