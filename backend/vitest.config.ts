@@ -48,11 +48,13 @@ export default defineConfig({
     // Parallel execution configuration (AC #4)
     // Use CPU cores for optimal parallel execution
     // Use 'forks' for integration tests that need process.chdir()
+    // Run sequentially in CI to prevent OOM (fixes heap allocation errors)
     pool: 'forks',
     poolOptions: {
       forks: {
-        // Max concurrency based on CPU cores (leave 1 core for system)
-        maxForks: Math.max(1, os.cpus().length - 1),
+        // Max concurrency: Run sequentially in CI (maxForks: 1) to prevent OOM
+        // Use more forks locally based on CPU cores (leave 1 core for system)
+        maxForks: process.env.CI ? 1 : Math.max(1, os.cpus().length - 1),
         minForks: 1,
       }
     },
