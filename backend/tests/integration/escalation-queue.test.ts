@@ -87,7 +87,7 @@ describe('EscalationQueue Integration Tests', () => {
       expect(updated.status).toBe('resolved');
       expect(updated.response).toBe('Yes, proceed with deployment');
       expect(updated.resolvedAt).toBeDefined();
-      expect(updated.resolutionTime).toBeGreaterThan(0);
+      expect(updated.resolutionTime).toBeGreaterThanOrEqual(0); // Can be 0ms in fast CI
 
       // Verify no longer in pending list
       const stillPending = await escalationQueue.list({ status: 'pending' });
@@ -279,7 +279,7 @@ describe('EscalationQueue Integration Tests', () => {
 
       expect(metrics.totalEscalations).toBe(3);
       expect(metrics.resolvedCount).toBe(2);
-      expect(metrics.averageResolutionTime).toBeGreaterThan(0);
+      expect(metrics.averageResolutionTime).toBeGreaterThanOrEqual(0); // Can be 0ms in fast CI
       expect(metrics.categoryBreakdown['prd-workflow']).toBe(2);
       expect(metrics.categoryBreakdown['arch-workflow']).toBe(1);
     });
@@ -397,7 +397,7 @@ describe('EscalationQueue Integration Tests', () => {
       expect(resolved.status).toBe('resolved');
       expect(resolved.response).toEqual(response);
       expect(resolved.resolvedAt).toBeDefined();
-      expect(resolved.resolutionTime).toBeGreaterThan(0);
+      expect(resolved.resolutionTime).toBeGreaterThanOrEqual(0); // Can be 0ms in fast CI
 
       // 6. Verify escalation no longer pending
       const stillPending = await escalationQueue.list({ status: 'pending' });
