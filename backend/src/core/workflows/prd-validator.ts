@@ -216,7 +216,9 @@ export class PRDValidator {
     const headers: string[] = [];
     let match;
     while ((match = headerRegex.exec(content)) !== null) {
-      headers.push(match[1].trim());
+      if (match[1]) {
+        headers.push(match[1].trim());
+      }
     }
 
     // Check each required section
@@ -277,7 +279,7 @@ export class PRDValidator {
 
     // Also check MVP Scope section for vague patterns
     const mvpScopeMatch = content.match(/##\s+MVP\s+Scope([\s\S]*?)(?=##|$)/i);
-    if (mvpScopeMatch) {
+    if (mvpScopeMatch && mvpScopeMatch[1]) {
       const mvpSection = mvpScopeMatch[1];
       for (const pattern of VAGUE_PATTERNS) {
         const matches = mvpSection.match(pattern);
@@ -311,6 +313,9 @@ export class PRDValidator {
       return issues;
     }
 
+    if (!successCriteriaMatch[1]) {
+      return issues;
+    }
     const successCriteriaSection = successCriteriaMatch[1];
 
     // Check for subjective patterns
@@ -403,7 +408,7 @@ export class PRDValidator {
             issue: `Acceptance Criteria section appears empty or improperly formatted.`,
             severity: 'high',
           });
-        } else if (acLines.length === 1 && acLines[0].length < 20) {
+        } else if (acLines.length === 1 && acLines[0] && acLines[0].length < 20) {
           issues.push({
             section: reqId,
             issue: `Acceptance Criteria may be too brief. Add more specific test conditions.`,

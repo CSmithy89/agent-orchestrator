@@ -137,12 +137,16 @@ export interface WorkflowDecision {
 }
 
 /**
- * Agent context interface
+ * Agent context interface for workflow executor
  */
 export interface AgentContext {
   projectPath: string;
   workflowConfig: WorkflowConfig;
   sharedData: Record<string, any>;
+  // Additional fields required by AgentPool
+  onboardingDocs: string[];
+  workflowState: Record<string, unknown>;
+  taskDescription: string;
 }
 
 /**
@@ -153,6 +157,7 @@ export class PRDWorkflowExecutor {
   private agentPool: AgentPool;
   private decisionEngine: DecisionEngine;
   private escalationQueue: EscalationQueue;
+  // @ts-expect-error - Reserved for future use
   private _stateManager: StateManager; // Future work: workflow state persistence
   private workflowConfig?: WorkflowConfig;
   private stepStatuses: StepStatus[] = [];
@@ -384,7 +389,10 @@ export class PRDWorkflowExecutor {
           const agent = await this.spawnAgent(step.agent, {
             projectPath,
             workflowConfig: this.workflowConfig!,
-            sharedData: sharedContext
+            sharedData: sharedContext,
+            onboardingDocs: [],
+            workflowState: {},
+            taskDescription: step.name || `Step ${step.id}`
           });
           this.spawnedAgents.set(step.agent, agent);
         }
@@ -587,7 +595,12 @@ export class PRDWorkflowExecutor {
         // For now, use the AI decision anyway but log the escalation
         console.warn(`[PRDWorkflowExecutor] Escalation created: ${escalationId} (using AI decision anyway)`);
 
-        return decision;
+        // Convert DecisionEngine's Decision to WorkflowDecision
+        return {
+          decision: String(decision.decision),
+          confidence: decision.confidence,
+          reasoning: decision.reasoning
+        };
       }
 
       // High confidence: proceed autonomously

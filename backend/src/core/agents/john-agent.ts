@@ -222,6 +222,7 @@ export class JohnAgent {
   private readonly persona: JohnPersona;
 
   /** LLM configuration (reserved for future use) */
+  // @ts-expect-error - Reserved for future use
   private readonly _llmConfig: LLMConfig;
 
   /** Temperature for LLM invocations */

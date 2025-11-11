@@ -121,6 +121,7 @@ export class MaryAgent {
   private readonly persona: MaryPersona;
 
   /** LLM configuration (reserved for future use) */
+  // @ts-expect-error - Reserved for future use
   private readonly _llmConfig: LLMConfig;
 
   /** Temperature for LLM invocations */

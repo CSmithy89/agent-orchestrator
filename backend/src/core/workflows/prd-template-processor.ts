@@ -66,6 +66,7 @@ export interface Requirement {
 /**
  * Template section definition (reserved for future use)
  */
+// @ts-expect-error - Reserved for future use
 interface _TemplateSection {
   name: string;
   placeholders: string[];
@@ -77,7 +78,9 @@ interface _TemplateSection {
  */
 export class PRDTemplateProcessor {
   private templateProcessor: TemplateProcessor;
+  // @ts-expect-error - Reserved for future use
   private agentPool: AgentPool;
+  // @ts-expect-error - Reserved for future use
   private stateManager: StateManager;
   private projectRoot: string;
 
@@ -152,10 +155,12 @@ export class PRDTemplateProcessor {
     let match;
 
     while ((match = placeholderRegex.exec(template)) !== null) {
-      const placeholder = match[1].trim();
-      // Skip Handlebars control structures (#if, #each, etc.)
-      if (!placeholder.startsWith('#') && !placeholder.startsWith('/')) {
-        sections.push(placeholder);
+      if (match[1]) {
+        const placeholder = match[1].trim();
+        // Skip Handlebars control structures (#if, #each, etc.)
+        if (!placeholder.startsWith('#') && !placeholder.startsWith('/')) {
+          sections.push(placeholder);
+        }
       }
     }
 
@@ -590,7 +595,7 @@ export class PRDTemplateProcessor {
     for (const req of requirements) {
       // Extract feature area from statement (e.g., "Auth: login" -> "Auth")
       const match = req.statement.match(/^([^:]+):/);
-      const feature = match ? match[1].trim() : 'General';
+      const feature = match && match[1] ? match[1].trim() : 'General';
 
       if (!grouped[feature]) {
         grouped[feature] = [];
@@ -743,8 +748,8 @@ export class PRDTemplateProcessor {
       const docsDir = path.dirname(outputPath);
       await fs.mkdir(docsDir, { recursive: true });
 
-      // Append section to file using StateManager for atomic writes
-      await this.stateManager.appendToFile(outputPath, content);
+      // Append section to file
+      await fs.appendFile(outputPath, content, 'utf-8');
 
       console.log(`✓ Saved section: ${sectionName}`);
 
