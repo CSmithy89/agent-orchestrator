@@ -62,8 +62,8 @@ export default defineConfig({
         minForks: 1,
         // Single fork mode in CI for stability (prevents worker exit during cleanup)
         singleFork: !!(process.env.CI || process.env.GITHUB_ACTIONS),
-        // Disable isolation to reduce overhead and prevent cleanup issues
-        isolate: false,
+        // Enable isolation for integration tests (required for file system operations)
+        isolate: true,
       }
     },
 
