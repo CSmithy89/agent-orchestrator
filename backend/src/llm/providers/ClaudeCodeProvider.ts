@@ -82,10 +82,10 @@ class ClaudeCodeClient implements LLMClient {
         prompt,
         options: {
           model: this.config.model,
-          maxTokens: this.config.maxTokens || 4000,
-          temperature: this.config.temperature || 0.7,
           // Bypass permissions for programmatic use
           permissionMode: 'bypassPermissions'
+          // Note: Claude Agent SDK doesn't support temperature or max_tokens directly
+          // These are controlled by Claude Code's configuration
         }
       });
 
@@ -114,9 +114,12 @@ class ClaudeCodeClient implements LLMClient {
       // Update token usage from the result message
       const resultMessage = messages.find(msg => msg.type === 'result');
       if (resultMessage?.usage) {
+        const inputTokens = resultMessage.usage.input_tokens || 0;
+        const outputTokens = resultMessage.usage.output_tokens || 0;
         this.lastTokenUsage = {
-          input_tokens: resultMessage.usage.input_tokens || 0,
-          output_tokens: resultMessage.usage.output_tokens || 0
+          input_tokens: inputTokens,
+          output_tokens: outputTokens,
+          total_tokens: inputTokens + outputTokens
         };
       }
 
@@ -136,15 +139,15 @@ class ClaudeCodeClient implements LLMClient {
    * Streaming invocation
    * Passes through Claude Agent SDK's streaming messages
    */
-  async *invokeStream(prompt: string, _options?: StreamOptions): AsyncGenerator<string> {
+  async *stream(prompt: string, _options?: StreamOptions): AsyncIterableIterator<string> {
     try {
       const result = query({
         prompt,
         options: {
           model: this.config.model,
-          maxTokens: this.config.maxTokens || 4000,
-          temperature: this.config.temperature || 0.7,
           permissionMode: 'bypassPermissions'
+          // Note: Claude Agent SDK doesn't support temperature or max_tokens directly
+          // These are controlled by Claude Code's configuration
         }
       });
 
@@ -165,9 +168,12 @@ class ClaudeCodeClient implements LLMClient {
 
         // Update token usage from result message
         if (message.type === 'result' && message.usage) {
+          const inputTokens = message.usage.input_tokens || 0;
+          const outputTokens = message.usage.output_tokens || 0;
           this.lastTokenUsage = {
-            input_tokens: message.usage.input_tokens || 0,
-            output_tokens: message.usage.output_tokens || 0
+            input_tokens: inputTokens,
+            output_tokens: outputTokens,
+            total_tokens: inputTokens + outputTokens
           };
         }
       }
@@ -187,6 +193,22 @@ class ClaudeCodeClient implements LLMClient {
    */
   getTokenUsage(): TokenUsage | undefined {
     return this.lastTokenUsage;
+  }
+
+  /**
+   * Estimate cost for a request/response pair
+   * Claude Sonnet pricing (approximate)
+   */
+  estimateCost(prompt: string, response: string): number {
+    // Rough estimate: ~4 chars per token
+    const inputTokens = Math.ceil(prompt.length / 4);
+    const outputTokens = Math.ceil(response.length / 4);
+
+    // Claude Sonnet 3.5 pricing (as of 2024): $3/M input, $15/M output
+    const inputCost = (inputTokens / 1_000_000) * 3;
+    const outputCost = (outputTokens / 1_000_000) * 15;
+
+    return inputCost + outputCost;
   }
 
   /**

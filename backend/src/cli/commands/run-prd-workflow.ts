@@ -71,7 +71,7 @@ export async function runPRDWorkflow(options: RunPRDWorkflowOptions): Promise<vo
     const agentPool = new AgentPool(llmFactory, projectConfig);
     const decisionEngine = new DecisionEngine(
       llmFactory,
-      { provider: 'claude-code', model: 'claude-sonnet-4-5', maxTokens: 2000 },
+      { provider: 'claude-code', model: 'claude-sonnet-4-5' },
       path.join(projectRoot, '.bmad', 'onboarding')
     );
     const escalationQueue = new EscalationQueue(path.join(projectRoot, '.bmad-escalations'));

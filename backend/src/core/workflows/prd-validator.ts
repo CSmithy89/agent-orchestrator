@@ -373,7 +373,7 @@ export class PRDValidator {
         /\*\*Acceptance\s+Criteria\*\*:?\s*([\s\S]*?)(?=\*\*|###|##|$)/i
       );
 
-      if (acMatch) {
+      if (acMatch && acMatch[1]) {
         const acSection = acMatch[1];
 
         // Check for vague acceptance criteria

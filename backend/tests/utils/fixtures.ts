@@ -13,12 +13,11 @@ import type { LLMConfig } from '../../src/types/llm.types.js';
 
 /**
  * Standard Claude Code LLM configuration for testing
+ * Note: temperature and max_tokens should be passed via InvokeOptions/StreamOptions
  */
 export const sampleLLMConfig: LLMConfig = {
   provider: 'claude-code',
-  model: 'claude-sonnet-4-5',
-  temperature: 0.3,
-  maxTokens: 4000
+  model: 'claude-sonnet-4-5'
 };
 
 /**
@@ -26,9 +25,7 @@ export const sampleLLMConfig: LLMConfig = {
  */
 export const creativeLLMConfig: LLMConfig = {
   provider: 'claude-code',
-  model: 'claude-sonnet-4-5',
-  temperature: 0.8,
-  maxTokens: 4000
+  model: 'claude-sonnet-4-5'
 };
 
 /**
@@ -36,9 +33,7 @@ export const creativeLLMConfig: LLMConfig = {
  */
 export const deterministicLLMConfig: LLMConfig = {
   provider: 'claude-code',
-  model: 'claude-sonnet-4-5',
-  temperature: 0.0,
-  maxTokens: 2000
+  model: 'claude-sonnet-4-5'
 };
 
 /**
@@ -46,9 +41,7 @@ export const deterministicLLMConfig: LLMConfig = {
  */
 export const anthropicLLMConfig: LLMConfig = {
   provider: 'anthropic',
-  model: 'claude-sonnet-4-5',
-  temperature: 0.3,
-  maxTokens: 4000
+  model: 'claude-sonnet-4-5'
 };
 
 // ==========================================

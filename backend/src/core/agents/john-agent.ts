@@ -35,8 +35,6 @@ import { fileURLToPath } from 'url';
 import { LLMFactory } from '../../llm/LLMFactory.js';
 import { LLMClient } from '../../llm/LLMClient.interface.js';
 import { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
-import { DecisionEngine, Decision } from '../services/decision-engine.js';
-import { EscalationQueue } from '../services/escalation-queue.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -198,15 +196,6 @@ interface JohnPersona {
   };
 }
 
-/**
- * Decision metadata for audit trail
- */
-interface DecisionRecord {
-  method: string;
-  question: string;
-  decision: Decision;
-  timestamp: Date;
-}
 
 /**
  * JohnAgent - Product Manager persona agent
@@ -216,9 +205,6 @@ interface DecisionRecord {
 export class JohnAgent {
   /** Default path to John's persona file (pm.md with name="John") */
   private static readonly DEFAULT_PERSONA_PATH = '../../../../bmad/bmm/agents/pm.md';
-
-  /** Escalation threshold (from DecisionEngine) */
-  private static readonly _ESCALATION_THRESHOLD = 0.75;
 
   /** Temperature for strategic reasoning (balanced strategy/creativity) */
   private static readonly STRATEGY_TEMPERATURE = 0.5;
@@ -241,18 +227,14 @@ export class JohnAgent {
   /** Temperature for LLM invocations */
   private readonly temperature: number;
 
-  /** Decision engine for confidence-based decisions */
-  private readonly _decisionEngine?: DecisionEngine;
-
-  /** Escalation queue for human intervention */
-  private readonly _escalationQueue?: EscalationQueue;
-
-  /** Current workflow context */
-  private _workflowId: string = 'john-session';
-  private _currentStep: number = 0;
-
-  /** Decision audit trail */
-  private readonly _decisions: DecisionRecord[] = [];
+  // Future work: Decision engine integration and workflow tracking
+  // Uncomment when implementing decision confidence and escalation features
+  // private static readonly ESCALATION_THRESHOLD = 0.75;
+  // private readonly decisionEngine?: DecisionEngine;
+  // private readonly escalationQueue?: EscalationQueue;
+  // private workflowId: string = 'john-session';
+  // private currentStep: number = 0;
+  // private readonly decisions: DecisionRecord[] = [];
 
   /**
    * Private constructor - use JohnAgent.create() instead
@@ -261,16 +243,12 @@ export class JohnAgent {
     llmClient: LLMClient,
     persona: JohnPersona,
     llmConfig: LLMConfig,
-    temperature: number,
-    decisionEngine?: DecisionEngine,
-    escalationQueue?: EscalationQueue
+    temperature: number
   ) {
     this.llmClient = llmClient;
     this.persona = persona;
     this.llmConfig = llmConfig;
     this.temperature = temperature;
-    this._decisionEngine = decisionEngine;
-    this._escalationQueue = escalationQueue;
   }
 
   /**
@@ -278,16 +256,12 @@ export class JohnAgent {
    *
    * @param llmConfig - LLM configuration (provider, model, temperature)
    * @param llmFactory - LLM factory for creating clients
-   * @param decisionEngine - Optional decision engine for confidence scoring
-   * @param escalationQueue - Optional escalation queue for human intervention
    * @param personaPath - Optional custom path to persona file
    * @returns JohnAgent instance
    */
   static async create(
     llmConfig: LLMConfig,
     llmFactory: LLMFactory,
-    decisionEngine?: DecisionEngine,
-    escalationQueue?: EscalationQueue,
     personaPath?: string
   ): Promise<JohnAgent> {
     // Validate LLM config
@@ -317,9 +291,7 @@ export class JohnAgent {
       llmClient,
       persona,
       llmConfig,
-      temperature,
-      decisionEngine,
-      escalationQueue
+      temperature
     );
   }
 
@@ -365,14 +337,14 @@ export class JohnAgent {
     const roadmapMatch = content.match(/### Roadmap Planning\s+([\s\S]*?)(?=###|$)/);
 
     return {
-      systemPrompt: systemPromptMatch ? systemPromptMatch[1].trim() : 'You are John, an expert Product Manager...',
+      systemPrompt: systemPromptMatch?.[1]?.trim() || 'You are John, an expert Product Manager...',
       specializedPrompts: {
-        productStrategy: productStrategyMatch ? productStrategyMatch[1].trim() : 'Analyze requirements and synthesize strategic product vision...',
-        featurePrioritization: prioritizationMatch ? prioritizationMatch[1].trim() : 'Apply RICE/MoSCoW frameworks to prioritize features...',
-        marketFit: marketFitMatch ? marketFitMatch[1].trim() : 'Assess product-market fit and business viability...',
-        requirementsValidation: validationMatch ? validationMatch[1].trim() : 'Validate requirements for business viability and challenge scope creep...',
-        executiveSummary: summaryMatch ? summaryMatch[1].trim() : 'Generate concise executive summaries for stakeholders...',
-        roadmapPlanning: roadmapMatch ? roadmapMatch[1].trim() : undefined
+        productStrategy: productStrategyMatch?.[1]?.trim() || 'Analyze requirements and synthesize strategic product vision...',
+        featurePrioritization: prioritizationMatch?.[1]?.trim() || 'Apply RICE/MoSCoW frameworks to prioritize features...',
+        marketFit: marketFitMatch?.[1]?.trim() || 'Assess product-market fit and business viability...',
+        requirementsValidation: validationMatch?.[1]?.trim() || 'Validate requirements for business viability and challenge scope creep...',
+        executiveSummary: summaryMatch?.[1]?.trim() || 'Generate concise executive summaries for stakeholders...',
+        roadmapPlanning: roadmapMatch?.[1]?.trim()
       }
     };
   }
@@ -709,7 +681,7 @@ Generate a concise executive summary (1-2 paragraphs). Use clear, non-technical 
       try {
         const options: InvokeOptions = {
           temperature: this.temperature,
-          maxTokens: this.llmConfig.maxTokens || 4000
+          max_tokens: 4000
         };
 
         return await this.llmClient.invoke(prompt, options);

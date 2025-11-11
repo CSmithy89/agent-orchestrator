@@ -180,8 +180,6 @@ export const createTestLLMConfig = (overrides?: Partial<LLMConfig>): LLMConfig =
   return {
     provider: 'claude-code',
     model: 'claude-sonnet-4-5',
-    temperature: 0.3,
-    maxTokens: 4000,
     ...overrides
   };
 };

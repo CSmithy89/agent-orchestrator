@@ -120,8 +120,8 @@ export class MaryAgent {
   /** Mary's persona (system prompt + specialized prompts) */
   private readonly persona: MaryPersona;
 
-  /** LLM configuration */
-  private readonly llmConfig: LLMConfig;
+  /** LLM configuration (reserved for future use) */
+  private readonly _llmConfig: LLMConfig;
 
   /** Temperature for LLM invocations */
   private readonly temperature: number;
@@ -152,7 +152,7 @@ export class MaryAgent {
   ) {
     this.llmClient = llmClient;
     this.persona = persona;
-    this.llmConfig = llmConfig;
+    this._llmConfig = llmConfig;
     this.temperature = temperature;
     this.decisionEngine = decisionEngine;
     this.escalationQueue = escalationQueue;
