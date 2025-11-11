@@ -71,7 +71,7 @@ development_status:
   2-6-prd-template-content-generation: done
   2-7-prd-quality-validation: done
   2-8-prd-validation-tests: done
-  2-9-technical-debt-resolution: drafted  # BLOCKS Epic 3 - Must complete items #1-3
+  2-9-technical-debt-resolution: in-progress  # BLOCKS Epic 3 - Must complete (scope revised: local testing)
   epic-2-retrospective: completed
 
   # Epic 3: Planning Phase Automation

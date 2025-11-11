@@ -80,7 +80,43 @@ npm run dev
 - **Frontend**: React 18+, Vite 5+, shadcn/ui, Tailwind CSS 3+
 - **LLM Integration**: Anthropic SDK (Claude), OpenAI SDK (GPT-4)
 - **Git Operations**: simple-git 3.20+, git worktrees
-- **Testing**: Vitest (60% unit, 30% integration, 10% E2E)
+- **Testing**: Vitest (60% unit, 30% integration, 10% E2E) - 695 tests
+
+## Testing
+
+**Local Testing Strategy**: All tests run locally due to CI/CD resource constraints. See [Local Testing Strategy](docs/local-testing-strategy.md) for complete details.
+
+### Running Tests
+
+```bash
+cd backend
+
+# Run all tests (unit + integration)
+npm test
+
+# Run with coverage report
+npm run test:coverage
+
+# Watch mode for development
+npm run test:watch
+```
+
+### Test Requirements
+
+- **API Keys**: Required for integration tests (see `.env.example`)
+- **Git Config**: Set `user.name`, `user.email` for commit tests
+- **Coverage Targets**: >80% overall coverage
+
+### CI/CD Pipeline
+
+The CI/CD pipeline focuses on code quality gates:
+- ✅ ESLint validation
+- ✅ TypeScript type checking
+- ✅ Build verification
+
+**Note**: Integration tests run locally only. All tests must pass before creating PRs.
+
+See [docs/local-testing-strategy.md](docs/local-testing-strategy.md) for complete testing documentation.
 
 ## Project Status
 
