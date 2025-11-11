@@ -413,7 +413,7 @@ Build user authentication system with the following requirements:
 
       expect(duration).toBeLessThan(30000);
       expect(result.requirements).toBeDefined();
-    }, 35000);
+    }, 60000); // Increased timeout for CI network latency
 
     it.skipIf(!hasApiKeys())('defineSuccessCriteria() should complete in <30 seconds', async () => {
       const features = [
@@ -431,7 +431,7 @@ Build user authentication system with the following requirements:
 
       expect(duration).toBeLessThan(30000);
       expect(result.length).toBeGreaterThan(0);
-    }, 35000);
+    }, 60000); // Increased timeout for CI network latency
 
     it.skipIf(!hasApiKeys())('negotiateScope() should complete in <30 seconds', async () => {
       const requirements = [
@@ -458,7 +458,7 @@ Build user authentication system with the following requirements:
       expect(result.mvpScope).toBeDefined();
       expect(result.growthFeatures).toBeDefined();
       expect(result.rationale).toBeDefined();
-    }, 35000);
+    }, 60000); // Increased timeout for CI network latency
   });
 
   // ==========================================
