@@ -78,15 +78,11 @@ export default defineConfig({
 
     // CI-friendly reporters (AC #7)
     // GitHub Actions sets both CI and GITHUB_ACTIONS
+    // Use only 'default' reporter in CI to reduce memory consumption
+    // JSON and JUNIT reporters hold all results in memory, causing OOM with 695 tests
     reporters: (process.env.CI || process.env.GITHUB_ACTIONS)
-      ? ['verbose', 'json', 'junit']
+      ? ['default']
       : ['verbose'],
-
-    // Output configuration for CI
-    outputFile: {
-      json: './coverage/test-results.json',
-      junit: './coverage/junit.xml',
-    },
   },
 
   // Path resolution (matches tsconfig.json paths)
