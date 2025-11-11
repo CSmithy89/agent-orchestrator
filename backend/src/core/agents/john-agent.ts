@@ -35,6 +35,8 @@ import { fileURLToPath } from 'url';
 import { LLMFactory } from '../../llm/LLMFactory.js';
 import { LLMClient } from '../../llm/LLMClient.interface.js';
 import { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
+import { DecisionEngine } from '../services/decision-engine.js';
+import { EscalationQueue } from '../services/escalation-queue.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -228,9 +230,12 @@ export class JohnAgent {
   /** Temperature for LLM invocations */
   private readonly temperature: number;
 
-  // Decision engine integration and workflow tracking
+  // Decision engine integration and workflow tracking (reserved for future use)
+  // @ts-expect-error - Reserved for future use
   private static readonly ESCALATION_THRESHOLD = 0.75;
+  // @ts-expect-error - Reserved for future use
   private readonly decisionEngine?: DecisionEngine;
+  // @ts-expect-error - Reserved for future use
   private readonly escalationQueue?: EscalationQueue;
   // private workflowId: string = 'john-session';
   // private currentStep: number = 0;

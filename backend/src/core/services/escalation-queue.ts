@@ -341,6 +341,61 @@ export class EscalationQueue {
   }
 
   /**
+   * Wait for human response to an escalation
+   *
+   * Polls the escalation file until it's resolved or timeout is reached.
+   * Used by workflows to pause and wait for human intervention.
+   *
+   * @param escalationId - ID of the escalation to wait for
+   * @param timeoutMs - Maximum time to wait in milliseconds (default: 300000 = 5 minutes)
+   * @param pollIntervalMs - How often to check for updates (default: 1000 = 1 second)
+   * @returns The response object with answer and timestamp
+   *
+   * @throws Error if escalation doesn't exist, timeout is reached, or escalation is cancelled
+   *
+   * @example
+   * ```typescript
+   * const response = await queue.waitForResponse('esc-abc123');
+   * console.log(`Human decided: ${response.answer}`);
+   * ```
+   */
+  async waitForResponse(
+    escalationId: string,
+    timeoutMs: number = 300000,
+    pollIntervalMs: number = 1000
+  ): Promise<{ answer: unknown; timestamp: string }> {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      try {
+        const escalation = await this.getById(escalationId);
+
+        if (escalation.status === 'resolved') {
+          return {
+            answer: escalation.response,
+            timestamp: escalation.resolvedAt || new Date().toISOString()
+          };
+        }
+
+        if (escalation.status === 'cancelled') {
+          throw new Error(`Escalation ${escalationId} was cancelled`);
+        }
+
+        // Still pending, wait before checking again
+        await new Promise(resolve => setTimeout(resolve, pollIntervalMs));
+      } catch (error: any) {
+        // If escalation doesn't exist, re-throw
+        if (error.message.includes('not found')) {
+          throw error;
+        }
+        // For other errors, continue polling
+      }
+    }
+
+    throw new Error(`Timeout waiting for response to escalation ${escalationId} after ${timeoutMs}ms`);
+  }
+
+  /**
    * Get escalation metrics
    *
    * Calculates aggregate statistics across all escalations:

@@ -591,15 +591,17 @@ export class PRDWorkflowExecutor {
 
         this.escalationsCount++;
 
-        // Future work: Implement workflow pause/resume for human responses
-        // For now, use the AI decision anyway but log the escalation
-        console.warn(`[PRDWorkflowExecutor] Escalation created: ${escalationId} (using AI decision anyway)`);
+        // Wait for human response
+        console.log(`[PRDWorkflowExecutor] Waiting for human response to escalation: ${escalationId}`);
+        const response = await this.escalationQueue.waitForResponse(escalationId);
 
-        // Convert DecisionEngine's Decision to WorkflowDecision
+        console.log(`[PRDWorkflowExecutor] Received human response: ${response.answer}`);
+
+        // Use human response as the decision
         return {
-          decision: String(decision.decision),
-          confidence: decision.confidence,
-          reasoning: decision.reasoning
+          decision: String(response.answer),
+          confidence: 1.0, // Human decisions have full confidence
+          reasoning: `Human override: ${response.answer}`
         };
       }
 
