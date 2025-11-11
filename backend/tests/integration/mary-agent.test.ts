@@ -22,8 +22,7 @@ import { OpenAIProvider } from '../../src/llm/providers/OpenAIProvider.js';
 import { ZhipuProvider } from '../../src/llm/providers/ZhipuProvider.js';
 
 // Shared test utilities
-import { hasApiKeys, getTestProvider } from '../utils/apiKeys.js';
-import { sampleLLMConfig, sampleUserPrompt, complexUserPrompt } from '../utils/fixtures.js';
+import { hasApiKeys } from '../utils/apiKeys.js';
 
 describe('MaryAgent Integration Tests', () => {
   let llmFactory: LLMFactory;

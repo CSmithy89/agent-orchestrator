@@ -435,11 +435,11 @@ export const errorMessages = {
 /**
  * Sample Git commit message
  */
-export const sampleCommitMessage = 'feat: Add user authentication system
+export const sampleCommitMessage = `feat: Add user authentication system
 
 Implements email/password and OAuth authentication.
 
-Refs: #123';
+Refs: #123`;
 
 /**
  * Sample Git user configuration
