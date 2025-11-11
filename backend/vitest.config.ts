@@ -36,7 +36,8 @@ export default defineConfig({
       // Target 75% coverage (temporarily lowered from 80% while fixing CI/CD issues)
       // TODO: Increase back to 80% once CI is stable
       // Disable 'all: true' in CI to prevent OOM from instrumenting all 49 source files
-      all: !process.env.CI,
+      // GitHub Actions sets both CI and GITHUB_ACTIONS
+      all: !(process.env.CI || process.env.GITHUB_ACTIONS),
       thresholds: {
         lines: 75,
         functions: 75,
@@ -44,7 +45,7 @@ export default defineConfig({
         statements: 75
       },
       // Disable per-file coverage in CI to reduce memory overhead
-      perFile: !process.env.CI,
+      perFile: !(process.env.CI || process.env.GITHUB_ACTIONS),
     },
 
     // Parallel execution configuration (AC #4)
@@ -56,7 +57,8 @@ export default defineConfig({
       forks: {
         // Max concurrency: Run sequentially in CI (maxForks: 1) to prevent OOM
         // Use more forks locally based on CPU cores (leave 1 core for system)
-        maxForks: process.env.CI ? 1 : Math.max(1, os.cpus().length - 1),
+        // GitHub Actions sets both CI and GITHUB_ACTIONS
+        maxForks: (process.env.CI || process.env.GITHUB_ACTIONS) ? 1 : Math.max(1, os.cpus().length - 1),
         minForks: 1,
       }
     },
@@ -70,7 +72,8 @@ export default defineConfig({
     watch: false, // Disabled by default, enabled via --watch flag
 
     // CI-friendly reporters (AC #7)
-    reporters: process.env.CI
+    // GitHub Actions sets both CI and GITHUB_ACTIONS
+    reporters: (process.env.CI || process.env.GITHUB_ACTIONS)
       ? ['verbose', 'json', 'junit']
       : ['verbose'],
 
