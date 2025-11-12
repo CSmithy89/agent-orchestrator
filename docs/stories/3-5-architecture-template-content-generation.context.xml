@@ -1,0 +1,630 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <story-details>
+    <story-id>3-5</story-id>
+    <title>Architecture Template Content Generation</title>
+    <status>drafted</status>
+    <epic-id>3</epic-id>
+    <epic-name>Planning Phase Automation</epic-name>
+
+    <objective>
+      Create an architecture template with comprehensive sections that Winston and Murat agents can fill in,
+      ensuring generated architecture documents follow a consistent structure and include all required information.
+    </objective>
+
+    <user-story>
+      As the Agent Orchestrator,
+      I want an architecture template with comprehensive sections that Winston and Murat agents can fill in,
+      So that generated architecture documents follow a consistent structure and include all required information.
+    </user-story>
+
+    <acceptance-criteria>
+      <criterion id="AC-1">
+        <name>Template Structure Defined</name>
+        <requirements>
+          - Template file created at bmad/bmm/workflows/architecture/template.md
+          - Contains all required sections: System Overview, Component Architecture, Data Models, APIs, Non-Functional Requirements, Test Strategy, Technical Decisions
+          - Sections include placeholder markers for agent-generated content
+          - Variable placeholders: {{project_name}}, {{date}}, {{user_name}}, {{epic_id}}
+          - Markdown formatting and structure validated
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-2">
+        <name>Variable Substitution System</name>
+        <requirements>
+          - TemplateProcessor (Story 1.8) supports architecture template variables
+          - Variables resolved from workflow state and PRD
+          - Date variables auto-populated with current date
+          - User variables populated from git config or environment
+          - Project variables populated from project configuration
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-3">
+        <name>Section Replacement System</name>
+        <requirements>
+          - Each section has unique placeholder marker
+          - TemplateProcessor can replace individual sections independently
+          - Section markers preserved for incremental updates
+          - Markdown heading levels consistent
+          - Section ordering maintained
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-4">
+        <name>Template Validation</name>
+        <requirements>
+          - Validate template structure before workflow execution
+          - Check all required sections present
+          - Check variable placeholders well-formed
+          - Check markdown syntax valid
+          - Provide clear error messages for malformed templates
+        </requirements>
+      </criterion>
+
+      <criterion id="AC-5">
+        <name>Template Customization Support</name>
+        <requirements>
+          - Support project-specific template overrides
+          - Load template from project .bmad/ directory if exists
+          - Fall back to default template if no override
+          - Log template source (default or custom)
+          - Validate custom templates against schema
+        </requirements>
+      </criterion>
+    </acceptance-criteria>
+
+    <tasks>
+      <task id="1">
+        <name>Create Architecture Template File</name>
+        <estimate>2-3 hours</estimate>
+        <status>pending</status>
+      </task>
+      <task id="2">
+        <name>Implement Variable Substitution</name>
+        <estimate>1-2 hours</estimate>
+        <status>pending</status>
+      </task>
+      <task id="3">
+        <name>Implement Section Replacement</name>
+        <estimate>2-3 hours</estimate>
+        <status>pending</status>
+      </task>
+      <task id="4">
+        <name>Implement Template Validation</name>
+        <estimate>1-2 hours</estimate>
+        <status>pending</status>
+      </task>
+      <task id="5">
+        <name>Implement Custom Template Support</name>
+        <estimate>1-2 hours</estimate>
+        <status>pending</status>
+      </task>
+      <task id="6">
+        <name>Write Integration Tests</name>
+        <estimate>2-3 hours</estimate>
+        <status>pending</status>
+      </task>
+    </tasks>
+  </story-details>
+
+  <epic-context>
+    <epic-overview>
+      Epic 3 establishes the autonomous Planning Phase of the Agent Orchestrator, transforming high-level
+      requirements from the PRD into concrete technical architecture. This epic implements the Winston
+      (System Architect) and Murat (Test Architect) agents who collaborate to produce comprehensive
+      architecture documentation including system design, technical decisions, mandatory test strategy,
+      and security gate validation before allowing progression to the solutioning phase.
+    </epic-overview>
+
+    <objectives>
+      <objective>
+        Winston Agent (System Architect) - Persona definition with architectural expertise, system design,
+        component architecture, data model and API specification, technology stack decisions with rationale
+      </objective>
+      <objective>
+        Murat Agent (Test Architect - REQUIRED) - Test strategy and framework selection, test pyramid
+        definition, CI/CD pipeline specification, quality gates, ATDD approach
+      </objective>
+      <objective>
+        Architecture Workflow Executor - BMAD workflow.yaml parser and executor, architecture template
+        processing, technical decisions logger, multi-agent coordination, state management
+      </objective>
+      <objective>
+        Security Gate Validation (MANDATORY) - Automated security completeness checks, blocking gate to
+        prevent progression if security incomplete
+      </objective>
+    </objectives>
+
+    <success-criteria>
+      - Complete architecture document generated in &lt;45 minutes
+      - Security gate passes with ≥95% score
+      - Test strategy defined and complete
+      - &lt;2 escalations during architecture workflow
+      - All PRD requirements addressed in architecture
+      - Technical decisions documented with clear rationale
+    </success-criteria>
+
+    <story-3-5-role>
+      Story 3-5 creates the architecture template that serves as the foundation for all generated
+      architecture documents. The template defines the structure, sections, and placeholders that
+      Winston and Murat agents will fill in during workflow execution. The TemplateProcessor
+      (from Story 1.8) will be extended to support variable substitution and section replacement
+      specific to architecture documents.
+    </story-3-5-role>
+
+    <related-components>
+      <component>
+        <name>ArchitectureTemplateProcessor</name>
+        <responsibility>Fill architecture template with generated content</responsibility>
+        <inputs>Template placeholders, agent outputs, variables</inputs>
+        <outputs>Final architecture.md document</outputs>
+      </component>
+      <component>
+        <name>WinstonAgent</name>
+        <responsibility>System architecture design, component breakdown, technology decisions</responsibility>
+        <outputs>Architecture sections: system design, data models, API specs, NFRs</outputs>
+      </component>
+      <component>
+        <name>MuratAgent</name>
+        <responsibility>Test strategy definition, framework selection, quality gates</responsibility>
+        <outputs>Test strategy sections: frameworks, pyramid, CI/CD, ATDD approach</outputs>
+      </component>
+    </related-components>
+
+    <acceptance-criteria-reference>
+      AC-3.5: Architecture Template Processing
+      1. Template loaded from bmad/bmm/workflows/architecture/template.md
+      2. Variables resolved: {{project_name}}, {{date}}, {{user_name}}, etc.
+      3. Sections filled by Winston and Murat agent outputs
+      4. Markdown formatting preserved
+      5. Output written to docs/architecture.md
+      6. Architecture.md validates as well-formed markdown
+      7. All required sections present (system overview, components, data models, APIs, NFRs, test strategy, technical decisions)
+    </acceptance-criteria-reference>
+  </epic-context>
+
+  <prd-context>
+    <project-classification>
+      <type>Developer Tool / Platform / Backend System</type>
+      <domain>Software Development / DevOps / AI-Powered Automation</domain>
+      <complexity>Level 3 (High Complexity)</complexity>
+    </project-classification>
+
+    <relevant-requirements>
+      <requirement id="FR-CORE-002">
+        <name>Autonomous Architecture Design</name>
+        <description>
+          Input: docs/prd.md
+          Process: Load architecture workflow, Winston designs system architecture, Murat defines
+          testing strategy, Technical decisions documented
+          Output: docs/architecture.md
+          Acceptance: Architecture includes system design, data models, API specs. Addresses all PRD
+          requirements. Execution time &lt;45 minutes. &lt;2 escalations.
+        </description>
+      </requirement>
+
+      <requirement id="FR-WF-003">
+        <name>Template Processing</name>
+        <description>
+          - Load template files (markdown with {{placeholders}})
+          - Replace {{variables}} with values
+          - Support conditional blocks {{#if}} {{/if}}
+          - Write filled templates to output files
+        </description>
+      </requirement>
+
+      <requirement id="NFR-TEST-007">
+        <name>Test Architecture Required</name>
+        <description>
+          - Test strategy must be defined during architecture phase
+          - Test infrastructure (frameworks, patterns) specified before implementation
+          - All epics must include test planning stories
+          - ATDD (Acceptance Test-Driven Development) enforced
+          - Minimum test coverage: 80% for new code
+        </description>
+      </requirement>
+
+      <requirement id="NFR-PERF-001">
+        <name>Workflow Execution Speed</name>
+        <description>
+          - PRD generation: &lt;30 minutes
+          - Architecture design: &lt;45 minutes
+          - Story development: &lt;2 hours per story
+          - Overall project (PRD to code): 2-3 days
+        </description>
+      </requirement>
+    </relevant-requirements>
+
+    <success-metrics>
+      <metric>Complete architecture document generated in &lt;45 minutes</metric>
+      <metric>Test strategy defined and complete (required)</metric>
+      <metric>PRD completeness score &gt;85%</metric>
+      <metric>Code Quality: Generated code passes tests and review &gt;90% on first attempt</metric>
+    </success-metrics>
+  </prd-context>
+
+  <existing-code>
+    <file path="/home/user/agent-orchestrator/backend/src/core/TemplateProcessor.ts">
+      <description>
+        Core template processing engine using Handlebars. Supports variable substitution, conditionals,
+        loops, custom helpers, file operations, section updates, template caching, and error handling.
+        This is the foundation that will be extended for architecture template processing.
+      </description>
+
+      <key-features>
+        - Variable substitution: {{variable}}, {{nested.var}}, {{var|default}}
+        - Conditional blocks: {{#if condition}}...{{/if}}, {{#unless}}...{{/unless}}
+        - Loops: {{#each collection}}...{{/each}} with metadata access
+        - Custom helpers: uppercase, lowercase, capitalize, date, join, default
+        - File operations: Create new (Write) and update existing (Edit)
+        - Section updates: Update specific sections in existing documents
+        - Template caching: LRU cache with 100 template limit
+        - Error handling: Descriptive errors with resolution guidance
+      </key-features>
+
+      <key-methods>
+        <method>
+          <signature>async loadTemplate(templatePath: string): Promise&lt;string&gt;</signature>
+          <description>Load template file from filesystem, validate, and cache</description>
+        </method>
+
+        <method>
+          <signature>processTemplate(template: string, vars: Record&lt;string, any&gt;): string</signature>
+          <description>Process template with variables, conditionals, and loops</description>
+        </method>
+
+        <method>
+          <signature>async renderTemplate(templatePath: string, vars: Record&lt;string, any&gt;): Promise&lt;string&gt;</signature>
+          <description>Load template and process it in one call with caching</description>
+        </method>
+
+        <method>
+          <signature>async writeOutput(content: string, outputPath: string): Promise&lt;void&gt;</signature>
+          <description>Write output to file, creating parent directories if needed</description>
+        </method>
+
+        <method>
+          <signature>async updateSection(filePath: string, sectionName: string, newContent: string): Promise&lt;void&gt;</signature>
+          <description>Update specific section in existing file by markdown heading</description>
+        </method>
+
+        <method>
+          <signature>registerHelper(name: string, fn: Handlebars.HelperDelegate): void</signature>
+          <description>Register custom helper function for templates</description>
+        </method>
+
+        <method>
+          <signature>private validateTemplate(template: string): void</signature>
+          <description>Validate template syntax before processing</description>
+        </method>
+      </key-methods>
+
+      <built-in-helpers>
+        - uppercase, lowercase, capitalize (string transformations)
+        - date (format: YYYY, MM, DD, HH, mm, ss)
+        - join (array operations)
+        - default (fallback values)
+        - eq, ne, lt, gt, lte, gte (comparisons)
+        - and, or, not (logical operations)
+      </built-in-helpers>
+
+      <extension-points>
+        The TemplateProcessor is designed to be extended for specific use cases like architecture
+        template processing. Key extension strategies:
+
+        1. Add architecture-specific helpers for common transformations
+        2. Implement architecture-specific variable resolution (from PRD, config, git)
+        3. Add validation for architecture-specific template structure
+        4. Support section markers with XML-style comments for incremental updates
+        5. Implement custom template loading (project override vs default)
+      </extension-points>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/bmad/bmm/workflows/architecture/template.md">
+      <description>
+        Architecture document template with frontmatter, variable placeholders, and section markers.
+        This template defines the structure that Winston and Murat agents will fill during workflow execution.
+      </description>
+
+      <structure>
+        <frontmatter>
+          project: {{project_name}}
+          date: {{date}}
+          author: {{user_name}}
+          epic: {{epic_id}}
+          version: 1.0
+        </frontmatter>
+
+        <sections>
+          <section name="System Overview">
+            <marker>&lt;!-- SECTION: system-overview --&gt;</marker>
+            <placeholder>{{system_overview_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: system-overview --&gt;</end-marker>
+          </section>
+
+          <section name="Component Architecture">
+            <marker>&lt;!-- SECTION: component-architecture --&gt;</marker>
+            <placeholder>{{component_architecture_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: component-architecture --&gt;</end-marker>
+          </section>
+
+          <section name="Data Models">
+            <marker>&lt;!-- SECTION: data-models --&gt;</marker>
+            <placeholder>{{data_models_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: data-models --&gt;</end-marker>
+          </section>
+
+          <section name="API Specifications">
+            <marker>&lt;!-- SECTION: api-specifications --&gt;</marker>
+            <placeholder>{{api_specifications_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: api-specifications --&gt;</end-marker>
+          </section>
+
+          <section name="Non-Functional Requirements">
+            <marker>&lt;!-- SECTION: non-functional-requirements --&gt;</marker>
+            <placeholder>{{nfr_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: non-functional-requirements --&gt;</end-marker>
+          </section>
+
+          <section name="Test Strategy">
+            <marker>&lt;!-- SECTION: test-strategy --&gt;</marker>
+            <placeholder>{{test_strategy_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: test-strategy --&gt;</end-marker>
+          </section>
+
+          <section name="Technical Decisions">
+            <marker>&lt;!-- SECTION: technical-decisions --&gt;</marker>
+            <placeholder>{{technical_decisions_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: technical-decisions --&gt;</end-marker>
+          </section>
+
+          <section name="Glossary">
+            <marker>&lt;!-- SECTION: glossary --&gt;</marker>
+            <placeholder>{{glossary_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: glossary --&gt;</end-marker>
+          </section>
+
+          <section name="References">
+            <marker>&lt;!-- SECTION: references --&gt;</marker>
+            <placeholder>{{references_content}}</placeholder>
+            <end-marker>&lt;!-- END SECTION: references --&gt;</end-marker>
+          </section>
+        </sections>
+      </structure>
+
+      <template-note>
+        The template already exists and provides the structure. Story 3-5 focuses on extending
+        TemplateProcessor to support this template's specific needs:
+        - Variable resolution from multiple sources (PRD, git, config)
+        - Section replacement with marker preservation
+        - Template validation against required structure
+        - Custom template loading (project override vs default)
+      </template-note>
+    </file>
+  </existing-code>
+
+  <dependencies>
+    <blocking-dependencies>
+      <dependency>
+        <story-id>1.8</story-id>
+        <name>Template Processor</name>
+        <status>completed</status>
+        <reason>Core template processing system that will be extended</reason>
+        <artifact>/home/user/agent-orchestrator/backend/src/core/TemplateProcessor.ts</artifact>
+      </dependency>
+
+      <dependency>
+        <story-id>3-3</story-id>
+        <name>Architecture Workflow Executor</name>
+        <status>completed</status>
+        <reason>Uses template to generate architecture.md</reason>
+        <note>The workflow executor will call template processing methods implemented in this story</note>
+      </dependency>
+    </blocking-dependencies>
+
+    <soft-dependencies>
+      <dependency>None</dependency>
+    </soft-dependencies>
+
+    <enables>
+      <dependency>
+        <story-id>3-4</story-id>
+        <name>Technical Decisions Logger</name>
+        <reason>Fills Technical Decisions section in template</reason>
+      </dependency>
+
+      <dependency>
+        <story-id>3-6</story-id>
+        <name>Security Gate</name>
+        <reason>Validates architecture.md generated from template</reason>
+      </dependency>
+
+      <dependency>
+        <story-id>3-7</story-id>
+        <name>Architecture Validation</name>
+        <reason>Validates template structure compliance</reason>
+      </dependency>
+    </enables>
+  </dependencies>
+
+  <technical-context>
+    <implementation-approach>
+      <approach-1>
+        <name>Extend TemplateProcessor for Architecture</name>
+        <description>
+          Add architecture-specific methods to TemplateProcessor class:
+          - resolveArchitectureVariables(context): Resolve variables from PRD, git, config
+          - validateArchitectureTemplate(template): Validate required sections present
+          - loadTemplateWithOverride(defaultPath, projectOverridePath): Load custom or default
+          - replaceSection(document, sectionName, content): Update specific section with marker preservation
+        </description>
+      </approach-1>
+
+      <approach-2>
+        <name>Create ArchitectureTemplateProcessor Extension</name>
+        <description>
+          Create new class that extends or wraps TemplateProcessor:
+          - Inherits core template processing capabilities
+          - Adds architecture-specific variable resolution
+          - Implements section-based updates
+          - Provides validation for architecture structure
+        </description>
+      </approach-2>
+    </implementation-approach>
+
+    <variable-resolution-sources>
+      <source name="Workflow State">
+        - epic_id: From workflow state
+        - current_step: Workflow execution state
+      </source>
+
+      <source name="Git Config">
+        - user_name: From git config user.name
+        - user_email: From git config user.email
+      </source>
+
+      <source name="Project Config">
+        - project_name: From .bmad/project-config.yaml
+        - repository: From project config
+      </source>
+
+      <source name="PRD Document">
+        - Extract project metadata from PRD frontmatter
+        - Reference requirements for traceability
+      </source>
+
+      <source name="System">
+        - date: Current date (auto-generated)
+        - timestamp: Current timestamp
+      </source>
+    </variable-resolution-sources>
+
+    <section-replacement-strategy>
+      <strategy>
+        Use XML-style comment markers to identify section boundaries:
+        &lt;!-- SECTION: section-name --&gt;
+        ...content...
+        &lt;!-- END SECTION: section-name --&gt;
+
+        Benefits:
+        - Markers invisible in rendered markdown
+        - Easy to parse with regex
+        - Preserves section structure for incremental updates
+        - Supports partial template updates (update one section at a time)
+      </strategy>
+
+      <implementation>
+        1. Parse template to find section markers
+        2. Extract section name from marker
+        3. Replace content between marker and end-marker
+        4. Preserve markers for future updates
+        5. Validate section exists before replacement
+      </implementation>
+    </section-replacement-strategy>
+
+    <template-validation-rules>
+      <rule>All required sections must be present</rule>
+      <rule>Section markers must be well-formed (matching start/end)</rule>
+      <rule>Variable placeholders must use valid syntax {{variable_name}}</rule>
+      <rule>Frontmatter must be valid YAML</rule>
+      <rule>Markdown structure must be valid (no unclosed blocks)</rule>
+      <rule>Heading levels must be consistent (## for top-level sections)</rule>
+    </template-validation-rules>
+
+    <testing-strategy>
+      <unit-tests>
+        - Variable resolution from multiple sources
+        - Section replacement with marker preservation
+        - Template validation (valid and invalid cases)
+        - Custom template loading and fallback
+        - Error handling for missing sections
+      </unit-tests>
+
+      <integration-tests>
+        - Load default template successfully
+        - Variable substitution with all variables
+        - Section replacement preserves formatting
+        - Template validation detects errors
+        - Custom template loading and fallback
+        - End-to-end: template to architecture.md
+      </integration-tests>
+
+      <test-file>
+        /home/user/agent-orchestrator/backend/tests/integration/architecture-template.test.ts
+      </test-file>
+    </testing-strategy>
+  </technical-context>
+
+  <dev-notes>
+    <note priority="high">
+      The template file already exists at bmad/bmm/workflows/architecture/template.md with the
+      correct structure. Focus implementation on extending TemplateProcessor capabilities to
+      support this template's needs.
+    </note>
+
+    <note priority="high">
+      TemplateProcessor already has updateSection() method that can handle section replacement.
+      Verify if it works with the XML comment markers in the architecture template, or if it
+      needs enhancement.
+    </note>
+
+    <note priority="medium">
+      Variable resolution should pull from multiple sources in priority order:
+      1. Explicit variables passed to template
+      2. Workflow state
+      3. Project config
+      4. Git config
+      5. System defaults (date, timestamp)
+    </note>
+
+    <note priority="medium">
+      Template validation should be comprehensive but fast (&lt;1 second). Cache validation
+      results to avoid re-validating unchanged templates.
+    </note>
+
+    <note priority="low">
+      Custom template support enables project-specific architecture structure. Validation must
+      ensure custom templates still meet minimum requirements for downstream workflows
+      (security gate, validation).
+    </note>
+
+    <note priority="low">
+      Consider adding a helper method to extract all section names from a template for debugging
+      and error messages (already exists in TemplateProcessor as extractSectionNames).
+    </note>
+  </dev-notes>
+
+  <reference-documentation>
+    <reference>
+      <title>Epic 3 Tech Spec - AC-3.5</title>
+      <location>/home/user/agent-orchestrator/docs/epics/epic-3-tech-spec.md (lines 775-782)</location>
+      <relevance>Authoritative acceptance criteria for architecture template processing</relevance>
+    </reference>
+
+    <reference>
+      <title>Epic 3 Tech Spec - ArchitectureTemplateProcessor</title>
+      <location>/home/user/agent-orchestrator/docs/epics/epic-3-tech-spec.md (line 122)</location>
+      <relevance>Component definition and responsibilities</relevance>
+    </reference>
+
+    <reference>
+      <title>PRD - FR-WF-003: Template Processing</title>
+      <location>/home/user/agent-orchestrator/docs/PRD.md (lines 465-468)</location>
+      <relevance>Functional requirements for template processing</relevance>
+    </reference>
+
+    <reference>
+      <title>Story 1.8: Template Processing System</title>
+      <location>Referenced in story dependencies</location>
+      <relevance>Foundation system being extended</relevance>
+    </reference>
+
+    <reference>
+      <title>Story 3-3: Architecture Workflow Executor</title>
+      <location>Referenced in story dependencies</location>
+      <relevance>Consumer of template processing functionality</relevance>
+    </reference>
+  </reference-documentation>
+</story-context>
