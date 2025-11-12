@@ -166,7 +166,32 @@ jobs:
                done
                ```
 
-            2. If all fixes were applied successfully and validation passed, approve the PR:
+            2. Update the PR description with a summary of changes:
+               ```bash
+               gh pr edit $PR_NUMBER --body "$(cat <<'EOF'
+               ## Summary
+               [Original PR description if any]
+
+               ---
+
+               ## 🤖 Auto-Applied Code Review Fixes
+
+               ### Changes Made
+               - [List of fixes applied from CodeRabbit suggestions]
+
+               ### Validation
+               ✅ ESLint: Passing
+               ✅ TypeScript: Passing
+
+               ### Review Process
+               This PR was automatically reviewed by Claude Code and CodeRabbit. All suggested improvements have been applied and validated.
+
+               🤖 Generated with [Claude Code](https://claude.com/claude-code)
+               EOF
+               )"
+               ```
+
+            3. If all fixes were applied successfully and validation passed, approve the PR:
                ```bash
                gh pr review $PR_NUMBER --approve --body "✅ All CodeRabbit suggestions have been reviewed and applied. Lint and type-check passing."
                ```
