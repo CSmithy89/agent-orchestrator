@@ -273,10 +273,11 @@ export class CISAgentRouter extends EventEmitter {
 
       return response;
     } catch (error) {
-      // Track failed invocation
+      // Track failed invocation - determine agent from decision type if not assigned yet
+      const failedAgent: CISAgent = agent! ?? this.getAgentFromDecisionType(request.decisionType);
       const errorMessage = error instanceof Error ? error.message : String(error);
       this.invocationHistory.push({
-        agent: agent!,
+        agent: failedAgent,
         decision: request.decision,
         timestamp: new Date(),
         success: false,
@@ -285,13 +286,27 @@ export class CISAgentRouter extends EventEmitter {
 
       console.error(`[CISAgentRouter] CIS invocation failed:`, error);
       this.emit('cis.error', {
-        agent: agent!,
+        agent: failedAgent,
         decision: request.decision,
         error: errorMessage
       });
 
       throw error;
     }
+  }
+
+  /**
+   * Get CIS agent identifier from decision type
+   * Helper method to safely map decision types to agents
+   */
+  private getAgentFromDecisionType(decisionType: DecisionType): CISAgent {
+    const mapping: Record<DecisionType, CISAgent> = {
+      technical: 'dr-quinn',
+      ux: 'maya',
+      product: 'sophia',
+      innovation: 'victor'
+    };
+    return mapping[decisionType];
   }
 
   /**
@@ -324,7 +339,13 @@ export class CISAgentRouter extends EventEmitter {
       ([, scoreA], [, scoreB]) => scoreB - scoreA
     );
 
-    const [topType, topScore] = sortedTypes[0]!;
+    const topEntry = sortedTypes[0];
+    if (!topEntry) {
+      console.log('[CISAgentRouter] No score entries found, defaulting to technical');
+      return 'technical';
+    }
+
+    const [topType, topScore] = topEntry;
 
     // Default to 'technical' if no clear match
     if (topScore === 0) {
@@ -606,7 +627,16 @@ Format your response as JSON:
    * @param responseText - Raw response text from LLM
    * @returns Parsed JSON object
    */
-  private parseJSONResponse(responseText: string): any {
+  private parseJSONResponse(responseText: string): {
+    recommendation?: string;
+    rationale?: string;
+    framework?: string;
+    confidence?: number;
+    alternatives?: string[];
+    userImpact?: string;
+    narrativeElements?: string[];
+    disruptionPotential?: string;
+  } {
     try {
       // Try direct JSON parse first
       return JSON.parse(responseText);

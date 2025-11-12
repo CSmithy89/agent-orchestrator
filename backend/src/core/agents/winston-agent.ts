@@ -344,15 +344,15 @@ export class WinstonAgent {
   /** Decision engine for confidence-based decisions */
   private readonly decisionEngine?: DecisionEngine;
 
-  /** Escalation queue for human intervention */
+  /** Escalation queue for human intervention (reserved for future use) */
   // @ts-expect-error - Reserved for automatic escalation in Story 3-1-followup
-  private readonly escalationQueue?: EscalationQueue;
+  private readonly _escalationQueue?: EscalationQueue;
 
-  /** Current workflow context */
+  /** Current workflow context (reserved for future use) */
   // @ts-expect-error - Reserved for automatic escalation in Story 3-1-followup
-  private workflowId: string = 'winston-session';
+  private _workflowId: string = 'winston-session';
   // @ts-expect-error - Reserved for automatic escalation in Story 3-1-followup
-  private currentStep: number = 0;
+  private _currentStep: number = 0;
 
   /** Decision audit trail */
   private readonly decisions: DecisionRecord[] = [];
@@ -376,7 +376,7 @@ export class WinstonAgent {
     this.llmConfig = llmConfig;
     this.temperature = temperature;
     this.decisionEngine = decisionEngine;
-    this.escalationQueue = escalationQueue;
+    this._escalationQueue = escalationQueue;
   }
 
   /**
@@ -1162,8 +1162,8 @@ export class WinstonAgent {
    * @param step - Current step number
    */
   setWorkflowContext(workflowId: string, step: number): void {
-    this.workflowId = workflowId;
-    this.currentStep = step;
+    this._workflowId = workflowId;
+    this._currentStep = step;
   }
 
   /**
