@@ -1,0 +1,476 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4-1</storyId>
+    <title>Solutioning Data Models &amp; Story Schema</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-1-solutioning-data-models-story-schema.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a solutioning system developer</asA>
+    <iWant>foundational data models and schemas for epics, stories, and dependencies</iWant>
+    <soThat>all solutioning stories can build on consistent types and the entire Epic 4 implementation has a solid foundation</soThat>
+    <tasks>
+      <task id="1" title="Create TypeScript Interface Definitions">
+        <subtasks>
+          <item>Create backend/src/solutioning/types.ts file</item>
+          <item>Define Epic interface with all fields from tech spec (lines 91-99)</item>
+          <item>Define Story interface with all fields from tech spec (lines 101-112)</item>
+          <item>Define TechnicalNotes interface (lines 114-119)</item>
+          <item>Define DependencyGraph interface (lines 121-128)</item>
+          <item>Define GraphNode interface (lines 130-136)</item>
+          <item>Define DependencyEdge interface (lines 138-144)</item>
+          <item>Define GraphMetadata interface (lines 146-151)</item>
+          <item>Define StoryMetadata interface (lines 153-157)</item>
+          <item>Define ValidationResult interface (lines 159-165)</item>
+          <item>Define ValidationCheck interface (lines 167-171)</item>
+          <item>Define StoryStatus type (line 174)</item>
+          <item>Define Complexity type (line 175)</item>
+          <item>Add JSDoc comments to all interfaces and fields</item>
+        </subtasks>
+      </task>
+      <task id="2" title="Implement JSON Schema Validation">
+        <subtasks>
+          <item>Install ajv library: npm install ajv in backend workspace</item>
+          <item>Create backend/src/solutioning/schemas.ts file</item>
+          <item>Define JSON schemas for Epic interface</item>
+          <item>Define JSON schemas for Story interface</item>
+          <item>Define JSON schemas for DependencyGraph interface</item>
+          <item>Define JSON schemas for ValidationResult interface</item>
+          <item>Implement validateEpic(data: unknown): ValidationResult function</item>
+          <item>Implement validateStory(data: unknown): ValidationResult function</item>
+          <item>Implement validateDependencyGraph(data: unknown): ValidationResult function</item>
+          <item>Implement validateValidationResult(data: unknown): ValidationResult function</item>
+          <item>Format error messages for clarity (field path, expected type, actual value)</item>
+        </subtasks>
+      </task>
+      <task id="3" title="Implement StoryTemplateBuilder Class">
+        <subtasks>
+          <item>Create backend/src/solutioning/story-template-builder.ts file</item>
+          <item>Implement StoryTemplateBuilder class</item>
+          <item>Method: buildFromTemplate(storyData: Story): StoryObject</item>
+          <item>Method: validateStoryFormat(story: StoryObject): ValidationResult</item>
+          <item>Method: toMarkdown(story: StoryObject): string</item>
+          <item>Method: toYAMLFrontmatter(story: StoryObject): string</item>
+          <item>Add error handling for missing data or invalid formats</item>
+        </subtasks>
+      </task>
+      <task id="4" title="Document Sprint-Status YAML Schema">
+        <subtasks>
+          <item>Create inline documentation in src/solutioning/types.ts</item>
+          <item>Document schema structure with field descriptions</item>
+          <item>Document epic status values: backlog | contexted</item>
+          <item>Document story status values: backlog | drafted | ready-for-dev | in-progress | review | done</item>
+          <item>Provide example sprint-status.yaml structure</item>
+          <item>Reference existing docs/sprint-status.yaml for format validation</item>
+        </subtasks>
+      </task>
+      <task id="5" title="Document Dependency-Graph JSON Schema">
+        <subtasks>
+          <item>Create inline documentation in src/solutioning/types.ts</item>
+          <item>Document graph structure: nodes, edges, criticalPath, metadata</item>
+          <item>Document GraphNode fields with examples</item>
+          <item>Document DependencyEdge fields with hard vs soft dependency types</item>
+          <item>Document GraphMetadata calculation formulas</item>
+          <item>Provide example dependency-graph.json structure (tech spec lines 199-228)</item>
+        </subtasks>
+      </task>
+      <task id="6" title="Create Story Template File">
+        <subtasks>
+          <item>Create docs/templates/ directory if not exists</item>
+          <item>Create docs/templates/story-template.md file</item>
+          <item>Add standard story structure sections</item>
+          <item>Use placeholders for variable substitution</item>
+          <item>Document template structure in README</item>
+        </subtasks>
+      </task>
+      <task id="7" title="Write Unit Tests">
+        <subtasks>
+          <item>Create backend/tests/unit/solutioning/types.test.ts</item>
+          <item>Test Epic interface schema validation (valid and invalid inputs)</item>
+          <item>Test Story interface schema validation (valid and invalid inputs)</item>
+          <item>Test DependencyGraph schema validation (valid and invalid inputs)</item>
+          <item>Test ValidationResult schema validation</item>
+          <item>Create backend/tests/unit/solutioning/story-template-builder.test.ts</item>
+          <item>Test buildFromTemplate() with mock story data</item>
+          <item>Test validateStoryFormat() with valid and invalid stories</item>
+          <item>Test toMarkdown() output format</item>
+          <item>Test toYAMLFrontmatter() YAML generation</item>
+          <item>Test error handling for missing data</item>
+          <item>Verify test coverage &gt;80% using Jest coverage report</item>
+          <item>All tests passing before completing story</item>
+        </subtasks>
+      </task>
+      <task id="8" title="Verify Zero External Dependencies">
+        <subtasks>
+          <item>Review imports in all solutioning type files</item>
+          <item>Confirm no external service calls in core types</item>
+          <item>Confirm only ajv library used for validation</item>
+          <item>Confirm no LLM invocations in data layer</item>
+          <item>Confirm no file I/O in core types (only in builder)</item>
+          <item>Document dependency boundaries in README</item>
+        </subtasks>
+      </task>
+      <task id="9" title="Export All Types for Use by Other Stories">
+        <subtasks>
+          <item>Add export statements to src/solutioning/types.ts</item>
+          <item>Export all interfaces: Epic, Story, TechnicalNotes, DependencyGraph, GraphNode, DependencyEdge, GraphMetadata, StoryMetadata, ValidationResult, ValidationCheck</item>
+          <item>Export all type definitions: StoryStatus, Complexity</item>
+          <item>Create barrel export in src/solutioning/index.ts (if needed)</item>
+          <item>Verify imports work from Stories 4.2-4.9 perspective</item>
+          <item>Check for no circular dependencies</item>
+        </subtasks>
+      </task>
+      <task id="10" title="Create Documentation for Type System">
+        <subtasks>
+          <item>Create backend/src/solutioning/README.md</item>
+          <item>Document type system architecture and purpose</item>
+          <item>Provide examples of using each interface</item>
+          <item>Document schema validation usage and error handling</item>
+          <item>Document StoryTemplateBuilder usage with code examples</item>
+          <item>Include sprint-status.yaml and dependency-graph.json format examples</item>
+          <item>Add references to Epic 4 tech spec for detailed specifications</item>
+        </subtasks>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1" title="TypeScript Interfaces Defined">
+      <description>Epic, Story, DependencyGraph, TechnicalNotes, GraphNode, DependencyEdge, GraphMetadata, StoryMetadata, ValidationResult, ValidationCheck interfaces defined in backend/src/solutioning/types.ts with complete fields matching tech spec lines 88-176. StoryStatus and Complexity types defined.</description>
+      <testable>true</testable>
+      <verificationMethod>Code review of types.ts, TypeScript compilation success, all fields present and typed correctly</verificationMethod>
+    </criterion>
+    <criterion id="AC-2" title="JSON Schema Validation Implemented">
+      <description>JSON schema validation using ajv library (^8.12.0). Schemas for all interfaces with complete field validation. Schema validation methods for Epic, Story, DependencyGraph, ValidationResult. Clear error messages for validation failures.</description>
+      <testable>true</testable>
+      <verificationMethod>Unit tests pass for valid/invalid data, error messages include field paths and expected types</verificationMethod>
+    </criterion>
+    <criterion id="AC-3" title="StoryTemplateBuilder Class Created">
+      <description>Class with methods: buildFromTemplate(storyData: Story): StoryObject, validateStoryFormat(story: StoryObject): ValidationResult, toMarkdown(story: StoryObject): string, toYAMLFrontmatter(story: StoryObject): string. All methods fully implemented and tested.</description>
+      <testable>true</testable>
+      <verificationMethod>Unit tests pass for all methods, story template correctly populated and formatted</verificationMethod>
+    </criterion>
+    <criterion id="AC-4" title="Sprint-Status YAML Schema Structure Documented">
+      <description>Schema structure documented with inline comments in code. Fields: generated, project, project_key, tracking_system, story_location, development_status. Epic status values: backlog | contexted. Story status values: backlog | drafted | ready-for-dev | in-progress | review | done. Example sprint-status.yaml structure provided in documentation.</description>
+      <testable>true</testable>
+      <verificationMethod>Documentation exists with complete schema definition and examples</verificationMethod>
+    </criterion>
+    <criterion id="AC-5" title="Dependency-Graph JSON Schema Structure Documented">
+      <description>Schema structure documented with inline comments and examples. Fields: nodes (GraphNode[]), edges (DependencyEdge[]), criticalPath (string[]), metadata (GraphMetadata). Node structure: id, title, status, epic, complexity. Edge structure: from, to, type, blocking. Example dependency-graph.json structure provided in documentation.</description>
+      <testable>true</testable>
+      <verificationMethod>Documentation exists with complete schema definition and examples matching tech spec lines 199-228</verificationMethod>
+    </criterion>
+    <criterion id="AC-6" title="Story Template File Created">
+      <description>docs/templates/story-template.md created with standard story structure. Includes sections: Story header, Story statement, Acceptance Criteria, Tasks/Subtasks, Dependencies, Dev Notes, Dev Agent Record. Template uses placeholders for variable substitution. Structure only (no specific content).</description>
+      <testable>true</testable>
+      <verificationMethod>Template file exists at correct path, contains all required sections and placeholders</verificationMethod>
+    </criterion>
+    <criterion id="AC-7" title="Unit Tests for Schema Validation and Template Builder">
+      <description>Unit tests cover schema validation with valid and invalid inputs. Unit tests cover StoryTemplateBuilder methods (100% coverage target). Test framework: Jest with ts-jest for TypeScript support (Note: Project uses Vitest, not Jest). Tests verify error handling and edge cases. All tests passing before story completion.</description>
+      <testable>true</testable>
+      <verificationMethod>npm test passes, coverage report shows &gt;80% coverage for solutioning types and builder</verificationMethod>
+    </criterion>
+    <criterion id="AC-8" title="Zero External Dependencies Beyond Type Definitions">
+      <description>Pure data layer with no external service calls. Only dependency: ajv for JSON schema validation. No LLM invocations, no file I/O in core types. Clean separation of concerns.</description>
+      <testable>true</testable>
+      <verificationMethod>Code review confirms no external API calls, no LLM client imports, no fs operations in types.ts</verificationMethod>
+    </criterion>
+    <criterion id="AC-9" title="All Types Exported for Use by Other Stories">
+      <description>All interfaces and types exported from backend/src/solutioning/types.ts. Clear module structure for importing in Stories 4.2-4.9. Type definitions compatible with Epic 1 core types. No circular dependencies.</description>
+      <testable>true</testable>
+      <verificationMethod>Import statements work from test files, no circular dependency errors, TypeScript compilation success</verificationMethod>
+    </criterion>
+    <criterion id="AC-10" title="Documentation for Type System and Schema Structure">
+      <description>Inline TypeScript documentation (JSDoc comments). README in backend/src/solutioning/ explaining type system architecture. Examples of using each interface in documentation. Schema validation examples and error handling patterns.</description>
+      <testable>true</testable>
+      <verificationMethod>README.md exists with complete documentation, JSDoc comments present on all exported types</verificationMethod>
+    </criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Technical Specification: Solutioning Phase Automation</title>
+        <section>Data Models and Contracts (lines 88-176)</section>
+        <snippet>Defines all TypeScript interfaces this story must implement: Epic (id, title, goal, value_proposition, stories, business_value, estimated_duration), Story (id, epic, title, description, acceptance_criteria, dependencies, status, technical_notes, estimated_hours, complexity), DependencyGraph (nodes, edges, critical_path, bottlenecks, parallelizable, metadata), and supporting interfaces.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Technical Specification: Solutioning Phase Automation</title>
+        <section>Sprint Status YAML Schema (lines 177-197)</section>
+        <snippet>Documents the sprint-status.yaml format with fields: generated, project, project_key, tracking_system, story_location, development_status. Epic status: backlog | contexted. Story status: backlog | drafted | ready-for-dev | in-progress | review | done.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Technical Specification: Solutioning Phase Automation</title>
+        <section>Dependency Graph JSON Schema (lines 199-228)</section>
+        <snippet>Example dependency-graph.json structure with nodes (id, title, status, epic, complexity), edges (from, to, type, blocking), criticalPath, and metadata (totalStories, parallelizable, bottlenecks, criticalPathLength).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Microkernel Architecture Pattern</section>
+        <snippet>Core Kernel: Minimal, stable workflow execution engine (Epic 1). Plugins extend functionality through self-contained workflow modules. This story establishes foundational data models that align with the microkernel pattern.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing-guide.md</path>
+        <title>Testing Guide</title>
+        <section>Test Types and Structure</section>
+        <snippet>Unit tests (isolated, mocked dependencies, fast &lt;10ms), Integration tests (real dependencies, 100ms-5s), E2E tests (full workflow, 5s-60s). Use Vitest framework with 75% coverage target. Test files in backend/tests/unit/, backend/tests/integration/, backend/tests/e2e/.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing-guide.md</path>
+        <title>Testing Guide</title>
+        <section>Shared Test Utilities (lines 38-46)</section>
+        <snippet>Common test utilities in backend/tests/utils/: test-helpers.ts (mockFileSystem, mockLLMResponse, mockGitOperations, loadFixture, createTestDir, waitFor, mockEnv, mockLogger, spyOnConsole), apiKeys.ts, mockAgents.ts, gitSetup.ts, fixtures.ts.</snippet>
+      </doc>
+      <doc>
+        <path>docs/sprint-status.yaml</path>
+        <title>Sprint Status Tracking</title>
+        <section>Status Definitions and Development Status</section>
+        <snippet>Current sprint tracking file showing status definitions: Epic status (backlog, contexted), Story status (backlog, drafted, ready-for-dev, in-progress, review, done). Story 4-1 currently in "drafted" status. Use this as reference format for schema documentation.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/types/workflow.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>WorkflowConfig, WorkflowState, Step, Action, ValidationResult</symbol>
+        <lines>1-256</lines>
+        <reason>Shows existing type definition patterns in the project: comprehensive interfaces with JSDoc comments, export structure, error type definitions. Use as template for solutioning types structure.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/types/agent-types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>TestStrategy, FrameworkRecommendation, TestPyramid, ValidationResult</symbol>
+        <lines>1-252</lines>
+        <reason>Shows complex nested type structures with detailed field definitions. Demonstrates pattern for validation result types with boolean flags, error arrays, and detailed metadata. Model for ValidationResult interface in this story.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>core-infrastructure</kind>
+        <symbol>StateManager class</symbol>
+        <lines>1-100</lines>
+        <reason>Shows YAML file handling patterns using js-yaml library, atomic file writes, error handling with custom error types. Reference for sprint-status.yaml schema documentation and file format patterns.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>core-infrastructure</kind>
+        <symbol>AgentPool class</symbol>
+        <lines>1-100</lines>
+        <reason>Shows class-based implementation patterns, dependency injection, comprehensive method definitions with JSDoc comments. Model for StoryTemplateBuilder class structure.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/WorkflowEngine.ts</path>
+        <kind>core-infrastructure</kind>
+        <symbol>WorkflowEngine class</symbol>
+        <lines>1-100</lines>
+        <reason>Shows Epic 1 core engine patterns that solutioning workflows will extend. Demonstrates constructor patterns, state management, error handling with WorkflowExecutionError. This story's types must integrate with this foundation.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/utils/test-helpers.ts</path>
+        <kind>test-utilities</kind>
+        <symbol>mockFileSystem, mockLLMResponse, loadFixture, createTestDir</symbol>
+        <lines>1-282</lines>
+        <reason>Provides reusable test utilities for unit tests. Use mockFileSystem for StoryTemplateBuilder file I/O testing, loadFixture for loading test data, createTestDir for temporary test directories. Demonstrates Vitest mocking patterns with vi.fn().</reason>
+      </artifact>
+      <artifact>
+        <path>backend/vitest.config.ts</path>
+        <kind>test-configuration</kind>
+        <symbol>vitest config</symbol>
+        <lines>1-100</lines>
+        <reason>Shows test framework configuration: Vitest (not Jest), coverage thresholds (75%), test file patterns (tests/**/*.test.ts), path aliases (@, @core, @types). Note: Story AC mentions Jest but project uses Vitest.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/package.json</path>
+        <kind>dependency-manifest</kind>
+        <symbol>dependencies, devDependencies</symbol>
+        <lines>26-51</lines>
+        <reason>Current dependencies: js-yaml (^4.1.0) for YAML parsing already installed. Need to add: ajv (^8.12.0) for JSON schema validation. Test framework: vitest (^1.0.0), ts-jest NOT used (project uses tsx for TypeScript).</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <existing>
+          <package name="js-yaml" version="^4.1.0" reason="YAML parsing for sprint-status.yaml schema" />
+          <package name="vitest" version="^1.0.0" reason="Test framework (not Jest)" />
+          <package name="typescript" version="^5.3.0" reason="TypeScript compilation and type checking" />
+          <package name="@types/js-yaml" version="^4.0.0" reason="TypeScript definitions for js-yaml" />
+        </existing>
+        <toInstall>
+          <package name="ajv" version="^8.12.0" reason="JSON schema validation library for runtime validation of Epic, Story, DependencyGraph, ValidationResult interfaces" install="npm install ajv --workspace=backend" />
+          <package name="@types/node" version="^20.0.0" reason="Already installed, verify for fs operations in StoryTemplateBuilder" />
+        </toInstall>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">
+      <name>Pure Data Layer</name>
+      <description>All type definitions in backend/src/solutioning/types.ts must be pure data structures with no logic, no external API calls, no LLM invocations. The only external dependency allowed is ajv for JSON schema validation.</description>
+    </constraint>
+    <constraint type="architecture">
+      <name>Microkernel Alignment</name>
+      <description>Type system must align with Epic 1 core engine types (WorkflowState, StoryStatus from workflow.types.ts). Ensure compatibility and avoid circular dependencies. Import Epic 1 types where needed rather than redefining.</description>
+    </constraint>
+    <constraint type="architecture">
+      <name>Foundation-First Pattern</name>
+      <description>This is Story 4.1, the foundation story for Epic 4. All subsequent stories (4.2-4.9) depend on these types. Types must be complete, stable, and well-documented before proceeding. No parallel development until this completes.</description>
+    </constraint>
+    <constraint type="coding-standards">
+      <name>TypeScript Strict Mode</name>
+      <description>All types must compile with TypeScript strict mode enabled (strictNullChecks, strictFunctionTypes, noImplicitAny). Use explicit types, avoid "any" except where truly necessary (e.g., ajv validation).</description>
+    </constraint>
+    <constraint type="coding-standards">
+      <name>JSDoc Documentation</name>
+      <description>All exported interfaces, types, and class methods must have comprehensive JSDoc comments including description, @param, @returns, and @example where applicable. Follow patterns from workflow.types.ts and agent-types.ts.</description>
+    </constraint>
+    <constraint type="testing">
+      <name>Test Framework: Vitest</name>
+      <description>Use Vitest (NOT Jest) for all unit tests. Import from 'vitest': describe, it, expect, vi (for mocking). Test files: backend/tests/unit/solutioning/*.test.ts. Note: Story AC mentions Jest but project uses Vitest exclusively.</description>
+    </constraint>
+    <constraint type="testing">
+      <name>Coverage Target: 80%+</name>
+      <description>Unit test coverage must exceed 80% for types.ts, schemas.ts, and story-template-builder.ts. Use "npm run test:coverage" to verify. Vitest config has 75% threshold but aim for 80% (original project goal).</description>
+    </constraint>
+    <constraint type="file-organization">
+      <name>Module Structure</name>
+      <description>Create new directory: backend/src/solutioning/ with files: types.ts (interfaces), schemas.ts (ajv validation), story-template-builder.ts (class), index.ts (barrel exports), README.md (documentation). Tests in: backend/tests/unit/solutioning/</description>
+    </constraint>
+    <constraint type="dependencies">
+      <name>Minimal Dependencies</name>
+      <description>Only install ajv (^8.12.0) as new dependency. Reuse existing js-yaml for YAML examples. No additional libraries for template processing (use plain string manipulation or built-in fs/promises).</description>
+    </constraint>
+    <constraint type="compatibility">
+      <name>Epic 1 Type Compatibility</name>
+      <description>Story status values ("backlog" | "drafted" | "ready-for-dev" | "in-progress" | "review" | "done") must match existing StoryStatus type in workflow.types.ts (line 150). Verify compatibility to avoid type conflicts.</description>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>StoryStatus (from workflow.types.ts)</name>
+      <kind>type-alias</kind>
+      <signature>type StoryStatus = 'backlog' | 'drafted' | 'ready-for-dev' | 'in-progress' | 'review' | 'done';</signature>
+      <path>backend/src/types/workflow.types.ts</path>
+      <reason>Existing type in Epic 1. This story's Story interface must use the same status values for compatibility. Consider importing this type rather than redefining.</reason>
+    </interface>
+    <interface>
+      <name>ValidationResult (from workflow.types.ts)</name>
+      <kind>interface</kind>
+      <signature>interface ValidationResult { isValid: boolean; errors: string[]; warnings: string[]; }</signature>
+      <path>backend/src/types/workflow.types.ts</path>
+      <reason>Existing validation result pattern in Epic 1. This story defines a similar ValidationResult for solutioning (with pass/score/checks). Ensure distinct naming or reuse if compatible.</reason>
+    </interface>
+    <interface>
+      <name>ValidationResult (from agent-types.ts)</name>
+      <kind>interface</kind>
+      <signature>interface ValidationResult { valid: boolean; incompatibilities: Array&lt;...&gt;; warnings: string[]; compatibilityScore: number; }</signature>
+      <path>backend/src/types/agent-types.ts</path>
+      <reason>Another validation result pattern for tech stack compatibility. This story's ValidationResult adds different fields (pass, score, checks, blockers). Consider using a more specific name like SolutioningValidationResult to avoid confusion.</reason>
+    </interface>
+    <interface>
+      <name>ajv - JSONSchemaType&lt;T&gt;</name>
+      <kind>generic-type</kind>
+      <signature>import Ajv, { JSONSchemaType } from 'ajv'; const schema: JSONSchemaType&lt;MyInterface&gt; = { type: 'object', properties: {...}, required: [...] };</signature>
+      <path>node_modules/ajv (to be installed)</path>
+      <reason>ajv provides JSONSchemaType generic for type-safe schema definitions. Use this to define schemas for Epic, Story, DependencyGraph, ValidationResult interfaces. Ensures schema matches TypeScript types at compile time.</reason>
+    </interface>
+    <interface>
+      <name>fs/promises - readFile, writeFile, mkdir</name>
+      <kind>node-api</kind>
+      <signature>import * as fs from 'fs/promises'; await fs.readFile(path, 'utf-8'); await fs.writeFile(path, content, 'utf-8'); await fs.mkdir(dir, { recursive: true });</signature>
+      <path>node:fs/promises (built-in)</path>
+      <reason>StoryTemplateBuilder will use fs/promises for loading template file (docs/templates/story-template.md) and generating markdown output. Use async/await pattern matching Epic 1 StateManager (lines 74-100).</reason>
+    </interface>
+    <interface>
+      <name>js-yaml - dump, load</name>
+      <kind>yaml-library</kind>
+      <signature>import * as yaml from 'js-yaml'; const obj = yaml.load(yamlString); const yamlString = yaml.dump(obj);</signature>
+      <path>node_modules/js-yaml</path>
+      <reason>Use for toYAMLFrontmatter() method in StoryTemplateBuilder to generate YAML frontmatter for story markdown files. Follow pattern from StateManager (line 9 import).</reason>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      <![CDATA[
+**Test Framework**: Vitest (^1.0.0) - NOT Jest. Import from 'vitest': describe, it, expect, vi, beforeEach, afterEach.
+
+**Test Organization**:
+- Unit tests: backend/tests/unit/solutioning/types.test.ts, story-template-builder.test.ts
+- Test utilities: backend/tests/utils/test-helpers.ts (reuse mockFileSystem, loadFixture, createTestDir)
+- Fixtures: backend/tests/fixtures/solutioning/ (create for test data)
+
+**Coverage Target**: 80%+ for types.ts, schemas.ts, story-template-builder.ts (vitest.config.ts has 75% threshold)
+
+**Test Patterns**:
+1. Unit tests are fast (<10ms), isolated, all dependencies mocked
+2. Use vi.fn() for mocking (not jest.fn())
+3. Use loadFixture() from test-helpers.ts for loading test data
+4. Use createTestDir() for temporary test directories
+5. Clean up after tests (afterEach hooks for file/directory cleanup)
+
+**Example Test Structure** (from existing tests):
+```typescript
+import { describe, it, expect, vi } from 'vitest';
+import { validateEpic } from '../../src/solutioning/schemas.js';
+
+describe('Epic Schema Validation', () => {
+  it('should validate a valid epic object', () => {
+    const epic = { id: 'epic-1', title: 'Test', ... };
+    const result = validateEpic(epic);
+    expect(result.pass).toBe(true);
+  });
+
+  it('should reject an invalid epic object', () => {
+    const epic = { id: 123, title: null };
+    const result = validateEpic(epic);
+    expect(result.pass).toBe(false);
+    expect(result.blockers).toContain('id must be string');
+  });
+});
+```
+
+**Running Tests**:
+- All tests: npm test (in backend/)
+- Watch mode: npm run test:watch
+- Coverage: npm run test:coverage (generates coverage/ directory)
+      ]]>
+    </standards>
+    <locations>
+      <location>backend/tests/unit/solutioning/types.test.ts</location>
+      <location>backend/tests/unit/solutioning/schemas.test.ts</location>
+      <location>backend/tests/unit/solutioning/story-template-builder.test.ts</location>
+      <location>backend/tests/fixtures/solutioning/</location>
+    </locations>
+    <ideas>
+      <idea criterionId="AC-1">
+        <description>Test TypeScript interface completeness</description>
+        <approach>Verify all interfaces compile, instantiate sample objects for each interface, check TypeScript type inference works correctly</approach>
+      </idea>
+      <idea criterionId="AC-2">
+        <description>Test JSON schema validation with ajv</description>
+        <approach>Create test fixtures for valid Epic/Story/DependencyGraph objects. Test validation passes for valid data. Create invalid fixtures (wrong types, missing fields, extra fields) and verify validation fails with clear error messages including field paths.</approach>
+      </idea>
+      <idea criterionId="AC-3">
+        <description>Test StoryTemplateBuilder methods</description>
+        <approach>Mock fs.readFile to return template content. Test buildFromTemplate() populates placeholders correctly. Test validateStoryFormat() detects missing sections. Test toMarkdown() generates correct format. Test toYAMLFrontmatter() produces valid YAML. Test error handling for missing template file.</approach>
+      </idea>
+      <idea criterionId="AC-7">
+        <description>Test edge cases and error handling</description>
+        <approach>Test empty arrays (stories: []), missing optional fields, null/undefined values, circular references in dependency graph, invalid enum values for StoryStatus/Complexity, malformed JSON/YAML input</approach>
+      </idea>
+      <idea criterionId="AC-9">
+        <description>Test type exports and imports</description>
+        <approach>Create test file that imports all exported types from backend/src/solutioning/types.ts. Verify no TypeScript compilation errors. Test importing from barrel export (index.ts) if created. Verify no circular dependency warnings.</approach>
+      </idea>
+    </ideas>
+  </tests>
+</story-context>
