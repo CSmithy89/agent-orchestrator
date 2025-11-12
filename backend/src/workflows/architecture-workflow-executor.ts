@@ -35,13 +35,14 @@ import { EventEmitter } from 'events';
 import { fileURLToPath } from 'url';
 import { LLMFactory } from '../llm/LLMFactory.js';
 import { LLMConfig } from '../types/llm.types.js';
-import { WinstonAgent } from '../core/agents/winston-agent.js';
-import { MuratAgent } from '../core/agents/murat-agent.js';
+import { WinstonAgent, type DecisionRecord as WinstonDecisionRecord } from '../core/agents/winston-agent.js';
+import { MuratAgent, type DecisionRecord as MuratDecisionRecord } from '../core/agents/murat-agent.js';
 import { DecisionEngine } from '../core/services/decision-engine.js';
 import { EscalationQueue } from '../core/services/escalation-queue.js';
 import { StateManager } from '../core/StateManager.js';
 import { TemplateProcessor } from '../core/TemplateProcessor.js';
 import { WorkflowState, AgentActivity } from '../types/workflow.types.js';
+import { TechnicalDecisionLogger, TechnicalDecision } from '../core/technical-decision-logger.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -936,6 +937,9 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
 
     if (!this.state) throw new Error('State not initialized');
 
+    // Create TechnicalDecisionLogger
+    const logger = new TechnicalDecisionLogger();
+
     // Get decision audit trails from both agents
     const winston = await this.createWinstonAgent();
     const murat = await this.createMuratAgent();
@@ -943,8 +947,22 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
     const winstonDecisions = winston.getDecisionAuditTrail();
     const muratDecisions = murat.getDecisionAuditTrail();
 
-    // Format decisions as ADRs
-    const decisionsSection = this.formatTechnicalDecisions(winstonDecisions, muratDecisions);
+    // Convert and merge Winston's decisions
+    const winstonTechnicalDecisions = this.convertDecisionRecordsToTechnicalDecisions(
+      winstonDecisions,
+      'winston'
+    );
+    logger.mergeDecisions(winstonTechnicalDecisions);
+
+    // Convert and merge Murat's decisions
+    const muratTechnicalDecisions = this.convertDecisionRecordsToTechnicalDecisions(
+      muratDecisions,
+      'murat'
+    );
+    logger.mergeDecisions(muratTechnicalDecisions);
+
+    // Generate ADR section markdown
+    const decisionsSection = logger.generateADRSection();
 
     // Update architecture document
     this.architectureContent = this.replaceSection(this.architectureContent, 'Technical Decisions', decisionsSection);
@@ -1236,5 +1254,32 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
       .join('\n');
 
     return section;
+  }
+
+  /**
+   * Convert DecisionRecord array to TechnicalDecision array
+   *
+   * @param decisions - Array of DecisionRecord from Winston or Murat
+   * @param decisionMaker - 'winston' or 'murat'
+   * @returns Array of TechnicalDecision
+   */
+  private convertDecisionRecordsToTechnicalDecisions(
+    decisions: WinstonDecisionRecord[] | MuratDecisionRecord[],
+    decisionMaker: 'winston' | 'murat'
+  ): TechnicalDecision[] {
+    return decisions.map((record) => ({
+      id: '', // Will be assigned by logger
+      title: record.question,
+      context: `Decision made during ${record.method} execution`,
+      decision: String(record.decision.decision),
+      alternatives: [], // DecisionRecord doesn't include alternatives
+      rationale: record.decision.reasoning || 'See decision details',
+      consequences: [], // DecisionRecord doesn't include consequences
+      status: 'accepted' as const,
+      decisionMaker,
+      date: record.timestamp,
+      confidence: record.decision.confidence
+    }));
+>>>>>>> 9457172 (Story 3-4 Complete: Technical Decision Logger Integration)
   }
 }

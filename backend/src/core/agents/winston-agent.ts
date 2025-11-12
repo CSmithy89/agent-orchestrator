@@ -303,7 +303,7 @@ interface WinstonPersona {
 /**
  * Decision metadata for audit trail
  */
-interface DecisionRecord {
+export interface DecisionRecord {
   method: string;
   question: string;
   decision: Decision;

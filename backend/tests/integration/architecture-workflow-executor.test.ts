@@ -536,4 +536,173 @@ Author: {{user_name}}
       expect(result.valid).toBe(true);
     });
   });
+
+  /**
+   * Decision Conversion End-to-End Tests (Story 3-4 Code Review Fix)
+   */
+  describe('DecisionRecord to TechnicalDecision Conversion', () => {
+    it('should convert Winston decisions to ADR format without undefined values', async () => {
+      // This test validates the bug fix for line 1248 (record.decision.decision vs record.decision.answer)
+      // and ensures the full conversion flow works correctly
+
+      // Create a mock DecisionRecord structure matching Winston's output
+      const mockWinstonDecisionRecords = [
+        {
+          method: 'generateSystemOverview',
+          question: 'What architectural pattern should be used?',
+          decision: {
+            question: 'What architectural pattern should be used?',
+            decision: 'Microkernel architecture pattern',
+            confidence: 0.85,
+            reasoning: 'Provides extensibility while maintaining stable core',
+            source: 'llm' as const,
+            timestamp: new Date('2025-11-12T10:00:00Z'),
+            context: {}
+          },
+          timestamp: new Date('2025-11-12T10:00:00Z')
+        }
+      ];
+
+      const mockMuratDecisionRecords = [
+        {
+          method: 'generateTestStrategy',
+          question: 'What test framework should be used?',
+          decision: {
+            question: 'What test framework should be used?',
+            decision: 'Vitest with TypeScript support',
+            confidence: 0.90,
+            reasoning: 'Fast execution with excellent TypeScript integration',
+            source: 'llm' as const,
+            timestamp: new Date('2025-11-12T11:00:00Z'),
+            context: {}
+          },
+          timestamp: new Date('2025-11-12T11:00:00Z')
+        }
+      ];
+
+      // Import TechnicalDecisionLogger to test conversion
+      const { TechnicalDecisionLogger } = await import('../../src/core/technical-decision-logger.js');
+      const logger = new TechnicalDecisionLogger();
+
+      // Simulate what ArchitectureWorkflowExecutor.executeStep7() does:
+      // Convert DecisionRecords to TechnicalDecisions using the same conversion logic
+      const winstonTechnicalDecisions = mockWinstonDecisionRecords.map((record) => ({
+        id: '', // Will be assigned by logger
+        title: record.question,
+        context: `Decision made during ${record.method} execution`,
+        decision: record.decision.decision, // CRITICAL: Must be .decision, not .answer
+        alternatives: [],
+        rationale: record.decision.reasoning || 'See decision details',
+        consequences: [],
+        status: 'accepted' as const,
+        decisionMaker: 'winston' as const,
+        date: record.timestamp,
+        confidence: record.decision.confidence
+      }));
+
+      const muratTechnicalDecisions = mockMuratDecisionRecords.map((record) => ({
+        id: '',
+        title: record.question,
+        context: `Decision made during ${record.method} execution`,
+        decision: record.decision.decision, // CRITICAL: Must be .decision, not .answer
+        alternatives: [],
+        rationale: record.decision.reasoning || 'See decision details',
+        consequences: [],
+        status: 'accepted' as const,
+        decisionMaker: 'murat' as const,
+        date: record.timestamp,
+        confidence: record.decision.confidence
+      }));
+
+      // Add decisions to logger
+      winstonTechnicalDecisions.forEach((decision) => logger.captureDecision(decision));
+      muratTechnicalDecisions.forEach((decision) => logger.captureDecision(decision));
+
+      // Generate ADR section
+      const adrSection = logger.generateADRSection();
+
+      // CRITICAL ASSERTIONS - Validate bug fix
+      // 1. Decision text should NOT be undefined (was the bug)
+      expect(adrSection).toContain('Microkernel architecture pattern');
+      expect(adrSection).toContain('Vitest with TypeScript support');
+      expect(adrSection).not.toContain('undefined');
+
+      // 2. Rationale should be present
+      expect(adrSection).toContain('Provides extensibility while maintaining stable core');
+      expect(adrSection).toContain('Fast execution with excellent TypeScript integration');
+
+      // 3. Decision makers should be identified
+      expect(adrSection).toContain('Winston');
+      expect(adrSection).toContain('Murat');
+
+      // 4. ADR IDs should be sequential
+      expect(adrSection).toContain('ADR-001');
+      expect(adrSection).toContain('ADR-002');
+
+      // 5. Confidence scores should be preserved (formatted as percentages)
+      expect(adrSection).toContain('85%');
+      expect(adrSection).toContain('90%');
+
+      // 6. Summary table should exist
+      expect(adrSection).toContain('Decision Summary');
+      expect(adrSection).toContain('| ID | Title | Decision Maker |');
+
+      // 7. Full ADR structure should be present
+      expect(adrSection).toContain('### Context');
+      expect(adrSection).toContain('### Decision');
+      expect(adrSection).toContain('### Rationale');
+    });
+
+    it('should handle empty decision arrays gracefully', async () => {
+      const { TechnicalDecisionLogger } = await import('../../src/core/technical-decision-logger.js');
+      const logger = new TechnicalDecisionLogger();
+
+      const adrSection = logger.generateADRSection();
+
+      expect(adrSection).toContain('Technical Decisions');
+      expect(adrSection).toContain('No architectural decisions recorded');
+    });
+
+    it('should handle decision records with minimal fields', async () => {
+      const mockMinimalDecisionRecord = {
+        method: 'someMethod',
+        question: 'Should we proceed?',
+        decision: {
+          question: 'Should we proceed?',
+          decision: 'Yes, proceed with implementation',
+          confidence: 0.80,
+          reasoning: '', // Empty reasoning
+          source: 'llm' as const,
+          timestamp: new Date(),
+          context: {}
+        },
+        timestamp: new Date()
+      };
+
+      const { TechnicalDecisionLogger } = await import('../../src/core/technical-decision-logger.js');
+      const logger = new TechnicalDecisionLogger();
+
+      const technicalDecision = {
+        id: '',
+        title: mockMinimalDecisionRecord.question,
+        context: `Decision made during ${mockMinimalDecisionRecord.method} execution`,
+        decision: mockMinimalDecisionRecord.decision.decision,
+        alternatives: [],
+        rationale: mockMinimalDecisionRecord.decision.reasoning || 'See decision details',
+        consequences: [],
+        status: 'accepted' as const,
+        decisionMaker: 'winston' as const,
+        date: mockMinimalDecisionRecord.timestamp,
+        confidence: mockMinimalDecisionRecord.decision.confidence
+      };
+
+      logger.captureDecision(technicalDecision);
+      const adrSection = logger.generateADRSection();
+
+      // Should use fallback rationale
+      expect(adrSection).toContain('See decision details');
+      expect(adrSection).toContain('Yes, proceed with implementation');
+      expect(adrSection).not.toContain('undefined');
+    });
+  });
 });

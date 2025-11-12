@@ -1,0 +1,341 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>4</storyId>
+    <title>Technical Decisions Logger</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-4-technical-decisions-logger.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Agent Orchestrator</asA>
+    <iWant>A Technical Decision Logger that captures all architectural decisions from Winston, Murat, and CIS agents in Architecture Decision Record (ADR) format</iWant>
+    <soThat>Technical decisions are documented with clear rationale and traceability for future reference</soThat>
+    <tasks>
+### Task 1: Create TechnicalDecisionLogger Class (2-3 hours)
+- Create `backend/src/core/technical-decision-logger.ts`
+- Implement TechnicalDecisionLogger class
+- Define TechnicalDecision interface (from Epic 3 tech spec lines 247-263)
+- Define ADR format structure
+- Method: `captureDecision(decision: TechnicalDecision): void`
+- Method: `getDecisionAuditTrail(): TechnicalDecision[]`
+- Method: `generateADRSection(): string` - outputs markdown
+
+### Task 2: Integrate with Winston Agent (1-2 hours)
+- Update WinstonAgent to track decisions internally
+- Add decision tracking to architecture generation methods
+- Expose `getDecisionAuditTrail()` method on WinstonAgent
+- Capture decisions with context and rationale
+- Test decision capture in Winston integration tests
+
+### Task 3: Integrate with Murat Agent (1-2 hours)
+- Update MuratAgent to track decisions internally
+- Add decision tracking to test strategy methods
+- Expose `getDecisionAuditTrail()` method on MuratAgent
+- Capture test framework and quality gate decisions
+- Test decision capture in Murat integration tests
+
+### Task 4: Integrate with ArchitectureWorkflowExecutor (2-3 hours)
+- Add TechnicalDecisionLogger to ArchitectureWorkflowExecutor
+- Aggregate decisions in Step 7: Technical Decisions
+- Retrieve Winston's decision audit trail
+- Retrieve Murat's decision audit trail
+- Format decisions as ADRs
+- Generate Technical Decisions section markdown
+- Insert section into architecture.md
+
+### Task 5: Implement PRD Traceability (1-2 hours)
+- Parse PRD requirements and extract requirement IDs
+- Link decisions to PRD requirements in ADR context
+- Generate traceability matrix: PRD requirement → ADR
+- Validate all PRD requirements have corresponding decisions
+- Add traceability section to architecture.md
+
+### Task 6: Write Integration Tests (2-3 hours)
+- Create `backend/tests/integration/technical-decision-logger.test.ts`
+- Test: Capture decision with all fields
+- Test: Format decision as ADR
+- Test: Aggregate decisions from multiple sources
+- Test: Generate Technical Decisions section markdown
+- Test: PRD traceability matrix generation
+- Test: Decision audit trail persistence
+- Verify test coverage >80%
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Decision Capture During Workflow**
+   - Logger integrated into ArchitectureWorkflowExecutor (Story 3-3)
+   - Captures decisions from Winston agent during architecture workflow steps 2-5, 7
+   - Captures decisions from Murat agent during test strategy step 6
+   - Captures decisions from CIS agents when invoked (Story 3-8)
+   - Each decision includes: context, decision made, rationale, alternatives considered
+
+2. **ADR Format Generation**
+   - Decisions formatted as Architecture Decision Records (ADRs)
+   - ADR structure: ID, title, context, decision, alternatives, consequences, status, decision maker, date
+   - ADR IDs sequentially numbered: ADR-001, ADR-002, etc.
+   - ADR status: proposed, accepted, superseded
+   - Decision maker identified: 'winston', 'murat', 'cis-agent', 'user'
+
+3. **Decision Aggregation**
+   - Aggregate all decisions made during workflow execution
+   - Retrieve decision audit trail from Winston.getDecisionAuditTrail()
+   - Retrieve decision audit trail from Murat.getDecisionAuditTrail()
+   - Retrieve CIS agent contributions if applicable
+   - Merge into single decision log with chronological ordering
+
+4. **Technical Decisions Section in Architecture.md**
+   - Generate "Technical Decisions" section for architecture.md
+   - Include all ADRs in formatted markdown
+   - Group by category: system design, technology stack, test strategy, security, performance
+   - Include decision summary table with ID, title, decision maker, date
+   - Markdown formatting preserved and validated
+
+5. **PRD Traceability**
+   - Link decisions to PRD requirements where applicable
+   - Include PRD requirement ID in ADR context if traceable
+   - Validate all PRD functional requirements have corresponding architectural decisions
+   - Generate traceability matrix: PRD requirement → ADR
+
+6. **Decision Audit Trail**
+   - All decisions logged with timestamp
+   - Decision confidence score recorded (from DecisionEngine)
+   - Escalations tracked if decision required user input
+   - Audit trail persisted to workflow state
+   - Audit trail queryable after workflow completion
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc path="docs/epics/epic-3-tech-spec.md" title="Epic 3 Technical Specification" section="TechnicalDecision Interface">
+        Lines 247-263 define the TechnicalDecision interface with all required fields: id, title, context, decision, alternatives, rationale, consequences, status, decisionMaker, date, confidence, prdRequirements. This is the authoritative contract for the TechnicalDecisionLogger implementation.
+      </doc>
+      <doc path="docs/epics/epic-3-tech-spec.md" title="Epic 3 Technical Specification" section="TechnicalDecisionLogger Module">
+        Line 121 defines TechnicalDecisionLogger as a core service module in Epic 3. Lines 247-263 provide the data model. The logger is responsible for capturing decisions from Winston and Murat agents and formatting them as ADRs for architecture.md.
+      </doc>
+      <doc path="docs/epics/epic-3-tech-spec.md" title="Epic 3 Technical Specification" section="Architecture Workflow Sequence">
+        Lines 503-507 describe Step 7 (Technical Decisions) where the logger aggregates all decisions, formats as ADRs, and includes CIS agent contributions. This is the integration point in the workflow.
+      </doc>
+      <doc path="docs/stories/3-1-winston-agent-system-architect-persona.md" title="Winston Agent Story" section="Dev Agent Record">
+        Winston agent tracks decisions internally with getDecisionAuditTrail() method. Lines 484 show ADR ID generation (ADR-001, ADR-002). Winston's decisions include: technology stack choices, component design, data model decisions, API design decisions, NFR decisions.
+      </doc>
+      <doc path="docs/stories/3-2-murat-agent-test-architect-persona.md" title="Murat Agent Story" section="Dev Agent Record">
+        Murat agent tracks decisions internally with getDecisionAuditTrail() method. Murat's decisions include: test framework selections, test pyramid ratios, CI/CD pipeline choices, quality gate thresholds. Pattern follows Winston's implementation.
+      </doc>
+      <doc path="docs/stories/3-3-architecture-workflow-executor.md" title="Architecture Workflow Executor" section="Dev Agent Record">
+        ArchitectureWorkflowExecutor orchestrates Winston and Murat. Step 7 (lines 853-872 in implementation) aggregates decisions from both agents. This is where TechnicalDecisionLogger will be integrated to collect and format all decisions.
+      </doc>
+      <doc path="docs/PRD.md" title="Product Requirements Document" section="FR-CORE-002">
+        Autonomous Architecture Design requires "All technical decisions documented with clear rationale" - this is the PRD requirement that TechnicalDecisionLogger directly satisfies. ADR format ensures decisions are traceable and reviewable.
+      </doc>
+    </docs>
+    <code>
+      <file path="backend/src/core/technical-decision-logger.ts" kind="implementation" symbol="TechnicalDecisionLogger" lines="1-269" reason="ALREADY IMPLEMENTED - Complete TechnicalDecisionLogger class with all required methods: captureDecision(), getDecisionAuditTrail(), generateADRSection(), mergeDecisions(), generateTraceabilityMatrix(), saveToFile(), loadFromFile()">
+        The TechnicalDecisionLogger class is already fully implemented with:
+        - TechnicalDecision interface (lines 8-25) matching tech spec exactly
+        - captureDecision() method (lines 55-72) with automatic ADR ID generation
+        - getDecisionAuditTrail() method (lines 77-79)
+        - generateADRSection() method (lines 84-111) producing markdown with summary table and detailed ADRs
+        - formatADR() private method (lines 116-174) formatting individual ADRs
+        - mergeDecisions() method (lines 192-196) for aggregating from multiple agents
+        - generateTraceabilityMatrix() method (lines 216-231) for PRD traceability
+        - saveToFile()/loadFromFile() methods (lines 236-267) for persistence
+        This implementation satisfies all acceptance criteria for the logger itself.
+      </file>
+      <file path="backend/src/core/agents/winston-agent.ts" kind="agent" symbol="WinstonAgent" lines="1-1166" reason="Winston agent already has decision audit trail tracking - getDecisionAuditTrail() method exists (lines 986-988). Decisions are tracked in private decisions array with DecisionRecord interface (lines 76-81). Integration point ready.">
+        Winston agent tracks decisions internally:
+        - DecisionRecord interface (lines 76-81): method, decision, rationale, confidence, timestamp
+        - Private decisions array (line 109) stores all decisions
+        - getDecisionAuditTrail() method (lines 986-988) returns decision trail
+        - documentDecision() method (lines 675-725) formats decisions as ADRs
+        - All architectural methods (generateSystemOverview, designComponents, etc.) can log decisions
+        Integration needed: Call winston.getDecisionAuditTrail() in workflow executor step 7
+      </file>
+      <file path="backend/src/core/agents/murat-agent.ts" kind="agent" symbol="MuratAgent" lines="1-1027" reason="Murat agent has decision audit trail tracking - getDecisionAuditTrail() method exists (lines 986-988). Follows same pattern as Winston. Integration point ready for test strategy decisions.">
+        Murat agent tracks decisions internally:
+        - DecisionRecord interface (lines 76-81) same as Winston
+        - Private decisions array (line 108) stores test strategy decisions
+        - getDecisionAuditTrail() method (lines 986-988) returns decision trail
+        - All test architecture methods (defineTestStrategy, recommendFrameworks, etc.) can log decisions
+        Integration needed: Call murat.getDecisionAuditTrail() in workflow executor step 6-7
+      </file>
+      <file path="backend/src/workflows/architecture-workflow-executor.ts" kind="workflow-executor" symbol="ArchitectureWorkflowExecutor" lines="853-872" reason="Step 7 (Technical Decisions) is the integration point where TechnicalDecisionLogger should aggregate decisions from Winston and Murat and generate ADR section">
+        Step 7 handler (executeStep7) currently:
+        - Line 853-872: Aggregates decisions from Winston and Murat
+        - Retrieves Winston's decision audit trail
+        - Retrieves Murat's decision audit trail
+        - Formats decisions as ADRs
+        - Saves to architecture.md (Technical Decisions section)
+        Integration needed:
+        1. Import TechnicalDecisionLogger
+        2. Create logger instance
+        3. Call logger.mergeDecisions(winston.getDecisionAuditTrail())
+        4. Call logger.mergeDecisions(murat.getDecisionAuditTrail())
+        5. Generate markdown: logger.generateADRSection()
+        6. Insert into architecture.md
+      </file>
+      <file path="backend/src/types/agent-types.ts" kind="types" symbol="TestStrategy|FrameworkRecommendation" lines="1-251" reason="Type definitions for agent data structures - may need TechnicalDecision interface exported here if not already">
+        Agent type definitions include:
+        - TestStrategy, FrameworkRecommendation, TestPyramid (Murat outputs)
+        - ComponentDesign, DataModel, APISpecification, NFRSection (Winston outputs)
+        - ArchitectureAnalysis, ValidationResult (Winston-Murat coordination)
+        Note: TechnicalDecision interface is defined in technical-decision-logger.ts, not here.
+        If needed for type sharing, could re-export from this file.
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <package name="typescript" version="^5.3.0" usage="TypeScript compilation and type checking" />
+        <package name="vitest" version="^1.0.0" usage="Testing framework for integration tests" />
+        <package name="@vitest/coverage-v8" version="^1.0.0" usage="Code coverage reporting" />
+        <package name="@types/node" version="^20.10.0" usage="Node.js type definitions" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+1. **Implementation Status**: TechnicalDecisionLogger class is ALREADY FULLY IMPLEMENTED at backend/src/core/technical-decision-logger.ts. Story primarily involves integrating existing logger with Winston, Murat, and ArchitectureWorkflowExecutor.
+
+2. **Integration Pattern**: Follow the pattern established by Winston and Murat agents:
+   - Both agents have DecisionRecord interface (lines 76-81 in their files)
+   - Both expose getDecisionAuditTrail() method (lines 986-988)
+   - Integration is a matter of calling these methods in workflow executor Step 7
+
+3. **ADR Format**: The logger already implements ADR format with:
+   - Summary table (ID, Title, Decision Maker, Date, Status)
+   - Detailed records (Context, Decision, Alternatives, Rationale, Consequences, PRD Traceability)
+   - Markdown generation is complete and tested
+
+4. **Workflow Integration Point**: Step 7 in ArchitectureWorkflowExecutor (executeStep7 method, lines 853-872) is where decisions are aggregated. This step needs to be updated to use TechnicalDecisionLogger.
+
+5. **PRD Traceability**: The logger already has generateTraceabilityMatrix() method for PRD requirement → ADR mapping. This satisfies AC #5.
+
+6. **Testing Requirements**:
+   - Winston and Murat integration tests need to verify getDecisionAuditTrail() works
+   - New integration test file needed: backend/tests/integration/technical-decision-logger.test.ts
+   - Test coverage target: >80%
+
+7. **No Breaking Changes**: Integration should be additive - existing Winston/Murat functionality should not be modified, only extended with decision logging calls.
+</constraints>
+
+  <interfaces>
+1. **TechnicalDecision Interface** (technical-decision-logger.ts lines 8-25):
+   ```typescript
+   interface TechnicalDecision {
+     id: string; // ADR-001, ADR-002, etc.
+     title: string;
+     context: string;
+     decision: string;
+     alternatives: { option: string; pros: string[]; cons: string[]; }[];
+     rationale: string;
+     consequences: string[];
+     status: 'proposed' | 'accepted' | 'superseded';
+     decisionMaker: 'winston' | 'murat' | 'cis-agent' | 'user';
+     date: Date;
+     confidence?: number;
+     prdRequirements?: string[];
+   }
+   ```
+
+2. **TechnicalDecisionLogger Public API**:
+   ```typescript
+   class TechnicalDecisionLogger {
+     captureDecision(decision: Partial<TechnicalDecision>): void;
+     getDecisionAuditTrail(): TechnicalDecision[];
+     generateADRSection(): string;
+     mergeDecisions(otherDecisions: TechnicalDecision[]): void;
+     generateTraceabilityMatrix(): Record<string, string[]>;
+     saveToFile(filePath: string): Promise<void>;
+     loadFromFile(filePath: string): Promise<void>;
+   }
+   ```
+
+3. **Agent Decision Audit Trail** (Winston/Murat):
+   ```typescript
+   interface DecisionRecord {
+     method: string;
+     decision: string;
+     rationale: string;
+     confidence?: number;
+     timestamp: Date;
+   }
+
+   // Both Winston and Murat expose:
+   getDecisionAuditTrail(): DecisionRecord[];
+   ```
+
+4. **Workflow Executor Integration** (Step 7):
+   ```typescript
+   // In ArchitectureWorkflowExecutor.executeStep7()
+   const logger = new TechnicalDecisionLogger();
+   logger.mergeDecisions(winston.getDecisionAuditTrail());
+   logger.mergeDecisions(murat.getDecisionAuditTrail());
+   const adrSection = logger.generateADRSection();
+   // Insert adrSection into architecture.md
+   ```
+</interfaces>
+
+  <tests>
+    <standards>
+Integration testing strategy: Use real LLM providers with API keys for full workflow validation, mock LLM responses for unit tests. All tests use vitest framework with async/await patterns. Tests skip gracefully when API keys unavailable using hasApiKeys() helper from backend/tests/utils/apiKeys.ts. Test timeout: 120s for LLM operations. Coverage target: >80%.
+    </standards>
+    <locations>
+- backend/tests/integration/technical-decision-logger.test.ts (NEW - to be created)
+- backend/tests/integration/winston-agent.test.ts (EXISTING - verify getDecisionAuditTrail)
+- backend/tests/integration/murat-agent.test.ts (EXISTING - verify getDecisionAuditTrail)
+- backend/tests/integration/architecture-workflow-executor.test.ts (EXISTING - verify Step 7 integration)
+    </locations>
+    <ideas>
+Test Ideas Mapped to Acceptance Criteria:
+
+**AC-1: Decision Capture During Workflow**
+- Test: Create TechnicalDecisionLogger and capture decision with all fields
+- Verify: Decision stored with correct ADR ID, title, context, decision, alternatives, rationale, consequences, status, decision maker, date
+- Test: Capture multiple decisions - verify sequential ADR IDs (ADR-001, ADR-002, ADR-003)
+
+**AC-2: ADR Format Generation**
+- Test: Format single decision as ADR markdown
+- Verify: Markdown includes all sections (Context, Decision, Alternatives, Rationale, Consequences, PRD Traceability)
+- Test: Format ADR with alternatives (multiple options with pros/cons)
+- Verify: Each alternative formatted correctly with bullet lists
+- Test: Decision status values (proposed, accepted, superseded)
+- Verify: Status rendered correctly in markdown
+
+**AC-3: Decision Aggregation**
+- Test: Merge decisions from Winston agent (mock DecisionRecord[])
+- Verify: All Winston decisions converted to TechnicalDecision format and stored
+- Test: Merge decisions from Murat agent (mock DecisionRecord[])
+- Verify: All Murat decisions converted and stored
+- Test: Aggregate decisions from both agents with different timestamps
+- Verify: Decisions ordered chronologically in audit trail
+
+**AC-4: Technical Decisions Section in Architecture.md**
+- Test: Generate ADR section markdown with 5 decisions
+- Verify: Summary table generated with columns (ID, Title, Decision Maker, Date, Status)
+- Verify: Detailed ADRs section includes all 5 decisions formatted correctly
+- Test: Group decisions by category (mock decisions with different types)
+- Verify: Decisions grouped logically in output
+
+**AC-5: PRD Traceability**
+- Test: Capture decisions with prdRequirements field populated
+- Verify: PRD requirement IDs stored in decision
+- Test: Generate traceability matrix
+- Verify: Matrix maps PRD requirements to ADR IDs correctly
+- Test: Decision with multiple PRD requirements
+- Verify: All requirements appear in traceability matrix
+
+**AC-6: Decision Audit Trail**
+- Test: Capture decisions with timestamps
+- Verify: Timestamps stored correctly and sortable
+- Test: Capture decisions with confidence scores (0.75, 0.85, 0.95)
+- Verify: Confidence scores stored and formatted as percentages in ADR
+- Test: Save audit trail to JSON file
+- Verify: File written with all decisions serialized
+- Test: Load audit trail from JSON file
+- Verify: Decisions deserialized correctly with Date objects restored
+    </ideas>
+  </tests>
+</story-context>
