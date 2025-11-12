@@ -1,0 +1,1054 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context story-id="3-3-architecture-workflow-executor" generated-date="2025-11-12">
+
+  <!-- ================================================================
+       STORY OVERVIEW
+       ================================================================ -->
+  <story-summary>
+    <title>Story 3-3: Architecture Workflow Executor</title>
+    <status>drafted</status>
+    <epic>Epic 3: Planning Phase Automation</epic>
+    <goal>
+      Implement Architecture Workflow Executor that orchestrates Winston and Murat agents
+      through the architecture workflow, generating comprehensive architecture documents
+      autonomously from PRD inputs with state persistence and resume capability.
+    </goal>
+    <key-deliverables>
+      - ArchitectureWorkflowExecutor class with execute(), resume(), validate() methods
+      - Winston and Murat agent coordination for architecture generation
+      - Architecture document generation from template with all sections filled
+      - Workflow state persistence after each step completion
+      - Workflow resume capability from saved state
+      - Template variable substitution and section replacement
+      - Performance monitoring, cost tracking, and event emission
+      - Comprehensive integration tests (26+ test cases)
+    </key-deliverables>
+  </story-summary>
+
+  <!-- ================================================================
+       ACCEPTANCE CRITERIA CHECKLIST
+       ================================================================ -->
+  <acceptance-criteria>
+    <criterion id="AC-1" priority="critical">
+      <title>Workflow Loads from Configuration</title>
+      <requirements>
+        - Workflow loads from bmad/bmm/workflows/3-solutioning/architecture/workflow.yaml
+        - All workflow configuration variables resolved ({output_folder}, {user_name}, etc.)
+        - Template, instructions, and validation files loaded successfully
+        - PRD path validated before workflow execution starts
+      </requirements>
+    </criterion>
+
+    <criterion id="AC-2" priority="critical">
+      <title>Workflow Executes All Steps in Order</title>
+      <requirements>
+        - Workflow executes steps 1-9 in exact sequence per architecture workflow instructions
+        - Each step completes before next step begins (no parallel execution in MVP)
+        - Step execution logged with timestamps and duration
+        - Workflow can be monitored for progress
+      </requirements>
+    </criterion>
+
+    <criterion id="AC-3" priority="critical">
+      <title>Winston and Murat Agents Coordinated</title>
+      <requirements>
+        - Winston agent spawned and invoked for steps 2-5, 7 (system overview, components, data/APIs, NFRs, technical decisions)
+        - Murat agent spawned and invoked for steps 6-7 (test strategy, technical decisions)
+        - Winston's architecture draft passed to Murat for test strategy generation
+        - Agent activity tracked in workflow state (agent name, status, start time, sections)
+        - Agent errors handled gracefully with retry logic
+      </requirements>
+    </criterion>
+
+    <criterion id="AC-4" priority="critical">
+      <title>Architecture Document Generated</title>
+      <requirements>
+        - Architecture.md generated from template with all sections filled
+        - Template variables substituted: {{project_name}}, {{date}}, {{user_name}}, etc.
+        - Sections include: System Overview, Component Architecture, Data Models &amp; APIs, NFRs, Test Strategy, Technical Decisions
+        - Output written to {output_folder}/architecture.md
+        - Architecture.md validates as well-formed markdown
+      </requirements>
+    </criterion>
+
+    <criterion id="AC-5" priority="critical">
+      <title>Workflow State Persisted</title>
+      <requirements>
+        - Workflow state saved after each step completion
+        - State includes: currentStep, variables, agentActivity, securityGate status
+        - State persisted to {project-root}/.bmad/workflow-state/architecture-{timestamp}.json
+        - Atomic writes prevent state corruption
+        - Previous state backed up before updates
+      </requirements>
+    </criterion>
+
+    <criterion id="AC-6" priority="high">
+      <title>Workflow Resume Capability</title>
+      <requirements>
+        - Workflow detects existing state on startup
+        - If interrupted, workflow resumes from last completed step
+        - Agent activity preserved across resume
+        - User prompted to resume or restart workflow
+        - Resume skips completed steps, continues from interruption point
+      </requirements>
+    </criterion>
+
+    <criterion id="AC-7" priority="medium">
+      <title>Performance and Quality Gates</title>
+      <requirements>
+        - Workflow completes in &lt;45 minutes (target from PRD)
+        - &lt;2 escalations during workflow execution (autonomous operation)
+        - Security gate validation executed in step 8 (deferred to Story 3-6)
+        - Architecture validation executed in step 9 (deferred to Story 3-7)
+        - Workflow emits events: workflow.started, step.completed, workflow.completed, workflow.failed
+      </requirements>
+    </criterion>
+  </acceptance-criteria>
+
+  <!-- ================================================================
+       DEPENDENCIES - COMPLETED STORIES
+       ================================================================ -->
+  <dependencies>
+    <blocking-dependency story-id="3-1" status="done">
+      <name>Winston Agent - System Architect Persona</name>
+      <location>backend/src/core/agents/winston-agent.ts</location>
+      <provides>
+        - WinstonAgent class with static create() factory method
+        - Architecture generation methods: generateSystemOverview(), designComponents(), defineDataModels(), specifyAPIs(), documentNFRs()
+        - Technical decision documentation in ADR format
+        - Confidence assessment with DecisionEngine integration
+        - Temperature 0.3 for analytical reasoning
+        - Claude Sonnet 4.5 via LLMFactory
+      </provides>
+      <usage>
+        - Create Winston instance: await WinstonAgent.create(llmFactory, decisionEngine, escalationQueue)
+        - Set workflow context: winston.setWorkflowContext(workflowId, stepNumber)
+        - Invoke architecture methods for steps 2-5, 7
+        - Retrieve decision audit trail for step 7
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="3-2" status="done">
+      <name>Murat Agent - Test Architect Persona</name>
+      <location>backend/src/core/agents/murat-agent.ts</location>
+      <provides>
+        - MuratAgent class with static create() factory method
+        - Test architecture methods: defineTestStrategy(), recommendFrameworks(), defineTestPyramid(), designPipeline(), defineQualityGates(), specifyATDD()
+        - Winston integration: analyzeArchitecture(), validateTestCompatibility()
+        - Temperature 0.4 for balanced creativity in test scenarios
+        - GPT-4 Turbo via LLMFactory
+      </provides>
+      <usage>
+        - Create Murat instance: await MuratAgent.create(llmFactory, decisionEngine, escalationQueue)
+        - Set workflow context: murat.setWorkflowContext(workflowId, stepNumber)
+        - Pass Winston's architecture draft as input
+        - Invoke test strategy methods for step 6
+        - Validate tech stack compatibility
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="1-2" status="done">
+      <name>Workflow Parser</name>
+      <location>backend/src/core/WorkflowParser.ts</location>
+      <provides>
+        - WorkflowParser class for parsing workflow.yaml configuration
+        - Variable resolution: {project-root}, {config_source}:key, date:system-generated
+        - Config source loading and caching
+        - Workflow validation with errors and warnings
+        - Instructions.md parsing into Step objects
+      </provides>
+      <usage>
+        - Parse workflow: await workflowParser.parseYAML(workflowPath)
+        - Resolve variables: await workflowParser.resolveVariables(config, projectConfig)
+        - Validate workflow: await workflowParser.validateWorkflow(config)
+        - Parse instructions: await workflowParser.parseInstructions(instructionsPath)
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="1-3" status="done">
+      <name>LLM Factory</name>
+      <location>backend/src/llm/LLMFactory.ts</location>
+      <provides>
+        - Multi-provider LLM client creation
+        - Support for Anthropic (Claude), OpenAI (GPT-4), Zhipu, Claude Code
+        - Per-agent model assignment from project-config.yaml
+        - API key management from environment variables
+      </provides>
+      <usage>
+        - Create LLM client: await LLMFactory.createClient(provider, model, apiKey, config)
+        - Winston: claude-code provider, claude-sonnet-4-5 model, temp 0.3
+        - Murat: openai provider, gpt-4-turbo model, temp 0.4
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="1-5" status="done">
+      <name>State Manager</name>
+      <location>backend/src/core/StateManager.ts</location>
+      <provides>
+        - Workflow state persistence to YAML and Markdown formats
+        - Atomic writes with temp file + rename pattern
+        - State validation before persistence
+        - State loading with cache support
+        - Auto-commit state changes to git (non-blocking)
+      </provides>
+      <usage>
+        - Save state: await stateManager.saveState(workflowState)
+        - Load state: await stateManager.loadState(projectId)
+        - State structure: WorkflowState interface with project, currentStep, status, variables, agentActivity
+        - State file location: .bmad/{projectId}/sprint-status.yaml
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="1-7" status="done">
+      <name>Workflow Engine</name>
+      <location>backend/src/core/WorkflowEngine.ts</location>
+      <provides>
+        - WorkflowEngine class for step-by-step workflow execution
+        - Step execution with action parsing and conditional evaluation
+        - Variable substitution in templates
+        - State persistence after each step
+        - Resume capability from saved state
+        - Supports YOLO mode for automated execution
+      </provides>
+      <usage>
+        - Create engine: new WorkflowEngine(workflowPath, {projectRoot, yoloMode})
+        - Execute workflow: await engine.execute()
+        - Resume workflow: await engine.resumeFromState(state)
+        - Parse instructions: private parseInstructions() method
+      </usage>
+      <note>
+        The ArchitectureWorkflowExecutor is a specialized executor that USES WorkflowEngine
+        patterns but implements architecture-specific logic for Winston/Murat coordination.
+        It's NOT a subclass of WorkflowEngine, but follows similar patterns.
+      </note>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="1-8" status="done">
+      <name>Template Processor</name>
+      <location>backend/src/core/TemplateProcessor.ts</location>
+      <provides>
+        - TemplateProcessor class for markdown template processing
+        - Handlebars-based variable substitution
+        - Section-specific updates in existing documents
+        - File write operations with directory creation
+        - Template validation and error handling
+      </provides>
+      <usage>
+        - Create processor: new TemplateProcessor({basePath, strictMode})
+        - Process template: processor.processTemplate(template, variables)
+        - Write output: await processor.writeOutput(content, outputPath)
+        - Update section: await processor.updateSection(filePath, sectionName, newContent)
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="2-1" status="done">
+      <name>Decision Engine</name>
+      <location>backend/src/core/services/decision-engine.ts</location>
+      <provides>
+        - Confidence-based decision making
+        - Escalation threshold (0.75)
+        - Decision audit trail tracking
+      </provides>
+      <usage>
+        - Used by Winston and Murat for confidence assessment
+        - Integrated in agent create() methods
+      </usage>
+    </blocking-dependency>
+
+    <blocking-dependency story-id="2-2" status="done">
+      <name>Escalation Queue</name>
+      <location>backend/src/core/services/escalation-queue.ts</location>
+      <provides>
+        - Queue for low-confidence decisions
+        - Human-in-the-loop integration
+        - Escalation tracking and resolution
+      </provides>
+      <usage>
+        - Used by Winston and Murat for escalating decisions
+        - Integrated in agent create() methods
+      </usage>
+    </blocking-dependency>
+  </dependencies>
+
+  <!-- ================================================================
+       ARCHITECTURE WORKFLOW CONFIGURATION
+       ================================================================ -->
+  <workflow-configuration>
+    <workflow-yaml-path>bmad/bmm/workflows/3-solutioning/architecture/workflow.yaml</workflow-yaml-path>
+    <workflow-components>
+      <component name="workflow.yaml" description="Workflow configuration with variables and file paths"/>
+      <component name="instructions.md" description="Workflow steps with XML tags for execution"/>
+      <component name="architecture-template.md" description="Template for architecture document output"/>
+      <component name="checklist.md" description="Validation checklist for architecture completeness"/>
+      <component name="decision-catalog.yaml" description="Knowledge base for intelligent decision making"/>
+      <component name="architecture-patterns.yaml" description="Architecture patterns library"/>
+    </workflow-components>
+
+    <workflow-variables>
+      <variable name="output_folder" source="config_source" description="Output directory for architecture.md"/>
+      <variable name="user_name" source="config_source" description="User name for document authorship"/>
+      <variable name="date" source="system-generated" description="Current date in YYYY-MM-DD format"/>
+      <variable name="project_name" source="prd" description="Project name from PRD"/>
+      <variable name="prd_path" source="input" description="Path to PRD document"/>
+    </workflow-variables>
+
+    <workflow-steps>
+      <step number="1" goal="Load Configuration">
+        <description>Read workflow.yaml, resolve variables, load PRD, initialize architecture.md from template</description>
+        <outputs>Workflow config loaded, PRD content, architecture.md template initialized</outputs>
+      </step>
+
+      <step number="2" goal="System Overview (Winston)">
+        <description>Winston generates system architecture overview from PRD</description>
+        <agent>winston</agent>
+        <method>generateSystemOverview(prd)</method>
+        <outputs>System Overview section in architecture.md</outputs>
+      </step>
+
+      <step number="3" goal="Component Design (Winston)">
+        <description>Winston designs component architecture and breakdown</description>
+        <agent>winston</agent>
+        <method>designComponents(requirements)</method>
+        <outputs>Component Architecture section in architecture.md</outputs>
+      </step>
+
+      <step number="4" goal="Data Models &amp; APIs (Winston)">
+        <description>Winston defines data models and API contracts</description>
+        <agent>winston</agent>
+        <method>defineDataModels(entities), specifyAPIs(endpoints)</method>
+        <outputs>Data Models and API Specifications sections in architecture.md</outputs>
+      </step>
+
+      <step number="5" goal="Non-Functional Requirements (Winston)">
+        <description>Winston documents NFRs (performance, security, reliability)</description>
+        <agent>winston</agent>
+        <method>documentNFRs(requirements)</method>
+        <outputs>NFR section in architecture.md</outputs>
+      </step>
+
+      <step number="6" goal="Test Strategy (Murat)">
+        <description>Murat defines comprehensive test strategy based on Winston's architecture</description>
+        <agent>murat</agent>
+        <method>defineTestStrategy(architecture, requirements), recommendFrameworks(techStack), defineTestPyramid(projectType), designPipeline(projectType, testStrategy), defineQualityGates(projectLevel), specifyATDD(acceptanceCriteria)</method>
+        <outputs>Test Strategy section in architecture.md</outputs>
+        <inputs>Winston's architecture draft (steps 2-5 output)</inputs>
+      </step>
+
+      <step number="7" goal="Technical Decisions">
+        <description>Aggregate decisions from Winston and Murat, format as ADRs</description>
+        <agents>winston, murat</agents>
+        <method>getDecisionAuditTrail()</method>
+        <outputs>Technical Decisions section in architecture.md</outputs>
+      </step>
+
+      <step number="8" goal="Security Gate Validation (Placeholder)">
+        <description>Placeholder for Story 3-6: SecurityGateValidator</description>
+        <status>deferred</status>
+        <outputs>Security gate status = 'passed' (temporary)</outputs>
+      </step>
+
+      <step number="9" goal="Architecture Validation (Placeholder)">
+        <description>Placeholder for Story 3-7: ArchitectureValidator</description>
+        <status>deferred</status>
+        <outputs>Workflow marked as completed</outputs>
+      </step>
+    </workflow-steps>
+  </workflow-configuration>
+
+  <!-- ================================================================
+       IMPLEMENTATION PATTERNS
+       ================================================================ -->
+  <implementation-patterns>
+    <pattern name="Agent Factory Pattern">
+      <description>Both Winston and Murat use static create() factory methods with private constructors</description>
+      <example>
+        const winston = await WinstonAgent.create(
+          llmFactory,
+          decisionEngine,
+          escalationQueue,
+          personaPath
+        );
+      </example>
+      <benefits>
+        - Dependency injection for testability
+        - Async initialization support
+        - Consistent agent creation interface
+      </benefits>
+    </pattern>
+
+    <pattern name="Sequential Agent Coordination">
+      <description>Winston completes architecture design (steps 2-5) before Murat starts test strategy (step 6)</description>
+      <rationale>
+        Murat needs Winston's tech stack decisions and component design to recommend
+        compatible test frameworks and define appropriate test strategy
+      </rationale>
+      <implementation>
+        1. Execute Winston methods for steps 2-5 sequentially
+        2. Save Winston's architecture draft to file or variable
+        3. Pass architecture draft to Murat as input
+        4. Execute Murat methods for step 6
+        5. Murat validates tech stack compatibility with chosen frameworks
+      </implementation>
+    </pattern>
+
+    <pattern name="State Persistence After Each Step">
+      <description>Workflow state saved after completing each step for crash recovery</description>
+      <state-structure>
+        {
+          project: { id, name, level },
+          currentWorkflow: 'architecture',
+          currentStep: stepNumber,
+          status: 'running' | 'completed' | 'error',
+          variables: { epic_id, project_name, prd_path, architecture_output_path, user_name, date },
+          agentActivity: [
+            { agent: 'winston', status: 'completed', startTime, sections: ['system-overview', 'components', ...] },
+            { agent: 'murat', status: 'completed', startTime, sections: ['test-strategy'] }
+          ],
+          securityGate: { status: 'passed', score: 100 },
+          startTime: Date,
+          lastUpdate: Date
+        }
+      </state-structure>
+      <persistence>
+        - Save to: .bmad/workflow-state/architecture-{workflowId}.json
+        - Use StateManager.saveState(state) with atomic writes
+        - Backup previous state before updates
+      </persistence>
+    </pattern>
+
+    <pattern name="Template Variable Substitution">
+      <description>Replace template placeholders with actual values from workflow variables</description>
+      <variables>
+        - {{project_name}}: Project name from PRD or config
+        - {{date}}: Current date (YYYY-MM-DD format)
+        - {{user_name}}: User name from config
+        - {{epic_id}}: Epic identifier (optional)
+      </variables>
+      <implementation>
+        Use TemplateProcessor.processTemplate(template, variables) for initial template
+        Use TemplateProcessor.updateSection(filePath, sectionName, content) for section updates
+      </implementation>
+    </pattern>
+
+    <pattern name="Section Replacement in Architecture Document">
+      <description>Update specific sections in architecture.md as agents complete their work</description>
+      <sections>
+        - System Overview: Winston step 2
+        - Component Architecture: Winston step 3
+        - Data Models: Winston step 4
+        - API Specifications: Winston step 4
+        - Non-Functional Requirements: Winston step 5
+        - Test Strategy: Murat step 6
+        - Technical Decisions: Aggregated step 7
+      </sections>
+      <implementation>
+        await templateProcessor.updateSection(
+          architecturePath,
+          'Test Strategy',
+          muratTestStrategyOutput
+        );
+      </implementation>
+    </pattern>
+
+    <pattern name="Error Handling with Retry Logic">
+      <description>Graceful error recovery for agent invocation failures</description>
+      <retry-strategy>
+        - Winston: 3 retries with exponential backoff
+        - Murat: 2 retries with exponential backoff
+        - Backoff: 2^n seconds (1s, 2s, 4s, ...)
+      </retry-strategy>
+      <escalation>
+        - If all retries exhausted: escalate to user with detailed error context
+        - Update agent activity status = 'failed'
+        - Persist state with error information
+      </escalation>
+    </pattern>
+
+    <pattern name="Workflow Resume from Saved State">
+      <description>Resume interrupted workflow from last completed step</description>
+      <resume-flow>
+        1. Detect interrupted workflow: loadState(workflowId)
+        2. Validate state is resumable (currentStep &lt; 9, no critical errors)
+        3. Prompt user: "Resume from step {currentStep + 1} or restart?"
+        4. If resume: skip steps 1 through currentStep, execute remaining steps
+        5. Restore agent activity (Winston/Murat instances)
+        6. Continue from state.currentStep + 1 through step 9
+      </resume-flow>
+    </pattern>
+  </implementation-patterns>
+
+  <!-- ================================================================
+       TYPE DEFINITIONS
+       ================================================================ -->
+  <type-definitions>
+    <interface name="ArchitectureWorkflowState" extends="WorkflowState">
+      <description>Workflow state specific to architecture workflow execution</description>
+      <fields>
+        <field name="workflow" type="'architecture'" required="true"/>
+        <field name="currentStep" type="number" description="Current step (1-9)"/>
+        <field name="variables" type="object">
+          <subfields>
+            <field name="epic_id" type="string" optional="true"/>
+            <field name="project_name" type="string" required="true"/>
+            <field name="prd_path" type="string" required="true"/>
+            <field name="architecture_output_path" type="string" required="true"/>
+            <field name="user_name" type="string" required="true"/>
+            <field name="date" type="string" required="true"/>
+          </subfields>
+        </field>
+        <field name="agentActivity" type="array">
+          <item-type>
+            {
+              agent: 'winston' | 'murat',
+              status: 'active' | 'completed' | 'failed',
+              startTime: Date,
+              sections: string[]
+            }
+          </item-type>
+        </field>
+        <field name="securityGate" type="object">
+          <subfields>
+            <field name="status" type="'pending' | 'passed' | 'failed'" required="true"/>
+            <field name="score" type="number" optional="true"/>
+            <field name="gaps" type="string[]" optional="true"/>
+          </subfields>
+        </field>
+      </fields>
+    </interface>
+
+    <interface name="WorkflowConfig">
+      <source>backend/src/types/workflow.types.ts</source>
+      <description>Parsed from workflow.yaml with resolved variables</description>
+      <key-fields>
+        - name: Workflow name ('architecture')
+        - instructions: Path to instructions.md
+        - template: Path to architecture-template.md
+        - validation: Path to checklist.md
+        - config_source: Path to config file
+        - output_folder: Resolved output directory
+        - variables: Custom workflow variables
+      </key-fields>
+    </interface>
+
+    <interface name="Step">
+      <source>backend/src/types/workflow.types.ts</source>
+      <description>Workflow step parsed from instructions.md</description>
+      <key-fields>
+        - number: Step number (1-9)
+        - goal: Step description
+        - content: Raw XML/markdown content
+        - optional: Whether step is optional
+        - condition: Conditional expression (if attribute)
+      </key-fields>
+    </interface>
+
+    <interface name="AgentActivity">
+      <source>backend/src/types/workflow.types.ts</source>
+      <description>Agent execution tracking in workflow state</description>
+      <key-fields>
+        - agentId: Unique agent identifier
+        - agentName: Human-readable agent name
+        - action: Action performed by agent
+        - timestamp: When action started
+        - duration: Duration in milliseconds (optional)
+        - status: 'started' | 'completed' | 'failed'
+        - output: Result from agent (optional)
+      </key-fields>
+    </interface>
+  </type-definitions>
+
+  <!-- ================================================================
+       TESTING STRATEGY
+       ================================================================ -->
+  <testing-strategy>
+    <test-file>backend/tests/integration/architecture-workflow-executor.test.ts</test-file>
+    <test-timeout>120000</test-timeout>
+    <test-pattern>Use hasApiKeys() helper for conditional execution</test-pattern>
+
+    <test-categories>
+      <category name="Workflow Configuration Loading">
+        <tests>
+          - Load workflow.yaml successfully
+          - Verify all variables resolved
+          - Verify template and instructions loaded
+          - Verify PRD path validated
+          - Test error: Invalid PRD path (should throw error)
+        </tests>
+      </category>
+
+      <category name="Full Workflow Execution">
+        <tests>
+          - Execute complete workflow from step 1 to 9
+          - Verify all steps execute in order
+          - Verify Winston invoked for steps 2-5, 7
+          - Verify Murat invoked for steps 6, 7
+          - Verify architecture.md generated with all sections
+          - Verify workflow completes successfully
+          - Verify state persisted after each step
+          - Skip if API keys not available (.skipIf(!hasApiKeys()))
+        </tests>
+      </category>
+
+      <category name="State Persistence">
+        <tests>
+          - State saved after each step
+          - Verify state file exists at expected path
+          - Verify state contains currentStep, variables, agentActivity
+          - Load state from file
+          - Verify deserialized state matches saved state
+        </tests>
+      </category>
+
+      <category name="Workflow Resume">
+        <tests>
+          - Interrupt workflow at step 5 (simulate by saving state mid-workflow)
+          - Resume workflow from step 6
+          - Verify steps 1-5 skipped
+          - Verify steps 6-9 executed
+          - Verify architecture.md completed
+          - Verify resumed workflow uses persisted state
+        </tests>
+      </category>
+
+      <category name="Agent Coordination">
+        <tests>
+          - Winston agent created and invoked
+          - Verify Winston generates system overview, components, data models, APIs, NFRs
+          - Murat agent created and invoked
+          - Verify Murat generates test strategy with all sections
+          - Verify Winston's output passed to Murat as input
+          - Verify agent activity tracked in state
+        </tests>
+      </category>
+
+      <category name="Agent Error Handling">
+        <tests>
+          - Winston invocation fails (mock error)
+          - Verify retry logic triggered (3 attempts)
+          - Verify exponential backoff applied
+          - Murat invocation fails after all retries
+          - Verify escalation created
+          - Verify workflow state marked with error
+        </tests>
+      </category>
+
+      <category name="Template Processing">
+        <tests>
+          - Load template successfully
+          - Substitute variables ({{project_name}}, {{date}}, {{user_name}})
+          - Verify all variables replaced
+          - Replace section in architecture.md
+          - Verify section content updated correctly
+          - Verify markdown formatting preserved
+        </tests>
+      </category>
+
+      <category name="Performance Monitoring">
+        <tests>
+          - Track workflow duration
+          - Verify total duration &lt; 45 minutes (or log warning)
+          - Track step durations
+          - Verify each step duration logged
+          - Track escalation count
+          - Verify escalation count ≤ 2 (or log warning)
+        </tests>
+      </category>
+
+      <category name="Event Emission">
+        <tests>
+          - workflow.architecture.started event emitted
+          - workflow.architecture.step_completed events emitted (9 times)
+          - workflow.architecture.completed event emitted
+          - Verify event payloads contain expected data (projectId, step, duration, etc.)
+        </tests>
+      </category>
+    </test-categories>
+
+    <test-utilities>
+      <utility name="hasApiKeys()" source="backend/tests/utils/apiKeys.ts" description="Check if API keys available for testing"/>
+      <utility name="mockPRD" description="Mock PRD file for testing (5-10 requirements)"/>
+      <utility name="mockWorkflowConfig" description="Mock workflow.yaml configuration"/>
+      <utility name="mockTemplate" description="Mock architecture-template.md"/>
+    </test-utilities>
+  </testing-strategy>
+
+  <!-- ================================================================
+       REFERENCE IMPLEMENTATIONS
+       ================================================================ -->
+  <reference-implementations>
+    <reference name="Winston Agent Pattern" file="backend/src/core/agents/winston-agent.ts">
+      <key-patterns>
+        - Static create() factory method with dependency injection
+        - Private constructor
+        - Persona loading from markdown file
+        - Specialized prompts parsed from persona
+        - Temperature 0.3 for analytical reasoning
+        - Decision audit trail tracking
+        - Workflow context setting (workflowId, currentStep)
+        - Error handling with retry logic (3 attempts, exponential backoff)
+        - JSON parsing with markdown code block fallback
+      </key-patterns>
+    </reference>
+
+    <reference name="Murat Agent Pattern" file="backend/src/core/agents/murat-agent.ts">
+      <key-patterns>
+        - Same factory pattern as Winston
+        - Temperature 0.4 for balanced creativity
+        - Winston integration (analyzeArchitecture, validateTestCompatibility)
+        - Test strategy generation methods
+        - Framework recommendation with alternatives
+        - Tech stack compatibility validation
+      </key-patterns>
+    </reference>
+
+    <reference name="PRD Workflow Executor" file="backend/src/core/workflows/prd-workflow-executor.ts">
+      <key-patterns>
+        - Workflow execution orchestration
+        - Agent coordination (Mary + John)
+        - State persistence after each step
+        - Template processing for document generation
+        - Error handling and escalation
+        - Performance tracking and cost monitoring
+      </key-patterns>
+      <note>
+        ArchitectureWorkflowExecutor follows similar patterns but with Winston/Murat coordination
+        and architecture-specific workflow steps
+      </note>
+    </reference>
+
+    <reference name="WorkflowEngine" file="backend/src/core/WorkflowEngine.ts">
+      <key-patterns>
+        - Step-by-step execution with action parsing
+        - Conditional evaluation
+        - Variable substitution
+        - State persistence after each step
+        - Resume from saved state
+        - YOLO mode support
+      </key-patterns>
+      <note>
+        ArchitectureWorkflowExecutor uses similar execution patterns but with specialized
+        logic for architecture workflow steps and Winston/Murat coordination
+      </note>
+    </reference>
+  </reference-implementations>
+
+  <!-- ================================================================
+       PROJECT DOCUMENTATION REFERENCES
+       ================================================================ -->
+  <documentation-references>
+    <document path="docs/stories/3-3-architecture-workflow-executor.md">
+      <description>Story file with complete requirements, acceptance criteria, and tasks</description>
+      <key-sections>
+        - Acceptance Criteria (lines 11-59)
+        - Tasks / Subtasks (lines 60-446)
+        - Dependencies (lines 447-471)
+        - Dev Notes (lines 472-623)
+      </key-sections>
+    </document>
+
+    <document path="docs/epics/epic-3-tech-spec.md">
+      <description>Epic 3 Technical Specification with detailed architecture workflow design</description>
+      <key-sections>
+        - Winston Agent Persona Contract (lines 129-158)
+        - Murat Agent Persona Contract (lines 160-189)
+        - ArchitectureWorkflowState interface (lines 193-222)
+        - Architecture Workflow Execution Sequence (lines 461-532)
+        - ArchitectureWorkflowExecutor API (lines 288-311)
+        - Performance requirements (lines 559-577)
+        - Dependencies table (lines 712-716)
+      </key-sections>
+    </document>
+
+    <document path="docs/PRD.md">
+      <description>Product Requirements Document with autonomous architecture design requirements</description>
+      <key-sections>
+        - FR-CORE-002: Autonomous Architecture Design
+        - NFR-PERF-001: Workflow execution speed (&lt;45 minutes)
+        - NFR-COST-001: LLM cost optimization (&lt;$10 per architecture)
+        - NFR-TEST-007: Test architecture required (Murat agent integration)
+      </key-sections>
+    </document>
+
+    <document path="docs/architecture.md">
+      <description>System architecture with workflow engine and agent pool design</description>
+      <key-sections>
+        - Workflow Engine architecture (Section 2.1.1)
+        - Agent Pool architecture (Section 2.1.2)
+        - State Manager architecture (Section 2.1.3)
+        - Template Processor architecture (Section 2.1.4)
+      </key-sections>
+    </document>
+
+    <document path="docs/testing-guide.md">
+      <description>Standard test configuration and patterns</description>
+    </document>
+
+    <document path="docs/integration-testing-strategy.md">
+      <description>Real vs. mocked LLM approach for integration tests</description>
+    </document>
+
+    <document path="docs/async-patterns-guide.md">
+      <description>Async testing patterns for Node.js</description>
+    </document>
+
+    <document path="docs/definition-of-done.md">
+      <description>DoD v1.3 checklist for story completion</description>
+    </document>
+  </documentation-references>
+
+  <!-- ================================================================
+       KEY LEARNINGS FROM RELATED STORIES
+       ================================================================ -->
+  <learnings>
+    <learning story-id="3-1" title="Winston Agent Implementation">
+      <achievements>
+        - Comprehensive persona with 8 specialized prompts
+        - 7 architectural capability methods implemented
+        - 25 integration test cases
+        - TypeScript compilation passing after RETRY #1
+        - Pattern established for agent implementations
+      </achievements>
+      <patterns-to-follow>
+        - Static create() factory method for dependency injection
+        - Private constructor with LLM client, DecisionEngine, EscalationQueue
+        - Specialized prompts for each capability in persona markdown
+        - Temperature optimization per agent role (Winston: 0.3, Murat: 0.4)
+        - Comprehensive JSDoc comments on all public methods
+        - Integration tests with hasApiKeys() for conditional execution
+        - TypeScript interfaces for all data structures
+        - JSON parsing with fallback to markdown code block extraction
+        - Error handling with retry logic (exponential backoff)
+        - Decision audit trail tracking
+      </patterns-to-follow>
+      <unused-infrastructure-handling>
+        - ESCALATION_THRESHOLD constant: Comment out with TODO if not used
+        - CIS_THRESHOLD constant: Comment out with TODO (Story 3-8)
+        - escalate() method: Comment out with TODO if automatic escalation not implemented
+        - Use @ts-expect-error for fields only consumed by commented-out code
+        - Preserve infrastructure for future stories with clear TODO markers
+      </unused-infrastructure-handling>
+    </learning>
+
+    <learning story-id="3-2" title="Murat Agent Implementation">
+      <achievements>
+        - 6 test architecture methods implemented
+        - Winston integration (analyzeArchitecture, validateTestCompatibility)
+        - 26 integration test cases
+        - Sequential workflow pattern: Winston → Murat
+      </achievements>
+      <key-decisions>
+        - Temperature 0.4 for Murat (vs Winston's 0.3) - balanced creativity for test scenarios
+        - GPT-4 Turbo recommended (vs Claude for Winston) - strong test expertise
+        - Winston integration - Murat receives Winston's architecture draft as input
+        - Escalation threshold 0.75 - same as Winston for consistency
+        - Commented unused infrastructure (ESCALATION_THRESHOLD) with TODO markers
+      </key-decisions>
+    </learning>
+
+    <learning story-id="2-9" title="Technical Debt Resolution">
+      <achievements>
+        - Local testing strategy documented
+        - Testing guide comprehensive with all patterns
+        - Shared test utilities complete
+        - Branch protection enabled (100% PR review for Epic 3)
+        - Integration testing strategy defined
+      </achievements>
+      <quality-standards>
+        - 100% PR review required (branch protection enforced)
+        - All tests must pass locally before PR
+        - Follow async patterns guide (docs/async-patterns-guide.md)
+        - CI/CD performs lint, type-check, build (tests run locally)
+      </quality-standards>
+    </learning>
+  </learnings>
+
+  <!-- ================================================================
+       CRITICAL NOTES
+       ================================================================ -->
+  <critical-notes>
+    <note priority="critical">
+      <title>ArchitectureWorkflowExecutor is NOT a subclass of WorkflowEngine</title>
+      <description>
+        The ArchitectureWorkflowExecutor is a SPECIALIZED executor that follows similar patterns
+        to WorkflowEngine but implements architecture-specific logic for Winston/Murat coordination.
+        It should NOT extend WorkflowEngine. Instead, it implements its own execute(), resume(),
+        and validate() methods tailored to the architecture workflow.
+      </description>
+      <rationale>
+        - Architecture workflow has unique step-by-step agent coordination not applicable to generic workflows
+        - Winston and Murat agents require specialized invocation and output handling
+        - Architecture document generation has specific section replacement logic
+        - State structure is architecture-specific (ArchitectureWorkflowState)
+      </rationale>
+    </note>
+
+    <note priority="critical">
+      <title>Sequential Winston → Murat Execution is Required</title>
+      <description>
+        Winston MUST complete steps 2-5 (architecture design) BEFORE Murat starts step 6 (test strategy).
+        This is not parallel execution - it's sequential with data handoff.
+      </description>
+      <rationale>
+        Murat needs Winston's tech stack decisions and component architecture to recommend
+        compatible test frameworks and define appropriate test strategy.
+      </rationale>
+    </note>
+
+    <note priority="high">
+      <title>State Persistence After EACH Step</title>
+      <description>
+        Workflow state MUST be persisted after EACH step completion (not just at workflow end).
+        This enables crash recovery and resume capability from any step.
+      </description>
+      <implementation>
+        - Call saveState(currentStep, 'running') after each step executes
+        - Use StateManager.saveState() with atomic writes
+        - Include agentActivity updates in state
+      </implementation>
+    </note>
+
+    <note priority="high">
+      <title>Placeholder Steps for Future Stories</title>
+      <description>
+        Steps 8 and 9 are placeholders for Story 3-6 (Security Gate) and Story 3-7 (Architecture Validation).
+        For now, these steps should:
+        - Log a message indicating they're deferred to future stories
+        - Set temporary "passed" status
+        - NOT throw errors or block workflow completion
+      </description>
+    </note>
+
+    <note priority="medium">
+      <title>Performance and Cost Tracking</title>
+      <description>
+        Track workflow duration, LLM token usage, and estimated cost throughout execution.
+        Warn if workflow exceeds 45 minutes or cost exceeds $10 budget.
+      </description>
+      <metrics>
+        - Total workflow duration (start to completion)
+        - Per-step duration
+        - Winston invocation count and token usage
+        - Murat invocation count and token usage
+        - Escalation count
+        - Estimated total cost (Claude: $3 input/$15 output, GPT-4: $10 input/$30 output per 1M tokens)
+      </metrics>
+    </note>
+  </critical-notes>
+
+  <!-- ================================================================
+       IMPLEMENTATION CHECKLIST
+       ================================================================ -->
+  <implementation-checklist>
+    <task id="TASK-1" priority="critical">
+      <title>Create ArchitectureWorkflowExecutor Class</title>
+      <file>backend/src/workflows/architecture-workflow-executor.ts</file>
+      <requirements>
+        - Static execute(prdPath, options?) method
+        - Static resume(projectId) method
+        - Static validate(architecturePath) method (placeholder)
+        - Private constructor (factory pattern)
+        - Load workflow configuration from workflow.yaml
+        - Resolve all variables ({output_folder}, {user_name}, etc.)
+        - Load template, instructions, validation files
+        - Validate PRD path exists
+        - Initialize workflow state
+      </requirements>
+    </task>
+
+    <task id="TASK-2" priority="critical">
+      <title>Implement Workflow Step Executor</title>
+      <requirements>
+        - executeStep(stepNumber, state) method
+        - Load step instructions from workflow instructions.md
+        - Execute step actions based on step number (1-9)
+        - Log step start/completion with timestamps and duration
+        - Update state.currentStep after completion
+        - Persist state after each step
+        - Implement handlers for each step (executeStep1 through executeStep9)
+      </requirements>
+    </task>
+
+    <task id="TASK-3" priority="critical">
+      <title>Implement Agent Coordination</title>
+      <requirements>
+        - Winston agent integration (create, invoke, error handling)
+        - Murat agent integration (create, invoke, error handling)
+        - Agent activity tracking in state
+        - Winston methods for steps 2-5, 7
+        - Murat methods for step 6, 7
+        - Pass Winston's architecture draft to Murat
+        - Error handling with retry logic (Winston: 3 retries, Murat: 2 retries)
+        - Retrieve decision audit trails from both agents
+      </requirements>
+    </task>
+
+    <task id="TASK-4" priority="high">
+      <title>Implement State Persistence</title>
+      <requirements>
+        - Use StateManager from Story 1.5
+        - Define state file path: .bmad/workflow-state/architecture-{workflowId}.json
+        - saveState(state) method with atomic writes
+        - loadState(workflowId?) method
+        - backupState(state) method
+        - Save state after each step completion
+      </requirements>
+    </task>
+
+    <task id="TASK-5" priority="high">
+      <title>Implement Workflow Resume</title>
+      <requirements>
+        - detectInterruptedWorkflow() method
+        - resume(projectId) method
+        - promptResumeOrRestart(workflowId) method
+        - Skip completed steps on resume
+        - Restore agent activity
+        - Continue from last completed step + 1
+      </requirements>
+    </task>
+
+    <task id="TASK-6" priority="high">
+      <title>Implement Template Processing</title>
+      <requirements>
+        - loadTemplate(templatePath) method
+        - substituteVariables(template, variables) method
+        - replaceSection(architecture, sectionName, content) method
+        - writeArchitecture(path, content) method
+        - Use TemplateProcessor for template operations
+      </requirements>
+    </task>
+
+    <task id="TASK-7" priority="medium">
+      <title>Implement Performance Monitoring and Events</title>
+      <requirements>
+        - Track workflow start time and duration
+        - Track per-step duration
+        - Track agent invocation count
+        - Track LLM token usage and cost
+        - Track escalation count
+        - Emit events: workflow.started, step.completed, workflow.completed, workflow.failed
+        - Emit agent events: agent.winston.started/completed, agent.murat.started/completed
+        - Warn if workflow exceeds 45 minutes or cost exceeds $10
+      </requirements>
+    </task>
+
+    <task id="TASK-8" priority="critical">
+      <title>Write Integration Tests</title>
+      <file>backend/tests/integration/architecture-workflow-executor.test.ts</file>
+      <requirements>
+        - Use hasApiKeys() helper for conditional execution
+        - Mock PRD, workflow config, template
+        - Test workflow configuration loading
+        - Test full workflow execution (steps 1-9)
+        - Test state persistence after each step
+        - Test workflow resume from saved state
+        - Test agent coordination (Winston + Murat)
+        - Test agent error handling with retries
+        - Test template processing
+        - Test performance monitoring
+        - Test event emission
+        - Verify test coverage &gt;80%
+      </requirements>
+    </task>
+  </implementation-checklist>
+
+</story-context>
