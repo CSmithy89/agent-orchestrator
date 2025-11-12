@@ -562,7 +562,7 @@ export class ArchitectureValidator {
     const cleanedContent = content
       .replace(/```[\s\S]*?```/g, '') // Remove code blocks
       .replace(/`[^`]+`/g, '') // Remove inline code
-      .replace(/[#*_~\[\]()]/g, '') // Remove markdown symbols
+      .replace(/[#*_~[\]()]/g, '') // Remove markdown symbols
       .replace(/\s+/g, ' ') // Normalize whitespace
       .trim();
 
