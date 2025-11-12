@@ -79,11 +79,11 @@ development_status:
   3-1-winston-agent-system-architect-persona: done
   3-2-murat-agent-test-architect-persona: done
   3-3-architecture-workflow-executor: done
-  3-4-technical-decisions-logger: backlog
-  3-5-architecture-template-content-generation: backlog
-  3-6-security-gate-validation-workflow: backlog
-  3-7-architecture-validation-tests: backlog
-  3-8-cis-agent-integration-architecture-decisions: backlog
+  3-4-technical-decisions-logger: done
+  3-5-architecture-template-content-generation: done
+  3-6-security-gate-validation-workflow: done
+  3-7-architecture-validation-tests: done
+  3-8-cis-agent-integration-architecture-decisions: done
   epic-3-retrospective: optional
 
   # Epic 4: Solutioning Phase Automation

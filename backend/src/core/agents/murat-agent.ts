@@ -73,7 +73,7 @@ interface MuratPersona {
 /**
  * Decision metadata for audit trail
  */
-interface DecisionRecord {
+export interface DecisionRecord {
   method: string;
   question: string;
   decision: Decision;
@@ -939,12 +939,21 @@ export class MuratAgent {
    * @returns Confidence score (0.0-1.0)
    */
   private parseConfidenceScore(response: string): number {
-    // Try to extract confidence score from response
-    const scoreMatch = response.match(/confidence[:\s]+(\d+\.?\d*)/i);
+    try {
+      const parsed = JSON.parse(response);
+      if (typeof parsed?.confidence === 'number') {
+        const normalized = parsed.confidence > 1 ? parsed.confidence / 100 : parsed.confidence;
+        return Math.min(Math.max(normalized, 0), 1);
+      }
+    } catch {
+      // fall through to regex parsing
+    }
+
+    const scoreMatch = response.match(/"confidence"\s*[:=]\s*(\d+\.?\d*)/i);
     if (scoreMatch?.[1]) {
       const score = parseFloat(scoreMatch[1]);
-      // If score is percentage (0-100), convert to 0-1
-      return score > 1 ? score / 100 : score;
+      const normalized = score > 1 ? score / 100 : score;
+      return Math.min(Math.max(normalized, 0), 1);
     }
 
     // Fallback: default to medium confidence

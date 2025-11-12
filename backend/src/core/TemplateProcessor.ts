@@ -776,6 +776,451 @@ export class TemplateProcessor {
       })),
     };
   }
+
+  /**
+   * Replace section content using XML comment markers
+   *
+   * Replaces content between <!-- SECTION: name --> and <!-- END SECTION: name -->
+   * markers while preserving the markers themselves for future updates.
+   *
+   * @param content - Document content with section markers
+   * @param sectionName - Name of section to replace (e.g., 'system-overview')
+   * @param newContent - New content for the section
+   * @returns Updated content with replaced section
+   * @throws {TemplateError} If section markers not found or malformed
+   *
+   * @example
+   * ```typescript
+   * const updated = processor.replaceSectionWithMarkers(
+   *   archDoc,
+   *   'system-overview',
+   *   'New system overview content'
+   * );
+   * ```
+   */
+  replaceSectionWithMarkers(
+    content: string,
+    sectionName: string,
+    newContent: string
+  ): string {
+    // Pattern: <!-- SECTION: name -->...<!-- END SECTION: name -->
+    const startMarker = `<!-- SECTION: ${sectionName} -->`;
+    const endMarker = `<!-- END SECTION: ${sectionName} -->`;
+
+    const startIndex = content.indexOf(startMarker);
+    const endIndex = content.indexOf(endMarker);
+
+    if (startIndex === -1) {
+      throw new TemplateError(
+        `Section start marker not found: ${startMarker}\n\n` +
+        `Available sections:\n${this.extractMarkerSectionNames(content).map(s => `  - ${s}`).join('\n')}`,
+        'content'
+      );
+    }
+
+    if (endIndex === -1) {
+      throw new TemplateError(
+        `Section end marker not found: ${endMarker}`,
+        'content'
+      );
+    }
+
+    if (endIndex < startIndex) {
+      throw new TemplateError(
+        `Section markers out of order: end marker appears before start marker for section "${sectionName}"`,
+        'content'
+      );
+    }
+
+    // Compute position immediately after the start marker, then skip a single optional newline
+    let contentStart = startIndex + startMarker.length;
+    if (content[contentStart] === '\r' && content[contentStart + 1] === '\n') {
+      contentStart += 2;
+    } else if (content[contentStart] === '\n') {
+      contentStart += 1;
+    }
+
+    // Build the updated content
+    const before = content.substring(0, contentStart);
+    const after = content.substring(endIndex);
+
+    // Ensure newContent has proper spacing
+    const trimmedContent = newContent.trim();
+    const formattedContent = trimmedContent ? `${trimmedContent}\n` : '';
+
+    return `${before}${formattedContent}${after}`;
+  }
+
+  /**
+   * Resolve architecture-specific variables from multiple sources
+   *
+   * Resolves variables from multiple sources in priority order:
+   * 1. Explicit context variables (highest priority)
+   * 2. Workflow state
+   * 3. Project configuration
+   * 4. Git configuration
+   * 5. System defaults (date, timestamp)
+   *
+   * @param context - Optional context with explicit variables and configuration paths
+   * @returns Record of resolved variables
+   *
+   * @example
+   * ```typescript
+   * const vars = await processor.resolveArchitectureVariables({
+   *   project_name: 'MyApp',
+   *   prdPath: 'docs/prd.md',
+   *   projectConfigPath: '.bmad/project-config.yaml'
+   * });
+   * ```
+   */
+  async resolveArchitectureVariables(context?: {
+    [key: string]: any;
+    prdPath?: string;
+    projectConfigPath?: string;
+    workflowState?: Record<string, any>;
+  }): Promise<Record<string, any>> {
+    const variables: Record<string, any> = {};
+
+    // 5. System defaults (lowest priority)
+    const now = new Date();
+    variables.date = now.toISOString().split('T')[0]; // YYYY-MM-DD
+    variables.timestamp = now.toISOString();
+    variables.year = now.getFullYear().toString();
+
+    // 4. Git configuration
+    try {
+      const gitConfig = await this.getGitConfig();
+      if (gitConfig.user_name) variables.user_name = gitConfig.user_name;
+      if (gitConfig.user_email) variables.user_email = gitConfig.user_email;
+      if (gitConfig.author) variables.author = gitConfig.author;
+    } catch (error) {
+      // Git config not available, skip
+    }
+
+    // 3. Project configuration
+    if (context?.projectConfigPath) {
+      try {
+        const projectConfig = await this.loadProjectConfig(context.projectConfigPath);
+        Object.assign(variables, projectConfig);
+      } catch (error) {
+        // Project config not available, skip
+      }
+    }
+
+    // 2. Workflow state
+    if (context?.workflowState) {
+      Object.assign(variables, context.workflowState);
+    }
+
+    // 1. Explicit context variables (highest priority)
+    if (context) {
+      const explicitVars = { ...context };
+      delete explicitVars.prdPath;
+      delete explicitVars.projectConfigPath;
+      delete explicitVars.workflowState;
+      Object.assign(variables, explicitVars);
+    }
+
+    return variables;
+  }
+
+  /**
+   * Validate architecture template structure
+   *
+   * Checks that the template contains all required sections with proper markers
+   * and validates variable placeholders and markdown syntax.
+   *
+   * @param template - Template content to validate
+   * @returns Validation result with success flag and error messages
+   *
+   * @example
+   * ```typescript
+   * const result = processor.validateArchitectureTemplate(templateContent);
+   * if (!result.valid) {
+   *   console.error('Validation errors:', result.errors);
+   * }
+   * ```
+   */
+  validateArchitectureTemplate(template: string): {
+    valid: boolean;
+    errors: string[];
+    warnings: string[];
+  } {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Required sections for architecture template
+    const requiredSections = [
+      'system-overview',
+      'component-architecture',
+      'data-models',
+      'api-specifications',
+      'non-functional-requirements',
+      'test-strategy',
+      'technical-decisions'
+    ];
+
+    // Check for frontmatter
+    if (!template.startsWith('---')) {
+      errors.push('Template must start with YAML frontmatter (---)');
+    }
+
+    // Check for required sections
+    const foundSections = this.extractMarkerSectionNames(template);
+    const missingSections = requiredSections.filter(
+      section => !foundSections.includes(section)
+    );
+
+    if (missingSections.length > 0) {
+      errors.push(
+        `Missing required sections: ${missingSections.join(', ')}\n` +
+        `Found sections: ${foundSections.join(', ')}`
+      );
+    }
+
+    // Check for malformed section markers
+    const sectionMarkers = template.match(/<!-- SECTION: ([a-z-]+) -->/g) || [];
+    const endMarkers = template.match(/<!-- END SECTION: ([a-z-]+) -->/g) || [];
+
+    if (sectionMarkers.length !== endMarkers.length) {
+      errors.push(
+        `Mismatched section markers: ${sectionMarkers.length} start markers, ` +
+        `${endMarkers.length} end markers`
+      );
+    }
+
+    // Check each section has matching start/end markers
+    foundSections.forEach(section => {
+      const startMarker = `<!-- SECTION: ${section} -->`;
+      const endMarker = `<!-- END SECTION: ${section} -->`;
+
+      const startCount = (template.match(new RegExp(this.escapeRegex(startMarker), 'g')) || []).length;
+      const endCount = (template.match(new RegExp(this.escapeRegex(endMarker), 'g')) || []).length;
+
+      if (startCount !== 1 || endCount !== 1) {
+        errors.push(
+          `Section "${section}" has incorrect markers: ` +
+          `${startCount} start, ${endCount} end (expected 1 each)`
+        );
+      }
+    });
+
+    // Check for required variables in frontmatter
+    const requiredVars = ['project_name', 'date', 'user_name', 'epic_id'];
+    const frontmatterMatch = template.match(/^---\n([\s\S]*?)\n---/);
+
+    if (frontmatterMatch && frontmatterMatch[1]) {
+      const frontmatter = frontmatterMatch[1];
+      const missingVars = requiredVars.filter(
+        varName => !frontmatter.includes(`{{${varName}}}`)
+      );
+
+      if (missingVars.length > 0) {
+        warnings.push(
+          `Frontmatter missing recommended variables: ${missingVars.join(', ')}`
+        );
+      }
+    }
+
+    // Validate basic Handlebars syntax
+    try {
+      this.validateTemplate(template);
+    } catch (error) {
+      if (error instanceof TemplateError) {
+        errors.push(`Template syntax error: ${error.message}`);
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors,
+      warnings
+    };
+  }
+
+  /**
+   * Load template with project-specific override support
+   *
+   * Attempts to load template from project override location first,
+   * falls back to default template if override doesn't exist.
+   * Logs which template source is used for audit trail.
+   *
+   * @param defaultPath - Path to default template
+   * @param projectOverridePath - Optional path to project-specific override
+   * @returns Promise resolving to template content and metadata
+   *
+   * @example
+   * ```typescript
+   * const { content, source } = await processor.loadTemplateWithOverride(
+   *   'bmad/bmm/workflows/architecture/template.md',
+   *   '.bmad/workflows/architecture/template.md'
+   * );
+   * console.log(`Using ${source} template`);
+   * ```
+   */
+  async loadTemplateWithOverride(
+    defaultPath: string,
+    projectOverridePath?: string
+  ): Promise<{
+    content: string;
+    source: 'custom' | 'default';
+    path: string;
+  }> {
+    // Try project override first
+    if (projectOverridePath) {
+      const overridePath = path.resolve(projectOverridePath);
+
+      try {
+        await fs.access(overridePath);
+        const content = await this.loadTemplate(overridePath);
+
+        // Validate custom template
+        const validation = this.validateArchitectureTemplate(content);
+        if (!validation.valid) {
+          console.warn(
+            `Custom template at ${projectOverridePath} has validation errors:\n` +
+            validation.errors.map(e => `  - ${e}`).join('\n') +
+            '\nFalling back to default template.'
+          );
+
+          // Fall through to load default template
+        } else {
+          if (validation.warnings.length > 0) {
+            console.warn(
+              `Custom template warnings:\n` +
+              validation.warnings.map(w => `  - ${w}`).join('\n')
+            );
+          }
+
+          console.log(`Using custom template from: ${projectOverridePath}`);
+          return {
+            content,
+            source: 'custom',
+            path: overridePath
+          };
+        }
+      } catch (error) {
+        // Override doesn't exist or can't be read, fall back to default
+      }
+    }
+
+    // Load default template
+    const resolvedDefaultPath = path.resolve(defaultPath);
+    const content = await this.loadTemplate(resolvedDefaultPath);
+
+    console.log(`Using default template from: ${defaultPath}`);
+    return {
+      content,
+      source: 'default',
+      path: resolvedDefaultPath
+    };
+  }
+
+  /**
+   * Extract section names from XML comment markers
+   *
+   * Parses content to find all <!-- SECTION: name --> markers and
+   * returns the section names.
+   *
+   * @param content - Content to parse
+   * @returns Array of section names
+   */
+  private extractMarkerSectionNames(content: string): string[] {
+    const markerRegex = /<!-- SECTION: ([a-z-]+) -->/g;
+    const sections: string[] = [];
+    let match;
+
+    while ((match = markerRegex.exec(content)) !== null) {
+      if (match[1]) {
+        sections.push(match[1]);
+      }
+    }
+
+    return sections;
+  }
+
+  /**
+   * Get git configuration
+   *
+   * Reads git user.name and user.email from git config.
+   *
+   * @returns Promise resolving to git config object
+   */
+  private async getGitConfig(): Promise<{
+    user_name?: string;
+    user_email?: string;
+    author?: string;
+  }> {
+    const { execFile } = await import('child_process');
+    const { promisify } = await import('util');
+    const execFileAsync = promisify(execFile);
+
+    const config: {
+      user_name?: string;
+      user_email?: string;
+      author?: string;
+    } = {};
+
+    try {
+      const { stdout: name } = await execFileAsync('git', ['config', 'user.name']);
+      config.user_name = name.trim();
+      config.author = name.trim();
+    } catch (error) {
+      // user.name not configured
+    }
+
+    try {
+      const { stdout: email } = await execFileAsync('git', ['config', 'user.email']);
+      config.user_email = email.trim();
+    } catch (error) {
+      // user.email not configured
+    }
+
+    return config;
+  }
+
+  /**
+   * Load project configuration from YAML file
+   *
+   * Reads project configuration file and parses YAML content.
+   *
+   * @param configPath - Path to project config file
+   * @returns Promise resolving to configuration object
+   */
+  private async loadProjectConfig(configPath: string): Promise<Record<string, any>> {
+    try {
+      const resolvedPath = path.resolve(configPath);
+      const content = await fs.readFile(resolvedPath, 'utf8');
+
+      // Simple YAML parsing for basic key-value pairs
+      // For production, consider using a proper YAML library
+      const config: Record<string, any> = {};
+      const lines = content.split('\n');
+
+      for (const line of lines) {
+        const match = line.match(/^([a-zA-Z_][a-zA-Z0-9_]*):\s*(.+)$/);
+        if (match && match[1] && match[2]) {
+          const key = match[1];
+          let value: any = match[2].trim();
+
+          // Remove quotes if present
+          if ((value.startsWith('"') && value.endsWith('"')) ||
+              (value.startsWith("'") && value.endsWith("'"))) {
+            value = value.slice(1, -1);
+          }
+
+          config[key] = value;
+        }
+      }
+
+      return config;
+    } catch (error) {
+      throw new TemplateError(
+        `Failed to load project config: ${(error as Error).message}`,
+        configPath
+      );
+    }
+  }
 }
 
 // Export all types for external use

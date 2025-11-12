@@ -35,13 +35,16 @@ import { EventEmitter } from 'events';
 import { fileURLToPath } from 'url';
 import { LLMFactory } from '../llm/LLMFactory.js';
 import { LLMConfig } from '../types/llm.types.js';
-import { WinstonAgent } from '../core/agents/winston-agent.js';
-import { MuratAgent } from '../core/agents/murat-agent.js';
+import { WinstonAgent, type DecisionRecord as WinstonDecisionRecord } from '../core/agents/winston-agent.js';
+import { MuratAgent, type DecisionRecord as MuratDecisionRecord } from '../core/agents/murat-agent.js';
 import { DecisionEngine } from '../core/services/decision-engine.js';
 import { EscalationQueue } from '../core/services/escalation-queue.js';
 import { StateManager } from '../core/StateManager.js';
 import { TemplateProcessor } from '../core/TemplateProcessor.js';
 import { WorkflowState, AgentActivity } from '../types/workflow.types.js';
+import { TechnicalDecisionLogger, TechnicalDecision } from '../core/technical-decision-logger.js';
+import { SecurityGateValidator } from '../core/security-gate-validator.js';
+import { ArchitectureValidator } from '../core/architecture-validator.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -70,6 +73,16 @@ export interface ArchitectureWorkflowState extends WorkflowState {
     status: 'pending' | 'passed' | 'failed';
     score?: number;
     gaps?: string[];
+  };
+
+  /** Architecture validation status */
+  validation: {
+    status: 'pending' | 'passed' | 'failed';
+    overallScore?: number;
+    completenessScore?: number;
+    traceabilityScore?: number;
+    testStrategyScore?: number;
+    consistencyScore?: number;
   };
 }
 
@@ -464,12 +477,15 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
       const config = yaml.load(workflowContent) as any;
 
       // Resolve variables
+      const rawOutputFolder = config.output_folder ?? path.join(this.projectRoot, 'docs');
+      const resolvedOutputFolder = this.resolveWorkflowPath(rawOutputFolder);
+
       this.workflowConfig = {
         name: config.name || 'architecture',
         description: config.description || 'Architecture workflow',
         author: config.author || 'BMad',
         config_source: config.config_source || '',
-        output_folder: config.output_folder || path.join(this.projectRoot, 'docs'),
+        output_folder: resolvedOutputFolder,
         user_name: config.user_name || 'Developer',
         date: new Date().toISOString().split('T')[0] || new Date().toISOString(),
         template: config.template || '',
@@ -527,7 +543,7 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
 
     const workflowId = `architecture-${Date.now()}`;
     const architecturePath = path.join(
-      this.workflowConfig.output_folder,
+      this.resolveWorkflowPath(this.workflowConfig.output_folder),
       'architecture.md'
     );
 
@@ -551,6 +567,9 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
       },
       agentActivity: [],
       securityGate: {
+        status: 'pending'
+      },
+      validation: {
         status: 'pending'
       },
       startTime: new Date(),
@@ -936,6 +955,9 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
 
     if (!this.state) throw new Error('State not initialized');
 
+    // Create TechnicalDecisionLogger
+    const logger = new TechnicalDecisionLogger();
+
     // Get decision audit trails from both agents
     const winston = await this.createWinstonAgent();
     const murat = await this.createMuratAgent();
@@ -943,8 +965,22 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
     const winstonDecisions = winston.getDecisionAuditTrail();
     const muratDecisions = murat.getDecisionAuditTrail();
 
-    // Format decisions as ADRs
-    const decisionsSection = this.formatTechnicalDecisions(winstonDecisions, muratDecisions);
+    // Convert and merge Winston's decisions
+    const winstonTechnicalDecisions = this.convertDecisionRecordsToTechnicalDecisions(
+      winstonDecisions,
+      'winston'
+    );
+    logger.mergeDecisions(winstonTechnicalDecisions);
+
+    // Convert and merge Murat's decisions
+    const muratTechnicalDecisions = this.convertDecisionRecordsToTechnicalDecisions(
+      muratDecisions,
+      'murat'
+    );
+    logger.mergeDecisions(muratTechnicalDecisions);
+
+    // Generate ADR section markdown
+    const decisionsSection = logger.generateADRSection();
 
     // Update architecture document
     this.architectureContent = this.replaceSection(this.architectureContent, 'Technical Decisions', decisionsSection);
@@ -954,40 +990,230 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
   }
 
   /**
-   * Step 8: Security Gate Validation (Placeholder)
+   * Step 8: Security Gate Validation
+   *
+   * Validates architecture completeness for security requirements using SecurityGateValidator.
+   * Implements mandatory security gate with 95% pass threshold (19/20 checks).
+   *
+   * Pass: Continue to Step 9 (Architecture Validation)
+   * Fail: Generate gap report, create escalation, BLOCK workflow progression
    */
   private async executeStep8(): Promise<void> {
-    console.log('[ArchitectureWorkflowExecutor] Step 8: Security Gate Validation (Placeholder)');
+    console.log('[ArchitectureWorkflowExecutor] Step 8: Security Gate Validation');
 
     if (!this.state) throw new Error('State not initialized');
 
-    // Placeholder for Story 3-6
-    console.log('[ArchitectureWorkflowExecutor] Security gate validation deferred to Story 3-6');
+    const architecturePath = this.state.variables.architecture_output_path;
 
-    // Set temporary passed status
-    this.state.securityGate.status = 'passed';
-    this.state.securityGate.score = 100;
+    // Validate architecture security completeness
+    const validator = new SecurityGateValidator();
+    const result = await validator.validate(architecturePath);
 
-    this.emit('security_gate.passed', {
-      projectId: this.state.project.id,
-      score: 100,
-      timestamp: new Date()
-    });
+    // Update state with validation result
+    this.state.securityGate.score = result.overallScore;
+    this.state.securityGate.gaps = result.gaps;
+
+    // Audit trail logging
+    console.log(`[ArchitectureWorkflowExecutor] Security Gate Result: ${result.overallScore}% (${result.passed ? 'PASSED' : 'FAILED'})`);
+    console.log(`[ArchitectureWorkflowExecutor] Checks: ${result.checks.filter(c => c.satisfied).length}/${result.checks.length} satisfied`);
+
+    if (result.passed) {
+      // PASS: Update state and continue workflow
+      this.state.securityGate.status = 'passed';
+
+      console.log('[ArchitectureWorkflowExecutor] ✅ Security gate PASSED - all security requirements satisfied');
+
+      this.emit('security_gate.passed', {
+        projectId: this.state.project.id,
+        score: result.overallScore,
+        timestamp: result.timestamp
+      });
+
+    } else {
+      // FAIL: Generate gap report, create escalation, BLOCK workflow
+      this.state.securityGate.status = 'failed';
+
+      console.log('[ArchitectureWorkflowExecutor] ❌ Security gate FAILED - security requirements incomplete');
+      console.log(`[ArchitectureWorkflowExecutor] Gaps: ${result.gaps.length} unsatisfied checks`);
+
+      // Generate detailed gap report
+      const gapReport = validator.generateGapReport(result);
+
+      // Write gap report to file system
+      const gapReportPath = architecturePath.replace('.md', '-security-gaps.md');
+      await fs.writeFile(gapReportPath, gapReport, 'utf-8');
+      console.log(`[ArchitectureWorkflowExecutor] Gap report written to: ${gapReportPath}`);
+
+      // Create escalation for human review
+      const escalationId = await this.escalationQueue.add({
+        workflowId: this.state.workflow,
+        step: 8,
+        question: 'Security gate validation failed. Review gap report and update architecture to address security requirements before continuing to solutioning phase.',
+        aiReasoning: `Architecture scored ${result.overallScore}% on security gate validation. Pass threshold is 95%. ${result.gaps.length} security checks failed. See gap report at ${gapReportPath} for details.`,
+        confidence: 1.0,
+        context: {
+          score: result.overallScore,
+          passThreshold: 95,
+          gaps: result.gaps,
+          gapReportPath,
+          architecturePath
+        }
+      });
+
+      console.log(`[ArchitectureWorkflowExecutor] Escalation created: ${escalationId}`);
+      console.log('[ArchitectureWorkflowExecutor] Workflow BLOCKED - user review and approval required');
+
+      this.emit('security_gate.failed', {
+        projectId: this.state.project.id,
+        score: result.overallScore,
+        gaps: result.gaps,
+        escalationId,
+        gapReportPath,
+        timestamp: result.timestamp
+      });
+
+      // BLOCK workflow progression
+      throw new Error(
+        `Security gate validation failed (${result.overallScore}% < 95% threshold). ` +
+        `${result.gaps.length} security checks unsatisfied. ` +
+        `Review gap report at ${gapReportPath} and resolve escalation ${escalationId} before continuing.`
+      );
+    }
   }
 
   /**
-   * Step 9: Architecture Validation (Placeholder)
+   * Step 9: Architecture Validation
+   * Validates architecture completeness, PRD traceability, test strategy, and consistency
+   * Pass threshold: 85% overall quality score
    */
   private async executeStep9(): Promise<void> {
-    console.log('[ArchitectureWorkflowExecutor] Step 9: Architecture Validation (Placeholder)');
+    console.log('[ArchitectureWorkflowExecutor] Step 9: Architecture Validation');
 
     if (!this.state) throw new Error('State not initialized');
 
-    // Placeholder for Story 3-7
-    console.log('[ArchitectureWorkflowExecutor] Architecture validation deferred to Story 3-7');
+    const architecturePath = this.state.variables.architecture_output_path;
+    const prdPath = this.state.variables.prd_path;
 
-    // Mark workflow as completed
-    this.state.status = 'completed';
+    console.log('[ArchitectureWorkflowExecutor] Validating architecture quality...');
+    console.log(`[ArchitectureWorkflowExecutor] Architecture: ${architecturePath}`);
+    console.log(`[ArchitectureWorkflowExecutor] PRD: ${prdPath}`);
+
+    // Create validator and execute validation
+    const validator = new ArchitectureValidator();
+    const result = await validator.validate(architecturePath, prdPath);
+
+    console.log(`[ArchitectureWorkflowExecutor] Validation Result: ${result.overallScore}% (${result.passed ? 'PASSED' : 'FAILED'})`);
+    console.log(`[ArchitectureWorkflowExecutor] Completeness: ${result.completeness.score}%`);
+    console.log(`[ArchitectureWorkflowExecutor] Traceability: ${result.traceability.score}%`);
+    console.log(`[ArchitectureWorkflowExecutor] Test Strategy: ${result.testStrategy.score}%`);
+    console.log(`[ArchitectureWorkflowExecutor] Consistency: ${result.consistency.score}%`);
+
+    if (result.passed) {
+      // PASS: Update state and complete workflow
+      this.state.validation.status = 'passed';
+      this.state.validation.overallScore = result.overallScore;
+      this.state.validation.completenessScore = result.completeness.score;
+      this.state.validation.traceabilityScore = result.traceability.score;
+      this.state.validation.testStrategyScore = result.testStrategy.score;
+      this.state.validation.consistencyScore = result.consistency.score;
+
+      console.log('[ArchitectureWorkflowExecutor] ✅ Architecture validation PASSED - quality standards met');
+
+      this.emit('validation.passed', {
+        projectId: this.state.project.id,
+        overallScore: result.overallScore,
+        scores: {
+          completeness: result.completeness.score,
+          traceability: result.traceability.score,
+          testStrategy: result.testStrategy.score,
+          consistency: result.consistency.score
+        },
+        timestamp: result.timestamp
+      });
+
+      // Mark workflow as completed
+      this.state.status = 'completed';
+      console.log('[ArchitectureWorkflowExecutor] Workflow completed successfully');
+
+    } else {
+      // FAIL: Generate validation report, create escalation, BLOCK workflow
+      this.state.validation.status = 'failed';
+      this.state.validation.overallScore = result.overallScore;
+      this.state.validation.completenessScore = result.completeness.score;
+      this.state.validation.traceabilityScore = result.traceability.score;
+      this.state.validation.testStrategyScore = result.testStrategy.score;
+      this.state.validation.consistencyScore = result.consistency.score;
+
+      console.log('[ArchitectureWorkflowExecutor] ❌ Architecture validation FAILED - quality standards not met');
+      console.log(`[ArchitectureWorkflowExecutor] Completeness gaps: ${result.completeness.incompleteSections.length}`);
+      console.log(`[ArchitectureWorkflowExecutor] Traceability gaps: ${result.traceability.unaddressedRequirements.length}`);
+      console.log(`[ArchitectureWorkflowExecutor] Test strategy gaps: ${result.testStrategy.missingElements.length}`);
+      console.log(`[ArchitectureWorkflowExecutor] Consistency conflicts: ${result.consistency.conflicts.length}`);
+
+      // Generate detailed validation report
+      const validationReport = validator.generateValidationReport(result);
+
+      // Write validation report to file system
+      const validationReportPath = architecturePath.replace('.md', '-validation-report.md');
+      await fs.writeFile(validationReportPath, validationReport, 'utf-8');
+      console.log(`[ArchitectureWorkflowExecutor] Validation report written to: ${validationReportPath}`);
+
+      // Create escalation for human review
+      const escalationId = await this.escalationQueue.add({
+        workflowId: this.state.workflow,
+        step: 9,
+        question: 'Architecture validation failed. Review validation report and update architecture to meet quality standards before continuing.',
+        aiReasoning: `Architecture scored ${result.overallScore}% on quality validation. Pass threshold is 85%. ` +
+          `Completeness: ${result.completeness.score}%, Traceability: ${result.traceability.score}%, ` +
+          `Test Strategy: ${result.testStrategy.score}%, Consistency: ${result.consistency.score}%. ` +
+          `See validation report at ${validationReportPath} for details.`,
+        confidence: 1.0,
+        context: {
+          overallScore: result.overallScore,
+          passThreshold: 85,
+          completenessScore: result.completeness.score,
+          traceabilityScore: result.traceability.score,
+          testStrategyScore: result.testStrategy.score,
+          consistencyScore: result.consistency.score,
+          incompleteSections: result.completeness.incompleteSections.length,
+          unaddressedRequirements: result.traceability.unaddressedRequirements.length,
+          missingTestElements: result.testStrategy.missingElements.length,
+          conflicts: result.consistency.conflicts.length,
+          validationReportPath,
+          architecturePath,
+          prdPath
+        }
+      });
+
+      console.log(`[ArchitectureWorkflowExecutor] Escalation created: ${escalationId}`);
+      console.log('[ArchitectureWorkflowExecutor] Workflow BLOCKED - user review and approval required');
+
+      this.emit('validation.failed', {
+        projectId: this.state.project.id,
+        overallScore: result.overallScore,
+        scores: {
+          completeness: result.completeness.score,
+          traceability: result.traceability.score,
+          testStrategy: result.testStrategy.score,
+          consistency: result.consistency.score
+        },
+        gaps: {
+          incompleteSections: result.completeness.incompleteSections.length,
+          unaddressedRequirements: result.traceability.unaddressedRequirements.length,
+          missingTestElements: result.testStrategy.missingElements.length,
+          conflicts: result.consistency.conflicts.length
+        },
+        escalationId,
+        validationReportPath,
+        timestamp: result.timestamp
+      });
+
+      // BLOCK workflow progression
+      throw new Error(
+        `Architecture validation failed (${result.overallScore}% < 85% threshold). ` +
+        `Review validation report at ${validationReportPath} and resolve escalation ${escalationId} before continuing.`
+      );
+    }
   }
 
   /**
@@ -1212,13 +1438,40 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
     return section;
   }
 
-  private formatTechnicalDecisions(winstonDecisions: any[], muratDecisions: any[]): string {
-    let section = '### Winston Decisions\n\n';
-    section += winstonDecisions.map((d, i) => `**ADR-${(i + 1).toString().padStart(3, '0')}:** ${d.question}\n\n*Decision:* ${d.decision.answer}\n\n*Confidence:* ${d.decision.confidence.toFixed(2)}\n`).join('\n');
+  /**
+   * Convert DecisionRecord array to TechnicalDecision array
+   *
+   * @param decisions - Array of DecisionRecord from Winston or Murat
+   * @param decisionMaker - 'winston' or 'murat'
+   * @returns Array of TechnicalDecision
+   */
+  private convertDecisionRecordsToTechnicalDecisions(
+    decisions: WinstonDecisionRecord[] | MuratDecisionRecord[],
+    decisionMaker: 'winston' | 'murat'
+  ): TechnicalDecision[] {
+    return decisions.map((record) => ({
+      id: '', // Will be assigned by logger
+      title: record.question,
+      context: `Decision made during ${record.method} execution`,
+      decision: String(record.decision.decision),
+      alternatives: [], // DecisionRecord doesn't include alternatives
+      rationale: record.decision.reasoning || 'See decision details',
+      consequences: [], // DecisionRecord doesn't include consequences
+      status: 'accepted' as const,
+      decisionMaker,
+      date: record.timestamp,
+      confidence: record.decision.confidence
+    }));
+  }
 
-    section += '\n### Murat Decisions\n\n';
-    section += muratDecisions.map((d, i) => `**ADR-${(100 + i + 1).toString().padStart(3, '0')}:** ${d.question}\n\n*Decision:* ${d.decision.answer}\n\n*Confidence:* ${d.decision.confidence.toFixed(2)}\n`).join('\n');
-
-    return section;
+  /**
+   * Resolve workflow path placeholders and relative paths
+   *
+   * @param raw - Raw path from workflow config
+   * @returns Resolved absolute path
+   */
+  private resolveWorkflowPath(raw: string): string {
+    const expanded = raw.replace(/{project-root}/gi, this.projectRoot);
+    return path.isAbsolute(expanded) ? expanded : path.resolve(this.projectRoot, expanded);
   }
 }

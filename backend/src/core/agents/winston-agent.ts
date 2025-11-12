@@ -32,9 +32,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { LLMFactory } from '../../llm/LLMFactory.js';
-import { LLMClient } from '../../llm/LLMClient.interface.js';
-import { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
-import { DecisionEngine, Decision } from '../services/decision-engine.js';
+import type { LLMClient } from '../../llm/LLMClient.interface.js';
+import type { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
+import { DecisionEngine, type Decision } from '../services/decision-engine.js';
 import { EscalationQueue } from '../services/escalation-queue.js';
 
 // Get __dirname equivalent in ESM
@@ -303,7 +303,7 @@ interface WinstonPersona {
 /**
  * Decision metadata for audit trail
  */
-interface DecisionRecord {
+export interface DecisionRecord {
   method: string;
   question: string;
   decision: Decision;
@@ -344,15 +344,15 @@ export class WinstonAgent {
   /** Decision engine for confidence-based decisions */
   private readonly decisionEngine?: DecisionEngine;
 
-  /** Escalation queue for human intervention */
+  /** Escalation queue for human intervention (reserved for future use) */
   // @ts-expect-error - Reserved for automatic escalation in Story 3-1-followup
-  private readonly escalationQueue?: EscalationQueue;
+  private readonly _escalationQueue?: EscalationQueue;
 
-  /** Current workflow context */
+  /** Current workflow context (reserved for future use) */
   // @ts-expect-error - Reserved for automatic escalation in Story 3-1-followup
-  private workflowId: string = 'winston-session';
+  private _workflowId: string = 'winston-session';
   // @ts-expect-error - Reserved for automatic escalation in Story 3-1-followup
-  private currentStep: number = 0;
+  private _currentStep: number = 0;
 
   /** Decision audit trail */
   private readonly decisions: DecisionRecord[] = [];
@@ -376,7 +376,7 @@ export class WinstonAgent {
     this.llmConfig = llmConfig;
     this.temperature = temperature;
     this.decisionEngine = decisionEngine;
-    this.escalationQueue = escalationQueue;
+    this._escalationQueue = escalationQueue;
   }
 
   /**
@@ -1162,8 +1162,8 @@ export class WinstonAgent {
    * @param step - Current step number
    */
   setWorkflowContext(workflowId: string, step: number): void {
-    this.workflowId = workflowId;
-    this.currentStep = step;
+    this._workflowId = workflowId;
+    this._currentStep = step;
   }
 
   /**
