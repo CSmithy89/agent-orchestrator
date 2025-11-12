@@ -43,6 +43,7 @@ import { StateManager } from '../core/StateManager.js';
 import { TemplateProcessor } from '../core/TemplateProcessor.js';
 import { WorkflowState, AgentActivity } from '../types/workflow.types.js';
 import { TechnicalDecisionLogger, TechnicalDecision } from '../core/technical-decision-logger.js';
+import { SecurityGateValidator } from '../core/security-gate-validator.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -972,25 +973,95 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
   }
 
   /**
-   * Step 8: Security Gate Validation (Placeholder)
+   * Step 8: Security Gate Validation
+   *
+   * Validates architecture completeness for security requirements using SecurityGateValidator.
+   * Implements mandatory security gate with 95% pass threshold (19/20 checks).
+   *
+   * Pass: Continue to Step 9 (Architecture Validation)
+   * Fail: Generate gap report, create escalation, BLOCK workflow progression
    */
   private async executeStep8(): Promise<void> {
-    console.log('[ArchitectureWorkflowExecutor] Step 8: Security Gate Validation (Placeholder)');
+    console.log('[ArchitectureWorkflowExecutor] Step 8: Security Gate Validation');
 
     if (!this.state) throw new Error('State not initialized');
 
-    // Placeholder for Story 3-6
-    console.log('[ArchitectureWorkflowExecutor] Security gate validation deferred to Story 3-6');
+    const architecturePath = this.state.variables.architecture_output_path;
 
-    // Set temporary passed status
-    this.state.securityGate.status = 'passed';
-    this.state.securityGate.score = 100;
+    // Validate architecture security completeness
+    const validator = new SecurityGateValidator();
+    const result = await validator.validate(architecturePath);
 
-    this.emit('security_gate.passed', {
-      projectId: this.state.project.id,
-      score: 100,
-      timestamp: new Date()
-    });
+    // Update state with validation result
+    this.state.securityGate.score = result.overallScore;
+    this.state.securityGate.gaps = result.gaps;
+
+    // Audit trail logging
+    console.log(`[ArchitectureWorkflowExecutor] Security Gate Result: ${result.overallScore}% (${result.passed ? 'PASSED' : 'FAILED'})`);
+    console.log(`[ArchitectureWorkflowExecutor] Checks: ${result.checks.filter(c => c.satisfied).length}/${result.checks.length} satisfied`);
+
+    if (result.passed) {
+      // PASS: Update state and continue workflow
+      this.state.securityGate.status = 'passed';
+
+      console.log('[ArchitectureWorkflowExecutor] ✅ Security gate PASSED - all security requirements satisfied');
+
+      this.emit('security_gate.passed', {
+        projectId: this.state.project.id,
+        score: result.overallScore,
+        timestamp: result.timestamp
+      });
+
+    } else {
+      // FAIL: Generate gap report, create escalation, BLOCK workflow
+      this.state.securityGate.status = 'failed';
+
+      console.log('[ArchitectureWorkflowExecutor] ❌ Security gate FAILED - security requirements incomplete');
+      console.log(`[ArchitectureWorkflowExecutor] Gaps: ${result.gaps.length} unsatisfied checks`);
+
+      // Generate detailed gap report
+      const gapReport = validator.generateGapReport(result);
+
+      // Write gap report to file system
+      const gapReportPath = architecturePath.replace('.md', '-security-gaps.md');
+      await fs.writeFile(gapReportPath, gapReport, 'utf-8');
+      console.log(`[ArchitectureWorkflowExecutor] Gap report written to: ${gapReportPath}`);
+
+      // Create escalation for human review
+      const escalationId = await this.escalationQueue.add({
+        workflowId: this.state.workflow,
+        step: 8,
+        question: 'Security gate validation failed. Review gap report and update architecture to address security requirements before continuing to solutioning phase.',
+        aiReasoning: `Architecture scored ${result.overallScore}% on security gate validation. Pass threshold is 95%. ${result.gaps.length} security checks failed. See gap report at ${gapReportPath} for details.`,
+        confidence: 1.0,
+        context: {
+          score: result.overallScore,
+          passThreshold: 95,
+          gaps: result.gaps,
+          gapReportPath,
+          architecturePath
+        }
+      });
+
+      console.log(`[ArchitectureWorkflowExecutor] Escalation created: ${escalationId}`);
+      console.log('[ArchitectureWorkflowExecutor] Workflow BLOCKED - user review and approval required');
+
+      this.emit('security_gate.failed', {
+        projectId: this.state.project.id,
+        score: result.overallScore,
+        gaps: result.gaps,
+        escalationId,
+        gapReportPath,
+        timestamp: result.timestamp
+      });
+
+      // BLOCK workflow progression
+      throw new Error(
+        `Security gate validation failed (${result.overallScore}% < 95% threshold). ` +
+        `${result.gaps.length} security checks unsatisfied. ` +
+        `Review gap report at ${gapReportPath} and resolve escalation ${escalationId} before continuing.`
+      );
+    }
   }
 
   /**

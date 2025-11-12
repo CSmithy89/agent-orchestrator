@@ -479,22 +479,316 @@ Author: {{user_name}}
   });
 
   /**
-   * Security Gate Tests (Placeholder)
+   * Security Gate Tests (Story 3-6)
    */
-  describe('Security Gate Validation (Placeholder for Story 3-6)', () => {
-    it('should execute security gate placeholder in step 8', async () => {
-      // Placeholder test - Story 3-6 will implement actual validation
-      expect(true).toBe(true);
+  describe('Security Gate Validation (Story 3-6)', () => {
+    it.skipIf(!hasApiKeys())('should execute security gate validation in step 8 with passing architecture', async () => {
+      // Create comprehensive security architecture that will pass validation
+      const comprehensiveSecurityPRD = `# Product Requirements Document
+
+## Overview
+Test project with comprehensive security requirements.
+
+## Functional Requirements
+
+- FR-001: User authentication and authorization
+- FR-002: Secure data storage and retrieval
+- FR-003: REST API with security controls
+
+## Non-Functional Requirements
+
+### Security Architecture
+
+#### Authentication & Authorization
+- **Authentication Strategy**: OAuth 2.0 with JWT tokens for stateless authentication
+- **Authorization Mechanism**: RBAC (Role-Based Access Control) with granular permissions
+- **Session Management**: JWT bearer tokens with refresh token rotation
+- **Token Handling**: Secure token storage with httpOnly cookies and credential encryption
+
+#### Secrets Management
+- **Secrets Storage**: AWS Secrets Manager for centralized secrets management
+- **API Key Handling**: Encrypted API keys with environment variable injection
+- **Credential Rotation**: Automated 90-day credential rotation policy with KMS integration
+
+#### Input Validation & XSS Prevention
+- **Input Validation Strategy**: Whitelist-based input validation with Joi schema validation
+- **SQL Injection Prevention**: Parameterized queries with ORM (Prisma) for all database operations
+- **XSS Prevention**: HTML encoding for all user input and CSP (Content Security Policy) headers
+
+#### API Security
+- **CORS Policy**: Restrictive cross-origin policy with allowed origins whitelist
+- **Rate Limiting**: Token bucket rate limiting (100 req/min per user) with Redis throttling
+- **API Authentication**: Bearer token API authentication with API key rotation
+
+#### Encryption
+- **Data-at-Rest Encryption**: AES-256 encryption for sensitive data with encrypted database fields
+- **Data-in-Transit Encryption**: TLS 1.3 for all HTTPS communication with transport encryption
+- **Key Management**: AWS KMS for encryption key management with automated key rotation policy
+
+#### Threat Model & Security Testing
+- **OWASP Top 10**: Comprehensive threat model covering OWASP security threats
+- **Threat Mitigation**: Layer defense security measures with threat detection and mitigation strategies
+- **Security Testing**: Automated penetration testing and vulnerability scanning with security testing pipeline
+- **Incident Response**: 24/7 incident response plan with security incident escalation and breach response protocols
+
+## Acceptance Criteria
+
+- AC-001: All security requirements validated
+`;
+
+      const secureTestDir = path.join(process.cwd(), 'test-fixtures', 'secure-architecture-workflow');
+      const securePRDPath = path.join(secureTestDir, 'docs', 'secure-PRD.md');
+      const secureArchPath = path.join(secureTestDir, 'docs', 'architecture.md');
+
+      try {
+        // Create test directories
+        await fs.mkdir(path.join(secureTestDir, 'docs'), { recursive: true });
+        await fs.mkdir(path.join(secureTestDir, 'bmad', 'bmm', 'workflows', '3-solutioning', 'architecture'), { recursive: true });
+        await fs.mkdir(path.join(secureTestDir, '.bmad', 'workflow-state'), { recursive: true });
+
+        // Write secure PRD
+        await fs.writeFile(securePRDPath, comprehensiveSecurityPRD, 'utf-8');
+
+        // Copy workflow configuration
+        const workflowConfigPath = path.join(
+          secureTestDir,
+          'bmad',
+          'bmm',
+          'workflows',
+          '3-solutioning',
+          'architecture',
+          'workflow.yaml'
+        );
+        await fs.writeFile(workflowConfigPath, `name: architecture
+description: Architecture workflow for autonomous design
+author: BMad
+config_source: "{project-root}/bmad/bmm/config.yaml"
+output_folder: "{project-root}/docs"
+user_name: "Test User"
+date: system-generated
+template: "{installed_path}/architecture-template.md"
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+standalone: true
+`, 'utf-8');
+
+        // Copy template
+        const templatePath = path.join(
+          secureTestDir,
+          'bmad',
+          'bmm',
+          'workflows',
+          '3-solutioning',
+          'architecture',
+          'architecture-template.md'
+        );
+        await fs.writeFile(templatePath, `# Architecture Document
+
+Project: {{project_name}}
+Date: {{date}}
+
+## System Overview
+[Content]
+
+## Non-Functional Requirements
+[Content]
+
+## Technical Decisions
+[Content]
+`, 'utf-8');
+
+        const _events: Array<{ event: string; data: any }> = [];
+
+        const result = await ArchitectureWorkflowExecutor.execute(securePRDPath, {
+          projectRoot: secureTestDir,
+          epicId: 'test-epic-secure'
+        });
+
+        // Verify architecture was created
+        expect(result).toBe(secureArchPath);
+
+        // Read and verify architecture content includes security
+        const architectureContent = await fs.readFile(result, 'utf-8');
+        expect(architectureContent.toLowerCase()).toContain('security');
+
+        // Verify no gap report was created (means security gate passed)
+        const gapReportPath = result.replace('.md', '-security-gaps.md');
+        const gapReportExists = await fs.access(gapReportPath).then(() => true).catch(() => false);
+        expect(gapReportExists).toBe(false);
+
+      } finally {
+        // Cleanup
+        try {
+          await fs.rm(secureTestDir, { recursive: true, force: true });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+    }, 180000); // 3 minute timeout
+
+    it('should block workflow when security gate fails', async () => {
+      // Create architecture with missing security requirements
+      const insecureArchitecture = `# Architecture Document
+
+## System Overview
+This is a basic system with minimal security.
+
+## Components
+- Frontend
+- Backend
+- Database
+`;
+
+      const testDir = path.join(process.cwd(), 'test-fixtures', 'security-gate-failure-test');
+      const archPath = path.join(testDir, 'architecture.md');
+
+      try {
+        await fs.mkdir(testDir, { recursive: true });
+        await fs.writeFile(archPath, insecureArchitecture, 'utf-8');
+
+        // Import SecurityGateValidator and test directly
+        const { SecurityGateValidator } = await import('../../src/core/security-gate-validator.js');
+        const validator = new SecurityGateValidator();
+
+        const result = await validator.validate(archPath);
+
+        // Verify security gate failed
+        expect(result.passed).toBe(false);
+        expect(result.overallScore).toBeLessThan(95);
+        expect(result.escalationRequired).toBe(true);
+        expect(result.gaps.length).toBeGreaterThan(0);
+
+      } finally {
+        // Cleanup
+        try {
+          await fs.rm(testDir, { recursive: true, force: true });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
     });
 
-    it('should set security gate status to passed (temporary)', async () => {
-      // Placeholder test
-      expect(true).toBe(true);
+    it('should generate gap report when security gate fails', async () => {
+      const incompleteArchitecture = `# Architecture
+Basic architecture with no security details.
+`;
+
+      const testDir = path.join(process.cwd(), 'test-fixtures', 'gap-report-test');
+      const archPath = path.join(testDir, 'architecture.md');
+
+      try {
+        await fs.mkdir(testDir, { recursive: true });
+        await fs.writeFile(archPath, incompleteArchitecture, 'utf-8');
+
+        const { SecurityGateValidator } = await import('../../src/core/security-gate-validator.js');
+        const validator = new SecurityGateValidator();
+
+        const result = await validator.validate(archPath);
+        const gapReport = validator.generateGapReport(result);
+
+        // Verify gap report structure
+        expect(gapReport).toContain('# Security Gate Validation Report');
+        expect(gapReport).toContain('❌ FAILED');
+        expect(gapReport).toContain('## Unsatisfied Checks');
+        expect(gapReport).toContain('**Recommendation:**');
+        expect(gapReport).toContain('## Next Steps');
+
+      } finally {
+        // Cleanup
+        try {
+          await fs.rm(testDir, { recursive: true, force: true });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
     });
 
-    it('should emit security_gate.passed event', async () => {
-      // Placeholder test
-      expect(true).toBe(true);
+    it('should create escalation when security gate fails', async () => {
+      // This test validates that executeStep8 creates an escalation on failure
+      // The full workflow test with API calls would be too complex here,
+      // so we test the escalation creation logic in isolation
+
+      const { EscalationQueue } = await import('../../src/core/services/escalation-queue.js');
+      const testDir = path.join(process.cwd(), 'test-fixtures', 'escalation-test');
+      const escalationDir = path.join(testDir, '.bmad-escalations');
+
+      try {
+        await fs.mkdir(escalationDir, { recursive: true });
+
+        const escalationQueue = new EscalationQueue(escalationDir);
+
+        // Simulate what executeStep8 does on failure
+        const escalationId = await escalationQueue.add({
+          workflowId: 'architecture',
+          step: 8,
+          question: 'Security gate validation failed. Review gap report and update architecture to address security requirements before continuing to solutioning phase.',
+          aiReasoning: 'Architecture scored 45% on security gate validation. Pass threshold is 95%. 11 security checks failed.',
+          confidence: 1.0,
+          context: {
+            score: 45,
+            passThreshold: 95,
+            gaps: ['authentication: Authentication strategy defined', 'secrets: Secrets storage strategy defined']
+          }
+        });
+
+        expect(escalationId).toBeDefined();
+
+        // Verify escalation was created
+        const escalation = await escalationQueue.getById(escalationId);
+        expect(escalation.status).toBe('pending');
+        expect(escalation.step).toBe(8);
+        expect(escalation.context.score).toBe(45);
+
+      } finally {
+        // Cleanup
+        try {
+          await fs.rm(testDir, { recursive: true, force: true });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
+    });
+
+    it('should pass security gate with exactly 95% score (19/20 checks)', async () => {
+      // Architecture with 19 of 20 security requirements (95% - exactly at threshold)
+      const almostCompleteArchitecture = `# Architecture
+
+## Security
+
+OAuth 2.0, JWT, RBAC authorization, session management with bearer tokens, secure credential handling,
+AWS Secrets Manager for secrets, encrypted API key handling, credential rotation policy with KMS,
+Whitelist-based input validation and sanitization, parameterized queries and ORM for SQL injection,
+HTML encoding and CSP for XSS prevention,
+CORS policy with origin restrictions, rate limiting with throttling, API authentication with bearer tokens,
+AES-256 data at rest encryption, TLS 1.3 data in transit, KMS key management with key rotation,
+OWASP Top 10 threat assessment, threat mitigation strategies, security testing with penetration tests
+`;
+
+      const testDir = path.join(process.cwd(), 'test-fixtures', 'threshold-test');
+      const archPath = path.join(testDir, 'architecture.md');
+
+      try {
+        await fs.mkdir(testDir, { recursive: true });
+        await fs.writeFile(archPath, almostCompleteArchitecture, 'utf-8');
+
+        const { SecurityGateValidator } = await import('../../src/core/security-gate-validator.js');
+        const validator = new SecurityGateValidator();
+
+        const result = await validator.validate(archPath);
+
+        // Should pass with exactly 95%
+        expect(result.overallScore).toBe(95);
+        expect(result.passed).toBe(true);
+        expect(result.escalationRequired).toBe(false);
+
+      } finally {
+        // Cleanup
+        try {
+          await fs.rm(testDir, { recursive: true, force: true });
+        } catch {
+          // Ignore cleanup errors
+        }
+      }
     });
   });
 
