@@ -1,0 +1,600 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>2</storyId>
+    <title>Murat Agent - Test Architect Persona</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-2-murat-agent-test-architect-persona.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>the Agent Orchestrator core</asA>
+    <iWant>a Murat agent persona with test architecture expertise</iWant>
+    <soThat>architecture workflows can generate comprehensive test strategies autonomously</soThat>
+    <tasks>
+      ### Task 1: Create Murat Agent Persona Definition (2-3 hours) - AC #1
+      - Create persona file structure (bmad/bmm/agents/murat.md)
+      - Define Murat's role and expertise (Test Architect)
+      - Document communication style (technical precision with testing rationale, structured test strategy format)
+      - Add persona characteristics (quality-first mindset, pragmatic approach, risk-based testing focus, automation-first philosophy)
+
+      ### Task 2: Configure Murat LLM Integration (1-2 hours) - AC #2
+      - Define Murat's LLM configuration (GPT-4 Turbo, temp 0.4)
+      - Add Murat to project configuration schema (.bmad/project-config.yaml)
+      - Implement Murat LLM client instantiation via LLMFactory
+
+      ### Task 3: Implement Murat Test Architecture Capabilities (3-4 hours) - AC #3
+      - Test strategy definition (defineTestStrategy)
+      - Test framework recommendations (recommendFrameworks)
+      - Test pyramid definition (defineTestPyramid)
+      - CI/CD pipeline design (designPipeline)
+      - Quality gates definition (defineQualityGates)
+      - ATDD approach specification (specifyATDD)
+
+      ### Task 4: Implement Test Strategy Documentation (2-3 hours) - AC #4
+      - Structured test strategy format
+      - Testing decision tracking with traceability
+      - Alternative framework evaluation
+
+      ### Task 5: Implement Confidence Assessment (1-2 hours) - AC #5
+      - Confidence scoring integration with DecisionEngine
+      - Escalation threshold (0.75)
+      - Escalation context preparation
+
+      ### Task 6: Implement Winston Integration (2-3 hours) - AC #6
+      - Receive Winston's architecture draft as input
+      - Validate tech stack compatibility with test frameworks
+      - NFR collaboration (testing-related NFRs)
+      - Test strategy alignment with architecture
+
+      ### Task 7: Write Integration Tests (3-4 hours) - AC #7
+      - Persona loading test
+      - LLM client instantiation test
+      - Test strategy generation test (mock architecture → test strategy sections)
+      - Framework recommendation test
+      - Test pyramid definition test
+      - CI/CD pipeline design test
+      - Confidence assessment test (high vs low confidence)
+      - Winston integration test (mock architecture → Murat validates test compatibility)
+      - Verify test coverage >80%
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC #1: Murat Agent Persona File Created
+    - Persona defined in bmad/bmm/agents/murat.md
+    - Includes role description, expertise areas, decision-making approach
+    - Communication style optimized for test strategy documentation
+    - Persona follows BMAD agent pattern (consistent with Mary, John, and Winston)
+
+    AC #2: LLM Integration Configured
+    - Murat uses GPT-4 Turbo via LLM factory (Story 1.3)
+    - Temperature set to 0.4 for balanced creativity in test scenarios
+    - Token limits appropriate for test strategy context (30k tokens max)
+    - Provider configuration supports project-level LLM assignment
+
+    AC #3: Test Architecture Capabilities Defined
+    - Defines comprehensive test strategies
+    - Recommends test frameworks based on tech stack
+    - Specifies test pyramid (unit/integration/E2E ratios)
+    - Designs CI/CD pipeline specifications
+    - Defines quality gates and coverage requirements
+    - Specifies ATDD (Acceptance Test-Driven Development) approach
+    - Addresses all PRD testing requirements
+
+    AC #4: Test Strategy Documentation
+    - Documents test strategies with clear rationale
+    - Uses structured format for framework recommendations
+    - Evaluates testing alternatives with pros/cons
+    - Links testing approach to architecture and PRD requirements
+    - Captures quality metrics and thresholds
+
+    AC #5: Confidence Assessment
+    - Assesses confidence for each testing decision
+    - Uses DecisionEngine integration (Story 2.1)
+    - Confidence scoring based on framework maturity and architecture fit
+    - Escalates decisions with confidence &lt; 0.75
+
+    AC #6: Integration with Winston Agent
+    - Receives Winston's architecture draft as input
+    - Validates tech stack compatibility with test frameworks
+    - Flags test infrastructure requirements in architecture
+    - Collaborates on non-functional requirements (NFRs)
+    - Ensures test strategy aligns with system architecture
+
+    AC #7: Integration Tests
+    - Murat persona loads successfully from markdown file
+    - LLM client instantiation via LLMFactory works
+    - Basic test strategy generation test (mock architecture → test strategy sections)
+    - Confidence assessment test (high confidence decisions vs. low)
+    - Winston integration test (mock architecture → Murat validates test compatibility)
+    - Test coverage &gt;80% for Murat agent code
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>FR-CORE-002: Autonomous Architecture Design, NFR-TEST-007: Test Architecture Required</section>
+        <snippet>Winston (System Architect) and Murat (Test Architect - required) agents collaborate to produce comprehensive architecture documentation including system design, technical decisions, mandatory test strategy, and security gate validation. Test strategy section is REQUIRED in all architecture documents and must address all PRD requirements.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-3-tech-spec.md</path>
+        <title>Epic 3 Technical Specification: Planning Phase Automation</title>
+        <section>Murat Agent Persona Contract (AC-3.2, lines 160-189)</section>
+        <snippet>Murat Agent interface definition with test architecture capabilities (test strategy, framework selection, test pyramid, CI/CD pipeline, quality gates, ATDD). Uses GPT-4 Turbo with temperature 0.4 for balanced creativity in test scenarios. Integrates with Winston agent for architecture + test strategy collaboration. Temperature 0.4 chosen for test expertise and practical framework recommendations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>2.1.2 Agent Pool, Planning Phase Architecture Workflow</section>
+        <snippet>Agent Pool manages AI agent lifecycle with provider-specific configurations. Architecture workflow executes Winston first (system design), then Murat (test strategy) sequentially. Murat receives Winston's architecture draft as input to ensure test framework compatibility with tech stack. Security gate validation follows test strategy definition.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/3-1-winston-agent-system-architect-persona.md</path>
+        <title>Story 3.1: Winston Agent - System Architect Persona (REFERENCE - Status: done)</title>
+        <section>Implementation Pattern, Key Achievements, Dev Agent Record</section>
+        <snippet>Winston agent successfully implemented with 8 specialized prompts, 7 architectural capability methods, comprehensive integration tests. Pattern to follow: Static create() factory method, persona loading from markdown, LLM client via LLMFactory, DecisionEngine integration, temperature optimization per role (Winston: 0.3, Murat: 0.4), comprehensive JSDoc comments, integration tests with hasApiKeys(), TypeScript interfaces for all data structures, JSON parsing with fallback to markdown extraction, error handling with retry logic, decision audit trail tracking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing-guide.md</path>
+        <title>Testing Guide</title>
+        <section>Integration Tests, API Key Management, Shared Test Utilities</section>
+        <snippet>Use hasApiKeys() helper from backend/tests/utils/apiKeys.ts for conditional integration tests. Integration tests require local API keys (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN). Follow async patterns guide. Test coverage ≥80% for new code. All tests must pass locally before PR.</snippet>
+      </doc>
+      <doc>
+        <path>docs/integration-testing-strategy.md</path>
+        <title>Integration Testing Strategy</title>
+        <section>Real vs Mocked LLM Providers, Agent Persona Validation</section>
+        <snippet>Use real LLM providers for integration tests with API keys available (local execution). Agent persona validation requires real LLM responses to validate output quality and decision-making. Use mocked providers for unit tests and CI/CD without API keys. Integration tests validate test strategy completeness and framework recommendation quality.</snippet>
+      </doc>
+      <doc>
+        <path>docs/async-patterns-guide.md</path>
+        <title>Async Patterns Guide</title>
+        <section>Async/Await Patterns, Error Handling</section>
+        <snippet>Always use async/await (no callbacks). Properly handle Promise rejections with try/catch. Use exponential backoff for retries. Test async patterns with 120s timeout for slow LLM operations.</snippet>
+      </doc>
+      <doc>
+        <path>docs/definition-of-done.md</path>
+        <title>Definition of Done (v1.3)</title>
+        <section>Code Quality, Testing Requirements, LLM Provider Configuration</section>
+        <snippet>100% PR review required (branch protection enforced). All tests must pass locally. Type-check must pass. All LLM configs use 'claude-code' or 'openai' provider. Test coverage ≥80% for new code. Follow async patterns guide.</snippet>
+      </doc>
+      <doc>
+        <path>docs/local-testing-strategy.md</path>
+        <title>Local Testing Strategy</title>
+        <section>Local Test Execution, API Key Configuration</section>
+        <snippet>All tests run locally with real API keys before PR. Integration tests validate end-to-end functionality with real LLM providers. CI/CD performs lint, type-check, build (tests run locally).</snippet>
+      </doc>
+      <doc>
+        <path>bmad/bmm/agents/winston.md</path>
+        <title>Winston Persona File (REFERENCE PATTERN)</title>
+        <section>Agent Persona Structure</section>
+        <snippet>Winston persona demonstrates BMAD agent format: ## Role, ## System Prompt (personality, approach, standards), ## Specialized Prompts (one per capability method). Murat should follow this structure with test-focused prompts: test strategy definition, framework recommendations, test pyramid, CI/CD pipeline, quality gates, ATDD approach.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/types/agent.ts</path>
+        <kind>interface</kind>
+        <symbol>Agent</symbol>
+        <lines>28-49</lines>
+        <reason>Core Agent interface that Murat must implement. Defines required fields: id, name, persona, llmClient, context, startTime, estimatedCost.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/winston-agent.ts</path>
+        <kind>class</kind>
+        <symbol>WinstonAgent</symbol>
+        <lines>1-end</lines>
+        <reason>PRIMARY REFERENCE for Murat implementation. Shows complete agent pattern: static create() factory, persona loading, LLM integration, DecisionEngine, specialized capability methods, TypeScript interfaces, integration with EscalationQueue, audit trail tracking, JSON parsing with fallback, retry logic. Murat should follow this exact pattern but with test-focused capabilities.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/mary-agent.ts</path>
+        <kind>class</kind>
+        <symbol>MaryAgent</symbol>
+        <lines>1-738</lines>
+        <reason>Secondary reference for BMAD agent pattern. Shows persona loading, LLM factory usage, DecisionEngine integration, confidence-based escalation, audit trail tracking.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/john-agent.ts</path>
+        <kind>class</kind>
+        <symbol>JohnAgent</symbol>
+        <lines>1-end</lines>
+        <reason>Third reference for agent pattern consistency. Product manager persona with similar structure.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/LLMFactory.ts</path>
+        <kind>class</kind>
+        <symbol>LLMFactory</symbol>
+        <lines>1-145</lines>
+        <reason>Factory for creating LLM clients with multi-provider support. Murat will use LLMFactory.createClient() to instantiate GPT-4 Turbo client with OpenAI provider.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/LLMClient.interface.ts</path>
+        <kind>interface</kind>
+        <symbol>LLMClient</symbol>
+        <lines>1-end</lines>
+        <reason>Interface for LLM client that Murat will use for all LLM invocations. Defines invoke() method with InvokeOptions (temperature, max_tokens, system_prompt).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/decision-engine.ts</path>
+        <kind>class</kind>
+        <symbol>DecisionEngine</symbol>
+        <lines>1-498</lines>
+        <reason>Confidence-based decision engine. Murat will use DecisionEngine.attemptAutonomousDecision() to assess confidence for testing decisions. Escalation threshold is 0.75.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>class</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-end</lines>
+        <reason>Agent lifecycle management. AgentPool creates, tracks, and destroys agents. Murat lifecycle will be managed by AgentPool.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/winston-agent.test.ts</path>
+        <kind>test</kind>
+        <symbol>WinstonAgent Integration Tests</symbol>
+        <lines>1-end</lines>
+        <reason>PRIMARY REFERENCE for Murat integration tests. Shows comprehensive test suite with 25+ test cases: persona loading, LLM instantiation, capability methods, confidence assessment, integration patterns. Use as template for Murat tests with test-focused scenarios.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/utils/apiKeys.ts</path>
+        <kind>utility</kind>
+        <symbol>hasApiKeys</symbol>
+        <lines>1-76</lines>
+        <reason>Test utility for conditional integration tests. Use it.skipIf(!hasApiKeys()) to skip Murat integration tests when API keys unavailable.</reason>
+      </artifact>
+      <artifact>
+        <path>bmad/bmm/agents/winston.md</path>
+        <kind>markdown</kind>
+        <symbol>Winston Persona</symbol>
+        <lines>1-end</lines>
+        <reason>Reference persona file structure. Murat's persona file (bmad/bmm/agents/murat.md) should follow this format with test-focused specialized prompts.</reason>
+      </artifact>
+      <artifact>
+        <path>.bmad/project-config.yaml</path>
+        <kind>config</kind>
+        <symbol>agent_assignments</symbol>
+        <lines>1-end</lines>
+        <reason>Project-level agent LLM assignments. Add murat configuration here: model: gpt-4-turbo, provider: openai, temperature: 0.4, reasoning: "Test expertise and practical framework recommendations".</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@anthropic-ai/claude-agent-sdk" version="^0.1.30" />
+        <package name="@anthropic-ai/sdk" version="^0.68.0" />
+        <package name="openai" version="^6.2.0" />
+        <package name="simple-git" version="^3.20.0" />
+        <package name="uuid" version="^13.0.0" />
+        <package name="js-yaml" version="^4.1.0" />
+        <package name="handlebars" version="^4.7.8" />
+        <package name="chalk" version="^5.6.2" />
+        <package name="commander" version="^11.1.0" />
+        <package name="dotenv" version="^17.2.3" />
+      </node>
+      <devDependencies>
+        <package name="vitest" version="^1.0.0" />
+        <package name="@vitest/coverage-v8" version="^1.0.0" />
+        <package name="typescript" version="^5.3.0" />
+        <package name="@types/node" version="^20.0.0" />
+        <package name="@types/js-yaml" version="^4.0.0" />
+        <package name="tsx" version="^4.0.0" />
+        <package name="eslint" version="^8.56.0" />
+        <package name="@typescript-eslint/eslint-plugin" version="^6.20.0" />
+        <package name="@typescript-eslint/parser" version="^6.20.0" />
+        <package name="@vitest/ui" version="^1.0.0" />
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    **LLM Configuration:**
+    - Murat MUST use GPT-4 Turbo (model: 'gpt-4-turbo')
+    - Provider: 'openai' (via LLMFactory)
+    - Temperature: 0.4 (balanced creativity for test scenarios, defined as constant)
+    - Max tokens: 30k context (architecture draft + test requirements)
+    - Reasoning: Test expertise and practical framework recommendations
+
+    **Agent Pattern Requirements:**
+    - Follow BMAD agent pattern (consistent with Mary, John, and Winston agents)
+    - Static create() factory method (async, returns MuratAgent instance)
+    - Private constructor with dependency injection
+    - Persona loaded from markdown file (bmad/bmm/agents/murat.md)
+    - LLM client created via LLMFactory.createClient()
+    - Follow Winston's implementation pattern exactly (primary reference)
+
+    **Decision Engine Integration:**
+    - Use DecisionEngine.attemptAutonomousDecision() for confidence scoring
+    - Escalation threshold: 0.75 (ESCALATION_THRESHOLD constant)
+    - Confidence factors: framework maturity, architecture fit, team experience, testing requirement clarity
+    - Track all decisions in audit trail (DecisionRecord[])
+    - Comment out unused constants/methods with TODO markers (learned from Winston RETRY #1)
+
+    **Persona File Structure:**
+    - Follow markdown format: ## Role, ## System Prompt, ## Specialized Prompts
+    - Include expertise areas: test strategy, test automation, framework selection, CI/CD pipeline design, quality gates, ATDD methodology, test pyramid optimization
+    - Communication style: technical precision with testing rationale, structured format for framework recommendations, focus on "testability" in architecture decisions
+    - Decision-making approach: quality-focused, pragmatic, risk-aware
+
+    **Testing Requirements:**
+    - Test coverage ≥80% for Murat agent code
+    - Use hasApiKeys() helper for conditional integration tests
+    - Integration tests require local API keys (OPENAI_API_KEY)
+    - All tests must pass locally before PR (Story 2.9 Definition of Done)
+    - Follow async patterns guide (docs/async-patterns-guide.md)
+    - 120s timeout for slow LLM operations
+    - Use winston-agent.test.ts as primary test template
+
+    **Code Quality:**
+    - 100% PR review required (branch protection enforced)
+    - No critical linter errors
+    - Type-check must pass (tsc --noEmit)
+    - Follow ESM module pattern (import/export, .js extensions)
+    - Comprehensive JSDoc comments on all public methods
+    - TypeScript interfaces for all data structures
+
+    **File Locations:**
+    - Murat persona: bmad/bmm/agents/murat.md (new file)
+    - Murat class: backend/src/core/agents/murat-agent.ts (new file)
+    - Integration tests: backend/tests/integration/murat-agent.test.ts (new file)
+    - Unit tests: backend/tests/unit/agents/murat.test.ts (new file, if needed)
+    - Types: backend/src/types/agent-types.ts (extend existing with TestStrategy, FrameworkRecommendation, TestPyramid, PipelineSpecification, QualityGate, ATDDApproach interfaces)
+
+    **Test Architecture Capabilities (Methods to Implement):**
+    1. defineTestStrategy(architecture: string, requirements: string[]): Promise&lt;TestStrategy&gt;
+    2. recommendFrameworks(techStack: string[]): Promise&lt;FrameworkRecommendation[]&gt;
+    3. defineTestPyramid(projectType: string): Promise&lt;TestPyramid&gt;
+    4. designPipeline(projectType: string, testStrategy: TestStrategy): Promise&lt;PipelineSpecification&gt;
+    5. defineQualityGates(projectLevel: number): Promise&lt;QualityGate[]&gt;
+    6. specifyATDD(acceptanceCriteria: string[]): Promise&lt;ATDDApproach&gt;
+    7. assessConfidence(decision: string, context: string): Promise&lt;number&gt;
+
+    **Winston Integration (Sequential Workflow):**
+    - Murat receives Winston's architecture draft as input
+    - Validates tech stack compatibility with test frameworks
+    - Flags incompatibilities (e.g., Jest with Deno)
+    - Collaborates on NFRs (coverage targets, test execution time, performance testing)
+    - Ensures test strategy supports architecture decisions
+
+    **Learnings from Winston Implementation (RETRY #1):**
+    - Comment out unused infrastructure code with TODO markers (not immediate implementation)
+    - Use @ts-expect-error for fields only consumed by commented-out code
+    - Preserve infrastructure for future stories with clear TODO markers
+    - Temperature 0.4 for Murat (vs Winston's 0.3) - balanced creativity for test scenarios
+    - Follow Winston's parsing strategy: JSON with fallback to markdown code block extraction
+    - Follow Winston's error handling: retry 3x with exponential backoff
+    - Follow Winston's TypeScript interface patterns for all data structures
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Agent</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface Agent {
+          id: string;
+          name: string;
+          persona: string;
+          llmClient: LLMClient;
+          context: AgentContext;
+          startTime: Date;
+          estimatedCost: number;
+        }
+      </signature>
+      <path>backend/src/types/agent.ts</path>
+    </interface>
+    <interface>
+      <name>LLMClient</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface LLMClient {
+          invoke(prompt: string, options?: InvokeOptions): Promise&lt;string&gt;;
+        }
+      </signature>
+      <path>backend/src/llm/LLMClient.interface.ts</path>
+    </interface>
+    <interface>
+      <name>DecisionEngine.attemptAutonomousDecision</name>
+      <kind>Method signature</kind>
+      <signature>
+        async attemptAutonomousDecision(
+          question: string,
+          context: Record&lt;string, unknown&gt;
+        ): Promise&lt;Decision&gt;
+
+        interface Decision {
+          question: string;
+          decision: unknown;
+          confidence: number; // 0.0-1.0
+          reasoning: string;
+          source: 'onboarding' | 'llm';
+          timestamp: Date;
+          context: Record&lt;string, unknown&gt;;
+        }
+      </signature>
+      <path>backend/src/core/services/decision-engine.ts</path>
+    </interface>
+    <interface>
+      <name>LLMFactory.createClient</name>
+      <kind>Method signature</kind>
+      <signature>
+        async createClient(config: LLMConfig): Promise&lt;LLMClient&gt;
+
+        interface LLMConfig {
+          provider: string; // 'openai' for Murat
+          model: string; // 'gpt-4-turbo' for Murat
+          temperature?: number; // 0.4 for Murat
+        }
+      </signature>
+      <path>backend/src/llm/LLMFactory.ts</path>
+    </interface>
+    <interface>
+      <name>WinstonAgent.create (Pattern Reference - PRIMARY)</name>
+      <kind>Static factory method</kind>
+      <signature>
+        static async create(
+          llmConfig: LLMConfig,
+          llmFactory: LLMFactory,
+          decisionEngine?: DecisionEngine,
+          escalationQueue?: EscalationQueue,
+          personaPath?: string
+        ): Promise&lt;WinstonAgent&gt;
+      </signature>
+      <path>backend/src/core/agents/winston-agent.ts</path>
+    </interface>
+    <interface>
+      <name>TestStrategy (NEW - to define)</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface TestStrategy {
+          approach: string; // Overall testing philosophy
+          frameworks: FrameworkRecommendation[];
+          pyramid: TestPyramid;
+          cicdPipeline: PipelineSpecification;
+          qualityGates: QualityGate[];
+          atddApproach: ATDDApproach;
+          rationale: string;
+        }
+      </signature>
+      <path>backend/src/types/agent-types.ts (new types)</path>
+    </interface>
+    <interface>
+      <name>FrameworkRecommendation (NEW - to define)</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface FrameworkRecommendation {
+          category: 'unit' | 'integration' | 'e2e' | 'mocking' | 'coverage';
+          framework: string;
+          rationale: string;
+          alternatives: Array&lt;{ name: string; pros: string[]; cons: string[] }&gt;;
+          techStackCompatibility: string[];
+        }
+      </signature>
+      <path>backend/src/types/agent-types.ts (new types)</path>
+    </interface>
+    <interface>
+      <name>TestPyramid (NEW - to define)</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface TestPyramid {
+          unitPercentage: number;
+          integrationPercentage: number;
+          e2ePercentage: number;
+          rationale: string;
+        }
+      </signature>
+      <path>backend/src/types/agent-types.ts (new types)</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      **Test Framework:** Vitest (TypeScript native, fast execution)
+
+      **Test Types:**
+      - Unit tests: Isolated component logic (mocked dependencies)
+      - Integration tests: Real LLM providers with API keys (local execution)
+      - E2E tests: Full workflow scenarios
+
+      **Quality Gates:**
+      - All tests pass (0 failures)
+      - Code coverage ≥80% for new code
+      - No critical linter errors
+      - Type-check passes (tsc --noEmit)
+
+      **API Key Management:**
+      - Use hasApiKeys() helper from backend/tests/utils/apiKeys.ts
+      - Conditional tests: it.skipIf(!hasApiKeys())('test name', async () =&gt; {...})
+      - API key for Murat: OPENAI_API_KEY (GPT-4 Turbo)
+
+      **Test Utilities:**
+      - backend/tests/utils/apiKeys.ts - API key availability check
+      - backend/tests/utils/mockAgents.ts - Mock agent factories
+      - backend/tests/utils/gitSetup.ts - Git configuration for tests
+      - backend/tests/utils/fixtures.ts - Shared test data
+
+      **Async Patterns:**
+      - Always use async/await (no callbacks)
+      - Properly handle Promise rejections with try/catch
+      - 120s timeout for slow LLM operations
+      - Follow async patterns guide (docs/async-patterns-guide.md)
+
+      **Reference Test Suite:**
+      - Use backend/tests/integration/winston-agent.test.ts as PRIMARY TEMPLATE
+      - Follow Winston's test structure with 25+ test cases
+      - Test persona loading, LLM instantiation, all capability methods, confidence assessment, integration patterns
+    </standards>
+    <locations>
+      - backend/tests/integration/murat-agent.test.ts (new file - integration tests)
+      - backend/tests/unit/agents/murat.test.ts (new file - unit tests, if needed)
+      - backend/tests/utils/ (shared test utilities - already exists)
+    </locations>
+    <ideas>
+      **AC #1: Persona Loading Test**
+      - Test: Load murat.md persona file successfully
+      - Verify: Persona content parsed correctly (systemPrompt, specializedPrompts)
+      - Verify: Role, expertise, communication style present
+      - Verify: 6+ specialized prompts for test capabilities
+
+      **AC #2: LLM Client Instantiation Test**
+      - Test: Create Murat with GPT-4 Turbo via LLMFactory
+      - Verify: LLM client created successfully with OpenAI provider
+      - Verify: Temperature set to 0.4
+      - Verify: API key loaded from environment (OPENAI_API_KEY)
+      - Skip if API keys not available
+
+      **AC #3: Test Strategy Generation Test**
+      - Test: Generate test strategy from mock architecture
+      - Mock architecture: Simple project with tech stack (Node.js/TypeScript)
+      - Verify: Test strategy section generated (valid markdown/JSON)
+      - Verify: Framework recommendations included
+      - Verify: Test pyramid defined (unit/integration/E2E ratios)
+      - Verify: CI/CD pipeline specified
+      - Verify: Quality gates defined
+
+      **AC #3: Framework Recommendation Test**
+      - Test: Recommend frameworks for various tech stacks
+      - Tech stacks: Node.js/TypeScript, Python, React, etc.
+      - Verify: Appropriate frameworks suggested (e.g., Vitest for TypeScript)
+      - Verify: Rationale included for each recommendation
+      - Verify: Alternatives considered with pros/cons
+
+      **AC #3: Test Pyramid Definition Test**
+      - Test: Define test pyramid for different project types
+      - Project types: Backend API, SPA, Full-stack
+      - Verify: Ratios specified (e.g., 70% unit, 20% integration, 10% E2E)
+      - Verify: Rationale for distribution
+
+      **AC #3: CI/CD Pipeline Design Test**
+      - Test: Design pipeline for mock project
+      - Verify: Pipeline stages defined (build, test, quality gates, deploy)
+      - Verify: Quality gates specified (coverage thresholds, mutation testing)
+      - Verify: Test execution order logical
+
+      **AC #5: Confidence Assessment Test**
+      - Test: High-confidence decision (well-known framework for standard tech stack)
+      - Verify: Confidence ≥ 0.75
+      - Test: Low-confidence decision (niche tech stack or uncommon framework)
+      - Verify: Confidence &lt; 0.75
+      - Verify: Low-confidence triggers escalation
+
+      **AC #6: Winston Integration Test**
+      - Test: Murat receives Winston's architecture draft
+      - Mock architecture: Tech stack (Node.js, TypeScript, PostgreSQL) + components
+      - Verify: Murat analyzes architecture successfully
+      - Verify: Framework recommendations compatible with tech stack
+      - Verify: Test strategy aligns with architecture decisions
+      - Test: Tech stack incompatibility detection (e.g., Jest with Deno)
+      - Verify: Incompatibility flagged with recommendation
+
+      **AC #7: Coverage Verification**
+      - Run: npm test -- murat-agent
+      - Verify: All tests pass or skip appropriately
+      - Verify: Coverage &gt;80% for Murat agent code
+      - Verify: No test regressions in existing suite
+    </ideas>
+  </tests>
+</story-context>
