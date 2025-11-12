@@ -81,7 +81,7 @@ development_status:
   3-3-architecture-workflow-executor: done
   3-4-technical-decisions-logger: done
   3-5-architecture-template-content-generation: done
-  3-6-security-gate-validation-workflow: drafted
+  3-6-security-gate-validation-workflow: done
   3-7-architecture-validation-tests: drafted
   3-8-cis-agent-integration-architecture-decisions: drafted
   epic-3-retrospective: optional

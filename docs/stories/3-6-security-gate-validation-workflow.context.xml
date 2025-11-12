@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<storyContext>
+  <metadata>
+    <storyId>3-6</storyId>
+    <storyTitle>Security Gate Validation Workflow</storyTitle>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generatedBy>story-context-workflow</generatedBy>
+  </metadata>
+
+  <summary>
+    Story 3-6 implements a mandatory security gate that validates architecture completeness for
+    authentication, authorization, secrets management, input validation, API security, encryption,
+    and threat modeling. The security gate blocks progression to Epic 4 (Solutioning) until all
+    security requirements are satisfied with a minimum 95% score (19 of 20 checks).
+  </summary>
+
+  <implementationStatus>
+    <overall>PARTIALLY_IMPLEMENTED</overall>
+    <details>
+      <component name="SecurityGateValidator" status="COMPLETE">
+        <description>Core validation class fully implemented with all 20 security checks</description>
+        <location>/home/user/agent-orchestrator/backend/src/core/security-gate-validator.ts</location>
+        <implementedFeatures>
+          <feature name="validate()" description="Main validation method that checks architecture completeness"/>
+          <feature name="checkAuthentication()" description="4 checks: strategy, authorization, session, token handling"/>
+          <feature name="checkSecretsManagement()" description="3 checks: storage, API key handling, rotation policy"/>
+          <feature name="checkInputValidation()" description="3 checks: validation strategy, SQL injection, XSS prevention"/>
+          <feature name="checkAPISecurity()" description="3 checks: CORS, rate limiting, API authentication"/>
+          <feature name="checkEncryption()" description="3 checks: data-at-rest, data-in-transit, key management"/>
+          <feature name="checkThreatModel()" description="4 checks: OWASP Top 10, mitigation, testing, incident response"/>
+          <feature name="generateGapReport()" description="Markdown gap report generation for failed validations"/>
+          <feature name="groupByCategory()" description="Helper to organize checks by security category"/>
+          <feature name="formatCategory()" description="Helper to format category names for display"/>
+        </implementedFeatures>
+        <codeMetrics>
+          <linesOfCode>405</linesOfCode>
+          <methods>11</methods>
+          <interfaces>2</interfaces>
+          <keywords>20 security-related keywords for validation</keywords>
+        </codeMetrics>
+      </component>
+
+      <component name="ArchitectureWorkflowExecutor Integration" status="NOT_IMPLEMENTED">
+        <description>Step 8 is a placeholder with no actual security gate validation</description>
+        <location>/home/user/agent-orchestrator/backend/src/workflows/architecture-workflow-executor.ts</location>
+        <currentImplementation>
+          <step number="8" name="Security Gate Validation">
+            <status>PLACEHOLDER</status>
+            <lineNumbers>975-994</lineNumbers>
+            <issues>
+              <issue>Does not import SecurityGateValidator</issue>
+              <issue>Does not call validator.validate(architecturePath)</issue>
+              <issue>Hardcodes passed status and 100 score</issue>
+              <issue>Logs "deferred to Story 3-6" message</issue>
+              <issue>Does not generate gap reports on failure</issue>
+              <issue>Does not create escalations for failed validations</issue>
+              <issue>Does not block workflow on security gate failure</issue>
+            </issues>
+            <code>
+              // Placeholder for Story 3-6
+              console.log('[ArchitectureWorkflowExecutor] Security gate validation deferred to Story 3-6');
+
+              // Set temporary passed status
+              this.state.securityGate.status = 'passed';
+              this.state.securityGate.score = 100;
+
+              this.emit('security_gate.passed', {
+                projectId: this.state.project.id,
+                score: 100,
+                timestamp: new Date()
+              });
+            </code>
+          </step>
+        </currentImplementation>
+        <requiredImplementation>
+          <task1>Import SecurityGateValidator class</task1>
+          <task2>Call validator.validate(architecturePath) with path from this.state.variables.architecture_output_path</task2>
+          <task3>Check result.passed status</task3>
+          <task4>If passed: Log success, update state.securityGate.status = 'passed', emit security_gate.passed event</task4>
+          <task5>If failed: Generate gap report, create escalation, set state.securityGate.status = 'failed', BLOCK workflow progression</task5>
+          <task6>Update state.securityGate with score and gaps from result</task6>
+          <task7>Handle EscalationQueue interaction for failed validations</task7>
+        </requiredImplementation>
+      </component>
+
+      <component name="Test Coverage" status="NOT_IMPLEMENTED">
+        <description>No integration tests or unit tests for SecurityGateValidator</description>
+        <location>/home/user/agent-orchestrator/backend/tests/</location>
+        <missingTests>
+          <test name="Integration Test Suite">Validate complete architecture (all checks pass)</test>
+          <test name="Integration Test Suite">Validate incomplete architecture (some checks fail)</test>
+          <test name="Unit Tests">Each security category check independently</test>
+          <test name="Unit Tests">Gap report generation formatting</test>
+          <test name="Integration Tests">Pass threshold (95%) behavior</test>
+          <test name="Integration Tests">Blocking behavior on failure</test>
+          <test name="Integration Tests">ArchitectureWorkflowExecutor Step 8 execution</test>
+        </missingTests>
+        <testCoverageTarget>80%</testCoverageTarget>
+      </component>
+
+      <component name="Dependencies" status="SATISFIED">
+        <blocking>
+          <dependency storyId="3-3" title="Architecture Workflow Executor" status="COMPLETED">
+            <note>Integration point for Step 8 - executor is available</note>
+          </dependency>
+          <dependency storyId="3-5" title="Architecture Template" status="IN_PROGRESS">
+            <note>Template structure exists for validation - contains Security Architecture section</note>
+          </dependency>
+        </blocking>
+        <soft>
+          <dependency storyId="2-2" title="Escalation Queue" status="AVAILABLE">
+            <note>EscalationQueue exists and is used by ArchitectureWorkflowExecutor</note>
+          </dependency>
+        </soft>
+        <enables>
+          <dependency epicId="4" title="Solutioning Phase">
+            <note>Blocked until security gate passes with 95% score</note>
+          </dependency>
+        </enables>
+      </component>
+    </details>
+  </implementationStatus>
+
+  <securityGateValidation>
+    <totalChecks>20</totalChecks>
+    <categories>
+      <category name="Authentication &amp; Authorization" checks="4">
+        <check requirement="Authentication strategy defined" keywords="authentication, OAuth, JWT, SAML, SSO, login, credentials"/>
+        <check requirement="Authorization mechanism specified" keywords="authorization, RBAC, ABAC, permissions, access control"/>
+        <check requirement="Session management approach documented" keywords="session, token, cookie, bearer"/>
+        <check requirement="Token/credential handling specified" keywords="token, credential, API key, bearer"/>
+      </category>
+
+      <category name="Secrets Management" checks="3">
+        <check requirement="Secrets storage strategy defined" keywords="secrets, environment variable, key vault, secrets manager, KMS"/>
+        <check requirement="API key handling approach documented" keywords="API key, credentials, secrets"/>
+        <check requirement="Credential rotation policy specified" keywords="rotation, rotate, expiry, credential"/>
+      </category>
+
+      <category name="Input Validation" checks="3">
+        <check requirement="Input validation strategy defined" keywords="input validation, sanitization, whitelist, blacklist, validation"/>
+        <check requirement="SQL injection prevention documented" keywords="SQL injection, parameterized, prepared statement, ORM"/>
+        <check requirement="XSS prevention measures specified" keywords="XSS, cross-site scripting, HTML encoding, CSP, content security policy"/>
+      </category>
+
+      <category name="API Security" checks="3">
+        <check requirement="CORS policy defined" keywords="CORS, cross-origin, origin"/>
+        <check requirement="Rate limiting strategy specified" keywords="rate limit, throttling, rate limiting"/>
+        <check requirement="API authentication mechanism documented" keywords="API authentication, API key, bearer token"/>
+      </category>
+
+      <category name="Encryption" checks="3">
+        <check requirement="Data-at-rest encryption specified" keywords="data at rest, encryption, AES, encrypted"/>
+        <check requirement="Data-in-transit encryption specified" keywords="TLS, SSL, HTTPS, data in transit, transport encryption"/>
+        <check requirement="Encryption key management documented" keywords="key management, KMS, key vault, key rotation"/>
+      </category>
+
+      <category name="Threat Model" checks="4">
+        <check requirement="OWASP Top 10 threats assessed" keywords="OWASP, threat model, security threat"/>
+        <check requirement="Threat mitigation strategies defined" keywords="mitigation, threat, security measure"/>
+        <check requirement="Security testing approach documented" keywords="security testing, penetration test, vulnerability scan"/>
+        <check requirement="Incident response plan outlined" keywords="incident response, security incident, breach response"/>
+      </category>
+    </categories>
+
+    <passThreshold>
+      <percentage>95%</percentage>
+      <checksRequired>19 of 20</checksRequired>
+    </passThreshold>
+
+    <validationBehavior>
+      <onPass>
+        <action>Log success message</action>
+        <action>Continue to Step 9 (Architecture Validation)</action>
+        <action>Update workflow state with security_gate.status = 'passed'</action>
+        <action>Emit security_gate.passed event</action>
+      </onPass>
+      <onFailure>
+        <action>Generate detailed gap report in markdown</action>
+        <action>Create escalation with gap report and recommendations</action>
+        <action>BLOCK workflow progression to Epic 4</action>
+        <action>Update workflow state with security_gate.status = 'failed'</action>
+        <action>Emit security_gate.failed event</action>
+        <action>User must review and approve before workflow can continue</action>
+      </onFailure>
+    </validationBehavior>
+  </securityGateValidation>
+
+  <acceptanceCriteria>
+    <criterion number="1">
+      <requirement>Security Gate Executes After Architecture Workflow</requirement>
+      <status>NOT_READY</status>
+      <details>
+        <item>Security gate must run in ArchitectureWorkflowExecutor Step 8 - needs integration</item>
+        <item>Validates completed architecture.md document - capability exists in SecurityGateValidator</item>
+        <item>Six security categories checked - implemented</item>
+        <item>Each category scored - implemented</item>
+        <item>Overall score calculated: (satisfied checks / total checks) × 100 - implemented</item>
+      </details>
+    </criterion>
+
+    <criterion number="2">
+      <requirement>Pass Threshold and Blocking Behavior</requirement>
+      <status>PARTIAL</status>
+      <details>
+        <item>Pass threshold: ≥95% score - implemented in SecurityGateValidator.validate()</item>
+        <item>If passed: Log success - needs integration</item>
+        <item>If failed: Generate gap report - implemented in generateGapReport()</item>
+        <item>Create escalation - needs integration with EscalationQueue</item>
+        <item>BLOCK workflow progression - needs implementation in Step 8</item>
+        <item>Audit trail logged - needs implementation</item>
+      </details>
+    </criterion>
+
+    <criterion number="3" to="6">
+      <requirement>Security Category Validations (Authentication, Secrets, Input, API, Encryption, Threat Model)</requirement>
+      <status>IMPLEMENTED</status>
+      <details>
+        <item>All validation logic implemented in SecurityGateValidator</item>
+        <item>Keyword-based evidence extraction implemented</item>
+        <item>Gap report recommendations included</item>
+      </details>
+    </criterion>
+
+    <criterion number="7">
+      <requirement>Gap Report Generation</requirement>
+      <status>IMPLEMENTED</status>
+      <details>
+        <item>Detailed gap report in markdown format - implemented</item>
+        <item>Unsatisfied checks listed with recommendations - implemented</item>
+        <item>Section references for information placement - implemented</item>
+      </details>
+    </criterion>
+
+    <criterion number="8">
+      <requirement>Audit Trail and Escalation</requirement>
+      <status>PARTIAL</status>
+      <details>
+        <item>Log security gate result to workflow state - needs implementation</item>
+        <item>Include timestamp, score, checks - SecurityGateResult provides timestamp, score, gaps</item>
+        <item>Create escalation with gap report - needs integration with EscalationQueue</item>
+        <item>User review and approval workflow - needs implementation</item>
+      </details>
+    </criterion>
+  </acceptanceCriteria>
+
+  <architectureTemplate>
+    <path>/home/user/agent-orchestrator/bmad/bmm/workflows/3-solutioning/architecture/architecture-template.md</path>
+    <securitySection>
+      <name>Security Architecture</name>
+      <lineNumber>71-73</lineNumber>
+      <placeholder>{{security_approach}}</placeholder>
+      <expectedContent>
+        <section>Authentication Strategy</section>
+        <section>Authorization Mechanism</section>
+        <section>Secrets Management</section>
+        <section>Input Validation Approach</section>
+        <section>API Security</section>
+        <section>Encryption Strategy</section>
+        <section>Threat Modeling and Mitigation</section>
+      </expectedContent>
+    </securitySection>
+  </architectureTemplate>
+
+  <tasks>
+    <task number="1" title="Integrate SecurityGateValidator with ArchitectureWorkflowExecutor" status="PENDING">
+      <estimatedHours>1-2</estimatedHours>
+      <subtasks>
+        <subtask>Import SecurityGateValidator in architecture-workflow-executor.ts</subtask>
+        <subtask>Replace Step 8 placeholder with actual validation logic</subtask>
+        <subtask>Call validator.validate(this.state.variables.architecture_output_path)</subtask>
+        <subtask>Handle passed result: update state.securityGate.status = 'passed', emit event</subtask>
+        <subtask>Handle failed result: generate gap report, create escalation, set status = 'failed'</subtask>
+        <subtask>Update state.securityGate.score and gaps from validation result</subtask>
+      </subtasks>
+    </task>
+
+    <task number="2" title="Implement Audit Trail and Escalation" status="PENDING">
+      <estimatedHours>1-2</estimatedHours>
+      <subtasks>
+        <subtask>Create escalation record when validation fails</subtask>
+        <subtask>Log timestamp, score, and evidence to workflow state</subtask>
+        <subtask>Generate user-friendly gap report with recommendations</subtask>
+        <subtask>Implement blocking behavior to prevent workflow progression</subtask>
+      </subtasks>
+    </task>
+
+    <task number="3" title="Write Integration Tests" status="PENDING">
+      <estimatedHours>2-3</estimatedHours>
+      <subtasks>
+        <subtask>Create test/integration/security-gate-validator.test.ts</subtask>
+        <subtask>Test: Validate complete architecture (all checks pass)</subtask>
+        <subtask>Test: Validate incomplete architecture (some checks fail)</subtask>
+        <subtask>Test: Each security category check independently</subtask>
+        <subtask>Test: Gap report generation formatting</subtask>
+        <subtask>Test: Pass threshold (95%) behavior</subtask>
+        <subtask>Test: Blocking behavior on failure</subtask>
+        <subtask>Verify test coverage >80%</subtask>
+      </subtasks>
+    </task>
+
+    <task number="4" title="Write Unit Tests for SecurityGateValidator" status="PENDING">
+      <estimatedHours>1-2</estimatedHours>
+      <subtasks>
+        <subtask>Test keyword matching logic for each category</subtask>
+        <subtask>Test score calculation accuracy</subtask>
+        <subtask>Test gap report formatting</subtask>
+        <subtask>Test category grouping and formatting</subtask>
+      </subtasks>
+    </task>
+
+    <task number="5" title="Integration Testing with ArchitectureWorkflowExecutor" status="PENDING">
+      <estimatedHours>2-3</estimatedHours>
+      <subtasks>
+        <subtask>Test full workflow execution with security gate passing</subtask>
+        <subtask>Test full workflow execution with security gate failing</subtask>
+        <subtask>Test workflow blocking on security gate failure</subtask>
+        <subtask>Test escalation creation and state persistence</subtask>
+      </subtasks>
+    </task>
+  </tasks>
+
+  <codeReferences>
+    <file path="/home/user/agent-orchestrator/backend/src/core/security-gate-validator.ts">
+      <description>SecurityGateValidator implementation - COMPLETE</description>
+      <linesOfCode>405</linesOfCode>
+      <status>READY_FOR_INTEGRATION</status>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/backend/src/workflows/architecture-workflow-executor.ts">
+      <description>ArchitectureWorkflowExecutor - NEEDS_INTEGRATION</description>
+      <step number="8" lineNumbers="975-994">PLACEHOLDER - requires SecurityGateValidator integration</step>
+      <requiredChanges>
+        <change lineNumber="35-45">Add import for SecurityGateValidator</change>
+        <change lineNumber="975-994">Replace executeStep8() placeholder with actual validation</change>
+      </requiredChanges>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/docs/stories/3-6-security-gate-validation-workflow.md">
+      <description>Story document with acceptance criteria and tasks</description>
+      <status>COMPLETE - Story definition ready</status>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/bmad/bmm/workflows/3-solutioning/architecture/architecture-template.md">
+      <description>Architecture template with Security Architecture section</description>
+      <securitySection lineNumber="71-73">{{security_approach}} placeholder</securitySection>
+    </file>
+  </codeReferences>
+
+  <blockers>
+    <blocker severity="LOW">
+      <description>No blocking issues - SecurityGateValidator is fully implemented and ready for integration</description>
+      <status>RESOLVED</status>
+    </blocker>
+  </blockers>
+
+  <risks>
+    <risk level="MEDIUM">
+      <description>SecurityGateValidator uses keyword matching for evidence extraction. Advanced architectures with non-standard terminology may fail validation despite meeting security requirements.</description>
+      <mitigation>Consider implementing semantic validation in future iterations. For now, document expected terminology in architecture template guidelines.</mitigation>
+    </risk>
+
+    <risk level="LOW">
+      <description>Escalation queue integration may require database/persistence setup that may not exist.</description>
+      <mitigation>Verify EscalationQueue is properly initialized in ArchitectureWorkflowExecutor constructor.</mitigation>
+    </risk>
+  </risks>
+
+  <nextSteps>
+    <step priority="1">Integrate SecurityGateValidator into ArchitectureWorkflowExecutor Step 8 (1-2 hours)</step>
+    <step priority="2">Implement escalation and blocking behavior (1-2 hours)</step>
+    <step priority="3">Write comprehensive integration and unit tests (2-3 hours)</step>
+    <step priority="4">Test with sample architectures - complete and incomplete examples (1-2 hours)</step>
+    <step priority="5">Code review and refinement (1 hour)</step>
+  </nextSteps>
+
+  <estimatedTotalEffort>
+    <hours>8-12</hours>
+    <days>2-3</days>
+  </estimatedTotalEffort>
+
+  <recommendations>
+    <recommendation priority="HIGH">
+      SecurityGateValidator is well-designed and ready. Focus development effort on Step 8 integration
+      and comprehensive testing rather than modifying the validator itself.
+    </recommendation>
+
+    <recommendation priority="MEDIUM">
+      Consider creating a sample architecture document that passes and fails validation to use as test
+      fixtures. This will help validate the keyword matching logic and ensure consistent behavior.
+    </recommendation>
+
+    <recommendation priority="MEDIUM">
+      Document the expected structure and terminology for the "Security Architecture" section of the
+      architecture template to help ensure architectures contain required information for validation.
+    </recommendation>
+
+    <recommendation priority="LOW">
+      Consider adding a dry-run mode to ArchitectureWorkflowExecutor that runs security validation
+      without blocking, allowing architects to preview gaps before workflow progression.
+    </recommendation>
+  </recommendations>
+
+  <glossary>
+    <term name="Security Gate">
+      Mandatory validation checkpoint that ensures architecture completeness for security requirements
+      before progression to solutioning phase. Implemented with 95% pass threshold across 20 security checks.
+    </term>
+
+    <term name="Gap Report">
+      Detailed markdown document generated when security validation fails, listing unsatisfied checks
+      and providing specific recommendations for remediation.
+    </term>
+
+    <term name="PASS_THRESHOLD">
+      Minimum score of 95% (19 of 20 checks must pass) required for security gate to pass and allow
+      workflow progression.
+    </term>
+
+    <term name="Escalation">
+      Administrative escalation created when security validation fails, requiring user review and
+      approval before workflow can continue.
+    </term>
+  </glossary>
+
+</storyContext>
