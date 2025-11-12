@@ -102,9 +102,8 @@ export class MuratAgent {
   /** Murat's persona (system prompt + specialized prompts) */
   private readonly persona: MuratPersona;
 
-  /** LLM configuration (reserved for future use) */
-  // @ts-expect-error - Reserved for future use
-  private readonly _llmConfig: LLMConfig;
+  /** LLM configuration */
+  private readonly llmConfig: LLMConfig;
 
   /** Temperature for LLM invocations */
   private readonly temperature: number;
@@ -138,7 +137,7 @@ export class MuratAgent {
   ) {
     this.llmClient = llmClient;
     this.persona = persona;
-    this._llmConfig = llmConfig;
+    this.llmConfig = llmConfig;
     this.temperature = temperature;
     this.decisionEngine = decisionEngine;
     this.escalationQueue = escalationQueue;
@@ -998,5 +997,14 @@ export class MuratAgent {
   setWorkflowContext(workflowId: string, step: number): void {
     this.workflowId = workflowId;
     this.currentStep = step;
+  }
+
+  /**
+   * Get LLM configuration
+   *
+   * @returns LLM configuration
+   */
+  getLLMConfig(): LLMConfig {
+    return this.llmConfig;
   }
 }

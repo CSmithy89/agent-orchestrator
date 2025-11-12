@@ -544,7 +544,8 @@ describe('MuratAgent Integration Tests', () => {
 
       // Validate gate types
       const gateTypes = gates.map(g => g.type);
-      expect(gateTypes).toContain('coverage' || 'test' || 'security' || 'performance');
+      const allowedTypes = ['coverage', 'test', 'security', 'performance', 'mutation'];
+      expect(gateTypes.some(type => allowedTypes.includes(type))).toBe(true);
     }, 120000);
 
     it.skipIf(!hasApiKeys())('should throw error if project level is invalid', async () => {
