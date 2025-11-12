@@ -44,6 +44,7 @@ import { TemplateProcessor } from '../core/TemplateProcessor.js';
 import { WorkflowState, AgentActivity } from '../types/workflow.types.js';
 import { TechnicalDecisionLogger, TechnicalDecision } from '../core/technical-decision-logger.js';
 import { SecurityGateValidator } from '../core/security-gate-validator.js';
+import { ArchitectureValidator } from '../core/architecture-validator.js';
 
 // Get __dirname equivalent in ESM
 const __filename = fileURLToPath(import.meta.url);
@@ -72,6 +73,16 @@ export interface ArchitectureWorkflowState extends WorkflowState {
     status: 'pending' | 'passed' | 'failed';
     score?: number;
     gaps?: string[];
+  };
+
+  /** Architecture validation status */
+  validation: {
+    status: 'pending' | 'passed' | 'failed';
+    overallScore?: number;
+    completenessScore?: number;
+    traceabilityScore?: number;
+    testStrategyScore?: number;
+    consistencyScore?: number;
   };
 }
 
@@ -553,6 +564,9 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
       },
       agentActivity: [],
       securityGate: {
+        status: 'pending'
+      },
+      validation: {
         status: 'pending'
       },
       startTime: new Date(),
@@ -1065,18 +1079,138 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
   }
 
   /**
-   * Step 9: Architecture Validation (Placeholder)
+   * Step 9: Architecture Validation
+   * Validates architecture completeness, PRD traceability, test strategy, and consistency
+   * Pass threshold: 85% overall quality score
    */
   private async executeStep9(): Promise<void> {
-    console.log('[ArchitectureWorkflowExecutor] Step 9: Architecture Validation (Placeholder)');
+    console.log('[ArchitectureWorkflowExecutor] Step 9: Architecture Validation');
 
     if (!this.state) throw new Error('State not initialized');
 
-    // Placeholder for Story 3-7
-    console.log('[ArchitectureWorkflowExecutor] Architecture validation deferred to Story 3-7');
+    const architecturePath = this.state.variables.architecture_output_path;
+    const prdPath = this.state.variables.prd_path;
 
-    // Mark workflow as completed
-    this.state.status = 'completed';
+    console.log('[ArchitectureWorkflowExecutor] Validating architecture quality...');
+    console.log(`[ArchitectureWorkflowExecutor] Architecture: ${architecturePath}`);
+    console.log(`[ArchitectureWorkflowExecutor] PRD: ${prdPath}`);
+
+    // Create validator and execute validation
+    const validator = new ArchitectureValidator();
+    const result = await validator.validate(architecturePath, prdPath);
+
+    console.log(`[ArchitectureWorkflowExecutor] Validation Result: ${result.overallScore}% (${result.passed ? 'PASSED' : 'FAILED'})`);
+    console.log(`[ArchitectureWorkflowExecutor] Completeness: ${result.completeness.score}%`);
+    console.log(`[ArchitectureWorkflowExecutor] Traceability: ${result.traceability.score}%`);
+    console.log(`[ArchitectureWorkflowExecutor] Test Strategy: ${result.testStrategy.score}%`);
+    console.log(`[ArchitectureWorkflowExecutor] Consistency: ${result.consistency.score}%`);
+
+    if (result.passed) {
+      // PASS: Update state and complete workflow
+      this.state.validation.status = 'passed';
+      this.state.validation.overallScore = result.overallScore;
+      this.state.validation.completenessScore = result.completeness.score;
+      this.state.validation.traceabilityScore = result.traceability.score;
+      this.state.validation.testStrategyScore = result.testStrategy.score;
+      this.state.validation.consistencyScore = result.consistency.score;
+
+      console.log('[ArchitectureWorkflowExecutor] ✅ Architecture validation PASSED - quality standards met');
+
+      this.emit('validation.passed', {
+        projectId: this.state.project.id,
+        overallScore: result.overallScore,
+        scores: {
+          completeness: result.completeness.score,
+          traceability: result.traceability.score,
+          testStrategy: result.testStrategy.score,
+          consistency: result.consistency.score
+        },
+        timestamp: result.timestamp
+      });
+
+      // Mark workflow as completed
+      this.state.status = 'completed';
+      console.log('[ArchitectureWorkflowExecutor] Workflow completed successfully');
+
+    } else {
+      // FAIL: Generate validation report, create escalation, BLOCK workflow
+      this.state.validation.status = 'failed';
+      this.state.validation.overallScore = result.overallScore;
+      this.state.validation.completenessScore = result.completeness.score;
+      this.state.validation.traceabilityScore = result.traceability.score;
+      this.state.validation.testStrategyScore = result.testStrategy.score;
+      this.state.validation.consistencyScore = result.consistency.score;
+
+      console.log('[ArchitectureWorkflowExecutor] ❌ Architecture validation FAILED - quality standards not met');
+      console.log(`[ArchitectureWorkflowExecutor] Completeness gaps: ${result.completeness.incompleteSections.length}`);
+      console.log(`[ArchitectureWorkflowExecutor] Traceability gaps: ${result.traceability.unaddressedRequirements.length}`);
+      console.log(`[ArchitectureWorkflowExecutor] Test strategy gaps: ${result.testStrategy.missingElements.length}`);
+      console.log(`[ArchitectureWorkflowExecutor] Consistency conflicts: ${result.consistency.conflicts.length}`);
+
+      // Generate detailed validation report
+      const validationReport = validator.generateValidationReport(result);
+
+      // Write validation report to file system
+      const validationReportPath = architecturePath.replace('.md', '-validation-report.md');
+      await fs.writeFile(validationReportPath, validationReport, 'utf-8');
+      console.log(`[ArchitectureWorkflowExecutor] Validation report written to: ${validationReportPath}`);
+
+      // Create escalation for human review
+      const escalationId = await this.escalationQueue.add({
+        workflowId: this.state.workflow,
+        step: 9,
+        question: 'Architecture validation failed. Review validation report and update architecture to meet quality standards before continuing.',
+        aiReasoning: `Architecture scored ${result.overallScore}% on quality validation. Pass threshold is 85%. ` +
+          `Completeness: ${result.completeness.score}%, Traceability: ${result.traceability.score}%, ` +
+          `Test Strategy: ${result.testStrategy.score}%, Consistency: ${result.consistency.score}%. ` +
+          `See validation report at ${validationReportPath} for details.`,
+        confidence: 1.0,
+        context: {
+          overallScore: result.overallScore,
+          passThreshold: 85,
+          completenessScore: result.completeness.score,
+          traceabilityScore: result.traceability.score,
+          testStrategyScore: result.testStrategy.score,
+          consistencyScore: result.consistency.score,
+          incompleteSections: result.completeness.incompleteSections.length,
+          unaddressedRequirements: result.traceability.unaddressedRequirements.length,
+          missingTestElements: result.testStrategy.missingElements.length,
+          conflicts: result.consistency.conflicts.length,
+          validationReportPath,
+          architecturePath,
+          prdPath
+        }
+      });
+
+      console.log(`[ArchitectureWorkflowExecutor] Escalation created: ${escalationId}`);
+      console.log('[ArchitectureWorkflowExecutor] Workflow BLOCKED - user review and approval required');
+
+      this.emit('validation.failed', {
+        projectId: this.state.project.id,
+        overallScore: result.overallScore,
+        scores: {
+          completeness: result.completeness.score,
+          traceability: result.traceability.score,
+          testStrategy: result.testStrategy.score,
+          consistency: result.consistency.score
+        },
+        gaps: {
+          incompleteSections: result.completeness.incompleteSections.length,
+          unaddressedRequirements: result.traceability.unaddressedRequirements.length,
+          missingTestElements: result.testStrategy.missingElements.length,
+          conflicts: result.consistency.conflicts.length
+        },
+        escalationId,
+        validationReportPath,
+        timestamp: result.timestamp
+      });
+
+      // BLOCK workflow progression
+      throw new Error(
+        `Architecture validation failed (${result.overallScore}% < 85% threshold). ` +
+        `Review validation report at ${validationReportPath} and resolve escalation ${escalationId} before continuing.`
+      );
+    }
   }
 
   /**
