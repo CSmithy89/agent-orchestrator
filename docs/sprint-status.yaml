@@ -75,7 +75,7 @@ development_status:
   epic-2-retrospective: completed
 
   # Epic 3: Planning Phase Automation
-  epic-3: backlog
+  epic-3: contexted  # Tech spec: docs/epics/epic-3-tech-spec.md
   3-1-winston-agent-system-architect-persona: backlog
   3-2-murat-agent-test-architect-persona: backlog
   3-3-architecture-workflow-executor: backlog
