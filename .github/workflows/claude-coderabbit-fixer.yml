@@ -153,6 +153,24 @@ jobs:
             - [Any suggestions skipped with rationale]
             ```
 
+            ## STEP 8: Resolve Conversations & Approve
+
+            After successfully posting the summary:
+
+            1. Resolve all review conversations that were addressed:
+               ```bash
+               # Get all review threads
+               gh api /repos/${{ github.repository }}/pulls/$PR_NUMBER/comments --jq '.[] | select(.user.login == "coderabbitai[bot]") | .id' | while read comment_id; do
+                 # Resolve each conversation
+                 gh api -X PUT /repos/${{ github.repository }}/pulls/comments/$comment_id/replies -f body="✅ Fixed by Claude Code dual review"
+               done
+               ```
+
+            2. If all fixes were applied successfully and validation passed, approve the PR:
+               ```bash
+               gh pr review $PR_NUMBER --approve --body "✅ All CodeRabbit suggestions have been reviewed and applied. Lint and type-check passing."
+               ```
+
             ## IMPORTANT GUIDELINES
 
             - Be thorough but pragmatic
