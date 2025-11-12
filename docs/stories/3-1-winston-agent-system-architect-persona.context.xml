@@ -1,0 +1,462 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>3</epicId>
+    <storyId>1</storyId>
+    <title>Winston Agent - System Architect Persona</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/3-1-winston-agent-system-architect-persona.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>the Agent Orchestrator core</asA>
+    <iWant>a Winston agent persona with system architecture expertise</iWant>
+    <soThat>architecture workflows can generate comprehensive technical designs autonomously</soThat>
+    <tasks>
+      ### Task 1: Create Winston Agent Persona Definition (2-3 hours) - AC #1
+      - Create persona file structure (bmad/bmm/agents/winston.md)
+      - Define Winston's role and expertise (System Architect)
+      - Document communication style (technical precision, ADR format)
+      - Add persona characteristics (analytical, methodical, trade-off conscious)
+
+      ### Task 2: Configure Winston LLM Integration (1-2 hours) - AC #2
+      - Define Winston's LLM configuration (Claude Sonnet 4.5, temp 0.3)
+      - Add Winston to project configuration schema (.bmad/project-config.yaml)
+      - Implement Winston LLM client instantiation via LLMFactory
+
+      ### Task 3: Implement Winston Architectural Capabilities (3-4 hours) - AC #3
+      - System architecture overview generation
+      - Component architecture design
+      - Data model definition
+      - API specification
+      - Non-functional requirements documentation
+
+      ### Task 4: Implement Technical Decision Documentation (2-3 hours) - AC #4
+      - ADR format implementation
+      - Decision tracking and traceability
+      - Alternative evaluation
+
+      ### Task 5: Implement Confidence Assessment (1-2 hours) - AC #5
+      - Confidence scoring integration with DecisionEngine
+      - Escalation threshold (0.75)
+      - Escalation context preparation
+
+      ### Task 6: Implement CIS Agent Integration (2-3 hours) - AC #6
+      - CIS decision router integration (confidence &lt; 0.70)
+      - CIS agent invocation (Dr. Quinn, Maya, Sophia, Victor)
+      - CIS response integration
+      - CIS invocation logging
+
+      ### Task 7: Write Integration Tests (3-4 hours) - AC #7
+      - Persona loading test
+      - LLM client instantiation test
+      - Architecture generation test (mock PRD → architecture sections)
+      - Confidence assessment test (high vs low confidence)
+      - CIS integration test (mock low-confidence decision routing)
+      - Verify test coverage &gt;80%
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC #1: Winston Agent Persona Implemented
+    - Winston agent persona defined in bmad/bmm/agents/winston.md
+    - Persona includes system architecture expertise, decision-making approach, communication style
+    - Winston uses Claude Sonnet 4.5 via LLM factory
+    - Winston generates system overview, component design, data models, API specs, NFRs
+    - Winston documents technical decisions with rationale
+    - Winston assesses confidence for architectural decisions
+    - Winston integrates with CIS agents for strategic decisions (confidence &lt; 0.70)
+
+    AC #2: LLM Integration Configured
+    - Winston uses Claude Sonnet 4.5 via LLM factory (Story 1.3)
+    - Temperature set to 0.3 for precise architectural decisions
+    - Token limits appropriate for architecture context (50k tokens max)
+    - Provider configuration supports project-level LLM assignment
+
+    AC #3: Architectural Capabilities Defined
+    - Generates system architecture overviews
+    - Designs component architecture and breakdown
+    - Defines data models and entity relationships
+    - Specifies API contracts (endpoints, requests, responses)
+    - Documents non-functional requirements (performance, security, reliability)
+    - Addresses all PRD requirements in architecture
+
+    AC #4: Technical Decision Documentation
+    - Documents technical decisions with clear rationale
+    - Uses Architecture Decision Record (ADR) format
+    - Evaluates alternatives with pros/cons
+    - Links decisions to PRD requirements
+    - Captures consequences and trade-offs
+
+    AC #5: Confidence Assessment
+    - Assesses confidence for each architectural decision
+    - Uses DecisionEngine integration (Story 2.1)
+    - Confidence scoring based on context sufficiency and answer clarity
+    - Escalates decisions with confidence &lt; 0.75
+
+    AC #6: CIS Agent Integration
+    - Integrates with CIS agents for strategic decisions
+    - Routes low-confidence decisions (&lt; 0.70) to appropriate CIS agent:
+      * Dr. Quinn for technical trade-offs
+      * Maya for UX-centric architecture decisions
+      * Sophia for product narrative clarity
+      * Victor for innovation opportunities
+    - Documents CIS agent contributions in technical decisions
+
+    AC #7: Integration Tests
+    - Winston persona loads successfully from markdown file
+    - LLM client instantiation via LLMFactory works
+    - Basic architecture generation test (mock PRD → architecture sections)
+    - Confidence assessment test (high confidence decisions vs. low)
+    - CIS integration test (mock low-confidence decision routing)
+    - Test coverage &gt;80% for Winston agent code
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>FR-CORE-002: Autonomous Architecture Design</section>
+        <snippet>Winston (System Architect) and Murat (Test Architect) agents collaborate to produce comprehensive architecture documentation including system design, technical decisions, mandatory test strategy, and security gate validation before allowing progression to the solutioning phase.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-3-tech-spec.md</path>
+        <title>Epic 3 Technical Specification: Planning Phase Automation</title>
+        <section>Winston Agent Persona Contract (AC-3.1)</section>
+        <snippet>Winston Agent interface definition with architectural capabilities (system design, component architecture, data modeling, API design, performance optimization). Uses Claude Sonnet 4.5 with temperature 0.3 for analytical reasoning. Integrates with DecisionEngine for confidence-based decisions and CIS agents for strategic decisions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>2.1.2 Agent Pool</section>
+        <snippet>Agent Pool manages AI agent lifecycle and resource limits. Agents are created via LLMFactory with provider-specific configurations. Agent Pool tracks costs, manages concurrency limits (max 3 concurrent agents), and handles agent queueing when at capacity.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing-guide.md</path>
+        <title>Testing Guide</title>
+        <section>Integration Tests, Shared Test Utilities</section>
+        <snippet>Use hasApiKeys() helper from backend/tests/utils/apiKeys.ts for conditional integration tests. Integration tests require local API keys (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN). Follow async patterns guide and run all tests locally before PR. Test coverage ≥80% for new code.</snippet>
+      </doc>
+      <doc>
+        <path>docs/integration-testing-strategy.md</path>
+        <title>Integration Testing Strategy</title>
+        <section>Real vs Mocked LLM Providers</section>
+        <snippet>Use real LLM providers for integration tests with API keys available (local execution). Use mocked providers for unit tests and CI/CD without API keys. Agent persona validation requires real LLM responses to validate output quality and decision-making.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/2-3-mary-agent-business-analyst-persona.md</path>
+        <title>Story 2.3: Mary Agent - Business Analyst Persona</title>
+        <section>Implementation Pattern Reference</section>
+        <snippet>Mary Agent implementation demonstrates BMAD agent pattern: static create() factory method, persona loading from markdown, LLM client via LLMFactory, DecisionEngine integration for confidence scoring, EscalationQueue for low-confidence decisions, and audit trail tracking.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/types/agent.ts</path>
+        <kind>interface</kind>
+        <symbol>Agent</symbol>
+        <lines>28-49</lines>
+        <reason>Core Agent interface that Winston must implement. Defines required fields: id, name, persona, llmClient, context, startTime, estimatedCost.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/mary-agent.ts</path>
+        <kind>class</kind>
+        <symbol>MaryAgent</symbol>
+        <lines>1-738</lines>
+        <reason>Reference implementation for BMAD agent pattern. Shows persona loading, LLM factory usage, DecisionEngine integration, confidence-based escalation, and audit trail tracking. Winston should follow this pattern.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/agents/john-agent.ts</path>
+        <kind>class</kind>
+        <symbol>JohnAgent</symbol>
+        <lines>1-end</lines>
+        <reason>Second reference implementation for agent pattern. Demonstrates product manager persona with similar structure to Mary.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/LLMFactory.ts</path>
+        <kind>class</kind>
+        <symbol>LLMFactory</symbol>
+        <lines>1-145</lines>
+        <reason>Factory for creating LLM clients with multi-provider support. Winston will use LLMFactory.createClient() to instantiate Claude Sonnet 4.5 client.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/llm/LLMClient.interface.ts</path>
+        <kind>interface</kind>
+        <symbol>LLMClient</symbol>
+        <lines>1-end</lines>
+        <reason>Interface for LLM client that Winston will use for all LLM invocations. Defines invoke() method with InvokeOptions (temperature, max_tokens, system_prompt).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/decision-engine.ts</path>
+        <kind>class</kind>
+        <symbol>DecisionEngine</symbol>
+        <lines>1-498</lines>
+        <reason>Confidence-based decision engine. Winston will use DecisionEngine.attemptAutonomousDecision() to assess confidence for architectural decisions. Escalation threshold is 0.75.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>class</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-100</lines>
+        <reason>Agent lifecycle management. AgentPool creates, tracks, and destroys agents. Winston lifecycle will be managed by AgentPool.</reason>
+      </artifact>
+      <artifact>
+        <path>bmad/bmm/agents/mary.md</path>
+        <kind>markdown</kind>
+        <symbol>Mary Persona</symbol>
+        <lines>1-100</lines>
+        <reason>Example persona file structure. Winston's persona file (bmad/bmm/agents/winston.md) should follow this format: Role, System Prompt, Specialized Prompts sections.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/utils/apiKeys.ts</path>
+        <kind>utility</kind>
+        <symbol>hasApiKeys</symbol>
+        <lines>1-76</lines>
+        <reason>Test utility for conditional integration tests. Use it.skipIf(!hasApiKeys()) to skip Winston integration tests when API keys unavailable.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@anthropic-ai/claude-agent-sdk" version="^0.1.30" />
+        <package name="@anthropic-ai/sdk" version="^0.68.0" />
+        <package name="openai" version="^6.2.0" />
+        <package name="simple-git" version="^3.20.0" />
+        <package name="uuid" version="^13.0.0" />
+        <package name="js-yaml" version="^4.1.0" />
+        <package name="handlebars" version="^4.7.8" />
+        <package name="chalk" version="^5.6.2" />
+        <package name="commander" version="^11.1.0" />
+        <package name="dotenv" version="^17.2.3" />
+      </node>
+      <devDependencies>
+        <package name="vitest" version="^1.0.0" />
+        <package name="@vitest/coverage-v8" version="^1.0.0" />
+        <package name="typescript" version="^5.3.0" />
+        <package name="@types/node" version="^20.0.0" />
+        <package name="tsx" version="^4.0.0" />
+        <package name="eslint" version="^8.56.0" />
+      </devDependencies>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    **LLM Configuration:**
+    - Winston MUST use Claude Sonnet 4.5 (model: 'claude-sonnet-4-5')
+    - Provider: 'claude-code' or 'anthropic' (via LLMFactory)
+    - Temperature: 0.3 (precise architectural decisions, defined as constant)
+    - Max tokens: 50k context (PRD + onboarding + architecture template)
+
+    **Agent Pattern Requirements:**
+    - Follow BMAD agent pattern (consistent with Mary and John agents)
+    - Static create() factory method (async, returns WinstonAgent instance)
+    - Private constructor with dependency injection
+    - Persona loaded from markdown file (bmad/bmm/agents/winston.md)
+    - LLM client created via LLMFactory.createClient()
+
+    **Decision Engine Integration:**
+    - Use DecisionEngine.attemptAutonomousDecision() for confidence scoring
+    - Escalation threshold: 0.75 (ESCALATION_THRESHOLD constant)
+    - CIS integration threshold: 0.70 (lower threshold for strategic decisions)
+    - Track all decisions in audit trail (DecisionRecord[])
+
+    **Persona File Structure:**
+    - Follow markdown format: ## Role, ## System Prompt, ## Specialized Prompts
+    - Include expertise areas: system design, component architecture, data modeling, API design
+    - Communication style: technical precision, ADR format, structured documentation
+    - Decision-making approach: analytical, methodical, trade-off conscious
+
+    **Testing Requirements:**
+    - Test coverage ≥80% for Winston agent code
+    - Use hasApiKeys() helper for conditional integration tests
+    - Integration tests require local API keys (ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN)
+    - All tests must pass locally before PR (Story 2.9 Definition of Done)
+    - Follow async patterns guide (docs/async-patterns-guide.md)
+
+    **Code Quality:**
+    - 100% PR review required (branch protection enforced)
+    - No critical linter errors
+    - Type-check must pass (tsc --noEmit)
+    - Follow ESM module pattern (import/export, .js extensions)
+
+    **File Locations:**
+    - Winston persona: bmad/bmm/agents/winston.md (new file)
+    - Winston class: backend/src/core/agents/winston-agent.ts (new file)
+    - Integration tests: backend/tests/integration/winston-agent.test.ts (new file)
+    - Unit tests: backend/tests/core/agents/WinstonAgent.test.ts (new file, if needed)
+    - Types: backend/src/types/agent-types.ts (extend existing)
+
+    **Architectural Capabilities (Methods to Implement):**
+    1. generateSystemOverview(prd: string): Promise&lt;string&gt;
+    2. designComponents(requirements: string[]): Promise&lt;ComponentDesign[]&gt;
+    3. defineDataModels(entities: string[]): Promise&lt;DataModel[]&gt;
+    4. specifyAPIs(endpoints: APIRequirement[]): Promise&lt;APISpecification[]&gt;
+    5. documentNFRs(requirements: string): Promise&lt;NFRSection&gt;
+    6. documentDecision(decision: TechnicalDecision): Promise&lt;string&gt; (ADR format)
+    7. assessConfidence(decision: string, context: string): Promise&lt;number&gt;
+
+    **CIS Agent Integration (Story 3-8 dependency):**
+    - Route decisions with confidence &lt; 0.70 to CIS agents
+    - Dr. Quinn: technical trade-offs
+    - Maya: UX-centric architecture decisions
+    - Sophia: product narrative clarity
+    - Victor: innovation opportunities
+    - Document CIS contributions in technical decisions
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Agent</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface Agent {
+          id: string;
+          name: string;
+          persona: string;
+          llmClient: LLMClient;
+          context: AgentContext;
+          startTime: Date;
+          estimatedCost: number;
+        }
+      </signature>
+      <path>backend/src/types/agent.ts</path>
+    </interface>
+    <interface>
+      <name>LLMClient</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+        interface LLMClient {
+          invoke(prompt: string, options?: InvokeOptions): Promise&lt;string&gt;;
+        }
+      </signature>
+      <path>backend/src/llm/LLMClient.interface.ts</path>
+    </interface>
+    <interface>
+      <name>DecisionEngine.attemptAutonomousDecision</name>
+      <kind>Method signature</kind>
+      <signature>
+        async attemptAutonomousDecision(
+          question: string,
+          context: Record&lt;string, unknown&gt;
+        ): Promise&lt;Decision&gt;
+
+        interface Decision {
+          question: string;
+          decision: unknown;
+          confidence: number; // 0.0-1.0
+          reasoning: string;
+          source: 'onboarding' | 'llm';
+          timestamp: Date;
+          context: Record&lt;string, unknown&gt;;
+        }
+      </signature>
+      <path>backend/src/core/services/decision-engine.ts</path>
+    </interface>
+    <interface>
+      <name>LLMFactory.createClient</name>
+      <kind>Method signature</kind>
+      <signature>
+        async createClient(config: LLMConfig): Promise&lt;LLMClient&gt;
+
+        interface LLMConfig {
+          provider: string; // 'claude-code', 'anthropic', 'openai', etc.
+          model: string; // 'claude-sonnet-4-5', 'gpt-4-turbo', etc.
+          temperature?: number; // 0.0-1.0
+        }
+      </signature>
+      <path>backend/src/llm/LLMFactory.ts</path>
+    </interface>
+    <interface>
+      <name>MaryAgent.create (Pattern Reference)</name>
+      <kind>Static factory method</kind>
+      <signature>
+        static async create(
+          llmConfig: LLMConfig,
+          llmFactory: LLMFactory,
+          decisionEngine?: DecisionEngine,
+          escalationQueue?: EscalationQueue,
+          personaPath?: string
+        ): Promise&lt;MaryAgent&gt;
+      </signature>
+      <path>backend/src/core/agents/mary-agent.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      **Test Framework:** Vitest (TypeScript native, fast execution)
+
+      **Test Types:**
+      - Unit tests: Isolated component logic (mocked dependencies)
+      - Integration tests: Real LLM providers with API keys (local execution)
+      - E2E tests: Full workflow scenarios (Playwright)
+
+      **Quality Gates:**
+      - All tests pass (0 failures)
+      - Code coverage ≥80% for new code
+      - No critical linter errors
+      - Type-check passes
+
+      **API Key Management:**
+      - Use hasApiKeys() helper from backend/tests/utils/apiKeys.ts
+      - Conditional tests: it.skipIf(!hasApiKeys())('test name', async () =&gt; {...})
+      - API keys: ANTHROPIC_API_KEY or CLAUDE_CODE_OAUTH_TOKEN
+
+      **Test Utilities:**
+      - backend/tests/utils/apiKeys.ts - API key availability check
+      - backend/tests/utils/mockAgents.ts - Mock agent factories
+      - backend/tests/utils/gitSetup.ts - Git configuration for tests
+      - backend/tests/utils/fixtures.ts - Shared test data
+
+      **Async Patterns:**
+      - Always use async/await (no callbacks)
+      - Properly handle Promise rejections
+      - Use try/catch for error testing
+      - Follow async patterns guide (docs/async-patterns-guide.md)
+    </standards>
+    <locations>
+      - backend/tests/integration/winston-agent.test.ts (new file - integration tests)
+      - backend/tests/core/agents/WinstonAgent.test.ts (new file - unit tests, if needed)
+      - backend/tests/utils/ (shared test utilities - already exists)
+    </locations>
+    <ideas>
+      **AC #1: Persona Loading Test**
+      - Test: Load winston.md persona file successfully
+      - Verify: Persona content parsed correctly (systemPrompt, specializedPrompts)
+      - Verify: Role, expertise, communication style present
+
+      **AC #2: LLM Client Instantiation Test**
+      - Test: Create Winston with Claude Sonnet 4.5 via LLMFactory
+      - Verify: LLM client created successfully
+      - Verify: Temperature set to 0.3
+      - Verify: API key loaded from environment
+      - Skip if API keys not available
+
+      **AC #3: Architecture Generation Test**
+      - Test: Generate system overview from mock PRD
+      - Verify: System overview section generated (valid markdown)
+      - Verify: Architecture addresses PRD requirements
+      - Mock PRD: Simple project requirements (5-10 requirements)
+
+      **AC #5: Confidence Assessment Test**
+      - Test: High-confidence decision (clear PRD requirement)
+      - Verify: Confidence ≥ 0.75
+      - Test: Low-confidence decision (ambiguous requirement)
+      - Verify: Confidence &lt; 0.75
+      - Verify: Low-confidence triggers escalation
+
+      **AC #6: CIS Integration Test**
+      - Test: Winston decision with confidence &lt; 0.70
+      - Mock: CIS agent responses (Dr. Quinn for tech trade-off)
+      - Verify: CIS router invoked
+      - Verify: Correct CIS agent selected
+      - Verify: CIS response integrated into decision
+
+      **AC #7: Coverage Verification**
+      - Run: npm test -- winston-agent
+      - Verify: All tests pass
+      - Verify: Coverage &gt;80% for Winston agent code
+    </ideas>
+  </tests>
+</story-context>
