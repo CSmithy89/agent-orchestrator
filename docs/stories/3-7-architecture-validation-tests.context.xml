@@ -1,0 +1,1002 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<storyContext>
+  <metadata>
+    <storyId>3-7</storyId>
+    <storyTitle>Architecture Validation Tests</storyTitle>
+    <epicId>3</epicId>
+    <epicTitle>Planning Phase Automation</epicTitle>
+    <status>drafted</status>
+    <generatedAt>2025-11-12</generatedAt>
+    <generatedBy>story-context-workflow</generatedBy>
+  </metadata>
+
+  <summary>
+    Story 3-7 implements comprehensive validation tests for architecture documents ensuring they meet quality
+    standards before progression to Epic 4 (Solutioning Phase). Tests verify completeness (all required sections
+    with substantive content), PRD traceability (all requirements addressed), test strategy completeness, and
+    technical decision consistency. Creates ArchitectureValidator class that scores architecture documents on
+    multiple dimensions with 85% pass threshold for overall quality. Validation executes in ArchitectureWorkflowExecutor
+    Step 9 to validate architecture quality and generate improvement recommendations if validation fails.
+  </summary>
+
+  <epicContext>
+    <description>
+      Epic 3 establishes autonomous Planning Phase by transforming PRD into technical architecture. Story 3-7
+      validates the generated architecture meets quality standards including completeness, PRD traceability, test
+      strategy definition, and technical decision consistency. This quality gate ensures only high-quality architectures
+      progress to solutioning phase.
+    </description>
+    <relatedStories>
+      <story id="3-1" title="Winston Agent - System Architect Persona" status="COMPLETED"/>
+      <story id="3-2" title="Murat Agent - Test Architect Persona" status="COMPLETED"/>
+      <story id="3-3" title="Architecture Workflow Executor" status="COMPLETED"/>
+      <story id="3-4" title="Technical Decisions Logger" status="COMPLETED"/>
+      <story id="3-5" title="Architecture Template Content Generation" status="IN_PROGRESS"/>
+      <story id="3-6" title="Security Gate Validation Workflow" status="IN_PROGRESS"/>
+      <story id="3-7" title="Architecture Validation Tests" status="DRAFTED"/>
+      <story id="3-8" title="CIS Agent Integration" status="PENDING"/>
+    </relatedStories>
+    <successCriteria>
+      <criterion>Complete architecture workflow: &lt;45 minutes</criterion>
+      <criterion>Security gate passes: ≥95% score</criterion>
+      <criterion>Test strategy defined and complete</criterion>
+      <criterion>&lt;2 escalations during architecture workflow</criterion>
+      <criterion>All PRD requirements addressed in architecture</criterion>
+      <criterion>Technical decisions documented with rationale</criterion>
+    </successCriteria>
+  </epicContext>
+
+  <acceptanceCriteria>
+    <criterion number="1">
+      <title>Architecture Completeness Validation</title>
+      <requirement>Check all required sections present in architecture.md with substantive content</requirement>
+      <details>
+        <item>Required sections: System Overview, Component Architecture, Data Models, APIs, Non-Functional Requirements, Test Strategy, Technical Decisions</item>
+        <item>Each section must have substantive content (not just placeholder text)</item>
+        <item>Minimum word count per section enforced (System Overview: 200, Components: 300, Data Models: 200, APIs: 200, NFRs: 400, Test Strategy: 300, Technical Decisions: 200)</item>
+        <item>Completeness score calculated: (complete sections / total sections) × 100</item>
+        <item>Implementation: validateCompleteness() method in ArchitectureValidator</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+
+    <criterion number="2">
+      <title>PRD Traceability Validation</title>
+      <requirement>Verify each PRD requirement addressed in architecture.md with traceable coverage</requirement>
+      <details>
+        <item>Extract all PRD requirements (functional and non-functional)</item>
+        <item>Verify System Overview covers high-level requirements</item>
+        <item>Verify Component Architecture covers functional requirements</item>
+        <item>Verify NFR section covers non-functional requirements</item>
+        <item>Generate traceability matrix: PRD requirement → Architecture section</item>
+        <item>Traceability score calculated: (addressed requirements / total requirements) × 100</item>
+        <item>Implementation: validateTraceability() method in ArchitectureValidator</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+
+    <criterion number="3">
+      <title>Test Strategy Completeness Validation</title>
+      <requirement>Check test strategy section contains all required elements</requirement>
+      <details>
+        <item>Check test strategy section present and non-empty</item>
+        <item>Check test frameworks defined (e.g., "Vitest for unit/integration, Playwright for E2E")</item>
+        <item>Check test pyramid specified with ratios (e.g., "60% unit, 30% integration, 10% E2E")</item>
+        <item>Check CI/CD pipeline defined (tools, triggers, stages)</item>
+        <item>Check quality gates specified (coverage targets, failure conditions)</item>
+        <item>Check ATDD approach documented (write tests before implementation)</item>
+        <item>Test strategy score calculated: (complete elements / total elements) × 100</item>
+        <item>Implementation: validateTestStrategy() method in ArchitectureValidator</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+
+    <criterion number="4">
+      <title>Technical Decision Consistency Validation</title>
+      <requirement>Check no contradictory decisions in Technical Decisions section</requirement>
+      <details>
+        <item>Check Technical Decisions section contains ADRs (Architecture Decision Records)</item>
+        <item>Check no contradictory decisions (e.g., "use monolith" vs "use microservices")</item>
+        <item>Check technology stack decisions consistent across sections</item>
+        <item>Check test framework compatible with technology stack</item>
+        <item>Detect conflicts and generate conflict report</item>
+        <item>Consistency score calculated: 100% if no conflicts, 0% if conflicts detected</item>
+        <item>Implementation: validateConsistency() method in ArchitectureValidator</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+
+    <criterion number="5">
+      <title>Overall Quality Score Calculation</title>
+      <requirement>Calculate overall quality score and determine pass/fail status</requirement>
+      <details>
+        <item>Overall quality score = average of: completeness, traceability, test strategy, consistency scores</item>
+        <item>Pass threshold: ≥85% overall quality score</item>
+        <item>If passed: Log success, mark architecture as validated</item>
+        <item>If failed: Generate validation report with improvement recommendations</item>
+        <item>Validation report includes: scores, missing elements, conflicts, recommendations</item>
+        <item>Implementation: calculateOverallScore() and generateValidationReport() methods</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+
+    <criterion number="6">
+      <title>Integration with ArchitectureWorkflowExecutor</title>
+      <requirement>Validation executes in ArchitectureWorkflowExecutor Step 9</requirement>
+      <details>
+        <item>Replace placeholder validation logic with real validation</item>
+        <item>Log validation results to workflow state</item>
+        <item>Emit validation.passed or validation.failed event</item>
+        <item>If failed: Create escalation with validation report</item>
+        <item>Only proceed to workflow completion if validation passes ≥85%</item>
+        <item>Implementation: Modify executeStep9() in ArchitectureWorkflowExecutor</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+
+    <criterion number="7">
+      <title>Integration Tests for ArchitectureValidator</title>
+      <requirement>Comprehensive test coverage for all validation methods</requirement>
+      <details>
+        <item>Test: Validate complete architecture (all checks pass)</item>
+        <item>Test: Validate incomplete architecture (missing sections)</item>
+        <item>Test: PRD traceability with complete coverage</item>
+        <item>Test: PRD traceability with gaps (some requirements missing)</item>
+        <item>Test: Test strategy validation (complete and incomplete)</item>
+        <item>Test: Consistency validation with conflicts</item>
+        <item>Test: Overall quality score calculation</item>
+        <item>Verify test coverage >80%</item>
+        <item>Implementation: backend/tests/integration/architecture-validator.test.ts</item>
+      </details>
+      <status>NOT_STARTED</status>
+    </criterion>
+  </acceptanceCriteria>
+
+  <implementationStatus>
+    <overall>NOT_STARTED</overall>
+    <components>
+      <component name="ArchitectureValidator Class" status="NOT_IMPLEMENTED">
+        <description>Core validation class that validates architecture quality across multiple dimensions</description>
+        <location>/home/user/agent-orchestrator/backend/src/core/architecture-validator.ts (to be created)</location>
+        <requiredMethods>
+          <method name="validate(architecturePath: string, prdPath: string): Promise&lt;ValidationResult&gt;">
+            Main validation method that executes all validation checks and returns overall result
+          </method>
+          <method name="validateCompleteness(architectureContent: string): CompletenessResult">
+            Validates that all required architecture sections present with substantive content
+          </method>
+          <method name="validateTraceability(architectureContent: string, prdContent: string): TraceabilityResult">
+            Validates that all PRD requirements addressed in architecture document
+          </method>
+          <method name="validateTestStrategy(architectureContent: string): TestStrategyResult">
+            Validates test strategy section contains frameworks, pyramid, CI/CD, quality gates, ATDD
+          </method>
+          <method name="validateConsistency(architectureContent: string): ConsistencyResult">
+            Validates no contradictory architectural decisions exist
+          </method>
+          <method name="calculateOverallScore(results: ValidationResults): number">
+            Calculates weighted average of all validation scores
+          </method>
+          <method name="generateValidationReport(result: ValidationResult): string">
+            Generates markdown report with scores, findings, and recommendations
+          </method>
+        </requiredMethods>
+        <requiredInterfaces>
+          <interface name="ValidationResult">Overall validation result with all sub-results and overall score</interface>
+          <interface name="CompletenessResult">Result of completeness validation with missing sections</interface>
+          <interface name="TraceabilityResult">Result of traceability validation with traceability matrix</interface>
+          <interface name="TraceabilityMatrix">Mapping of PRD requirements to architecture sections</interface>
+          <interface name="TestStrategyResult">Result of test strategy validation</interface>
+          <interface name="ConsistencyResult">Result of consistency validation with detected conflicts</interface>
+        </requiredInterfaces>
+      </component>
+
+      <component name="ArchitectureWorkflowExecutor Step 9 Integration" status="NOT_IMPLEMENTED">
+        <description>Integration of ArchitectureValidator into Step 9 of architecture workflow</description>
+        <location>/home/user/agent-orchestrator/backend/src/workflows/architecture-workflow-executor.ts</location>
+        <currentStatus>
+          <step number="9" name="Architecture Validation">
+            <status>PLACEHOLDER</status>
+            <issue>No actual validation logic - just placeholder</issue>
+            <lineReference>See executeStep9() method around line 1050+</lineReference>
+          </step>
+        </currentStatus>
+        <requiredChanges>
+          <change>Import ArchitectureValidator class</change>
+          <change>In executeStep9(), instantiate ArchitectureValidator</change>
+          <change>Call validate(architecturePath, prdPath) with paths from workflow state</change>
+          <change>Check result.passed status</change>
+          <change>If passed: Update state, emit validation.passed event, continue to completion</change>
+          <change>If failed: Generate report, create escalation, set validation.failed state, block completion</change>
+          <change>Update workflow state with validation scores and findings</change>
+        </requiredChanges>
+      </component>
+
+      <component name="Test Suite" status="NOT_IMPLEMENTED">
+        <description>Integration and unit tests for ArchitectureValidator</description>
+        <location>/home/user/agent-orchestrator/backend/tests/integration/architecture-validator.test.ts (to be created)</location>
+        <requiredTests>
+          <testSuite name="Completeness Validation Tests">
+            <test name="Complete architecture passes completeness check">All sections present with sufficient word count</test>
+            <test name="Missing section fails completeness check">Architecture missing required section</test>
+            <test name="Incomplete section fails completeness check">Section present but below minimum word count</test>
+            <test name="Completeness score calculation">Score calculated as (complete sections / total) × 100</test>
+          </testSuite>
+
+          <testSuite name="PRD Traceability Tests">
+            <test name="All PRD requirements traced to architecture sections">Complete traceability coverage</test>
+            <test name="Some PRD requirements missing from architecture">Partial traceability identified</test>
+            <test name="Traceability matrix generated correctly">Matrix maps requirements to sections</test>
+            <test name="Traceability score calculation">Score reflects coverage percentage</test>
+          </testSuite>
+
+          <testSuite name="Test Strategy Validation Tests">
+            <test name="Complete test strategy passes validation">All elements present</test>
+            <test name="Missing test frameworks detected">Framework not defined</test>
+            <test name="Missing test pyramid detected">No pyramid ratios specified</test>
+            <test name="Missing CI/CD pipeline detected">Pipeline not documented</test>
+            <test name="Missing quality gates detected">Gates not specified</test>
+            <test name="Missing ATDD approach detected">ATDD not documented</test>
+            <test name="Test strategy score calculation">Score reflects element coverage</test>
+          </testSuite>
+
+          <testSuite name="Consistency Validation Tests">
+            <test name="No conflicts in consistent architecture">Score = 100%</test>
+            <test name="Contradictory architecture patterns detected">Monolith vs microservices conflict</test>
+            <test name="Incompatible technology stack detected">Test framework not compatible with tech stack</test>
+            <test name="Consistency score is 0% with conflicts">Binary pass/fail scoring</test>
+          </testSuite>
+
+          <testSuite name="Overall Score Calculation Tests">
+            <test name="Overall score is average of all subscores">Weighted correctly</test>
+            <test name="Pass threshold at ≥85% working">Boundary testing</test>
+            <test name="Validation passes at 85% score">Just at threshold</test>
+            <test name="Validation fails below 85% score">Below threshold</test>
+          </testSuite>
+
+          <testSuite name="Validation Report Generation">
+            <test name="Markdown report generated on failure">Proper formatting</test>
+            <test name="Report includes all scores">Completeness, traceability, test strategy, consistency</test>
+            <test name="Report includes missing elements">Clear recommendations for improvement</test>
+            <test name="Report includes detected conflicts">Specific conflict descriptions</test>
+            <test name="Report is readable and actionable">User can implement recommendations</test>
+          </testSuite>
+        </requiredTests>
+        <targetCoverage>80%+</targetCoverage>
+      </component>
+    </components>
+  </implementationStatus>
+
+  <validationRules>
+    <completenessValidation>
+      <requiredSections>
+        <section name="System Overview" minWordCount="200">
+          <purpose>High-level architecture and design approach</purpose>
+          <keywords>architecture, overview, design, pattern, approach</keywords>
+        </section>
+        <section name="Component Architecture" minWordCount="300">
+          <purpose>Components, modules, responsibilities, communication</purpose>
+          <keywords>component, module, service, layer, communication, interaction</keywords>
+        </section>
+        <section name="Data Models" minWordCount="200">
+          <purpose>Entities, relationships, database schema</purpose>
+          <keywords>entity, model, relationship, database, schema, field</keywords>
+        </section>
+        <section name="API Specifications" minWordCount="200">
+          <purpose>Endpoints, requests, responses, contracts</purpose>
+          <keywords>endpoint, API, REST, request, response, contract</keywords>
+        </section>
+        <section name="Non-Functional Requirements" minWordCount="400">
+          <purpose>Performance, security, reliability, scalability</purpose>
+          <keywords>performance, security, reliability, scalability, throughput, latency</keywords>
+        </section>
+        <section name="Test Strategy" minWordCount="300">
+          <purpose>Test approach, frameworks, pyramid, CI/CD, ATDD</purpose>
+          <keywords>test, strategy, framework, pyramid, CI/CD, quality gate, ATDD</keywords>
+        </section>
+        <section name="Technical Decisions" minWordCount="200">
+          <purpose>ADRs with context, decision, alternatives, rationale</purpose>
+          <keywords>decision, ADR, architecture, rationale, alternative, context</keywords>
+        </section>
+      </requiredSections>
+
+      <scoringMethod>
+        <formula>completeCount / totalSections * 100</formula>
+        <totalSections>7</totalSections>
+        <explanation>Percentage of required sections that are present with substantive content</explanation>
+      </scoringMethod>
+    </completenessValidation>
+
+    <traceabilityValidation>
+      <extractionStrategy>
+        <step>Parse PRD document structure</step>
+        <step>Extract functional requirements from "Functional Requirements" section</step>
+        <step>Extract non-functional requirements from "Non-Functional Requirements" section</step>
+        <step>Search architecture document for requirement coverage</step>
+        <step>Map each requirement to architecture sections that address it</step>
+        <step>Generate traceability matrix</step>
+      </extractionStrategy>
+
+      <scoringMethod>
+        <formula>addressedCount / totalRequirements * 100</formula>
+        <explanation>Percentage of PRD requirements that are addressed in architecture document</explanation>
+      </scoringMethod>
+
+      <mappingRules>
+        <rule priority="1">Functional requirements should map to Component Architecture section</rule>
+        <rule priority="1">Non-functional requirements should map to Non-Functional Requirements section</rule>
+        <rule priority="2">Performance requirements may map to NFR or Component Architecture</rule>
+        <rule priority="2">Security requirements may map to NFR or Test Strategy</rule>
+      </mappingRules>
+    </traceabilityValidation>
+
+    <testStrategyValidation>
+      <requiredElements>
+        <element name="Test Frameworks" required="true">
+          <description>Must specify test frameworks for different test types (unit, integration, E2E)</description>
+          <example>"Vitest for unit and integration tests, Playwright for E2E tests"</example>
+          <keywords>test framework, Vitest, Jest, Mocha, Playwright, Cypress</keywords>
+        </element>
+
+        <element name="Test Pyramid" required="true">
+          <description>Must specify test distribution ratios (unit %, integration %, E2E %)</description>
+          <example>"60% unit tests, 30% integration tests, 10% E2E tests"</example>
+          <keywords>test pyramid, unit test, integration test, E2E, ratio, percentage</keywords>
+        </element>
+
+        <element name="CI/CD Pipeline" required="true">
+          <description>Must specify CI/CD tools, triggers, and pipeline stages</description>
+          <example>"GitHub Actions, triggered on PR and main push, stages: lint, test, build, deploy"</example>
+          <keywords>CI/CD, GitHub Actions, Jenkins, pipeline, trigger, stage</keywords>
+        </element>
+
+        <element name="Quality Gates" required="true">
+          <description>Must specify quality standards and failure conditions</description>
+          <example>"80% code coverage minimum, 0 test failures, all linter checks pass"</example>
+          <keywords>quality gate, coverage, failure, threshold, standard</keywords>
+        </element>
+
+        <element name="ATDD Approach" required="true">
+          <description>Must document Acceptance Test-Driven Development approach</description>
+          <example>"Write acceptance criteria tests before implementation, tests validate requirements"</example>
+          <keywords>ATDD, acceptance test, test-driven, BDD, acceptance criteria</keywords>
+        </element>
+      </requiredElements>
+
+      <scoringMethod>
+        <formula>presentCount / totalElements * 100</formula>
+        <totalElements>5</totalElements>
+        <explanation>Percentage of required test strategy elements that are documented</explanation>
+      </scoringMethod>
+    </testStrategyValidation>
+
+    <consistencyValidation>
+      <contradictionDetection>
+        <contradiction pattern="monolith" opposites="microservice, micro-service, distributed, scalable independently">
+          <description>Contradicts monolithic architecture approach</description>
+          <severity>HIGH</severity>
+        </contradiction>
+
+        <contradiction pattern="stateless" opposites="session, state management, session state">
+          <description>Contradicts stateless design principle</description>
+          <severity>HIGH</severity>
+        </contradiction>
+
+        <contradiction pattern="synchronous" opposites="asynchronous, message queue, event-driven">
+          <description>Contradicts communication pattern choice</description>
+          <severity>MEDIUM</severity>
+        </contradiction>
+
+        <contradiction pattern="SQL" opposites="NoSQL, document store, MongoDB">
+          <description>Contradicts database technology choice without clear separation</description>
+          <severity>MEDIUM</severity>
+        </contradiction>
+      </contradictionDetection>
+
+      <techStackConsistency>
+        <rule>Language must be consistent across system design, API, and test strategy</rule>
+        <rule>Framework choice must be consistent with language selection</rule>
+        <rule>Database technology must be consistent with data model design</rule>
+        <rule>Test framework must be compatible with language and runtime</rule>
+      </techStackConsistency>
+
+      <scoringMethod>
+        <formula>If contradictions found: 0%, else: 100%</formula>
+        <explanation>Binary pass/fail scoring - any detected contradiction fails consistency check</explanation>
+      </scoringMethod>
+    </consistencyValidation>
+
+    <overallScoreCalculation>
+      <formula>(completenessScore + traceabilityScore + testStrategyScore + consistencyScore) / 4</formula>
+      <weights>
+        <weight component="completeness" percentage="25">Architecture sections must be present and complete</weight>
+        <weight component="traceability" percentage="25">All PRD requirements must be addressed in architecture</weight>
+        <weight component="testStrategy" percentage="25">Test strategy must be comprehensive and complete</weight>
+        <weight component="consistency" percentage="25">No contradictory decisions allowed</weight>
+      </weights>
+      <passThreshold>85%</passThreshold>
+      <interpretation>
+        <range score="90-100">Excellent - Ready for solutioning phase</range>
+        <range score="85-89">Good - Acceptable for solutioning phase</range>
+        <range score="80-84">Fair - Needs improvements before solutioning</range>
+        <range score="0-79">Poor - Must address major gaps before solutioning</range>
+      </interpretation>
+    </overallScoreCalculation>
+  </validationRules>
+
+  <dependencies>
+    <blocking>
+      <dependency storyId="3-3" status="COMPLETED">
+        <title>Architecture Workflow Executor</title>
+        <reason>Integration point (Step 9) - executor framework must be implemented</reason>
+      </dependency>
+      <dependency storyId="3-5" status="IN_PROGRESS">
+        <title>Architecture Template Content Generation</title>
+        <reason>Template structure defines required sections for completeness validation</reason>
+      </dependency>
+      <dependency storyId="3-6" status="IN_PROGRESS">
+        <title>Security Gate Validation Workflow</title>
+        <reason>Security validation precedes quality validation in workflow execution</reason>
+      </dependency>
+    </blocking>
+
+    <soft>
+      <dependency storyId="2-2" status="AVAILABLE">
+        <title>Escalation Queue System</title>
+        <reason>Create escalation on validation failure for user review</reason>
+      </dependency>
+      <dependency storyId="2-7" status="AVAILABLE">
+        <title>PRD Quality Validation</title>
+        <reason>Similar validation patterns - reference PRDValidator for traceability logic</reason>
+      </dependency>
+    </soft>
+
+    <enables>
+      <dependency epicId="4">
+        <title>Solutioning Phase</title>
+        <reason>Blocked until architecture validation passes (≥85% quality score)</reason>
+      </dependency>
+    </enables>
+  </dependencies>
+
+  <existingCode>
+    <similarPatterns>
+      <pattern name="SecurityGateValidator">
+        <location>/home/user/agent-orchestrator/backend/src/core/security-gate-validator.ts</location>
+        <description>Similar validation pattern with multiple checks, scoring, and gap report generation</description>
+        <applicableConcepts>
+          <concept>Check interface with category, requirement, satisfied, evidence, recommendation</concept>
+          <concept>Result interface with passed boolean, overall score, checks array, gaps array</concept>
+          <concept>Gap report generation in markdown format with recommendations</concept>
+          <concept>Keyword-based validation logic for evidence extraction</concept>
+        </applicableConcepts>
+      </pattern>
+
+      <pattern name="PRDValidator">
+        <location>/home/user/agent-orchestrator/backend/src/core/workflows/prd-validator.ts</location>
+        <description>Similar validation pattern for PRD quality with completeness scoring</description>
+        <applicableConcepts>
+          <concept>Required sections validation with keyword matching</concept>
+          <concept>Completeness score calculation methodology</concept>
+          <concept>Validation result interface structure</concept>
+          <concept>Gap identification and reporting</concept>
+        </applicableConcepts>
+      </pattern>
+
+      <pattern name="TechnicalDecisionLogger">
+        <location>/home/user/agent-orchestrator/backend/src/core/technical-decision-logger.ts</location>
+        <description>Captures ADRs and technical decisions with metadata</description>
+        <applicableConcepts>
+          <concept>TechnicalDecision interface structure (id, title, context, decision, alternatives, rationale, consequences)</concept>
+          <concept>Decision aggregation and formatting</concept>
+          <concept>Markdown formatting for documentation</concept>
+        </applicableConcepts>
+      </pattern>
+    </similarPatterns>
+
+    <existingTests>
+      <testFile path="/home/user/agent-orchestrator/backend/tests/integration/security-gate-validator.test.ts">
+        <description>Security gate validator tests - reference for test structure and patterns</description>
+        <applicableSections>
+          <section>Test structure and setup patterns</section>
+          <section>Mock data creation for complex documents</section>
+          <section>Assertion patterns for validation results</section>
+        </applicableSections>
+      </testFile>
+
+      <testFile path="/home/user/agent-orchestrator/backend/tests/core/workflows/PRDValidator.test.ts">
+        <description>PRD validator tests - reference for validation test patterns</description>
+        <applicableSections>
+          <section>Completeness validation test structure</section>
+          <section>Score calculation verification</section>
+          <section>Gap identification testing</section>
+        </applicableSections>
+      </testFile>
+
+      <testFile path="/home/user/agent-orchestrator/backend/tests/integration/architecture-workflow-executor.test.ts">
+        <description>Workflow executor tests - reference for Step 9 integration testing</description>
+        <applicableSections>
+          <section>Workflow state setup and persistence</section>
+          <section>Step execution validation</section>
+          <section>Event emission assertions</section>
+        </applicableSections>
+      </testFile>
+    </existingTests>
+
+    <architectureTemplate>
+      <path>/home/user/agent-orchestrator/bmad/bmm/workflows/3-solutioning/architecture/architecture-template.md</path>
+      <requiredSections>
+        <section name="System Overview" lineNumber="TBD" placeholder="{{system_overview}}"/>
+        <section name="Component Architecture" lineNumber="TBD" placeholder="{{component_architecture}}"/>
+        <section name="Data Models" lineNumber="TBD" placeholder="{{data_models}}"/>
+        <section name="API Specifications" lineNumber="TBD" placeholder="{{api_specifications}}"/>
+        <section name="Non-Functional Requirements" lineNumber="TBD" placeholder="{{nfr_approach}}"/>
+        <section name="Test Strategy" lineNumber="TBD" placeholder="{{test_strategy}}"/>
+        <section name="Technical Decisions" lineNumber="TBD" placeholder="{{technical_decisions}}"/>
+      </requiredSections>
+    </architectureTemplate>
+  </existingCode>
+
+  <tasks>
+    <task number="1" title="Create ArchitectureValidator Class" estimatedHours="2-3" status="PENDING">
+      <subtask>Create backend/src/core/architecture-validator.ts file</subtask>
+      <subtask>Define ValidationResult interface with all validation sub-results</subtask>
+      <subtask>Define CompletenessResult, TraceabilityResult, TestStrategyResult, ConsistencyResult interfaces</subtask>
+      <subtask>Define TraceabilityMatrix type for requirement-to-section mapping</subtask>
+      <subtask>Implement main validate() method that orchestrates all validation checks</subtask>
+      <subtask>Implement helper methods for extracting content sections</subtask>
+      <subtask>Implement calculateOverallScore() to average all sub-scores</subtask>
+      <subtask>Export class and interfaces for use in workflow executor</subtask>
+    </task>
+
+    <task number="2" title="Implement Completeness Validation" estimatedHours="2-3" status="PENDING">
+      <subtask>Implement validateCompleteness() method</subtask>
+      <subtask>Define REQUIRED_SECTIONS array with min word counts</subtask>
+      <subtask>Implement section detection by header matching (##, ###, etc.)</subtask>
+      <subtask>Implement word count calculation per section</subtask>
+      <subtask>Calculate completeness score as percentage of complete sections</subtask>
+      <subtask>Identify and return missing or incomplete sections</subtask>
+      <subtask>Return CompletenessResult with score and details</subtask>
+      <subtask>Add comprehensive comments explaining thresholds</subtask>
+    </task>
+
+    <task number="3" title="Implement PRD Traceability Validation" estimatedHours="3-4" status="PENDING">
+      <subtask>Implement validateTraceability() method</subtask>
+      <subtask>Create PRD parser to extract functional and non-functional requirements</subtask>
+      <subtask>Parse requirements from PRD sections: Features, Functional Requirements, Non-Functional Requirements</subtask>
+      <subtask>Implement search logic to find requirement coverage in architecture</subtask>
+      <subtask>Generate TraceabilityMatrix mapping requirements to architecture sections</subtask>
+      <subtask>Calculate traceability score as percentage of addressed requirements</subtask>
+      <subtask>Identify unaddressed requirements and generate recommendations</subtask>
+      <subtask>Return TraceabilityResult with score, matrix, and gaps</subtask>
+      <subtask>Handle edge cases: empty PRD, no requirements, ambiguous coverage</subtask>
+    </task>
+
+    <task number="4" title="Implement Test Strategy Validation" estimatedHours="2-3" status="PENDING">
+      <subtask>Implement validateTestStrategy() method</subtask>
+      <subtask>Verify test strategy section exists and has content</subtask>
+      <subtask>Check for test frameworks keywords (Vitest, Jest, Mocha, Playwright, Cypress, etc.)</subtask>
+      <subtask>Check for test pyramid specification with percentages</subtask>
+      <subtask>Check for CI/CD pipeline definition (tools, stages, triggers)</subtask>
+      <subtask>Check for quality gates specification (coverage %, failure conditions)</subtask>
+      <subtask>Check for ATDD approach documentation</subtask>
+      <subtask>Calculate test strategy score as percentage of present elements</subtask>
+      <subtask>Return TestStrategyResult with score and missing elements</subtask>
+      <subtask>Generate specific recommendations for missing elements</subtask>
+    </task>
+
+    <task number="5" title="Implement Consistency Validation" estimatedHours="3-4" status="PENDING">
+      <subtask>Implement validateConsistency() method</subtask>
+      <subtask>Extract technology stack from all sections (language, frameworks, databases)</subtask>
+      <subtask>Define CONTRADICTION_PATTERNS with opposite term pairs</subtask>
+      <subtask>Implement contradiction detection logic (case-insensitive search)</subtask>
+      <subtask>Check for contradictory architectural patterns (monolith vs microservices, etc.)</subtask>
+      <subtask>Check for contradictory communication patterns (sync vs async)</subtask>
+      <subtask>Check for contradictory data strategies (SQL vs NoSQL)</subtask>
+      <subtask>Verify test framework compatibility with language/runtime</subtask>
+      <subtask>Generate conflict list with context and location</subtask>
+      <subtask>Return ConsistencyResult (100% if no conflicts, 0% if conflicts found)</subtask>
+    </task>
+
+    <task number="6" title="Implement Overall Quality Score and Report Generation" estimatedHours="1-2" status="PENDING">
+      <subtask>Implement calculateOverallScore() method</subtask>
+      <subtask>Average completeness, traceability, test strategy, consistency scores</subtask>
+      <subtask>Apply equal weighting to all components (25% each)</subtask>
+      <subtask>Return overall score (0-100)</subtask>
+      <subtask>Implement generateValidationReport() method</subtask>
+      <subtask>Format validation results as markdown report with clear structure</subtask>
+      <subtask>Include all individual scores and overall score</subtask>
+      <subtask>Include completeness issues with recommendations</subtask>
+      <subtask>Include PRD traceability gaps with missing requirements</subtask>
+      <subtask>Include test strategy gaps with missing elements</subtask>
+      <subtask>Include detected contradictions with severity and context</subtask>
+      <subtask>Return formatted report as string</subtask>
+    </task>
+
+    <task number="7" title="Integrate ArchitectureValidator with ArchitectureWorkflowExecutor" estimatedHours="1-2" status="PENDING">
+      <subtask>Import ArchitectureValidator in architecture-workflow-executor.ts</subtask>
+      <subtask>Locate executeStep9() method (placeholder for validation)</subtask>
+      <subtask>Replace placeholder with actual validator instantiation</subtask>
+      <subtask>Call validator.validate(architecturePath, prdPath) with paths from workflow state</subtask>
+      <subtask>Check result.passed status</subtask>
+      <subtask>If passed: Log success, update state.validation, emit validation.passed event</subtask>
+      <subtask>If failed: Generate report, create escalation, set state.validation.failed, block completion</subtask>
+      <subtask>Update workflow state with validation scores and findings</subtask>
+      <subtask>Handle edge cases: missing files, parsing errors, graceful degradation</subtask>
+      <subtask>Add comprehensive logging for debugging and monitoring</subtask>
+    </task>
+
+    <task number="8" title="Write Integration Tests" estimatedHours="2-3" status="PENDING">
+      <subtask>Create backend/tests/integration/architecture-validator.test.ts</subtask>
+      <subtask>Create test fixtures directory with sample architectures</subtask>
+      <subtask>Test: Complete architecture passes all validation checks</subtask>
+      <subtask>Test: Incomplete architecture fails completeness check</subtask>
+      <subtask>Test: PRD traceability with complete coverage</subtask>
+      <subtask>Test: PRD traceability with gaps (missing some requirements)</subtask>
+      <subtask>Test: Complete test strategy passes validation</subtask>
+      <subtask>Test: Incomplete test strategy fails with specific gaps identified</subtask>
+      <subtask>Test: Consistency validation with contradictory decisions</subtask>
+      <subtask>Test: Overall quality score calculation at pass threshold (85%)</subtask>
+      <subtask>Test: Overall quality score calculation below threshold (&lt;85%)</subtask>
+      <subtask>Test: Validation report generation with proper formatting</subtask>
+      <subtask>Test: All tests pass and verify coverage &gt;80%</subtask>
+    </task>
+
+    <task number="9" title="Code Review and Refinement" estimatedHours="1-2" status="PENDING">
+      <subtask>Review code for correctness and edge case handling</subtask>
+      <subtask>Verify all interfaces match TypeScript conventions</subtask>
+      <subtask>Ensure comprehensive JSDoc comments on all public methods</subtask>
+      <subtask>Verify test coverage meets 80% target</subtask>
+      <subtask>Verify integration with workflow executor works as expected</subtask>
+      <subtask>Test with real architecture.md and PRD.md documents</subtask>
+      <subtask>Validate error handling and graceful degradation</subtask>
+      <subtask>Prepare for code review with description of changes</subtask>
+    </task>
+  </tasks>
+
+  <testStrategy>
+    <unitTests>
+      <coverage>60%</coverage>
+      <focus>
+        <item>validateCompleteness() logic with various document structures</item>
+        <item>Word count calculation and section detection</item>
+        <item>traceabilityMatrix generation accuracy</item>
+        <item>Contradiction detection patterns</item>
+        <item>Score calculation formulas</item>
+        <item>Markdown report formatting</item>
+      </focus>
+    </unitTests>
+
+    <integrationTests>
+      <coverage>30%</coverage>
+      <focus>
+        <item>End-to-end validation with sample architectures (valid and invalid)</item>
+        <item>ArchitectureWorkflowExecutor Step 9 integration</item>
+        <item>Validation with real PRD and architecture documents</item>
+        <item>Event emission (validation.passed, validation.failed)</item>
+        <item>Escalation creation on validation failure</item>
+        <item>State persistence of validation results</item>
+      </focus>
+    </integrationTests>
+
+    <e2eTests>
+      <coverage>10%</coverage>
+      <focus>
+        <item>Complete architecture workflow with validation</item>
+        <item>Pass scenario (validation passes, workflow continues)</item>
+        <item>Fail scenario (validation fails, escalation created, workflow blocked)</item>
+        <item>Validation report readable and actionable for users</item>
+      </focus>
+    </e2eTests>
+
+    <frameworks>
+      <item>Vitest for unit and integration tests</item>
+      <item>Vite for test environment and coverage</item>
+      <item>Mock test fixtures for architecture and PRD documents</item>
+    </frameworks>
+
+    <qualityGates>
+      <requirement>All tests pass with 0 failures</requirement>
+      <requirement>Code coverage &gt;80% for new ArchitectureValidator code</requirement>
+      <requirement>No critical or high-severity linter warnings</requirement>
+      <requirement>Validation report markdown is well-formatted and readable</requirement>
+      <requirement>Integration with workflow executor verified with tests</requirement>
+    </qualityGates>
+  </testStrategy>
+
+  <technicalDetails>
+    <sectionDetection>
+      <approach>Markdown heading detection using regex patterns</approach>
+      <patterns>
+        <pattern level="2">^## System Overview</pattern>
+        <pattern level="2">^## Component Architecture</pattern>
+        <pattern level="2">^## Data Models</pattern>
+        <pattern level="2">^## API Specifications</pattern>
+        <pattern level="2">^## Non-Functional Requirements</pattern>
+        <pattern level="2">^## Test Strategy</pattern>
+        <pattern level="2">^## Technical Decisions</pattern>
+      </patterns>
+    </sectionDetection>
+
+    <requirementExtraction>
+      <prdPatterns>
+        <pattern>FR-*: Functional requirements</pattern>
+        <pattern>NFR-*: Non-functional requirements</pattern>
+        <pattern>Bullet points in requirements sections</pattern>
+      </prdPatterns>
+      <searchStrategy>Case-insensitive substring search for requirement text in architecture</searchStrategy>
+      <coverageSensitivity>Must find reasonably close match in architecture - not word-for-word required</coverageSensitivity>
+    </requirementExtraction>
+
+    <keywordMatching>
+      <approach>Case-insensitive keyword presence detection</approach>
+      <rationale>Similar to SecurityGateValidator - pragmatic approach for MVP</rationale>
+      <limitation>Advanced architectures with non-standard terminology may fail despite meeting requirements</limitation>
+      <futureImprovement>Semantic validation using embeddings or NLP</futureImprovement>
+    </keywordMatching>
+
+    <scoring>
+      <method>Simple percentage-based scoring for all components</method>
+      <rounding>Math.round(score * 100) for display</rounding>
+      <passThreshold>85% for overall quality (≥85% = PASS, &lt;85% = FAIL)</passThreshold>
+      <weights>Equal 25% weighting for all four validation dimensions</weights>
+    </scoring>
+
+    <errorHandling>
+      <fileNotFound>Log error, throw exception if PRD or architecture path invalid</fileNotFound>
+      <parsingError>Log error, attempt graceful degradation or clear error message</parsingError>
+      <emptyContent>Treat empty sections as missing, score accordingly</emptyContent>
+    </errorHandling>
+  </technicalDetails>
+
+  <validationReportExample>
+    <example>
+# Architecture Validation Report
+
+**Overall Quality Score:** 78% ❌ FAILED (threshold: 85%)
+**Date:** 2025-11-12
+
+## Scores
+
+- **Completeness:** 85% (6/7 sections complete)
+- **PRD Traceability:** 90% (27/30 requirements addressed)
+- **Test Strategy:** 60% (3/5 elements complete)
+- **Consistency:** 100% (no conflicts detected)
+
+## Completeness Issues
+
+### Missing Section: Technical Decisions
+**Severity:** HIGH
+**Issue:** Technical Decisions section is empty (0 ADRs)
+**Recommendation:** Add at least 3 Architecture Decision Records documenting key architectural choices
+
+## PRD Traceability Issues
+
+### Unaddressed Requirements
+1. **NFR-PERF-001:** Workflow execution speed &lt;45 minutes
+   - Missing from: Non-Functional Requirements &gt; Performance section
+   - Recommendation: Add performance targets and optimization strategies
+
+## Test Strategy Issues
+
+### Missing Elements
+1. **CI/CD Pipeline:** Not defined
+   - Recommendation: Add CI/CD pipeline specification
+
+2. **ATDD Approach:** Not documented
+   - Recommendation: Document Acceptance Test-Driven Development approach
+
+## Consistency Status
+
+✅ No contradictory decisions detected
+
+## Next Steps
+1. Review validation report and update architecture.md
+2. Add Technical Decisions section with ADRs
+3. Address PRD traceability gaps
+4. Complete test strategy section
+5. Re-run architecture validation
+6. Once validation passes (&gt;=85%), workflow can complete
+    </example>
+  </validationReportExample>
+
+  <risks>
+    <risk level="MEDIUM" id="R-3.7-1">
+      <title>Keyword-Based Validation May Have False Negatives</title>
+      <description>ArchitectureValidator uses keyword matching for evidence extraction. Sophisticated architectures using non-standard terminology may fail validation despite meeting requirements.</description>
+      <probability>MEDIUM</probability>
+      <impact>Architectures blocked from solutioning phase despite being technically sound</impact>
+      <mitigation>
+        <item>Document expected terminology in architecture template guidelines</item>
+        <item>Create validation report that includes confidence scores for each check</item>
+        <item>Allow manual override with justification in escalation workflow</item>
+        <item>Collect feedback on false negatives and refine keyword lists</item>
+      </mitigation>
+      <futureImprovement>Semantic validation using embeddings or NLP in v1.1</futureImprovement>
+    </risk>
+
+    <risk level="LOW" id="R-3.7-2">
+      <title>Section Detection May Fail With Non-Standard Markdown</title>
+      <description>Section detection relies on specific markdown heading patterns (## System Overview, etc.). Non-standard formatting may cause sections to be missed.</description>
+      <probability>LOW</probability>
+      <impact>False completeness validation failures</impact>
+      <mitigation>
+        <item>Use flexible regex patterns that handle minor variations</item>
+        <item>Case-insensitive matching for section headers</item>
+        <item>Document expected section naming conventions</item>
+        <item>Provide clear error messages when sections not found</item>
+      </mitigation>
+    </risk>
+
+    <risk level="LOW" id="R-3.7-3">
+      <title>Word Count Validation May Be Too Strict or Too Lenient</title>
+      <description>Fixed word count minimums may not suit all architectures. Some sections may need more, others less.</description>
+      <probability>LOW</probability>
+      <impact>Unnecessarily blocked or approved architectures</impact>
+      <mitigation>
+        <item>Set reasonable defaults based on section importance</item>
+        <item>Allow tuning per project via configuration</item>
+        <item>Track validation results to refine minimums over time</item>
+        <item>Generate detailed word count report in validation output</item>
+      </mitigation>
+    </risk>
+  </risks>
+
+  <assumptions>
+    <assumption id="A-3.7-1">PRD document is complete and well-structured (from Epic 2 Analysis Phase)</assumption>
+    <assumption id="A-3.7-2">Architecture document follows template structure with clear section headers</assumption>
+    <assumption id="A-3.7-3">Winston and Murat agents have generated quality architecture sections (from Stories 3-1, 3-2, 3-3)</assumption>
+    <assumption id="A-3.7-4">Technical Decisions section contains ADRs in consistent format (from Story 3-4)</assumption>
+    <assumption id="A-3.7-5">ArchitectureWorkflowExecutor Step 9 placeholder is ready for implementation</assumption>
+    <assumption id="A-3.7-6">EscalationQueue is available for creating escalations on validation failure</assumption>
+  </assumptions>
+
+  <nextSteps>
+    <step priority="1" title="Implement ArchitectureValidator Class">
+      Core validation logic - foundation for all other work. 2-3 hours.
+    </step>
+    <step priority="2" title="Implement Individual Validation Methods">
+      Completeness, traceability, test strategy, consistency. 10-14 hours total.
+    </step>
+    <step priority="3" title="Integrate with ArchitectureWorkflowExecutor">
+      Hook validator into Step 9, handle pass/fail. 1-2 hours.
+    </step>
+    <step priority="4" title="Write Comprehensive Tests">
+      Unit and integration tests with 80%+ coverage. 2-3 hours.
+    </step>
+    <step priority="5" title="Code Review and Refinement">
+      Verify correctness, test with real documents, prepare for merge. 1-2 hours.
+    </step>
+  </nextSteps>
+
+  <estimatedEffort>
+    <totalHours>16-24</totalHours>
+    <totalDays>3-5</totalDays>
+    <breakdown>
+      <item hours="2-3">ArchitectureValidator class setup</item>
+      <item hours="2-3">Completeness validation implementation</item>
+      <item hours="3-4">PRD traceability validation implementation</item>
+      <item hours="2-3">Test strategy validation implementation</item>
+      <item hours="3-4">Consistency validation implementation</item>
+      <item hours="1-2">Overall score and report generation</item>
+      <item hours="1-2">ArchitectureWorkflowExecutor integration</item>
+      <item hours="2-3">Integration tests</item>
+      <item hours="1-2">Code review and refinement</item>
+    </breakdown>
+  </estimatedEffort>
+
+  <codeReferences>
+    <file path="/home/user/agent-orchestrator/backend/src/core/security-gate-validator.ts">
+      <purpose>Reference implementation for validation pattern</purpose>
+      <applicableSections>
+        <section lines="6-24">Check and Result interfaces design</section>
+        <section lines="56-86">Main validation method structure</section>
+        <section lines="347-379">Gap report generation method</section>
+      </applicableSections>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/backend/src/core/workflows/prd-validator.ts">
+      <purpose>Reference implementation for completeness validation</purpose>
+      <applicableSections>
+        <section lines="50-56">Required sections definition</section>
+        <section lines="100-200">Validation implementation pattern</section>
+      </applicableSections>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/backend/src/core/technical-decision-logger.ts">
+      <purpose>Reference for Technical Decision interface and formatting</purpose>
+      <applicableSections>
+        <section>TechnicalDecision interface structure</section>
+        <section>ADR formatting and markdown generation</section>
+      </applicableSections>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/backend/src/workflows/architecture-workflow-executor.ts">
+      <purpose>Integration point for Step 9 validation</purpose>
+      <lineNumbers>1050+</lineNumbers>
+      <requiredModification>Replace executeStep9() placeholder with ArchitectureValidator integration</requiredModification>
+    </file>
+
+    <file path="/home/user/agent-orchestrator/backend/tests/integration/architecture-workflow-executor.test.ts">
+      <purpose>Reference for workflow integration testing patterns</purpose>
+      <applicableSections>
+        <section>Test fixture setup for workflow execution</section>
+        <section>State validation and assertion patterns</section>
+        <section>Event emission testing</section>
+      </applicableSections>
+    </file>
+  </codeReferences>
+
+  <glossary>
+    <term name="ArchitectureValidator">
+      Core class that validates architecture documents across four dimensions: completeness, PRD traceability,
+      test strategy completeness, and technical decision consistency.
+    </term>
+
+    <term name="Completeness Validation">
+      Verification that all required architecture sections are present and contain substantive content (minimum
+      word count per section). Measured as percentage of complete sections.
+    </term>
+
+    <term name="PRD Traceability">
+      Verification that all functional and non-functional requirements from the PRD are addressed somewhere in
+      the architecture document. Measured as percentage of addressed requirements.
+    </term>
+
+    <term name="Test Strategy Completeness">
+      Verification that test strategy section includes all required elements: test frameworks, test pyramid,
+      CI/CD pipeline, quality gates, and ATDD approach. Measured as percentage of present elements.
+    </term>
+
+    <term name="Technical Decision Consistency">
+      Verification that no contradictory architectural decisions exist. Binary scoring: 100% if no conflicts
+      detected, 0% if any conflicts found.
+    </term>
+
+    <term name="Overall Quality Score">
+      Average of completeness, traceability, test strategy, and consistency scores. Pass threshold is ≥85%.
+    </term>
+
+    <term name="Validation Report">
+      Markdown document generated on validation failure that details all issues found, missing elements,
+      detected contradictions, and actionable recommendations for remediation.
+    </term>
+
+    <term name="TraceabilityMatrix">
+      Data structure mapping each PRD requirement to the architecture section(s) that address it.
+    </term>
+
+    <term name="Step 9">
+      Final step in the ArchitectureWorkflowExecutor that validates completed architecture before workflow completion.
+      Must pass ≥85% overall quality score to allow progression to Epic 4 (Solutioning Phase).
+    </term>
+  </glossary>
+
+  <recommendations>
+    <recommendation priority="HIGH">
+      Begin with ArchitectureValidator class implementation focusing on clean interfaces and clear
+      method contracts. This will guide all other implementation work.
+    </recommendation>
+
+    <recommendation priority="HIGH">
+      Create comprehensive test fixtures (sample architectures that pass and fail) early in development.
+      These will be invaluable for testing and validating the validation logic.
+    </recommendation>
+
+    <recommendation priority="MEDIUM">
+      Document expected architecture section naming conventions and content structure to minimize false
+      negatives from keyword matching. Include examples in validation report recommendations.
+    </recommendation>
+
+    <recommendation priority="MEDIUM">
+      Consider creating a dry-run mode that runs validation without blocking workflow, allowing architects
+      to preview gaps before workflow progression. This could reduce escalations.
+    </recommendation>
+
+    <recommendation priority="LOW">
+      Plan for future improvement from keyword matching to semantic validation (embeddings) in v1.1 once
+      MVP is stable and validated. Document current limitations for users.
+    </recommendation>
+  </recommendations>
+
+</storyContext>
