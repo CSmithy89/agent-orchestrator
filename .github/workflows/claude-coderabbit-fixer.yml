@@ -48,6 +48,7 @@ jobs:
         id: claude-dual-review
         uses: anthropics/claude-code-action@v1
         with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           prompt: |
             REPO: ${{ github.repository }}
             PR NUMBER: ${{ github.event.pull_request.number || github.event.issue.number }}
@@ -151,6 +152,49 @@ jobs:
             ### Skipped Suggestions
             - [Any suggestions skipped with rationale]
             ```
+
+            ## STEP 8: Resolve Conversations & Approve
+
+            After successfully posting the summary:
+
+            1. Resolve all review conversations that were addressed:
+               ```bash
+               # Get all review threads
+               gh api /repos/${{ github.repository }}/pulls/$PR_NUMBER/comments --jq '.[] | select(.user.login == "coderabbitai[bot]") | .id' | while read comment_id; do
+                 # Resolve each conversation
+                 gh api -X PUT /repos/${{ github.repository }}/pulls/comments/$comment_id/replies -f body="✅ Fixed by Claude Code dual review"
+               done
+               ```
+
+            2. Update the PR description with a summary of changes:
+               ```bash
+               gh pr edit $PR_NUMBER --body "$(cat <<'EOF'
+               ## Summary
+               [Original PR description if any]
+
+               ---
+
+               ## 🤖 Auto-Applied Code Review Fixes
+
+               ### Changes Made
+               - [List of fixes applied from CodeRabbit suggestions]
+
+               ### Validation
+               ✅ ESLint: Passing
+               ✅ TypeScript: Passing
+
+               ### Review Process
+               This PR was automatically reviewed by Claude Code and CodeRabbit. All suggested improvements have been applied and validated.
+
+               🤖 Generated with [Claude Code](https://claude.com/claude-code)
+               EOF
+               )"
+               ```
+
+            3. If all fixes were applied successfully and validation passed, approve the PR:
+               ```bash
+               gh pr review $PR_NUMBER --approve --body "✅ All CodeRabbit suggestions have been reviewed and applied. Lint and type-check passing."
+               ```
 
             ## IMPORTANT GUIDELINES
 
