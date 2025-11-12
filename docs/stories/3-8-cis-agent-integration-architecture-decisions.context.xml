@@ -1,0 +1,1041 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>3-8</story-id>
+    <story-title>CIS Agent Integration for Architecture Decisions</story-title>
+    <epic-id>3</epic-id>
+    <epic-title>Planning Phase Automation</epic-title>
+    <status>drafted</status>
+    <generated-date>2025-11-12</generated-date>
+  </metadata>
+
+  <story-overview>
+    <as-a>Agent Orchestrator</as-a>
+    <i-want>to route low-confidence architectural decisions to specialized CIS agents (Dr. Quinn, Maya, Sophia, Victor)</i-want>
+    <so-that>complex strategic decisions benefit from framework-specific expertise and creative problem-solving</so-that>
+
+    <summary>
+      Story 3-8 implements the CISAgentRouter class that automatically routes low-confidence architectural
+      decisions (confidence &lt; 0.70) from Winston to specialized CIS agents based on decision type. The router
+      classifies decisions into four categories (technical, UX, product, innovation) and invokes the appropriate
+      CIS agent (Dr. Quinn, Maya, Sophia, or Victor) to provide framework-based analysis and recommendations.
+      CIS responses are integrated into Winston's decision-making and logged in the Technical Decisions section
+      of architecture.md. The system includes error handling with graceful degradation and enforces a maximum
+      of 3 CIS invocations per workflow for cost control.
+    </summary>
+  </story-overview>
+
+  <acceptance-criteria>
+    <criterion id="AC-1" priority="critical">
+      <title>CIS Agent Router Implementation</title>
+      <requirements>
+        <requirement>CISAgentRouter class routes decisions to appropriate CIS agents</requirement>
+        <requirement>Decision routing based on decision type: technical, UX, product, innovation</requirement>
+        <requirement>Confidence threshold: &lt;0.70 triggers CIS agent invocation</requirement>
+        <requirement>Router classifies decision type automatically using keyword matching</requirement>
+        <requirement>Router tracks CIS invocations in workflow state (max 3 per workflow)</requirement>
+      </requirements>
+      <validation>
+        <test>Router correctly identifies decision types from keywords</test>
+        <test>Router only invokes CIS agents when confidence &lt; 0.70</test>
+        <test>Router enforces 3 invocation limit per workflow</test>
+      </validation>
+    </criterion>
+
+    <criterion id="AC-2" priority="critical">
+      <title>Dr. Quinn Integration (Technical Trade-offs)</title>
+      <requirements>
+        <requirement>Route technical architecture trade-offs to Dr. Quinn</requirement>
+        <requirement>Examples: monolith vs microservices, SQL vs NoSQL, synchronous vs asynchronous</requirement>
+        <requirement>Dr. Quinn applies creative problem-solving frameworks (TRIZ, Systems Thinking)</requirement>
+        <requirement>Returns structured analysis with pros/cons and recommendation</requirement>
+        <requirement>Response includes confidence score and rationale</requirement>
+      </requirements>
+      <validation>
+        <test>Dr. Quinn invoked for technical decision types</test>
+        <test>Response contains recommendation, rationale, confidence score</test>
+        <test>Framework-based analysis evident in response</test>
+      </validation>
+    </criterion>
+
+    <criterion id="AC-3" priority="critical">
+      <title>Maya Integration (UX-Centric Decisions)</title>
+      <requirements>
+        <requirement>Route UX-related architecture decisions to Maya</requirement>
+        <requirement>Examples: SPA vs MPA, client-side vs server-side rendering, real-time updates strategy</requirement>
+        <requirement>Maya applies Design Thinking methodology</requirement>
+        <requirement>Returns user-centric analysis and recommendation</requirement>
+        <requirement>Response includes user impact assessment</requirement>
+      </requirements>
+      <validation>
+        <test>Maya invoked for UX decision types</test>
+        <test>Response contains user impact assessment</test>
+        <test>Design Thinking approach evident in response</test>
+      </validation>
+    </criterion>
+
+    <criterion id="AC-4" priority="critical">
+      <title>Sophia Integration (Product Narrative)</title>
+      <requirements>
+        <requirement>Route product positioning decisions to Sophia</requirement>
+        <requirement>Examples: target audience prioritization, feature trade-offs, MVP scope</requirement>
+        <requirement>Sophia applies storytelling frameworks</requirement>
+        <requirement>Returns product narrative with strategic rationale</requirement>
+        <requirement>Response includes narrative consistency check</requirement>
+      </requirements>
+      <validation>
+        <test>Sophia invoked for product decision types</test>
+        <test>Response contains narrative elements</test>
+        <test>Storytelling framework evident in response</test>
+      </validation>
+    </criterion>
+
+    <criterion id="AC-5" priority="critical">
+      <title>Victor Integration (Innovation Opportunities)</title>
+      <requirements>
+        <requirement>Route innovation challenges to Victor</requirement>
+        <requirement>Examples: competitive differentiation, disruptive opportunities, novel approaches</requirement>
+        <requirement>Victor applies innovation strategy frameworks (Blue Ocean, Jobs-to-be-Done)</requirement>
+        <requirement>Returns innovation analysis with disruption potential</requirement>
+        <requirement>Response includes market positioning recommendation</requirement>
+      </requirements>
+      <validation>
+        <test>Victor invoked for innovation decision types</test>
+        <test>Response contains disruption potential assessment</test>
+        <test>Innovation strategy framework evident in response</test>
+      </validation>
+    </criterion>
+
+    <criterion id="AC-6" priority="high">
+      <title>CIS Response Integration</title>
+      <requirements>
+        <requirement>CIS recommendations integrated into Winston's decision-making</requirement>
+        <requirement>CIS responses logged in Technical Decisions section</requirement>
+        <requirement>ADRs note CIS agent contribution (e.g., "Recommendation from Dr. Quinn")</requirement>
+        <requirement>CIS invocations tracked in workflow metrics</requirement>
+        <requirement>Limit CIS invocations: maximum 3 per workflow (cost control)</requirement>
+      </requirements>
+      <validation>
+        <test>CIS responses appear in architecture.md Technical Decisions</test>
+        <test>ADRs identify CIS agent as decision maker</test>
+        <test>System enforces 3 invocation limit</test>
+      </validation>
+    </criterion>
+
+    <criterion id="AC-7" priority="high">
+      <title>Error Handling and Fallback</title>
+      <requirements>
+        <requirement>If CIS agent unavailable: Continue with Winston's original decision, log warning</requirement>
+        <requirement>If CIS invocation times out: Use Winston's decision, log timeout</requirement>
+        <requirement>If CIS invocation exceeds limit: Queue remaining decisions for user escalation</requirement>
+        <requirement>Graceful degradation ensures workflow can complete without CIS agents</requirement>
+      </requirements>
+      <validation>
+        <test>Workflow continues when CIS agent unavailable</test>
+        <test>Timeout handled gracefully after 60 seconds</test>
+        <test>Excess decisions queued for user review</test>
+      </validation>
+    </criterion>
+  </acceptance-criteria>
+
+  <technical-context>
+    <cis-agents>
+      <agent name="Dr. Quinn" type="technical">
+        <full-name>Master Problem Solver</full-name>
+        <persona-file>bmad/cis/agents/creative-problem-solver.md</persona-file>
+        <role>Systematic Problem-Solving Expert + Solutions Architect</role>
+        <expertise>
+          <item>TRIZ (Theory of Inventive Problem Solving)</item>
+          <item>Theory of Constraints</item>
+          <item>Systems Thinking</item>
+          <item>Root Cause Analysis</item>
+        </expertise>
+        <frameworks>
+          <framework>Creative Problem Solving</framework>
+          <framework>First Principles Analysis</framework>
+          <framework>Systems Thinking</framework>
+        </frameworks>
+        <decision-types>
+          <type>Architecture patterns (monolith, microservices, microkernel)</type>
+          <type>Technology stack choices (language, framework, database)</type>
+          <type>Communication patterns (REST, GraphQL, message queue)</type>
+          <type>Scalability strategies (horizontal, vertical, caching)</type>
+        </decision-types>
+        <communication-style>
+          Detective-scientist hybrid—methodical and curious with sudden flashes of creative insight
+          delivered with childlike wonder. Uses analogies from nature, engineering, and mathematics.
+        </communication-style>
+      </agent>
+
+      <agent name="Maya" type="ux">
+        <full-name>Design Thinking Maestro</full-name>
+        <persona-file>bmad/cis/agents/design-thinking-coach.md</persona-file>
+        <role>Human-Centered Design Expert + Empathy Architect</role>
+        <expertise>
+          <item>Empathy mapping</item>
+          <item>Prototyping methodologies</item>
+          <item>User-centered design</item>
+          <item>Behavioral psychology</item>
+        </expertise>
+        <frameworks>
+          <framework>Design Thinking (Empathize, Define, Ideate, Prototype, Test)</framework>
+          <framework>User-Centered Design</framework>
+        </frameworks>
+        <decision-types>
+          <type>Application architecture (SPA, MPA, PWA, hybrid)</type>
+          <type>Rendering strategy (client-side, server-side, static)</type>
+          <type>Real-time updates approach (polling, WebSocket, SSE)</type>
+          <type>User interaction patterns</type>
+        </decision-types>
+        <communication-style>
+          Jazz musician rhythm—improvisational yet structured, riffing on ideas while keeping
+          the human at the center. Uses vivid sensory metaphors.
+        </communication-style>
+      </agent>
+
+      <agent name="Sophia" type="product">
+        <full-name>Master Storyteller</full-name>
+        <persona-file>bmad/cis/agents/storyteller.md</persona-file>
+        <role>Expert Storytelling Guide + Narrative Strategist</role>
+        <expertise>
+          <item>Narrative frameworks</item>
+          <item>Emotional psychology</item>
+          <item>Audience engagement</item>
+          <item>Brand storytelling</item>
+        </expertise>
+        <frameworks>
+          <framework>Storytelling frameworks</framework>
+          <framework>Narrative structure</framework>
+        </frameworks>
+        <decision-types>
+          <type>Target audience prioritization</type>
+          <type>Feature trade-offs and scope decisions</type>
+          <type>MVP vs full product decisions</type>
+          <type>Product positioning and narrative</type>
+        </decision-types>
+        <communication-style>
+          Flowery, whimsical communication where every interaction feels like being enraptured
+          by a master storyteller. Articulate and empathetic.
+        </communication-style>
+      </agent>
+
+      <agent name="Victor" type="innovation">
+        <full-name>Disruptive Innovation Oracle</full-name>
+        <persona-file>bmad/cis/agents/innovation-strategist.md</persona-file>
+        <role>Business Model Innovator + Strategic Disruption Expert</role>
+        <expertise>
+          <item>Jobs-to-be-Done theory</item>
+          <item>Blue Ocean Strategy</item>
+          <item>Business model innovation</item>
+          <item>Strategic disruption</item>
+        </expertise>
+        <frameworks>
+          <framework>Blue Ocean Strategy</framework>
+          <framework>Jobs-to-be-Done</framework>
+          <framework>Innovation Canvas</framework>
+          <framework>Business Model Canvas</framework>
+        </frameworks>
+        <decision-types>
+          <type>Competitive differentiation strategies</type>
+          <type>Disruptive technology opportunities</type>
+          <type>Novel architectural approaches</type>
+          <type>Market positioning innovations</type>
+        </decision-types>
+        <communication-style>
+          Bold declarations punctuated by strategic silence. Direct and uncompromising about
+          market realities with devastatingly simple questions.
+        </communication-style>
+      </agent>
+    </cis-agents>
+
+    <decision-routing>
+      <confidence-threshold>0.70</confidence-threshold>
+      <escalation-threshold>0.75</escalation-threshold>
+      <max-invocations-per-workflow>3</max-invocations-per-workflow>
+      <timeout-seconds>60</timeout-seconds>
+
+      <classification-keywords>
+        <category type="technical">
+          <keywords>
+            architecture, pattern, technology, framework, database, scalability, performance,
+            microservices, monolith, API, backend, infrastructure, deployment, caching
+          </keywords>
+        </category>
+        <category type="ux">
+          <keywords>
+            user, interface, experience, rendering, SPA, MPA, real-time, interaction,
+            client, frontend, UI, UX, design, usability, responsive
+          </keywords>
+        </category>
+        <category type="product">
+          <keywords>
+            audience, feature, scope, MVP, prioritization, product, positioning, market fit,
+            roadmap, strategy, users, customers
+          </keywords>
+        </category>
+        <category type="innovation">
+          <keywords>
+            differentiation, competitive, disruptive, novel, innovation, opportunity, unique,
+            breakthrough, advantage, market, disruption
+          </keywords>
+        </category>
+      </classification-keywords>
+
+      <routing-logic>
+        <![CDATA[
+        1. Winston assesses confidence for architectural decision
+        2. If confidence >= 0.70: Proceed with Winston's decision autonomously
+        3. If confidence < 0.70:
+           a. Check CIS invocation count for workflow
+           b. If count >= 3: Queue decision for user escalation
+           c. If count < 3:
+              - Classify decision type using keyword matching
+              - Route to appropriate CIS agent (Dr. Quinn, Maya, Sophia, Victor)
+              - Invoke CIS agent with decision context
+              - Integrate CIS response into Winston's decision
+              - Increment CIS invocation count
+              - Log CIS contribution in Technical Decisions section
+        4. If CIS agent unavailable or times out: Use Winston's original decision, log warning
+        ]]>
+      </routing-logic>
+    </decision-routing>
+
+    <interfaces>
+      <interface name="CISDecisionRequest">
+        <description>Request object sent to CIS agents for strategic decisions</description>
+        <fields>
+          <field name="decision" type="string" required="true">
+            The architectural question or decision statement
+          </field>
+          <field name="context" type="string" required="true">
+            PRD excerpt, architectural context, constraints, project information
+          </field>
+          <field name="decisionType" type="'technical' | 'ux' | 'product' | 'innovation'" required="true">
+            Classified decision type determining which CIS agent to invoke
+          </field>
+          <field name="confidence" type="number" required="true">
+            Winston's confidence score (0-1) for this decision
+          </field>
+          <field name="urgency" type="'low' | 'medium' | 'high'" required="true">
+            Decision urgency level
+          </field>
+          <field name="projectContext" type="object" required="true">
+            <subfields>
+              <field name="name" type="string">Project name</field>
+              <field name="level" type="number">Project complexity level (0-4)</field>
+              <field name="techStack" type="string[]">Technology stack</field>
+              <field name="domain" type="string">Project domain (e.g., "AI/ML", "E-commerce")</field>
+            </subfields>
+          </field>
+        </fields>
+      </interface>
+
+      <interface name="CISResponse">
+        <description>Response object returned by CIS agents with recommendations</description>
+        <fields>
+          <field name="agent" type="'dr-quinn' | 'maya' | 'sophia' | 'victor'" required="true">
+            CIS agent that provided the recommendation
+          </field>
+          <field name="recommendation" type="string" required="true">
+            Recommended decision or approach
+          </field>
+          <field name="rationale" type="string" required="true">
+            Detailed reasoning behind the recommendation
+          </field>
+          <field name="framework" type="string" required="true">
+            Framework used for analysis (e.g., "Design Thinking", "TRIZ", "Blue Ocean Strategy")
+          </field>
+          <field name="confidence" type="number" required="true">
+            CIS agent's confidence score (0-1) after framework-based analysis
+          </field>
+          <field name="alternatives" type="string[]" required="false">
+            Alternative approaches considered
+          </field>
+          <field name="userImpact" type="string" required="false">
+            User impact assessment (Maya only)
+          </field>
+          <field name="narrativeElements" type="string[]" required="false">
+            Narrative consistency elements (Sophia only)
+          </field>
+          <field name="disruptionPotential" type="string" required="false">
+            Disruption potential assessment (Victor only)
+          </field>
+          <field name="timestamp" type="Date" required="true">
+            Response timestamp
+          </field>
+        </fields>
+      </interface>
+    </interfaces>
+
+    <integration-points>
+      <integration component="WinstonAgent" file="backend/src/core/agents/winston-agent.ts">
+        <description>
+          Winston agent assesses confidence for architectural decisions and invokes CISAgentRouter
+          when confidence &lt; 0.70. Existing stub methods (lines 773-839) show integration points.
+        </description>
+        <methods>
+          <method name="assessConfidence" line="734">
+            Evaluates confidence for architectural decisions using DecisionEngine
+          </method>
+          <method name="invokeCISAgent" line="773">
+            Stub method for CIS agent invocation (currently mocked)
+          </method>
+          <method name="routeCISAgent" line="805">
+            Routes decision type to appropriate CIS agent name
+          </method>
+          <method name="getCISFramework" line="826">
+            Maps decision type to framework name
+          </method>
+        </methods>
+        <integration-pattern>
+          Winston will instantiate CISAgentRouter and call routeDecision() when confidence &lt; 0.70.
+          CIS response will be integrated into Winston's decision and logged via TechnicalDecisionLogger.
+        </integration-pattern>
+      </integration>
+
+      <integration component="TechnicalDecisionLogger" file="backend/src/core/technical-decision-logger.ts">
+        <description>
+          Captures CIS agent contributions in Architecture Decision Records (ADRs).
+          decisionMaker field supports 'cis-agent' value (line 21).
+        </description>
+        <methods>
+          <method name="captureDecision" line="55">
+            Captures decisions with CIS agent attribution
+          </method>
+          <method name="generateADRSection" line="84">
+            Generates Technical Decisions markdown with CIS contributions noted
+          </method>
+          <method name="formatDecisionMaker" line="179">
+            Formats decision maker as "CIS Agent" when decisionMaker is 'cis-agent'
+          </method>
+        </methods>
+        <integration-pattern>
+          CISAgentRouter responses logged with decisionMaker='cis-agent' and rationale including
+          framework and agent name (e.g., "Recommendation from Dr. Quinn using TRIZ framework").
+        </integration-pattern>
+      </integration>
+
+      <integration component="DecisionEngine" file="backend/src/core/services/decision-engine.ts">
+        <description>
+          Provides confidence scoring for Winston's decisions. Confidence &lt; 0.70 triggers CIS routing.
+        </description>
+        <constants>
+          <constant name="ESCALATION_THRESHOLD" value="0.75" line="91">
+            Threshold for human escalation (higher than CIS threshold)
+          </constant>
+        </constants>
+        <methods>
+          <method name="attemptAutonomousDecision" line="138">
+            Returns Decision object with confidence score
+          </method>
+        </methods>
+        <note>
+          CIS threshold (0.70) is lower than escalation threshold (0.75), allowing CIS agents
+          to assist before escalating to humans.
+        </note>
+      </integration>
+
+      <integration component="CIS Agents Module" directory="bmad/cis/agents/">
+        <description>
+          CIS agents are BMAD persona files loaded and invoked via SlashCommand or direct LLM invocation.
+        </description>
+        <agents>
+          <agent file="creative-problem-solver.md">Dr. Quinn - Technical decisions</agent>
+          <agent file="design-thinking-coach.md">Maya - UX decisions</agent>
+          <agent file="storyteller.md">Sophia - Product decisions</agent>
+          <agent file="innovation-strategist.md">Victor - Innovation decisions</agent>
+        </agents>
+        <invocation-method>
+          Load persona file, construct prompt with decision context, invoke via LLM client,
+          parse response for recommendation, rationale, and confidence.
+        </invocation-method>
+      </integration>
+    </integration-points>
+  </technical-context>
+
+  <implementation-guidance>
+    <class-structure name="CISAgentRouter">
+      <location>backend/src/core/cis-agent-router.ts</location>
+      <description>
+        Central router class that manages CIS agent invocations for low-confidence architectural decisions
+      </description>
+
+      <constructor>
+        <parameters>
+          <parameter name="llmFactory" type="LLMFactory">Factory for creating LLM clients</parameter>
+          <parameter name="llmConfig" type="LLMConfig">LLM configuration for CIS agents</parameter>
+          <parameter name="maxInvocationsPerWorkflow" type="number" default="3">
+            Maximum CIS invocations allowed per workflow
+          </parameter>
+        </parameters>
+      </constructor>
+
+      <state>
+        <field name="invocationCount" type="number">
+          Tracks number of CIS invocations in current workflow session
+        </field>
+        <field name="invocationHistory" type="CISInvocationRecord[]">
+          Audit trail of all CIS invocations
+        </field>
+      </state>
+
+      <methods>
+        <method name="routeDecision" async="true">
+          <signature>
+            async routeDecision(request: CISDecisionRequest): Promise&lt;CISResponse&gt;
+          </signature>
+          <description>
+            Main routing method. Checks invocation limit, classifies decision type,
+            routes to appropriate CIS agent, handles errors.
+          </description>
+          <logic>
+            <![CDATA[
+            1. Check if invocation count >= max limit
+               - If yes: throw error "CIS invocation limit exceeded"
+            2. Classify decision type from request.decisionType or auto-classify from request.decision
+            3. Route to appropriate CIS agent method:
+               - technical -> invokeDrQuinn()
+               - ux -> invokeMaya()
+               - product -> invokeSophia()
+               - innovation -> invokeVictor()
+            4. Increment invocation count
+            5. Log invocation in history
+            6. Return CIS response
+            7. Handle errors with try-catch and fallback
+            ]]>
+          </logic>
+        </method>
+
+        <method name="classifyDecisionType" async="false">
+          <signature>
+            classifyDecisionType(decision: string): 'technical' | 'ux' | 'product' | 'innovation'
+          </signature>
+          <description>
+            Classifies decision type using keyword matching algorithm
+          </description>
+          <logic>
+            <![CDATA[
+            1. Convert decision text to lowercase
+            2. Define keyword sets for each decision type
+            3. Count keyword matches for each type
+            4. Return type with highest match count
+            5. Default to 'technical' if no clear winner
+            ]]>
+          </logic>
+        </method>
+
+        <method name="invokeDrQuinn" async="true">
+          <signature>
+            async invokeDrQuinn(problem: string, context: string): Promise&lt;CISResponse&gt;
+          </signature>
+          <description>
+            Invokes Dr. Quinn for technical architecture trade-offs
+          </description>
+          <logic>
+            <![CDATA[
+            1. Load Dr. Quinn persona from bmad/cis/agents/creative-problem-solver.md
+            2. Build prompt with problem statement and architectural context
+            3. Invoke LLM with Dr. Quinn system prompt
+            4. Parse response for recommendation, rationale, framework used
+            5. Extract confidence score
+            6. Return structured CISResponse with agent='dr-quinn'
+            7. Timeout after 60 seconds
+            ]]>
+          </logic>
+        </method>
+
+        <method name="invokeMaya" async="true">
+          <signature>
+            async invokeMaya(designQuestion: string, context: string): Promise&lt;CISResponse&gt;
+          </signature>
+          <description>
+            Invokes Maya for UX-centric architecture decisions
+          </description>
+          <logic>
+            <![CDATA[
+            1. Load Maya persona from bmad/cis/agents/design-thinking-coach.md
+            2. Build prompt with design question and context
+            3. Invoke LLM with Maya system prompt
+            4. Parse response for user-centric recommendation and user impact
+            5. Extract confidence score
+            6. Return CISResponse with agent='maya' and userImpact field
+            7. Timeout after 60 seconds
+            ]]>
+          </logic>
+        </method>
+
+        <method name="invokeSophia" async="true">
+          <signature>
+            async invokeSophia(narrativeNeed: string, context: string): Promise&lt;CISResponse&gt;
+          </signature>
+          <description>
+            Invokes Sophia for product narrative and positioning decisions
+          </description>
+          <logic>
+            <![CDATA[
+            1. Load Sophia persona from bmad/cis/agents/storyteller.md
+            2. Build prompt with narrative question and context
+            3. Invoke LLM with Sophia system prompt
+            4. Parse response for product narrative and narrative elements
+            5. Extract confidence score
+            6. Return CISResponse with agent='sophia' and narrativeElements field
+            7. Timeout after 60 seconds
+            ]]>
+          </logic>
+        </method>
+
+        <method name="invokeVictor" async="true">
+          <signature>
+            async invokeVictor(innovationChallenge: string, context: string): Promise&lt;CISResponse&gt;
+          </signature>
+          <description>
+            Invokes Victor for innovation opportunities and market disruption
+          </description>
+          <logic>
+            <![CDATA[
+            1. Load Victor persona from bmad/cis/agents/innovation-strategist.md
+            2. Build prompt with innovation challenge and context
+            3. Invoke LLM with Victor system prompt
+            4. Parse response for innovation strategy and disruption potential
+            5. Extract confidence score
+            6. Return CISResponse with agent='victor' and disruptionPotential field
+            7. Timeout after 60 seconds
+            ]]>
+          </logic>
+        </method>
+
+        <method name="resetInvocationCount" async="false">
+          <signature>
+            resetInvocationCount(): void
+          </signature>
+          <description>
+            Resets invocation count for new workflow session
+          </description>
+        </method>
+
+        <method name="getInvocationHistory" async="false">
+          <signature>
+            getInvocationHistory(): CISInvocationRecord[]
+          </signature>
+          <description>
+            Returns audit trail of CIS invocations
+          </description>
+        </method>
+      </methods>
+    </class-structure>
+
+    <error-handling>
+      <scenario name="CIS Agent Unavailable">
+        <trigger>CIS agent persona file not found or LLM invocation fails</trigger>
+        <handling>
+          <step>Log warning: "CIS agent [name] unavailable"</step>
+          <step>Return fallback response with low confidence (0.60)</step>
+          <step>Include error message in rationale</step>
+          <step>Workflow continues with Winston's original decision</step>
+        </handling>
+      </scenario>
+
+      <scenario name="CIS Invocation Timeout">
+        <trigger>CIS agent LLM invocation exceeds 60 seconds</trigger>
+        <handling>
+          <step>Cancel LLM invocation</step>
+          <step>Log timeout: "CIS agent [name] timed out after 60s"</step>
+          <step>Return fallback response with note about timeout</step>
+          <step>Workflow continues with Winston's original decision</step>
+        </handling>
+      </scenario>
+
+      <scenario name="Invocation Limit Exceeded">
+        <trigger>CIS invocation count reaches 3 for current workflow</trigger>
+        <handling>
+          <step>Throw error: "CIS invocation limit exceeded (max 3 per workflow)"</step>
+          <step>Winston catches error and logs decision for user escalation</step>
+          <step>Queue remaining low-confidence decisions for batch review</step>
+          <step>Workflow continues to completion</step>
+        </handling>
+      </scenario>
+
+      <scenario name="Invalid CIS Response">
+        <trigger>CIS agent returns unparseable or invalid response</trigger>
+        <handling>
+          <step>Log parsing error with response preview</step>
+          <step>Attempt to extract recommendation from text</step>
+          <step>Return partial CISResponse with lower confidence</step>
+          <step>Include note about parsing issues in rationale</step>
+        </handling>
+      </scenario>
+    </error-handling>
+
+    <fallback-strategies>
+      <strategy name="Graceful Degradation">
+        All CIS integration is optional. Workflow must complete successfully even if:
+        - CIS agents are completely unavailable
+        - All CIS invocations fail or timeout
+        - Invocation limit is reached early
+        Winston's autonomous decisions serve as fallback for all scenarios.
+      </strategy>
+
+      <strategy name="Cost Control">
+        Maximum 3 CIS invocations per workflow enforced to prevent cost overruns.
+        Each CIS invocation estimated at ~$0.50-$1.00 (LLM cost).
+        Total CIS cost per workflow capped at ~$3.00.
+      </strategy>
+
+      <strategy name="User Escalation Queue">
+        When invocation limit exceeded, remaining low-confidence decisions queued for user review:
+        - Decision question
+        - Winston's preliminary analysis
+        - Recommended CIS agent
+        - Why CIS was not invoked (limit reached)
+        User can approve Winston's decision or provide guidance.
+      </strategy>
+    </fallback-strategies>
+  </implementation-guidance>
+
+  <dependencies>
+    <dependency type="blocking" story="3-1">
+      <title>Winston Agent Persona Implementation</title>
+      <reason>
+        Winston agent is the integration point for CIS routing. WinstonAgent must exist with
+        assessConfidence() method and ability to integrate CIS responses.
+      </reason>
+      <status>completed</status>
+      <file>backend/src/core/agents/winston-agent.ts</file>
+    </dependency>
+
+    <dependency type="soft" story="3-4">
+      <title>Technical Decision Logger</title>
+      <reason>
+        TechnicalDecisionLogger captures CIS contributions in ADR format. While not blocking,
+        integration with logger ensures CIS decisions are properly documented.
+      </reason>
+      <status>completed</status>
+      <file>backend/src/core/technical-decision-logger.ts</file>
+    </dependency>
+
+    <dependency type="soft" story="2-1">
+      <title>Decision Engine</title>
+      <reason>
+        DecisionEngine provides confidence scoring that triggers CIS invocation. While Winston
+        can assess confidence independently, DecisionEngine provides standardized scoring.
+      </reason>
+      <status>completed</status>
+      <file>backend/src/core/services/decision-engine.ts</file>
+    </dependency>
+
+    <dependency type="external" module="cis-agents">
+      <title>CIS Agents Module</title>
+      <reason>
+        CIS agents (Dr. Quinn, Maya, Sophia, Victor) must exist as persona files in bmad/cis/agents/.
+        These are BMAD module agents with defined personas and communication styles.
+      </reason>
+      <status>available</status>
+      <location>bmad/cis/agents/</location>
+      <agents>
+        <agent>creative-problem-solver.md (Dr. Quinn)</agent>
+        <agent>design-thinking-coach.md (Maya)</agent>
+        <agent>storyteller.md (Sophia)</agent>
+        <agent>innovation-strategist.md (Victor)</agent>
+      </agents>
+    </dependency>
+
+    <dependency type="library" package="@anthropic-ai/sdk">
+      <version>^0.27.0</version>
+      <reason>LLM invocation for CIS agents (if using Anthropic)</reason>
+    </dependency>
+
+    <dependency type="library" package="openai">
+      <version>^4.20.0</version>
+      <reason>LLM invocation for CIS agents (if using OpenAI)</reason>
+    </dependency>
+  </dependencies>
+
+  <test-strategy>
+    <test-level name="unit" coverage-target="70%">
+      <test-file>backend/tests/unit/cis-agent-router.test.ts</test-file>
+      <tests>
+        <test name="Decision type classification">
+          Test classifyDecisionType() with various decision texts:
+          - Technical keywords → 'technical'
+          - UX keywords → 'ux'
+          - Product keywords → 'product'
+          - Innovation keywords → 'innovation'
+          - Mixed keywords → highest match wins
+        </test>
+        <test name="Invocation limit enforcement">
+          Test that router throws error after 3 invocations
+        </test>
+        <test name="Invocation count tracking">
+          Verify count increments correctly and resets work
+        </test>
+        <test name="Agent routing logic">
+          Test routeCISAgent() maps types correctly:
+          - 'technical' → 'Dr. Quinn'
+          - 'ux' → 'Maya'
+          - 'product' → 'Sophia'
+          - 'innovation' → 'Victor'
+        </test>
+      </tests>
+    </test-level>
+
+    <test-level name="integration" coverage-target="80%">
+      <test-file>backend/tests/integration/cis-agent-router.test.ts</test-file>
+      <tests>
+        <test name="Route technical decision to Dr. Quinn">
+          - Create CISDecisionRequest with decisionType='technical'
+          - Mock Dr. Quinn persona loading and LLM invocation
+          - Verify CISResponse contains recommendation, rationale, confidence
+          - Verify framework is problem-solving related
+          - Verify agent='dr-quinn'
+        </test>
+        <test name="Route UX decision to Maya">
+          - Create CISDecisionRequest with decisionType='ux'
+          - Mock Maya persona and LLM invocation
+          - Verify userImpact field present in response
+          - Verify Design Thinking framework used
+          - Verify agent='maya'
+        </test>
+        <test name="Route product decision to Sophia">
+          - Create CISDecisionRequest with decisionType='product'
+          - Mock Sophia persona and LLM invocation
+          - Verify narrativeElements field present
+          - Verify storytelling framework used
+          - Verify agent='sophia'
+        </test>
+        <test name="Route innovation decision to Victor">
+          - Create CISDecisionRequest with decisionType='innovation'
+          - Mock Victor persona and LLM invocation
+          - Verify disruptionPotential field present
+          - Verify innovation strategy framework used
+          - Verify agent='victor'
+        </test>
+        <test name="Error handling - CIS agent unavailable">
+          - Mock persona file not found
+          - Verify fallback response returned
+          - Verify warning logged
+          - Verify workflow continues
+        </test>
+        <test name="Error handling - CIS invocation timeout">
+          - Mock LLM invocation that exceeds 60s
+          - Verify timeout handling
+          - Verify fallback response
+          - Verify timeout logged
+        </test>
+        <test name="Cost control - Max 3 invocations">
+          - Invoke routeDecision 3 times successfully
+          - 4th invocation should throw error
+          - Verify error message mentions limit
+        </test>
+        <test name="Winston integration">
+          - Mock Winston calling routeDecision when confidence &lt; 0.70
+          - Verify CIS response integrated into Winston's decision
+          - Verify TechnicalDecisionLogger called with CIS attribution
+        </test>
+      </tests>
+    </test-level>
+
+    <test-level name="end-to-end" coverage-target="90%">
+      <test-file>backend/tests/e2e/architecture-workflow-cis.test.ts</test-file>
+      <tests>
+        <test name="Full architecture workflow with CIS integration">
+          - Run architecture workflow with PRD
+          - Monitor Winston confidence assessments
+          - Verify CIS agents invoked for low-confidence decisions
+          - Verify architecture.md includes CIS recommendations in Technical Decisions
+          - Verify ADRs note CIS agent contributions
+          - Verify workflow completes successfully
+        </test>
+        <test name="Architecture workflow with all CIS agents unavailable">
+          - Mock all CIS persona files missing
+          - Run architecture workflow
+          - Verify workflow completes with Winston's autonomous decisions
+          - Verify warnings logged for unavailable CIS agents
+        </test>
+      </tests>
+    </test-level>
+
+    <test-frameworks>
+      <framework name="vitest">Unit and integration tests</framework>
+      <framework name="playwright">End-to-end workflow tests</framework>
+    </test-frameworks>
+
+    <mocking-strategy>
+      <mock target="LLM API calls">
+        Use vitest mocks to avoid actual LLM costs during tests. Mock responses should
+        be realistic and include all expected fields (recommendation, rationale, confidence, framework).
+      </mock>
+      <mock target="CIS persona files">
+        Test both successful loading and file-not-found scenarios to ensure error handling works.
+      </mock>
+      <mock target="File system">
+        Mock fs.readFile() for persona loading to control test scenarios.
+      </mock>
+    </mocking-strategy>
+
+    <coverage-requirements>
+      <requirement>Overall test coverage ≥ 80% for CISAgentRouter class</requirement>
+      <requirement>All 4 CIS agent invocation methods covered</requirement>
+      <requirement>All error handling paths tested</requirement>
+      <requirement>Decision type classification logic fully tested</requirement>
+    </coverage-requirements>
+  </test-strategy>
+
+  <risk-analysis>
+    <risk id="RISK-3.8-1" severity="medium" likelihood="medium">
+      <title>CIS Agent Availability</title>
+      <description>
+        CIS agents may be unavailable if persona files are missing or LLM invocations fail
+      </description>
+      <impact>
+        Low-confidence architectural decisions fall back to Winston's autonomous decisions,
+        potentially reducing decision quality for complex strategic choices
+      </impact>
+      <mitigation>
+        <item>Graceful degradation: Workflow always completes with fallback decisions</item>
+        <item>Clear logging of CIS unavailability for debugging</item>
+        <item>Validate CIS persona files exist during deployment</item>
+        <item>Monitor CIS invocation success rate in production</item>
+      </mitigation>
+    </risk>
+
+    <risk id="RISK-3.8-2" severity="low" likelihood="low">
+      <title>CIS Invocation Timeout</title>
+      <description>
+        CIS agent LLM invocations may exceed 60-second timeout, especially with complex decisions
+      </description>
+      <impact>
+        Timeout results in fallback to Winston's decision, similar to unavailability scenario
+      </impact>
+      <mitigation>
+        <item>60-second timeout provides reasonable buffer for LLM processing</item>
+        <item>Timeout handled gracefully with clear logging</item>
+        <item>Monitor timeout frequency to adjust if needed</item>
+        <item>Consider async invocation if timeouts become frequent</item>
+      </mitigation>
+    </risk>
+
+    <risk id="RISK-3.8-3" severity="high" likelihood="medium">
+      <title>Cost Overrun from Excessive CIS Invocations</title>
+      <description>
+        Without limits, workflows could invoke CIS agents excessively, exceeding cost budget
+      </description>
+      <impact>
+        Each CIS invocation costs ~$0.50-$1.00. Unchecked invocations could blow the $10/workflow budget
+      </impact>
+      <mitigation>
+        <item>Hard limit of 3 CIS invocations per workflow enforced in code</item>
+        <item>Limit documented in workflow configuration</item>
+        <item>Additional low-confidence decisions queued for batch user review</item>
+        <item>Monitor actual CIS costs and adjust limits if needed</item>
+      </mitigation>
+    </risk>
+
+    <risk id="RISK-3.8-4" severity="medium" likelihood="low">
+      <title>Invalid CIS Responses</title>
+      <description>
+        CIS agents may return unparseable or incomplete responses due to LLM variability
+      </description>
+      <impact>
+        Router cannot extract recommendation, rationale, or confidence from CIS response
+      </impact>
+      <mitigation>
+        <item>Robust parsing with fallback to text extraction</item>
+        <item>Return partial CISResponse with available fields</item>
+        <item>Log parsing errors for monitoring</item>
+        <item>Lower confidence on partial responses to flag for review</item>
+      </mitigation>
+    </risk>
+
+    <risk id="RISK-3.8-5" severity="low" likelihood="low">
+      <title>Decision Type Misclassification</title>
+      <description>
+        Keyword-based classification may route decisions to wrong CIS agent
+      </description>
+      <impact>
+        Wrong CIS agent provides less relevant recommendations (e.g., Maya for technical decision)
+      </impact>
+      <mitigation>
+        <item>Comprehensive keyword lists for each decision type</item>
+        <item>Multiple keyword matches required for high confidence</item>
+        <item>Default to 'technical' (Dr. Quinn) if unclear - he handles general problem-solving</item>
+        <item>CIS agent responses still valuable even if not optimal match</item>
+        <item>Monitor classification accuracy and refine keywords</item>
+      </mitigation>
+    </risk>
+  </risk-analysis>
+
+  <epic-references>
+    <reference type="tech-spec" file="docs/epics/epic-3-tech-spec.md">
+      <section line="125">CISAgentRouter in Services and Modules table</section>
+      <section line="267-281">CISDecisionRequest interface definition</section>
+      <section line="414-453">CIS Agent Router API specification</section>
+      <section line="534-553">CIS Agent Invocation Points in workflow sequencing</section>
+      <section line="804-812">AC-3.8: CIS Agent Integration acceptance criteria</section>
+    </reference>
+
+    <reference type="story" file="docs/stories/3-8-cis-agent-integration-architecture-decisions.md">
+      <section line="6-9">Story description</section>
+      <section line="11-60">All 7 acceptance criteria</section>
+      <section line="62-137">Tasks and subtasks breakdown</section>
+      <section line="139-150">Dependencies on other stories</section>
+      <section line="152-270">Dev notes with interfaces and examples</section>
+    </reference>
+
+    <reference type="winston-agent" file="backend/src/core/agents/winston-agent.ts">
+      <section line="773-839">Existing CIS integration stubs</section>
+      <section line="234-261">CISDecisionRequest interface</section>
+      <section line="263-281">CISResponse interface</section>
+    </reference>
+
+    <reference type="decision-logger" file="backend/src/core/technical-decision-logger.ts">
+      <section line="8-25">TechnicalDecision interface</section>
+      <section line="48-204">TechnicalDecisionLogger class</section>
+      <section line="179-187">formatDecisionMaker supports 'cis-agent'</section>
+    </reference>
+
+    <reference type="cis-agents" directory="bmad/cis/agents/">
+      <file>creative-problem-solver.md (Dr. Quinn)</file>
+      <file>design-thinking-coach.md (Maya)</file>
+      <file>storyteller.md (Sophia)</file>
+      <file>innovation-strategist.md (Victor)</file>
+      <file>README.md (CIS agents overview)</file>
+    </reference>
+  </epic-references>
+
+  <implementation-notes>
+    <note priority="critical">
+      CIS integration is OPTIONAL for workflow success. All error paths must allow workflow
+      to continue with Winston's autonomous decisions. Never block workflow on CIS failures.
+    </note>
+
+    <note priority="high">
+      Cost control is essential. The 3-invocation limit must be enforced strictly to prevent
+      budget overruns. This is a hard requirement, not a suggestion.
+    </note>
+
+    <note priority="high">
+      CIS personas are loaded from markdown files, not TypeScript classes. Use fs.readFile()
+      to load persona content, then construct LLM prompt with persona as system message.
+    </note>
+
+    <note priority="medium">
+      Decision type classification is keyword-based and probabilistic. Accept that some
+      misclassifications will occur. The system should be robust to these errors.
+    </note>
+
+    <note priority="medium">
+      CIS agent responses are unstructured text that must be parsed. Build robust parsing
+      with multiple fallback strategies for extracting recommendations and confidence.
+    </note>
+
+    <note priority="low">
+      Consider adding telemetry for CIS invocations: success rate, average duration,
+      cost per invocation, classification accuracy. This data informs future improvements.
+    </note>
+
+    <note priority="low">
+      Future enhancement: Allow project-level configuration of CIS invocation limit.
+      Complex Level 3-4 projects might benefit from higher limits.
+    </note>
+  </implementation-notes>
+</story-context>
