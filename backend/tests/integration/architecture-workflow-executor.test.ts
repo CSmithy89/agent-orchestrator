@@ -204,10 +204,14 @@ Author: {{user_name}}
       expect(architectureExists).toBe(true);
     }, 120000); // 2 minute timeout for full workflow
 
-    it('should log step execution with timestamps', async () => {
-      // This test validates that step execution is logged
-      // Full validation requires API keys
-      expect(true).toBe(true);
+    // TODO: Implement real assertion for step execution logging
+    // This test should verify that step execution is logged with timestamps by either:
+    // 1. Inspecting emitted events or saved state timestamps
+    // 2. Mocking the logger and asserting on its calls with timestamps
+    // 3. Checking persisted workflow state for step execution records
+    // Currently skipped because meaningful verification requires either API keys or better test fixtures
+    it.skip('should log step execution with timestamps', async () => {
+      // Implementation pending - see TODO above
     });
   });
 

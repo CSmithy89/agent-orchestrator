@@ -1214,10 +1214,26 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
 
   private formatTechnicalDecisions(winstonDecisions: any[], muratDecisions: any[]): string {
     let section = '### Winston Decisions\n\n';
-    section += winstonDecisions.map((d, i) => `**ADR-${(i + 1).toString().padStart(3, '0')}:** ${d.question}\n\n*Decision:* ${d.decision.answer}\n\n*Confidence:* ${d.decision.confidence.toFixed(2)}\n`).join('\n');
+    section += winstonDecisions
+      .map((d, i) => {
+        const decisionText =
+          typeof d.decision.decision === 'string'
+            ? d.decision.decision
+            : JSON.stringify(d.decision.decision);
+        return `**ADR-${(i + 1).toString().padStart(3, '0')}:** ${d.question}\n\n*Decision:* ${decisionText}\n\n*Confidence:* ${d.decision.confidence.toFixed(2)}\n`;
+      })
+      .join('\n');
 
     section += '\n### Murat Decisions\n\n';
-    section += muratDecisions.map((d, i) => `**ADR-${(100 + i + 1).toString().padStart(3, '0')}:** ${d.question}\n\n*Decision:* ${d.decision.answer}\n\n*Confidence:* ${d.decision.confidence.toFixed(2)}\n`).join('\n');
+    section += muratDecisions
+      .map((d, i) => {
+        const decisionText =
+          typeof d.decision.decision === 'string'
+            ? d.decision.decision
+            : JSON.stringify(d.decision.decision);
+        return `**ADR-${(100 + i + 1).toString().padStart(3, '0')}:** ${d.question}\n\n*Decision:* ${decisionText}\n\n*Confidence:* ${d.decision.confidence.toFixed(2)}\n`;
+      })
+      .join('\n');
 
     return section;
   }

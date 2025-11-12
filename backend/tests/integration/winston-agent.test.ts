@@ -562,6 +562,10 @@ Reliability Requirements:
   // ==========================================
   // Confidence Assessment
   // ==========================================
+  // NOTE: These tests intentionally use real LLM calls (when API keys are available)
+  // to validate integration with actual LLM providers. The skipIf guards ensure
+  // tests are only executed when developers opt-in by providing API keys.
+  // This is by design for integration testing, not a bug.
   describe('Confidence Assessment', () => {
     it.skipIf(!hasApiKeys())('should assess high confidence for clear decision', async () => {
       const winstonConfig: LLMConfig = {
