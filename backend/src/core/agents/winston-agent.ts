@@ -32,9 +32,9 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
 import { LLMFactory } from '../../llm/LLMFactory.js';
-import { LLMClient } from '../../llm/LLMClient.interface.js';
-import { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
-import { DecisionEngine, Decision } from '../services/decision-engine.js';
+import type { LLMClient } from '../../llm/LLMClient.interface.js';
+import type { LLMConfig, InvokeOptions } from '../../types/llm.types.js';
+import { DecisionEngine, type Decision } from '../services/decision-engine.js';
 import { EscalationQueue } from '../services/escalation-queue.js';
 
 // Get __dirname equivalent in ESM

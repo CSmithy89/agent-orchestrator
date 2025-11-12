@@ -412,7 +412,7 @@ Format your response as JSON:
         recommendation: parsed.recommendation || 'No recommendation provided',
         rationale: parsed.rationale || 'No rationale provided',
         framework: parsed.framework || 'Creative Problem Solving',
-        confidence: parsed.confidence || 0.75,
+        confidence: parsed.confidence ?? 0.75,
         alternatives: parsed.alternatives || [],
         timestamp: new Date()
       };
@@ -477,7 +477,7 @@ Format your response as JSON:
         recommendation: parsed.recommendation || 'No recommendation provided',
         rationale: parsed.rationale || 'No rationale provided',
         framework: parsed.framework || 'Design Thinking',
-        confidence: parsed.confidence || 0.75,
+        confidence: parsed.confidence ?? 0.75,
         userImpact: parsed.userImpact || 'Impact assessment not provided',
         alternatives: parsed.alternatives || [],
         timestamp: new Date()
@@ -543,7 +543,7 @@ Format your response as JSON:
         recommendation: parsed.recommendation || 'No recommendation provided',
         rationale: parsed.rationale || 'No rationale provided',
         framework: parsed.framework || 'Storytelling',
-        confidence: parsed.confidence || 0.75,
+        confidence: parsed.confidence ?? 0.75,
         narrativeElements: parsed.narrativeElements || [],
         alternatives: parsed.alternatives || [],
         timestamp: new Date()
@@ -609,7 +609,7 @@ Format your response as JSON:
         recommendation: parsed.recommendation || 'No recommendation provided',
         rationale: parsed.rationale || 'No rationale provided',
         framework: parsed.framework || 'Blue Ocean Strategy',
-        confidence: parsed.confidence || 0.75,
+        confidence: parsed.confidence ?? 0.75,
         disruptionPotential: parsed.disruptionPotential || 'Potential assessment not provided',
         alternatives: parsed.alternatives || [],
         timestamp: new Date()

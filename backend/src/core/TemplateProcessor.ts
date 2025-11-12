@@ -832,8 +832,13 @@ export class TemplateProcessor {
       );
     }
 
-    // Find the end of the start marker line
-    const contentStart = content.indexOf('\n', startIndex) + 1;
+    // Compute position immediately after the start marker, then skip a single optional newline
+    let contentStart = startIndex + startMarker.length;
+    if (content[contentStart] === '\r' && content[contentStart + 1] === '\n') {
+      contentStart += 2;
+    } else if (content[contentStart] === '\n') {
+      contentStart += 1;
+    }
 
     // Build the updated content
     const before = content.substring(0, contentStart);

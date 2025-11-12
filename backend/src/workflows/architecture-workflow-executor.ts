@@ -477,12 +477,15 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
       const config = yaml.load(workflowContent) as any;
 
       // Resolve variables
+      const rawOutputFolder = config.output_folder ?? path.join(this.projectRoot, 'docs');
+      const resolvedOutputFolder = this.resolveWorkflowPath(rawOutputFolder);
+
       this.workflowConfig = {
         name: config.name || 'architecture',
         description: config.description || 'Architecture workflow',
         author: config.author || 'BMad',
         config_source: config.config_source || '',
-        output_folder: config.output_folder || path.join(this.projectRoot, 'docs'),
+        output_folder: resolvedOutputFolder,
         user_name: config.user_name || 'Developer',
         date: new Date().toISOString().split('T')[0] || new Date().toISOString(),
         template: config.template || '',
@@ -540,7 +543,7 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
 
     const workflowId = `architecture-${Date.now()}`;
     const architecturePath = path.join(
-      this.workflowConfig.output_folder,
+      this.resolveWorkflowPath(this.workflowConfig.output_folder),
       'architecture.md'
     );
 
@@ -1459,5 +1462,16 @@ export class ArchitectureWorkflowExecutor extends EventEmitter {
       date: record.timestamp,
       confidence: record.decision.confidence
     }));
+  }
+
+  /**
+   * Resolve workflow path placeholders and relative paths
+   *
+   * @param raw - Raw path from workflow config
+   * @returns Resolved absolute path
+   */
+  private resolveWorkflowPath(raw: string): string {
+    const expanded = raw.replace(/{project-root}/gi, this.projectRoot);
+    return path.isAbsolute(expanded) ? expanded : path.resolve(this.projectRoot, expanded);
   }
 }
