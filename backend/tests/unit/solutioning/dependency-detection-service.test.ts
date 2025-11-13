@@ -8,7 +8,7 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DependencyDetectionService } from '../../../src/solutioning/dependency-detection-service.js';
-import { Story, DependencyEdge } from '../../../src/solutioning/types.js';
+import { Story } from '../../../src/solutioning/types.js';
 
 // Mock modules
 vi.mock('../../../src/solutioning/bob-llm-config.js');

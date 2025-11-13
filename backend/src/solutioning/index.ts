@@ -100,3 +100,7 @@ export { SprintStatusGenerator } from './sprint-status-generator.js';
 // Export Story File Writer (Story 4.8)
 export { StoryFileWriter } from './story-file-writer.js';
 export type { WriteSummary, SolutioningResult as SolutioningResultForWriter } from './story-file-writer.js';
+
+// Export Readiness Gate Validator (Story 4.9)
+export { ReadinessGateValidator } from './readiness-gate-validator.js';
+export type { ReadinessGateResult, CheckResult } from './readiness-gate-validator.js';

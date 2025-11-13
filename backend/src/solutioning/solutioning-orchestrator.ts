@@ -18,6 +18,8 @@ import { StoryValidator } from './story-validator.js';
 import { SprintStatusGenerator } from './sprint-status-generator.js';
 import { StoryFileWriter } from './story-file-writer.js';
 import type { WriteSummary } from './story-file-writer.js';
+import { ReadinessGateValidator } from './readiness-gate-validator.js';
+import type { ReadinessGateResult } from './readiness-gate-validator.js';
 
 /**
  * Solutioning result with epics, stories, dependency graph, and comprehensive metrics
@@ -415,7 +417,100 @@ export class SolutioningOrchestrator {
       };
     }
 
-    // Step 10: Calculate aggregate metrics
+    // Step 10: Readiness Gate Validation
+    console.log('\n[SolutioningOrchestrator] Step 10: Running readiness gate validation...');
+
+    // Build preliminary result for validation
+    const preliminaryResult: SolutioningResult = {
+      epics,
+      stories: allStories,
+      dependencyGraph,
+      metrics: {
+        totalEpics: epics.length,
+        totalStories: allStories.length,
+        avgStoriesPerEpic: epics.length > 0 ? allStories.length / epics.length : 0,
+        executionTimeMs: Date.now() - startTime,
+        llmTokensUsed: 0,
+        epicFormationConfidence: epicFormationMetrics.confidence,
+        avgStoryDecompositionConfidence: 0,
+        lowConfidenceDecisions: [],
+        oversizedStoriesSplit: 0,
+        epicMetrics: [],
+        dependencyDetectionTimeMs,
+        graphGenerationTimeMs,
+        totalDependencies: dependencyDetectionResult.metrics.totalDependencies,
+        hardDependencies: dependencyDetectionResult.metrics.hardDependencies,
+        softDependencies: dependencyDetectionResult.metrics.softDependencies,
+        validationTimeMs,
+        totalStoriesValidated: batchValidationResult.totalStories,
+        avgValidationScore: batchValidationResult.avgScore,
+        totalBlockers,
+        totalWarnings,
+        failedStoryIds
+      }
+    };
+
+    const validator = new ReadinessGateValidator();
+    const readinessResult: ReadinessGateResult = validator.validate(preliminaryResult);
+
+    // Save readiness gate results to JSON file
+    try {
+      const resultsPath = 'docs/readiness-gate-results.json';
+      await fs.writeFile(resultsPath, JSON.stringify(readinessResult, null, 2), 'utf-8');
+      console.log(`[SolutioningOrchestrator] Readiness gate results saved to ${resultsPath}`);
+    } catch (error) {
+      console.error(
+        '[SolutioningOrchestrator] Failed to save readiness gate results:',
+        (error as Error).message
+      );
+    }
+
+    // Log comprehensive readiness gate summary
+    console.log('\n[SolutioningOrchestrator] ═══════════════════════════════════════════');
+    console.log(`[SolutioningOrchestrator] 🏁 READINESS GATE: ${readinessResult.pass ? '✅ PASS' : '❌ FAIL'}`);
+    console.log('[SolutioningOrchestrator] ═══════════════════════════════════════════');
+    console.log(`[SolutioningOrchestrator] Quality Score: ${readinessResult.qualityScore}/100`);
+    console.log(`[SolutioningOrchestrator] Blockers: ${readinessResult.blockers.length}`);
+    console.log(`[SolutioningOrchestrator] Warnings: ${readinessResult.warnings.length}`);
+    console.log(`[SolutioningOrchestrator] Recommendations: ${readinessResult.recommendations.length}`);
+    console.log('[SolutioningOrchestrator] ───────────────────────────────────────────');
+    console.log('[SolutioningOrchestrator] Check Results:');
+    console.log(`[SolutioningOrchestrator]   Story Completeness: ${readinessResult.checks.storyCompleteness.score}/100 ${readinessResult.checks.storyCompleteness.pass ? '✅' : '❌'}`);
+    console.log(`[SolutioningOrchestrator]   Dependency Validity: ${readinessResult.checks.dependencyValidity.score}/100 ${readinessResult.checks.dependencyValidity.pass ? '✅' : '❌'}`);
+    console.log(`[SolutioningOrchestrator]   Story Sizing: ${readinessResult.checks.storySizing.score}/100 ${readinessResult.checks.storySizing.pass ? '✅' : '❌'}`);
+    console.log(`[SolutioningOrchestrator]   Test Strategy: ${readinessResult.checks.testStrategy.score}/100 ${readinessResult.checks.testStrategy.pass ? '✅' : '❌'}`);
+    console.log(`[SolutioningOrchestrator]   Critical Path: ${readinessResult.checks.criticalPathAnalysis.score}/100 ${readinessResult.checks.criticalPathAnalysis.pass ? '✅' : '❌'}`);
+
+    if (!readinessResult.pass) {
+      console.log('[SolutioningOrchestrator] ───────────────────────────────────────────');
+      console.log('[SolutioningOrchestrator] ⚠️  BLOCKERS (must be resolved):');
+      readinessResult.blockers.forEach((blocker, idx) => {
+        console.log(`[SolutioningOrchestrator]   ${idx + 1}. ${blocker}`);
+      });
+    }
+
+    if (readinessResult.warnings.length > 0) {
+      console.log('[SolutioningOrchestrator] ───────────────────────────────────────────');
+      console.log('[SolutioningOrchestrator] ⚡ WARNINGS (non-blocking):');
+      readinessResult.warnings.slice(0, 5).forEach((warning, idx) => {
+        console.log(`[SolutioningOrchestrator]   ${idx + 1}. ${warning}`);
+      });
+      if (readinessResult.warnings.length > 5) {
+        console.log(`[SolutioningOrchestrator]   ... and ${readinessResult.warnings.length - 5} more`);
+      }
+    }
+
+    if (readinessResult.recommendations.length > 0) {
+      console.log('[SolutioningOrchestrator] ───────────────────────────────────────────');
+      console.log('[SolutioningOrchestrator] 💡 RECOMMENDATIONS:');
+      readinessResult.recommendations.forEach((rec, idx) => {
+        console.log(`[SolutioningOrchestrator]   ${idx + 1}. ${rec}`);
+      });
+    }
+
+    console.log('[SolutioningOrchestrator] ═══════════════════════════════════════════\n');
+
+    // Step 11: Calculate aggregate metrics
     const executionTimeMs = Date.now() - startTime;
     const avgStoryDecompositionConfidence = epics.length > 0
       ? totalStoryDecompositionConfidence / epics.length
