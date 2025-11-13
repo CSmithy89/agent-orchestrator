@@ -594,7 +594,7 @@ export class CodeImplementationPipeline {
    * @param context Story context
    * @returns Git commit result
    */
-  private async createCommit(
+  private async _createCommit(
     implementation: CodeImplementation,
     context: StoryContext
   ): Promise<GitCommitResult> {

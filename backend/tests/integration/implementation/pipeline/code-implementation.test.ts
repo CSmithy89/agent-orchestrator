@@ -11,7 +11,6 @@ import * as path from 'path';
 import * as os from 'os';
 import { execFile } from 'child_process';
 import { promisify } from 'util';
-import { CodeImplementationPipeline } from '../../../../src/implementation/pipeline/CodeImplementationPipeline.js';
 import {
   applyFileChanges,
   readFile,
