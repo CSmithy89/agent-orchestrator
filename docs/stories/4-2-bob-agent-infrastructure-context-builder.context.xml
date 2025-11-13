@@ -1,0 +1,608 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>2</storyId>
+    <title>Bob Agent Infrastructure &amp; Context Builder</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-2-bob-agent-infrastructure-context-builder.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>an agent system developer</asA>
+    <iWant>Bob agent persona configured with LLM assignments and context building capabilities</iWant>
+    <soThat>solutioning stories can invoke Bob agent with proper context for epic formation, story decomposition, and dependency detection</soThat>
+    <tasks>
+### Task 1: Create Bob Persona Loading Infrastructure (AC: 1)
+- Create `backend/src/solutioning/bob-agent-loader.ts` file
+- Implement `loadBobPersona()` function to read `bmad/bmm/agents/bob.md`
+- Parse persona markdown into structured format (role, capabilities, patterns)
+- Add error handling for missing or malformed persona file
+- Cache persona content to avoid repeated file reads
+- Unit test with fixture persona file
+
+### Task 2: Implement LLM Assignment Configuration (AC: 2)
+- Create `backend/src/solutioning/bob-llm-config.ts` file
+- Implement `loadBobLLMConfig()` function to read `.bmad/project-config.yaml`
+- Parse YAML to extract agents.bob configuration (provider, model, temperature, max_tokens)
+- Default to Claude Haiku 3.5 if no configuration found
+- Support multi-provider configuration: Anthropic, OpenAI, Zhipu, Google
+- Validate LLM configuration against Epic 1 Story 1.3 patterns
+- Return LLM configuration object for AgentPool registration
+- Unit test with multiple provider configurations
+
+### Task 3: Implement SolutioningAgentContextBuilder Class (AC: 3)
+- Create `backend/src/solutioning/context-builder.ts` file
+- Define `AgentContext` interface with fields: prd, architecture, storyPatterns, constraints
+- Implement `SolutioningAgentContextBuilder` class
+- Method: `buildBobContext(prd: string, architecture: string): AgentContext`
+  - Extract functional requirements sections from PRD markdown
+  - Extract architecture overview and constraints from architecture markdown
+  - Load BMAD story patterns from internal knowledge base
+  - Calculate token count and prune PRD if &gt;30k tokens
+  - Return AgentContext with optimized content
+- Add constraints to context: storyMaxWords (500), acceptanceCriteriaMin (8), acceptanceCriteriaMax (12), maxContextTokens (200000)
+- Unit test with large PRD (verify token optimization)
+- Unit test with architecture document (verify relevant extraction)
+
+### Task 4: Implement Agent Invocation Prompt Templates (AC: 4)
+- Add method: `bobEpicFormationPrompt(context: AgentContext): string`
+- Add method: `bobStoryDecompositionPrompt(context: AgentContext, epic: Epic): string`
+- Add method: `bobDependencyDetectionPrompt(context: AgentContext, stories: Story[]): string`
+- All prompts include confidence scoring instruction
+- Unit test all three prompt methods with mock context
+
+### Task 5: Integration with Story 4.1 Types (AC: 5)
+- Import Epic, Story, TechnicalNotes interfaces from `src/solutioning/types.ts`
+- Use Epic interface in `bobStoryDecompositionPrompt()` method signature
+- Use Story interface in `bobDependencyDetectionPrompt()` method signature
+- Define AgentContext interface compatible with Story 4.1 constraints
+- Verify generated prompts will produce JSON responses matching Story 4.1 schemas
+
+### Task 6: Register Bob Agent in AgentPool (AC: 6)
+- Create `backend/src/solutioning/bob-agent-factory.ts` file
+- Implement `registerBobAgent(agentPool: AgentPool)` function
+- Load Bob persona using `loadBobPersona()` from Task 1
+- Load LLM configuration using `loadBobLLMConfig()` from Task 2
+- Call `agentPool.registerAgent("bob", personaContent, llmConfig)`
+- Set up agent lifecycle callbacks (initialization, context setting, cleanup)
+- Integration test: Register Bob agent and verify it appears in AgentPool
+
+### Task 7: Define Agent Action Methods (AC: 7)
+- In `bob-agent-factory.ts`, define action method signatures:
+  - `formEpics(context: AgentContext): Promise&lt;Epic[]&gt;`
+  - `decomposeIntoStories(context: AgentContext, epic: Epic): Promise&lt;Story[]&gt;`
+  - `detectDependencies(context: AgentContext, stories: Story[]): Promise&lt;DependencyEdge[]&gt;`
+- Import DependencyEdge from `src/solutioning/types.ts`
+- For this story: Methods return stub implementations or throw "Not yet implemented" errors
+- Add JSDoc comments explaining purpose and expected behavior
+
+### Task 8: Implement Story Sizing Constraints (AC: 8)
+- Add story sizing validation to prompt templates
+- Include in prompts: "Story description must be &lt;500 words"
+- Define context constraints in AgentContext interface: maxStoryWords (500), maxEstimatedHours (2), maxContextTokens (200000)
+- Add token estimation logic to verify story + context fits within 200k tokens
+
+### Task 9: Implement Acceptance Criteria Generation Guidelines (AC: 9)
+- Update `bobStoryDecompositionPrompt()` to emphasize clear AC generation
+- Include in prompt: "Generate 8-12 testable, atomic acceptance criteria per story"
+- Include AC format examples: "Given... When... Then..." or numbered checklist
+- Provide example story with well-formed acceptance criteria in prompt
+
+### Task 10: Implement Confidence Scoring (AC: 10)
+- Add confidence scoring to all prompt templates
+- Include in prompts: "Include confidence score (0.0-1.0) in response metadata for each decision"
+- Define confidence threshold: 0.75 for autonomous execution
+- Document escalation behavior: Low confidence decisions flag for human review
+
+### Task 11: Write Unit Tests (AC: 11)
+- Create `backend/tests/unit/solutioning/bob-agent-loader.test.ts`
+- Create `backend/tests/unit/solutioning/bob-llm-config.test.ts`
+- Create `backend/tests/unit/solutioning/context-builder.test.ts`
+- Create `backend/tests/unit/solutioning/bob-agent-factory.test.ts`
+- Test all three prompt generation methods
+- Use Vitest framework (project standard)
+- Target: 80%+ test coverage for all new code
+
+### Task 12: Verify Infrastructure-Only Scope (AC: 12)
+- Review all implemented code to ensure NO LLM API calls
+- Verify Bob agent methods are stubs or throw "Not yet implemented"
+- Verify no epic or story generation occurs (only infrastructure setup)
+- Document in README: "Agent invocation and content generation in Story 4.4 and 4.5"
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. **Bob Persona Loading**
+   - Bob persona loaded from `bmad/bmm/agents/bob.md` with complete context
+   - Persona includes role definition, capabilities, decision-making approach, and BMAD patterns knowledge
+   - Persona content parsed and made available to agent initialization
+
+2. **LLM Assignment Configuration**
+   - LLM assignments read from `.bmad/project-config.yaml` with multi-provider support
+   - Bob agent configured to use Claude Haiku 3.5 (recommended for cost-effective formulaic story decomposition)
+   - Support for alternative providers: Anthropic (Claude), OpenAI (GPT-4), Zhipu (GLM), Google (Gemini)
+   - LLM assignment follows Epic 1 Story 1.3 configuration patterns
+   - Provider selection via LLMFactory pattern from Epic 1
+
+3. **SolutioningAgentContextBuilder Class Implementation**
+   - `buildBobContext(prd: string, architecture: string): AgentContext` method implemented
+   - Context includes: PRD functional requirements, architecture overview, BMAD story patterns
+   - Token optimization: Prune PRD to relevant sections (&lt;30k tokens for efficiency)
+   - Extract only functional requirements sections from PRD (exclude introduction, glossary, appendices)
+   - Extract architecture overview, component boundaries, and constraints (exclude detailed API specs)
+   - Load BMAD story patterns from internal knowledge base
+
+4. **Agent Invocation Prompt Templates**
+   - `bobEpicFormationPrompt(context: AgentContext): string` - Generates prompt for epic formation from PRD
+   - `bobStoryDecompositionPrompt(context: AgentContext, epic: Epic): string` - Generates prompt for story decomposition
+   - `bobDependencyDetectionPrompt(context: AgentContext, stories: Story[]): string` - Generates prompt for dependency analysis
+   - All prompts include context constraints: storyMaxWords (500), acceptanceCriteriaMin (8), acceptanceCriteriaMax (12), maxContextTokens (200000)
+   - Prompts emphasize single responsibility, vertical slicing, and clear acceptance criteria
+
+5. **Integration with Story 4.1 Types**
+   - Epic and Story interfaces from `src/solutioning/types.ts` used in method signatures
+   - TechnicalNotes interface used for implementation guidance in generated stories
+   - AgentContext type defined with fields: prd, architecture, storyPatterns, constraints
+   - All generated stories conform to Story schema validation from Story 4.1
+
+6. **Agent Factory Registration**
+   - Bob agent registered in AgentPool from Epic 1
+   - Registration includes agent name ("bob"), persona file path, and LLM configuration
+   - Agent factory method: `agentPool.createAgent("bob", llmModel, context)`
+   - Agent lifecycle managed by AgentPool (initialization, context setting, cleanup)
+
+7. **Agent Action Methods Definition**
+   - `formEpics()` method signature defined for epic generation from PRD
+   - `decomposeIntoStories(epic: Epic)` method signature defined for story generation
+   - `detectDependencies(stories: Story[])` method signature defined for dependency analysis
+   - Methods return properly typed results: Epic[], Story[], DependencyEdge[]
+   - All methods configured for Bob agent invocation (implementation in Story 4.4 and 4.5)
+
+8. **Story Sizing for Agent Context Windows**
+   - Generated stories constrained to &lt;500 words for single agent session compatibility
+   - Stories designed to fit within 200k token context window with full context (PRD, architecture, epic)
+   - Story descriptions follow format: "As a..., I want..., So that..." (&lt;500 words total)
+   - Technical notes kept concise with bullet points for affected files, endpoints, data structures
+
+9. **Clear Acceptance Criteria Generation**
+   - Prompt templates emphasize 8-12 testable, atomic acceptance criteria per story
+   - Acceptance criteria written in format: "Given... When... Then..." or numbered checklist
+   - Each AC maps to specific functionality or constraint
+   - ACs are measurable and verifiable by automated tests
+
+10. **Autonomous Decision-Making with Confidence Scoring**
+    - Confidence threshold: 0.75 for autonomous story boundary decisions
+    - Decisions below threshold escalate to human review
+    - Confidence scoring integrated into prompt templates
+    - Agent responses include confidence score in metadata
+
+11. **Unit Tests for Context Building and Prompt Generation**
+    - Test `buildBobContext()` with fixture PRD and architecture documents
+    - Verify token optimization reduces PRD to &lt;30k tokens
+    - Test all three prompt generation methods with mock context
+    - Verify prompt structure includes all required context fields
+    - Test LLM configuration parsing from project-config.yaml
+    - Use Vitest framework (project standard, not Jest)
+    - Target: 80%+ test coverage
+
+12. **Infrastructure Only - No Agent Invocation**
+    - This story creates infrastructure and configuration only
+    - Does NOT invoke Bob agent or generate actual epics/stories
+    - Does NOT call LLM APIs (agent invocation in Story 4.4 and 4.5)
+    - Provides reusable context builder and prompt templates for downstream stories
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 4 Technical Specification -->
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4: Solutioning Phase Automation - Technical Specification</title>
+        <section>Overview and Data Models</section>
+        <snippet>Epic 4 implements the Solutioning Phase Automation, which automatically decomposes PRD requirements into implementable epics and stories. The system employs a foundation-first architecture that enables parallel development through git worktrees. Bob (Scrum Master) agent performs intelligent story decomposition with confidence-based decision making.</snippet>
+      </doc>
+
+      <!-- Architecture Document -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>Microkernel Architecture</section>
+        <snippet>The system follows a Microkernel Architecture with core kernel components (AgentPool, LLMFactory, WorkflowEngine) and workflow plugins. Bob agent is registered as a plugin in AgentPool and uses LLMFactory for multi-provider LLM support.</snippet>
+      </doc>
+
+      <!-- Epic Breakdown -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epic Breakdown</title>
+        <section>Epic 4 - Story 4.2</section>
+        <snippet>Story 4.2 establishes Bob agent infrastructure including persona loading, LLM configuration, context building, and prompt templates. This is foundation-phase story that enables subsequent stories (4.4, 4.5) to invoke Bob for epic formation and story decomposition.</snippet>
+      </doc>
+
+      <!-- PRD Document -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Functional Requirements</section>
+        <snippet>PRD defines functional requirements that will be decomposed into epics and stories by Bob agent. Context builder must extract functional requirements sections while pruning non-functional content (introduction, glossary, appendices) to optimize token usage.</snippet>
+      </doc>
+
+      <!-- Story 4.1 - Completed Foundation -->
+      <doc>
+        <path>docs/stories/4-1-solutioning-data-models-story-schema.md</path>
+        <title>Story 4.1: Solutioning Data Models &amp; Story Schema</title>
+        <section>Completion Notes and Learnings</section>
+        <snippet>Story 4.1 completed with 64 tests passing at 99%+ coverage. Provides Epic, Story, DependencyEdge, TechnicalNotes, ValidationResult interfaces in backend/src/solutioning/types.ts. StoryTemplateBuilder class available for story markdown generation. Uses Vitest framework (not Jest) as project standard.</snippet>
+      </doc>
+
+      <!-- Testing Standards -->
+      <doc>
+        <path>backend/vitest.config.ts</path>
+        <title>Vitest Configuration</title>
+        <section>Testing Standards</section>
+        <snippet>Project uses Vitest framework with v8 coverage provider. Test files in tests/**/*.test.ts. Target coverage: 75% (temporarily lowered from 80% during CI fixes). Use forks pool for parallel execution. Integration tests have 30000ms timeout vs 5000ms for unit tests.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Story 4.1 Foundation Types -->
+      <artifact>
+        <path>backend/src/solutioning/types.ts</path>
+        <kind>types</kind>
+        <symbol>Epic, Story, DependencyEdge, TechnicalNotes, ValidationResult</symbol>
+        <lines>1-446</lines>
+        <reason>Core type definitions from Story 4.1 that Bob agent context builder must use for type-safe epic/story generation. Epic interface (id, title, goal, value_proposition, stories), Story interface (id, epic, title, description, acceptance_criteria, dependencies, status, technical_notes), DependencyEdge (from, to, type, blocking).</reason>
+      </artifact>
+
+      <!-- AgentPool from Epic 1 -->
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>class</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-660</lines>
+        <reason>AgentPool manages agent lifecycle and provides createAgent() API for Bob agent registration. Key methods: createAgent(name, context), invokeAgent(agentId, prompt), destroyAgent(agentId). Bob agent factory must integrate with this existing infrastructure. Tracks costs, supports queueing, health checks, and event emissions.</reason>
+      </artifact>
+
+      <!-- LLMFactory from Epic 1 -->
+      <artifact>
+        <path>backend/src/llm/LLMFactory.ts</path>
+        <kind>class</kind>
+        <symbol>LLMFactory</symbol>
+        <lines>1-145</lines>
+        <reason>LLMFactory creates LLM clients for multiple providers (Anthropic, OpenAI, Zhipu, Google). Bob LLM config loader must use LLMFactory patterns for multi-provider support. Key methods: registerProvider(name, provider), createClient(config), validateModel(model, provider).</reason>
+      </artifact>
+
+      <!-- Existing Agent Pattern - Mary -->
+      <artifact>
+        <path>backend/src/core/agents/mary-agent.ts</path>
+        <kind>class</kind>
+        <symbol>MaryAgent</symbol>
+        <lines>107-200</lines>
+        <reason>Example agent implementation showing persona loading, LLM client integration, and structured prompt generation. Bob agent loader can follow similar patterns for persona loading from bmad/bmm/agents/bob.md and context building.</reason>
+      </artifact>
+
+      <!-- Existing Agent Pattern - Winston -->
+      <artifact>
+        <path>backend/src/core/agents/winston-agent.ts</path>
+        <kind>class</kind>
+        <symbol>WinstonAgent</symbol>
+        <lines>319-450</lines>
+        <reason>Winston agent demonstrates advanced prompt construction with context building and structured output parsing. Bob context builder should use similar patterns for epic formation and story decomposition prompts.</reason>
+      </artifact>
+
+      <!-- Project Config -->
+      <artifact>
+        <path>.bmad/project-config.yaml</path>
+        <kind>config</kind>
+        <symbol>agent_assignments</symbol>
+        <lines>38-98</lines>
+        <reason>Project config defines per-agent LLM assignments. Bob agent is configured with GLM-4-Plus (Zhipu provider) for cost-effective story decomposition. LLM config loader must parse YAML to extract agents.bob section (provider, model, api_key, base_url).</reason>
+      </artifact>
+
+      <!-- StoryTemplateBuilder from Story 4.1 -->
+      <artifact>
+        <path>backend/src/solutioning/story-template-builder.ts</path>
+        <kind>class</kind>
+        <symbol>StoryTemplateBuilder</symbol>
+        <lines>1-386</lines>
+        <reason>StoryTemplateBuilder provides buildFromTemplate(), validateStoryFormat(), toMarkdown(), toYAMLFrontmatter() methods. Bob agent factory can reference this for understanding story structure and validation patterns, though actual story file writing happens in Story 4.8.</reason>
+      </artifact>
+
+      <!-- Solutioning Module Index -->
+      <artifact>
+        <path>backend/src/solutioning/index.ts</path>
+        <kind>barrel-export</kind>
+        <symbol>Epic, Story, DependencyEdge, TechnicalNotes, ValidationResult</symbol>
+        <lines>1-47</lines>
+        <reason>Barrel export for clean imports. Bob agent infrastructure should add new exports: BobAgentLoader, BobLLMConfig, SolutioningAgentContextBuilder, registerBobAgent to this file for use by downstream stories (4.4, 4.5).</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <!-- Core Node.js Dependencies -->
+      <npm>
+        <package>typescript</package>
+        <version>^5.3.0</version>
+        <usage>TypeScript language support for type-safe development. AgentContext, Epic, Story interfaces are TypeScript types.</usage>
+      </npm>
+
+      <!-- Testing Framework -->
+      <npm>
+        <package>vitest</package>
+        <version>^1.0.0</version>
+        <usage>Testing framework (project standard). Unit tests for bob-agent-loader, bob-llm-config, context-builder, bob-agent-factory must use Vitest (not Jest). AC #11 requires 80%+ coverage.</usage>
+      </npm>
+
+      <!-- YAML Parsing -->
+      <npm>
+        <package>js-yaml</package>
+        <version>^4.1.0</version>
+        <usage>YAML parsing for reading .bmad/project-config.yaml. LLM config loader uses js-yaml.load() to extract agents.bob configuration (provider, model, temperature, max_tokens).</usage>
+      </npm>
+
+      <!-- JSON Schema Validation -->
+      <npm>
+        <package>ajv</package>
+        <version>^8.17.1</version>
+        <usage>JSON schema validation from Story 4.1. Bob agent responses (Epic[], Story[]) must validate against schemas defined in backend/src/solutioning/schemas.ts.</usage>
+      </npm>
+
+      <!-- Anthropic SDK -->
+      <npm>
+        <package>@anthropic-ai/sdk</package>
+        <version>^0.68.0</version>
+        <usage>Anthropic Claude API client. Bob agent can use Claude Haiku 3.5 (default) or Claude Sonnet via LLMFactory. No direct imports in Story 4.2 (infrastructure only, no LLM invocation).</usage>
+      </npm>
+
+      <!-- OpenAI SDK -->
+      <npm>
+        <package>openai</package>
+        <version>^6.2.0</version>
+        <usage>OpenAI API client for GPT models. LLMFactory supports OpenAI as alternative provider for Bob agent if configured in project-config.yaml.</usage>
+      </npm>
+
+      <!-- File System -->
+      <npm>
+        <package>fs/promises</package>
+        <version>node:builtin</version>
+        <usage>Node.js file system promises API. Bob persona loader uses fs.readFile() to load bmad/bmm/agents/bob.md. Error handling required for missing persona file (AC #1).</usage>
+      </npm>
+
+      <!-- Path Utilities -->
+      <npm>
+        <package>path</package>
+        <version>node:builtin</version>
+        <usage>Node.js path utilities for resolving bmad/bmm/agents/bob.md and .bmad/project-config.yaml paths. Use path.join(process.cwd(), ...) for absolute path resolution.</usage>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <!-- Development Constraints from Story AC -->
+    <constraint>
+      <category>scope</category>
+      <rule>Infrastructure only - NO LLM API calls in this story</rule>
+      <rationale>Story 4.2 creates infrastructure and configuration. Actual Bob agent invocation (formEpics, decomposeIntoStories, detectDependencies) happens in Story 4.4 and 4.5. Methods defined in this story must be stubs or throw "Not yet implemented" errors.</rationale>
+    </constraint>
+
+    <constraint>
+      <category>token-optimization</category>
+      <rule>PRD context must be pruned to &lt;30k tokens</rule>
+      <rationale>Bob agent context optimization requirement (AC #3). Extract only functional requirements sections from PRD, exclude introduction, glossary, appendices. Prevents context window overflow and reduces LLM invocation costs.</rationale>
+    </constraint>
+
+    <constraint>
+      <category>story-sizing</category>
+      <rule>Generated stories must be &lt;500 words and fit in 200k context</rule>
+      <rationale>Stories must be sized for autonomous agent implementation (AC #8). Prompt templates must include constraints: storyMaxWords (500), maxEstimatedHours (2), maxContextTokens (200000).</rationale>
+    </constraint>
+
+    <constraint>
+      <category>acceptance-criteria</category>
+      <rule>Prompt templates must emphasize 8-12 testable acceptance criteria</rule>
+      <rationale>Clear acceptance criteria generation requirement (AC #9). Prompts must include AC format examples ("Given... When... Then...") and emphasize atomic, measurable criteria.</rationale>
+    </constraint>
+
+    <constraint>
+      <category>confidence-scoring</category>
+      <rule>All prompts must include confidence scoring (threshold: 0.75)</rule>
+      <rationale>Autonomous decision-making requirement (AC #10). Bob agent responses must include confidence score (0.0-1.0) in metadata. Decisions below 0.75 escalate to human review.</rationale>
+    </constraint>
+
+    <constraint>
+      <category>testing</category>
+      <rule>Use Vitest framework (NOT Jest), target 80%+ coverage</rule>
+      <rationale>Project testing standard from Story 4.1 learnings. Test files: backend/tests/unit/solutioning/*.test.ts. Use vi.mock() for mocking, expect() for assertions. All unit tests must pass before story completion.</rationale>
+    </constraint>
+
+    <constraint>
+      <category>multi-provider-support</category>
+      <rule>LLM config must support Anthropic, OpenAI, Zhipu, Google providers</rule>
+      <rationale>LLMFactory pattern from Epic 1 Story 1.3 (AC #2). Bob agent can use any provider based on project-config.yaml. Default to Claude Haiku 3.5 if no config found. Validate provider/model via LLMFactory.validateModel().</rationale>
+    </constraint>
+
+    <constraint>
+      <category>type-safety</category>
+      <rule>Must use Epic, Story, DependencyEdge types from Story 4.1</rule>
+      <rationale>Integration with Story 4.1 types requirement (AC #5). Import from backend/src/solutioning/types.ts. All method signatures must use these interfaces for type-safe epic/story generation.</rationale>
+    </constraint>
+
+    <constraint>
+      <category>persona-loading</category>
+      <rule>Bob persona must be loaded from bmad/bmm/agents/bob.md</rule>
+      <rationale>AC #1 requirement. Persona file does not exist yet - will be created as part of this story. Error handling required for missing/malformed persona file. Cache persona content to avoid repeated file reads.</rationale>
+    </constraint>
+  </constraints>
+
+  <interfaces>
+    <!-- AgentPool API from Epic 1 -->
+    <interface>
+      <name>AgentPool.createAgent</name>
+      <kind>method</kind>
+      <signature>async createAgent(name: string, context: AgentContext): Promise&lt;Agent&gt;</signature>
+      <path>backend/src/core/AgentPool.ts</path>
+      <description>Creates agent with specified configuration. Bob agent factory calls this with name="bob", context with PRD/architecture/patterns. AgentPool loads persona from bmad/bmm/agents/bob.md and creates LLM client via LLMFactory.</description>
+    </interface>
+
+    <interface>
+      <name>AgentPool.invokeAgent</name>
+      <kind>method</kind>
+      <signature>async invokeAgent(agentId: string, prompt: string): Promise&lt;string&gt;</signature>
+      <path>backend/src/core/AgentPool.ts</path>
+      <description>Invokes agent with prompt and returns response. Used by Story 4.4 and 4.5 to invoke Bob's formEpics(), decomposeIntoStories(), detectDependencies() methods. Not used in Story 4.2 (infrastructure only).</description>
+    </interface>
+
+    <!-- LLMFactory API from Epic 1 -->
+    <interface>
+      <name>LLMFactory.createClient</name>
+      <kind>method</kind>
+      <signature>async createClient(config: LLMConfig): Promise&lt;LLMClient&gt;</signature>
+      <path>backend/src/llm/LLMFactory.ts</path>
+      <description>Creates LLM client for specified provider. Bob LLM config loader parses project-config.yaml to extract LLMConfig (provider, model, api_key, base_url) and passes to LLMFactory.</description>
+    </interface>
+
+    <interface>
+      <name>LLMFactory.validateModel</name>
+      <kind>method</kind>
+      <signature>validateModel(model: string, providerName: string): boolean</signature>
+      <path>backend/src/llm/LLMFactory.ts</path>
+      <description>Validates if model is supported by provider. Bob LLM config loader should validate parsed model/provider combination before creating agent.</description>
+    </interface>
+
+    <!-- Story 4.1 Type Interfaces -->
+    <interface>
+      <name>Epic</name>
+      <kind>interface</kind>
+      <signature>interface Epic { id: string; title: string; goal: string; value_proposition: string; stories: Story[]; business_value: string; estimated_duration: string; }</signature>
+      <path>backend/src/solutioning/types.ts</path>
+      <description>Epic interface from Story 4.1. Used in bobStoryDecompositionPrompt() method signature. Prompt template generates Epic[] from PRD functional requirements.</description>
+    </interface>
+
+    <interface>
+      <name>Story</name>
+      <kind>interface</kind>
+      <signature>interface Story { id: string; epic: string; title: string; description: string; acceptance_criteria: string[]; dependencies: string[]; status: StoryStatus; technical_notes: TechnicalNotes; estimated_hours: number; complexity: Complexity; }</signature>
+      <path>backend/src/solutioning/types.ts</path>
+      <description>Story interface from Story 4.1. Used in bobDependencyDetectionPrompt() and as return type for decomposeIntoStories(). Prompt templates must generate stories conforming to this schema.</description>
+    </interface>
+
+    <interface>
+      <name>DependencyEdge</name>
+      <kind>interface</kind>
+      <signature>interface DependencyEdge { from: string; to: string; type: 'hard' | 'soft'; blocking: boolean; }</signature>
+      <path>backend/src/solutioning/types.ts</path>
+      <description>DependencyEdge interface from Story 4.1. Used as return type for detectDependencies() method. Prompt template generates dependency edges with hard/soft types.</description>
+    </interface>
+
+    <!-- New Interfaces to Define in Story 4.2 -->
+    <interface>
+      <name>AgentContext</name>
+      <kind>interface</kind>
+      <signature>interface AgentContext { prd: string; architecture: string; storyPatterns: string; constraints: { storyMaxWords: number; acceptanceCriteriaMin: number; acceptanceCriteriaMax: number; maxContextTokens: number; }; }</signature>
+      <path>backend/src/solutioning/context-builder.ts</path>
+      <description>New interface to define in Story 4.2 (AC #3, #5). Holds context for Bob agent including pruned PRD, architecture overview, BMAD patterns, and story sizing constraints.</description>
+    </interface>
+
+    <interface>
+      <name>SolutioningAgentContextBuilder.buildBobContext</name>
+      <kind>method</kind>
+      <signature>buildBobContext(prd: string, architecture: string): AgentContext</signature>
+      <path>backend/src/solutioning/context-builder.ts</path>
+      <description>New method to implement in Story 4.2 (AC #3). Extracts functional requirements from PRD, architecture overview, loads BMAD patterns, optimizes to &lt;30k tokens, returns AgentContext.</description>
+    </interface>
+
+    <interface>
+      <name>SolutioningAgentContextBuilder.bobEpicFormationPrompt</name>
+      <kind>method</kind>
+      <signature>bobEpicFormationPrompt(context: AgentContext): string</signature>
+      <path>backend/src/solutioning/context-builder.ts</path>
+      <description>New method to implement in Story 4.2 (AC #4). Generates prompt for Bob agent to form 3-8 epics from PRD functional requirements with business value naming.</description>
+    </interface>
+
+    <interface>
+      <name>SolutioningAgentContextBuilder.bobStoryDecompositionPrompt</name>
+      <kind>method</kind>
+      <signature>bobStoryDecompositionPrompt(context: AgentContext, epic: Epic): string</signature>
+      <path>backend/src/solutioning/context-builder.ts</path>
+      <description>New method to implement in Story 4.2 (AC #4). Generates prompt for Bob agent to decompose epic into 3-10 vertical-slice stories with 8-12 acceptance criteria each.</description>
+    </interface>
+
+    <interface>
+      <name>SolutioningAgentContextBuilder.bobDependencyDetectionPrompt</name>
+      <kind>method</kind>
+      <signature>bobDependencyDetectionPrompt(context: AgentContext, stories: Story[]): string</signature>
+      <path>backend/src/solutioning/context-builder.ts</path>
+      <description>New method to implement in Story 4.2 (AC #4). Generates prompt for Bob agent to detect technical dependencies between stories (data models before logic, auth before protected features, API before frontend).</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Project uses Vitest testing framework (NOT Jest) as established in Story 4.1. Test files located in backend/tests/unit/solutioning/ with .test.ts extension. Use vi.mock() for mocking fs/promises, js-yaml, and other modules. Target 80%+ statement coverage for all new code. Unit tests should be fast (&lt;5000ms timeout), integration tests can use 30000ms timeout if needed. Coverage reports generated with vitest run --coverage using v8 provider.
+
+Mock patterns from existing tests:
+- File system: vi.mock('fs/promises') with mockReturnValue for readFile()
+- YAML parsing: vi.mock('js-yaml') with mock load() implementation
+- AgentPool: Create mock with createAgent(), invokeAgent(), destroyAgent() stubs
+- LLMFactory: Mock createClient() to return mock LLMClient
+
+Test structure:
+- describe() blocks for grouping related tests
+- beforeEach() for test setup and mock reset
+- afterEach() for cleanup
+- expect() assertions with matchers: toBe(), toEqual(), toThrow(), toContain()
+    </standards>
+
+    <locations>
+      <location>backend/tests/unit/solutioning/bob-agent-loader.test.ts</location>
+      <location>backend/tests/unit/solutioning/bob-llm-config.test.ts</location>
+      <location>backend/tests/unit/solutioning/context-builder.test.ts</location>
+      <location>backend/tests/unit/solutioning/bob-agent-factory.test.ts</location>
+    </locations>
+
+    <ideas>
+      <!-- AC #1: Bob Persona Loading -->
+      <idea ac="1">Test loadBobPersona() successfully reads and parses bmad/bmm/agents/bob.md with mock fs.readFile() returning fixture persona content. Verify persona caching (second call doesn't read file again).</idea>
+      <idea ac="1">Test loadBobPersona() throws error with helpful message when bob.md file not found (ENOENT). Verify error includes expected path and suggestion to create persona file.</idea>
+      <idea ac="1">Test loadBobPersona() handles malformed markdown gracefully (e.g., empty file, invalid format). Parse persona sections: role, capabilities, decision-making approach.</idea>
+
+      <!-- AC #2: LLM Assignment Configuration -->
+      <idea ac="2">Test loadBobLLMConfig() parses .bmad/project-config.yaml and extracts agents.bob configuration (provider: zhipu, model: glm-4-plus). Mock js-yaml.load() with fixture config.</idea>
+      <idea ac="2">Test loadBobLLMConfig() defaults to Claude Haiku 3.5 when bob config not found in YAML. Verify LLMConfig object: provider: "anthropic", model: "claude-haiku-3-5".</idea>
+      <idea ac="2">Test loadBobLLMConfig() supports multiple providers: Anthropic (claude-sonnet-4-5), OpenAI (gpt-4o), Zhipu (glm-4-plus), Google (gemini-2.0-flash). Test each with fixture configs.</idea>
+      <idea ac="2">Test loadBobLLMConfig() extracts optional fields: api_key, base_url, temperature, max_tokens. Verify defaults used when fields missing.</idea>
+
+      <!-- AC #3: SolutioningAgentContextBuilder -->
+      <idea ac="3">Test buildBobContext() with large PRD (50k tokens) and verify token optimization prunes to &lt;30k tokens. Mock token counting function. Verify functional requirements sections retained, introduction/glossary removed.</idea>
+      <idea ac="3">Test buildBobContext() extracts functional requirements sections from PRD markdown (## Functional Requirements, ## Features). Verify non-functional sections excluded (introduction, glossary, appendices).</idea>
+      <idea ac="3">Test buildBobContext() extracts architecture overview and constraints from architecture.md. Verify component boundaries and tech stack included, detailed API specs excluded.</idea>
+      <idea ac="3">Test buildBobContext() loads BMAD story patterns from internal knowledge base. Verify patterns included in context.storyPatterns. Mock pattern loader with fixture patterns.</idea>
+      <idea ac="3">Test buildBobContext() returns AgentContext with correct structure: prd, architecture, storyPatterns, constraints (storyMaxWords: 500, acceptanceCriteriaMin: 8, acceptanceCriteriaMax: 12, maxContextTokens: 200000).</idea>
+
+      <!-- AC #4: Agent Invocation Prompt Templates -->
+      <idea ac="4">Test bobEpicFormationPrompt() generates prompt with PRD functional requirements. Verify prompt includes instructions: "Form 3-8 epics with business value naming" and "Each epic should be independently valuable".</idea>
+      <idea ac="4">Test bobStoryDecompositionPrompt() generates prompt with epic details and architecture context. Verify prompt includes: "Generate 3-10 vertical-slice stories" and "Write 8-12 testable acceptance criteria per story".</idea>
+      <idea ac="4">Test bobDependencyDetectionPrompt() generates prompt with all stories and architecture context. Verify prompt includes dependency patterns: "data models before logic, auth before protected features, API before frontend".</idea>
+      <idea ac="4">Test all three prompt methods include confidence scoring instruction: "Include confidence score (0.0-1.0) in response metadata". Verify prompt structure includes all required context fields.</idea>
+
+      <!-- AC #5: Integration with Story 4.1 Types -->
+      <idea ac="5">Test bobStoryDecompositionPrompt() accepts Epic interface from types.ts. Create mock Epic object and verify prompt generated successfully.</idea>
+      <idea ac="6">Test bobDependencyDetectionPrompt() accepts Story[] from types.ts. Create mock Story objects and verify prompt includes story IDs and dependencies.</idea>
+      <idea ac="5">Test AgentContext interface compatible with Story 4.1 constraints. Verify context can be validated against Epic and Story schemas from schemas.ts.</idea>
+
+      <!-- AC #6: Agent Factory Registration -->
+      <idea ac="6">Integration test: Call registerBobAgent(mockAgentPool) and verify agentPool.createAgent() called with name="bob", context with persona and LLM config.</idea>
+      <idea ac="6">Test registerBobAgent() loads Bob persona via loadBobPersona() and LLM config via loadBobLLMConfig(). Mock both functions and verify calls.</idea>
+      <idea ac="6">Test registerBobAgent() handles errors gracefully: persona load failure, LLM config parse failure, AgentPool.createAgent() failure. Verify error messages are helpful.</idea>
+
+      <!-- AC #7: Agent Action Methods -->
+      <idea ac="7">Test formEpics() method signature exists and returns Promise&lt;Epic[]&gt;. Verify stub implementation throws "Not yet implemented" error with message referencing Story 4.4.</idea>
+      <idea ac="7">Test decomposeIntoStories() method signature exists with Epic parameter and returns Promise&lt;Story[]&gt;. Verify stub throws "Not yet implemented".</idea>
+      <idea ac="7">Test detectDependencies() method signature exists with Story[] parameter and returns Promise&lt;DependencyEdge[]&gt;. Verify stub throws "Not yet implemented".</idea>
+
+      <!-- AC #11: Test Coverage -->
+      <idea ac="11">Run vitest run --coverage and verify 80%+ coverage for bob-agent-loader.ts, bob-llm-config.ts, context-builder.ts, bob-agent-factory.ts. All tests must pass.</idea>
+    </ideas>
+  </tests>
+</story-context>

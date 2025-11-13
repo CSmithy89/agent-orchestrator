@@ -47,3 +47,14 @@ export {
 // Export StoryTemplateBuilder
 export { StoryTemplateBuilder } from './story-template-builder.js';
 export type { StoryObject } from './story-template-builder.js';
+
+// Export Bob Agent Infrastructure (Story 4.2)
+export { loadBobPersona, clearPersonaCache } from './bob-agent-loader.js';
+export type { BobPersona } from './bob-agent-loader.js';
+
+export { loadBobLLMConfig, validateBobLLMConfig } from './bob-llm-config.js';
+
+export { SolutioningAgentContextBuilder } from './context-builder.js';
+export type { AgentContext, AgentConstraints } from './context-builder.js';
+
+export { BobAgentActions, initializeBobAgent } from './bob-agent-factory.js';
