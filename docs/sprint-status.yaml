@@ -87,8 +87,8 @@ development_status:
   epic-3-retrospective: completed
 
   # Epic 4: Solutioning Phase Automation (Restructured for Parallel Development)
-  epic-4: backlog
-  4-1-solutioning-data-models-story-schema: backlog
+  epic-4: contexted  # Tech spec: docs/epics/epic-4-tech-spec.md
+  4-1-solutioning-data-models-story-schema: done
   4-2-bob-agent-infrastructure-context-builder: backlog
   4-3-solutioning-workflow-engine-foundation: backlog
   4-4-epic-formation-story-decomposition-combined: backlog
