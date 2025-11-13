@@ -53,8 +53,8 @@ export async function validateArchitectureCompliance(
     // Check for dependency injection pattern
     const hasConstructorInjection = implementation.files.some(file =>
       file.content.includes('constructor(') &&
-      file.content.includes('private readonly') ||
-      file.content.includes('private ')
+      (file.content.includes('private readonly') ||
+        file.content.includes('private '))
     );
 
     if (!hasConstructorInjection) {
@@ -185,7 +185,7 @@ export async function validateCodingStandards(
       }
 
       // Check for 'any' types (should be minimal)
-      const anyTypeMatches = file.content.match(/:\s*any[,;\s\])]/g);
+      const anyTypeMatches = file.content.match(/:\s*any[,;\s)]/g);
       if (anyTypeMatches && anyTypeMatches.length > 2) {
         warnings.push(
           `File ${file.path} contains multiple 'any' types. Consider explicit typing.`

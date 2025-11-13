@@ -72,6 +72,22 @@ export async function applyFileChanges(
 
   for (const file of files) {
     try {
+      // Validate path safety before performing any operations
+      if (!isPathSafe(file.path, worktreePath)) {
+        const failure: FileOperationFailure = {
+          path: file.path,
+          operation: file.operation,
+          error: 'Unsafe file path (potential path traversal outside worktree)'
+        };
+        result.failures.push(failure);
+        logger.error(
+          'Unsafe file path detected, skipping operation',
+          undefined,
+          { path: file.path, worktreePath }
+        );
+        continue;
+      }
+
       const absolutePath = path.resolve(worktreePath, file.path);
 
       switch (file.operation) {
@@ -244,11 +260,12 @@ function normalizeLineEndings(content: string): string {
  * @returns Whether path is safe
  */
 export function isPathSafe(filePath: string, basePath: string): boolean {
-  const resolvedPath = path.resolve(basePath, filePath);
   const resolvedBase = path.resolve(basePath);
+  const resolvedTarget = path.resolve(basePath, filePath);
+  const relative = path.relative(resolvedBase, resolvedTarget);
 
-  // Ensure resolved path is within base path
-  return resolvedPath.startsWith(resolvedBase);
+  // Path is safe if it stays within basePath and is not absolute
+  return !relative.startsWith('..') && !path.isAbsolute(relative);
 }
 
 /**

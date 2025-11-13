@@ -120,7 +120,7 @@ async function stageFiles(
     const batchSize = 50;
     for (let i = 0; i < filePaths.length; i += batchSize) {
       const batch = filePaths.slice(i, i + batchSize);
-      await execFileAsync('git', ['add', ...batch], {
+      await execFileAsync('git', ['add', '--', ...batch], {
         cwd: worktreePath
       });
     }
@@ -147,7 +147,7 @@ async function stageDeletedFiles(
     const batchSize = 50;
     for (let i = 0; i < filePaths.length; i += batchSize) {
       const batch = filePaths.slice(i, i + batchSize);
-      await execFileAsync('git', ['rm', ...batch], {
+      await execFileAsync('git', ['rm', '--', ...batch], {
         cwd: worktreePath
       });
     }

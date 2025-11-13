@@ -45,10 +45,6 @@ import {
 import {
   applyFileChanges
 } from './file-operations.js';
-import {
-  createGitCommit,
-  GitCommitResult
-} from './git-operations.js';
 
 /**
  * Code Implementation Pipeline Configuration
@@ -582,39 +578,6 @@ export class CodeImplementationPipeline {
           : `Criterion ${index + 1} addressed in implementation`
       };
     });
-  }
-
-  /**
-   * Create git commit with descriptive message
-   *
-   * Note: This method is currently not called in execute() as git operations
-   * should be coordinated by the WorkflowOrchestrator to avoid conflicts.
-   *
-   * @param implementation Code implementation
-   * @param context Story context
-   * @returns Git commit result
-   */
-  private async _createCommit(
-    implementation: CodeImplementation,
-    context: StoryContext
-  ): Promise<GitCommitResult> {
-    const startTime = Date.now();
-
-    try {
-      const result = await createGitCommit(
-        implementation,
-        context,
-        this.config.worktreePath
-      );
-
-      this.performanceMetrics.gitCommitDuration = Date.now() - startTime;
-
-      return result;
-    } catch (error) {
-      throw new Error(
-        `Failed to create git commit: ${(error as Error).message}`
-      );
-    }
   }
 
   /**
