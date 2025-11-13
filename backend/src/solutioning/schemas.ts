@@ -9,7 +9,7 @@
  * @see solutioning/types for TypeScript interface definitions
  */
 
-import Ajv, { type JSONSchemaType } from 'ajv';
+import Ajv, { type ErrorObject } from 'ajv';
 import type {
   Epic,
   Story,
@@ -22,17 +22,16 @@ import type {
   ValidationCheck,
 } from './types.js';
 
-// Initialize ajv with strict mode for better error messages
+// Initialize ajv for better error messages
 const ajv = new Ajv({
   allErrors: true, // Collect all errors, not just first
   verbose: true,   // Include schema and data in errors
-  strict: true,    // Strict mode for schema validation
 });
 
 /**
  * JSON Schema for TechnicalNotes interface
  */
-const technicalNotesSchema: JSONSchemaType<TechnicalNotes> = {
+const technicalNotesSchema = {
   type: 'object',
   properties: {
     affected_files: {
@@ -62,7 +61,7 @@ const technicalNotesSchema: JSONSchemaType<TechnicalNotes> = {
 /**
  * JSON Schema for Story interface
  */
-const storySchema: JSONSchemaType<Story> = {
+const storySchema = {
   type: 'object',
   properties: {
     id: {
@@ -127,7 +126,7 @@ const storySchema: JSONSchemaType<Story> = {
 /**
  * JSON Schema for Epic interface
  */
-const epicSchema: JSONSchemaType<Epic> = {
+const epicSchema = {
   type: 'object',
   properties: {
     id: {
@@ -179,7 +178,7 @@ const epicSchema: JSONSchemaType<Epic> = {
 /**
  * JSON Schema for GraphNode interface
  */
-const graphNodeSchema: JSONSchemaType<GraphNode> = {
+const graphNodeSchema = {
   type: 'object',
   properties: {
     id: {
@@ -210,7 +209,7 @@ const graphNodeSchema: JSONSchemaType<GraphNode> = {
 /**
  * JSON Schema for DependencyEdge interface
  */
-const dependencyEdgeSchema: JSONSchemaType<DependencyEdge> = {
+const dependencyEdgeSchema = {
   type: 'object',
   properties: {
     from: {
@@ -236,7 +235,7 @@ const dependencyEdgeSchema: JSONSchemaType<DependencyEdge> = {
 /**
  * JSON Schema for GraphMetadata interface
  */
-const graphMetadataSchema: JSONSchemaType<GraphMetadata> = {
+const graphMetadataSchema = {
   type: 'object',
   properties: {
     totalStories: {
@@ -264,7 +263,7 @@ const graphMetadataSchema: JSONSchemaType<GraphMetadata> = {
 /**
  * JSON Schema for DependencyGraph interface
  */
-const dependencyGraphSchema: JSONSchemaType<DependencyGraph> = {
+const dependencyGraphSchema = {
   type: 'object',
   properties: {
     nodes: {
@@ -304,7 +303,7 @@ const dependencyGraphSchema: JSONSchemaType<DependencyGraph> = {
 /**
  * JSON Schema for ValidationCheck interface
  */
-const validationCheckSchema: JSONSchemaType<ValidationCheck> = {
+const validationCheckSchema = {
   type: 'object',
   properties: {
     category: {
@@ -330,7 +329,7 @@ const validationCheckSchema: JSONSchemaType<ValidationCheck> = {
 /**
  * JSON Schema for ValidationResult interface
  */
-const validationResultSchema: JSONSchemaType<SolutioningValidationResult> = {
+const validationResultSchema = {
   type: 'object',
   properties: {
     pass: {
@@ -381,7 +380,7 @@ const validateValidationResultAjv = ajv.compile(validationResultSchema);
  * // Output: ["Field 'title': must be string"]
  * ```
  */
-function formatValidationErrors(errors: typeof ajv.errors): string[] {
+function formatValidationErrors(errors: ErrorObject[] | null | undefined): string[] {
   if (!errors || errors.length === 0) {
     return [];
   }
@@ -392,21 +391,21 @@ function formatValidationErrors(errors: typeof ajv.errors): string[] {
     const fieldName = fieldPath || 'root';
 
     // Format different error types
-    if (error.keyword === 'type') {
+    if (error.keyword === 'type' && 'type' in error.params) {
       return `Field '${fieldName}': expected type ${error.params.type}, got ${typeof error.data}`;
-    } else if (error.keyword === 'required') {
+    } else if (error.keyword === 'required' && 'missingProperty' in error.params) {
       return `Field '${fieldName}': missing required property '${error.params.missingProperty}'`;
-    } else if (error.keyword === 'enum') {
+    } else if (error.keyword === 'enum' && 'allowedValues' in error.params) {
       return `Field '${fieldName}': must be one of [${error.params.allowedValues.join(', ')}]`;
-    } else if (error.keyword === 'pattern') {
+    } else if (error.keyword === 'pattern' && 'pattern' in error.params) {
       return `Field '${fieldName}': does not match required pattern ${error.params.pattern}`;
-    } else if (error.keyword === 'minItems') {
+    } else if (error.keyword === 'minItems' && 'limit' in error.params) {
       return `Field '${fieldName}': must have at least ${error.params.limit} items`;
-    } else if (error.keyword === 'maxItems') {
+    } else if (error.keyword === 'maxItems' && 'limit' in error.params) {
       return `Field '${fieldName}': must have at most ${error.params.limit} items`;
-    } else if (error.keyword === 'minimum') {
+    } else if (error.keyword === 'minimum' && 'limit' in error.params) {
       return `Field '${fieldName}': must be >= ${error.params.limit}`;
-    } else if (error.keyword === 'maximum') {
+    } else if (error.keyword === 'maximum' && 'limit' in error.params) {
       return `Field '${fieldName}': must be <= ${error.params.limit}`;
     } else {
       return `Field '${fieldName}': ${error.message}`;
@@ -430,7 +429,7 @@ function formatValidationErrors(errors: typeof ajv.errors): string[] {
  * ```
  */
 export function validateEpic(data: unknown): SolutioningValidationResult {
-  const isValid = validateEpicAjv(data);
+  const isValid = validateEpicAjv(data) as boolean;
   const errors = formatValidationErrors(validateEpicAjv.errors);
 
   return {
@@ -465,7 +464,7 @@ export function validateEpic(data: unknown): SolutioningValidationResult {
  * ```
  */
 export function validateStory(data: unknown): SolutioningValidationResult {
-  const isValid = validateStoryAjv(data);
+  const isValid = validateStoryAjv(data) as boolean;
   const errors = formatValidationErrors(validateStoryAjv.errors);
 
   return {
@@ -500,7 +499,7 @@ export function validateStory(data: unknown): SolutioningValidationResult {
  * ```
  */
 export function validateDependencyGraph(data: unknown): SolutioningValidationResult {
-  const isValid = validateDependencyGraphAjv(data);
+  const isValid = validateDependencyGraphAjv(data) as boolean;
   const errors = formatValidationErrors(validateDependencyGraphAjv.errors);
 
   return {
@@ -536,7 +535,7 @@ export function validateDependencyGraph(data: unknown): SolutioningValidationRes
  * ```
  */
 export function validateValidationResult(data: unknown): SolutioningValidationResult {
-  const isValid = validateValidationResultAjv(data);
+  const isValid = validateValidationResultAjv(data) as boolean;
   const errors = formatValidationErrors(validateValidationResultAjv.errors);
 
   return {
