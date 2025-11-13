@@ -89,3 +89,7 @@ export type { DependencyDetectionResult, DependencyDetectionMetrics } from './de
 
 // Export Dependency Graph Generator (Story 4.5)
 export { DependencyGraphGenerator } from './dependency-graph-generator.js';
+
+// Export Story Validator (Story 4.6)
+export { StoryValidator } from './story-validator.js';
+export type { BatchValidationResult } from './story-validator.js';

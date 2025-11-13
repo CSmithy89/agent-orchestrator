@@ -14,6 +14,7 @@ import { EpicFormationService } from './epic-formation-service.js';
 import { StoryDecompositionService, StoryDecompositionMetrics } from './story-decomposition-service.js';
 import { DependencyDetectionService } from './dependency-detection-service.js';
 import { DependencyGraphGenerator } from './dependency-graph-generator.js';
+import { StoryValidator } from './story-validator.js';
 
 /**
  * Solutioning result with epics, stories, dependency graph, and comprehensive metrics
@@ -74,6 +75,24 @@ export interface SolutioningResult {
 
     /** Number of soft (suggested) dependencies */
     softDependencies: number;
+
+    /** Story validation execution time in milliseconds */
+    validationTimeMs: number;
+
+    /** Total number of stories validated */
+    totalStoriesValidated: number;
+
+    /** Average validation score across all stories (0.0-1.0) */
+    avgValidationScore: number;
+
+    /** Total number of validation blockers (critical issues) */
+    totalBlockers: number;
+
+    /** Total number of validation warnings (non-critical issues) */
+    totalWarnings: number;
+
+    /** Story IDs that failed validation */
+    failedStoryIds: string[];
   };
 }
 
@@ -104,12 +123,14 @@ export class SolutioningOrchestrator {
   private storyDecompositionService: StoryDecompositionService;
   private dependencyDetectionService: DependencyDetectionService;
   private dependencyGraphGenerator: DependencyGraphGenerator;
+  private storyValidator: StoryValidator;
 
   constructor() {
     this.epicFormationService = new EpicFormationService();
     this.storyDecompositionService = new StoryDecompositionService();
     this.dependencyDetectionService = new DependencyDetectionService();
     this.dependencyGraphGenerator = new DependencyGraphGenerator();
+    this.storyValidator = new StoryValidator();
   }
 
   /**
@@ -266,7 +287,50 @@ export class SolutioningOrchestrator {
       console.error('[SolutioningOrchestrator] Failed to save dependency graph:', (error as Error).message);
     }
 
-    // Step 7: Calculate aggregate metrics
+    // Step 7: Validate all stories
+    console.log('[SolutioningOrchestrator] Validating all stories...');
+    const validationStartTime = Date.now();
+
+    const batchValidationResult = this.storyValidator.validateStories(allStories);
+    const validationTimeMs = Date.now() - validationStartTime;
+
+    console.log(
+      `[SolutioningOrchestrator] Story validation complete in ${validationTimeMs}ms: ` +
+      `${batchValidationResult.passed}/${batchValidationResult.totalStories} stories passed ` +
+      `(avg score: ${batchValidationResult.avgScore.toFixed(2)})`
+    );
+
+    // Collect validation statistics
+    let totalBlockers = 0;
+    let totalWarnings = 0;
+    const failedStoryIds: string[] = [];
+
+    for (const [storyId, result] of batchValidationResult.results.entries()) {
+      totalBlockers += result.blockers.length;
+      totalWarnings += result.warnings.length;
+
+      if (!result.pass) {
+        failedStoryIds.push(storyId);
+      }
+
+      // Log warnings for failed stories
+      if (!result.pass) {
+        console.warn(`[SolutioningOrchestrator] Story ${storyId} failed validation:`);
+        for (const blocker of result.blockers) {
+          console.warn(`  - BLOCKER: ${blocker}`);
+        }
+      }
+
+      // Log warnings even for passing stories if present
+      if (result.warnings.length > 0) {
+        console.warn(`[SolutioningOrchestrator] Story ${storyId} has warnings:`);
+        for (const warning of result.warnings) {
+          console.warn(`  - WARNING: ${warning}`);
+        }
+      }
+    }
+
+    // Step 8: Calculate aggregate metrics
     const executionTimeMs = Date.now() - startTime;
     const avgStoryDecompositionConfidence = epics.length > 0
       ? totalStoryDecompositionConfidence / epics.length
@@ -302,7 +366,13 @@ export class SolutioningOrchestrator {
         graphGenerationTimeMs,
         totalDependencies: dependencyDetectionResult.metrics.totalDependencies,
         hardDependencies: dependencyDetectionResult.metrics.hardDependencies,
-        softDependencies: dependencyDetectionResult.metrics.softDependencies
+        softDependencies: dependencyDetectionResult.metrics.softDependencies,
+        validationTimeMs,
+        totalStoriesValidated: batchValidationResult.totalStories,
+        avgValidationScore: batchValidationResult.avgScore,
+        totalBlockers,
+        totalWarnings,
+        failedStoryIds
       }
     };
 
@@ -316,6 +386,9 @@ export class SolutioningOrchestrator {
     console.log(`  - Critical path length: ${dependencyGraph.critical_path.length}`);
     console.log(`  - Bottlenecks: ${dependencyGraph.bottlenecks.length}`);
     console.log(`  - Parallel groups: ${dependencyGraph.parallelizable.length}`);
+    console.log(`  - Validation: ${batchValidationResult.passed}/${batchValidationResult.totalStories} passed ` +
+      `(avg score: ${batchValidationResult.avgScore.toFixed(2)})`);
+    console.log(`  - Validation issues: ${totalBlockers} blockers, ${totalWarnings} warnings`);
     console.log(`  - Execution time: ${(executionTimeMs / 1000).toFixed(1)}s`);
     console.log(`  - LLM tokens: ${llmTokensUsed.toLocaleString()}`);
     console.log(`  - Epic formation confidence: ${epicFormationMetrics.confidence.toFixed(2)}`);

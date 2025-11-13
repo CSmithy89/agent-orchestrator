@@ -93,7 +93,7 @@ development_status:
   4-3-solutioning-workflow-engine-foundation: done
   4-4-epic-formation-story-decomposition-combined: done
   4-5-dependency-detection-graph-generation-combined: done
-  4-6-story-validation-quality-check: backlog
+  4-6-story-validation-quality-check: done
   4-7-sprint-status-file-generation: backlog
   4-8-story-file-writer-epics-document-generator: backlog
   4-9-implementation-readiness-gate-validation: backlog
