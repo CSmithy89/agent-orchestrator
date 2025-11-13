@@ -70,3 +70,15 @@ export type {
   WorkflowProgress,
   SolutioningEngineOptions
 } from './workflow-engine.js';
+
+// Export Epic Formation Service (Story 4.4)
+export { EpicFormationService } from './epic-formation-service.js';
+export type { EpicFormationMetrics } from './epic-formation-service.js';
+
+// Export Story Decomposition Service (Story 4.4)
+export { StoryDecompositionService } from './story-decomposition-service.js';
+export type { StoryDecompositionMetrics } from './story-decomposition-service.js';
+
+// Export Solutioning Orchestrator (Story 4.4)
+export { SolutioningOrchestrator } from './solutioning-orchestrator.js';
+export type { SolutioningResult } from './solutioning-orchestrator.js';

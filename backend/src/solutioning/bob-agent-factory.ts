@@ -55,21 +55,19 @@ export class BobAgentActions {
    * console.log(epics); // [{ id: "epic-1", title: "User Authentication", ... }]
    * ```
    */
-  async formEpics(_context: AgentContext): Promise<Epic[]> {
-    // TODO: Story 4.4 - Epic Formation & Story Decomposition
-    // Implementation will:
-    // 1. Load Bob persona via loadBobPersona()
-    // 2. Load Bob LLM config via loadBobLLMConfig()
-    // 3. Generate epic formation prompt via context builder
-    // 4. Invoke Bob agent via AgentPool/LLM client
-    // 5. Parse JSON response into Epic[] array
-    // 6. Validate epics against Epic schema
-    // 7. Return validated Epic[] array
+  async formEpics(context: AgentContext): Promise<Epic[]> {
+    // Story 4.4 implementation: Delegate to EpicFormationService
+    const { EpicFormationService } = await import('./epic-formation-service.js');
+    const service = new EpicFormationService();
 
-    throw new Error(
-      'formEpics() not yet implemented - see Story 4.4 (Epic Formation & Story Decomposition). ' +
-      'This is infrastructure-only Story 4.2 - actual LLM invocation happens in Story 4.4.'
-    );
+    // Build PRD and architecture content from context
+    const prd = context.prd;
+    const architecture = context.architecture;
+
+    // Invoke epic formation service
+    const result = await service.formEpicsFromPRD(prd, architecture);
+
+    return result.epics;
   }
 
   /**
@@ -96,22 +94,19 @@ export class BobAgentActions {
    * console.log(stories); // [{ id: "1-1", title: "User Registration", ... }]
    * ```
    */
-  async decomposeIntoStories(_context: AgentContext, _epic: Epic): Promise<Story[]> {
-    // TODO: Story 4.4 - Epic Formation & Story Decomposition
-    // Implementation will:
-    // 1. Load Bob persona via loadBobPersona()
-    // 2. Load Bob LLM config via loadBobLLMConfig()
-    // 3. Generate story decomposition prompt via context builder
-    // 4. Invoke Bob agent via AgentPool/LLM client
-    // 5. Parse JSON response into Story[] array
-    // 6. Validate stories against Story schema
-    // 7. Verify story sizing constraints (<500 words, <2 hours)
-    // 8. Return validated Story[] array
+  async decomposeIntoStories(context: AgentContext, epic: Epic): Promise<Story[]> {
+    // Story 4.4 implementation: Delegate to StoryDecompositionService
+    const { StoryDecompositionService } = await import('./story-decomposition-service.js');
+    const service = new StoryDecompositionService();
 
-    throw new Error(
-      'decomposeIntoStories() not yet implemented - see Story 4.4 (Epic Formation & Story Decomposition). ' +
-      'This is infrastructure-only Story 4.2 - actual LLM invocation happens in Story 4.4.'
-    );
+    // Build PRD and architecture content from context
+    const prd = context.prd;
+    const architecture = context.architecture;
+
+    // Invoke story decomposition service
+    const result = await service.decomposeEpicIntoStories(epic, prd, architecture);
+
+    return result.stories;
   }
 
   /**

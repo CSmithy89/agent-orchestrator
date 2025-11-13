@@ -91,7 +91,7 @@ development_status:
   4-1-solutioning-data-models-story-schema: done
   4-2-bob-agent-infrastructure-context-builder: done
   4-3-solutioning-workflow-engine-foundation: done
-  4-4-epic-formation-story-decomposition-combined: backlog
+  4-4-epic-formation-story-decomposition-combined: done
   4-5-dependency-detection-graph-generation-combined: backlog
   4-6-story-validation-quality-check: backlog
   4-7-sprint-status-file-generation: backlog

@@ -1,0 +1,640 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4.4</storyId>
+    <title>Epic Formation &amp; Story Decomposition (Combined)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-4-epic-formation-story-decomposition-combined.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user wanting automated story decomposition</asA>
+    <iWant>Bob agent to analyze PRD requirements, form epics, and decompose them into implementable stories</iWant>
+    <soThat>requirements break down into bite-sized development units ready for autonomous agent implementation</soThat>
+    <tasks>
+## Task 1: Implement Epic Formation Service (AC: 1-9)
+- Create backend/src/solutioning/epic-formation-service.ts file
+- Implement EpicFormationService class
+- Method: formEpicsFromPRD(prd: string, architecture: string): Promise&lt;Epic[]&gt;
+  - Load SolutioningAgentContextBuilder from Story 4.2
+  - Build Bob agent context using buildBobContext(prd, architecture)
+  - Load Bob agent using initializeBobAgent() from Story 4.2
+  - Generate epic formation prompt using bobEpicFormationPrompt(context)
+  - Invoke Bob agent's formEpics() method with context
+  - Parse LLM response to extract Epic objects
+  - Validate each epic against Epic schema (Story 4.1)
+  - Ensure 3-8 epics formed with business value naming
+  - Return Epic[] array
+- Implement confidence scoring validation (threshold: 0.75)
+- Add error handling for LLM invocation failures (retry logic)
+- Log epic formation metrics (count, time, LLM tokens used)
+
+## Task 2: Implement Story Decomposition Service (AC: 10-17)
+- Create backend/src/solutioning/story-decomposition-service.ts file
+- Implement StoryDecompositionService class
+- Method: decomposeEpicIntoStories(epic: Epic, prd: string, architecture: string): Promise&lt;Story[]&gt;
+  - Load SolutioningAgentContextBuilder from Story 4.2
+  - Build Bob agent context with epic-specific context
+  - Generate story decomposition prompt using bobStoryDecompositionPrompt(context, epic)
+  - Invoke Bob agent's decomposeIntoStories(epic) method
+  - Parse LLM response to extract Story objects
+  - Validate each story against Story schema (Story 4.1)
+  - Validate story sizing: &lt;500 words, &lt;2 hours, 200k context fit
+  - Check single responsibility (no multiple independent features)
+  - If story too large, invoke Bob to split into smaller stories
+  - Validate 8-12 acceptance criteria per story
+  - Return Story[] array (3-10 stories per epic)
+- Implement story splitting logic for oversized stories
+- Add error handling and retry logic
+- Log story decomposition metrics (count per epic, time, LLM tokens)
+
+## Task 3: Integrate Epic Formation and Story Decomposition (AC: 18-20)
+- Create backend/src/solutioning/solutioning-orchestrator.ts file
+- Implement SolutioningOrchestrator class
+- Method: executeSolutioning(prdPath: string, architecturePath: string): Promise&lt;SolutioningResult&gt;
+  - Read PRD file from disk
+  - Read architecture file from disk
+  - Invoke EpicFormationService.formEpicsFromPRD()
+  - For each epic, invoke StoryDecompositionService.decomposeEpicIntoStories()
+  - Aggregate all stories (target: 10-20 total)
+  - Return SolutioningResult with epics and stories
+- Define SolutioningResult interface
+- Add progress logging for each epic/story generation step
+- Track overall execution time (&lt;45 minutes target)
+
+## Task 4: Implement Confidence Scoring and Decision Making (AC: 21)
+- Add confidence score parsing from Bob agent responses
+- Implement decision validation
+- Track low-confidence decisions in metrics
+- Add confidence scores to Epic and Story metadata
+- Unit test confidence scoring logic with various scores
+
+## Task 5: Implement Acceptance Criteria Validation (AC: 22)
+- Create acceptance criteria validator function
+- Validate each story has 8-12 acceptance criteria
+- Check AC format (numbered list or Given-When-Then)
+- Validate ACs are testable and atomic
+- If AC count &lt; 8 or &gt; 12, flag for regeneration
+- Unit test AC validation with valid/invalid stories
+
+## Task 6: Write Unit Tests (AC: 24)
+- Create backend/tests/unit/solutioning/epic-formation-service.test.ts
+- Create backend/tests/unit/solutioning/story-decomposition-service.test.ts
+- Create backend/tests/unit/solutioning/solutioning-orchestrator.test.ts
+- Use Vitest framework (project standard)
+- Mock Bob agent LLM responses with fixture data
+- Target: 80%+ test coverage
+
+## Task 7: Write Integration Tests (AC: 24)
+- Create backend/tests/integration/solutioning/epic-story-generation.test.ts
+- Test with real PRD and architecture fixtures
+- Test Bob agent context building and invocation
+- Test epic formation → story decomposition flow
+- Validate generated epics and stories against schemas
+- Test performance (&lt;45 minutes for complete solutioning)
+- Mock only LLM API calls (use fixture responses)
+
+## Task 8: Performance Optimization (AC: 23)
+- Profile epic formation and story decomposition execution time
+- Optimize token usage in Bob agent prompts
+- Implement parallel story decomposition if possible
+- Add execution time logging and metrics
+- Verify total execution time &lt;45 minutes
+- Add timeout handling (fail gracefully if &gt;1 hour)
+
+## Task 9: Error Handling and Retry Logic
+- Implement retry logic for LLM API failures (3 attempts, exponential backoff)
+- Add validation error handling (schema validation failures)
+- Implement graceful degradation if story splitting fails
+- Add detailed error messages with remediation guidance
+- Log all errors with context (epic ID, story ID, prompt used)
+- Unit test error scenarios
+
+## Task 10: Export and Documentation
+- Export EpicFormationService from backend/src/solutioning/index.ts
+- Export StoryDecompositionService from backend/src/solutioning/index.ts
+- Export SolutioningOrchestrator from backend/src/solutioning/index.ts
+- Add JSDoc comments to all public methods
+- Document expected inputs and outputs
+- Add usage examples in JSDoc
+- Update README with solutioning service usage
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+### Epic Formation (from original 4.2)
+1. Bob Agent Invocation: Invoke Bob agent via SolutioningAgentContextBuilder (Story 4.2) with PRD and architecture context
+2. PRD Analysis: Analyze PRD functional requirements to identify natural feature groupings
+3. Epic Grouping: Identify natural groupings (auth, payments, admin, etc.) based on business value and feature cohesion
+4. Epic Formation: Form epics with 3-8 related features each
+5. Business Value Naming: Name epics by business value (not technical components) - e.g., "User Authentication &amp; Security" not "Auth Service"
+6. Independent Value: Ensure each epic is independently valuable and can be completed in 1-2 sprints
+7. Epic Completability: Each epic completable in 1-2 sprints with measurable business outcomes
+8. Domain-Specific Epics: Include domain-specific epics (compliance, validation) if applicable to the project
+9. Epic Descriptions: Generate epic descriptions with clear goals and value propositions
+
+### Story Decomposition (from original 4.3)
+10. Story Generation: For each epic, generate 3-10 stories using Bob agent's decomposeIntoStories() method
+11. User Story Format: Each story follows clear user story format: "As a..., I want..., So that..."
+12. Vertical Slices: Stories are vertical slices providing end-to-end functionality (not horizontal layers)
+13. Story Word Count: Story description &lt;500 words total
+14. Single Responsibility: Single responsibility per story (one clear outcome, no scope creep)
+15. Technical Notes: Include technical notes for each story: affected files, endpoints, data structures
+16. Story Sizing: Validate story fits in 200k context window and &lt;2 hour development time
+17. Story Splitting: If story too large, automatically split into smaller stories
+
+### Integration
+18. Type Integration: Use Epic and Story types from Story 4.1 (src/solutioning/types.ts)
+19. Method Execution: Execute formEpics() then decomposeIntoStories() methods from Story 4.2 Bob agent infrastructure
+20. Story Count: Generate 10-20 total stories for MVP scope (3-10 per epic, 3-8 epics total)
+21. Autonomous Decisions: Make autonomous decisions on story boundaries using confidence scoring (threshold: 0.75)
+22. Acceptance Criteria: Write 8-12 clear, testable acceptance criteria per story
+23. Performance: Complete epic formation + story decomposition in &lt;45 minutes total
+24. Testing: Unit tests + integration tests with mock Bob responses
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 4 Technical Specification -->
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4: Solutioning Phase Automation - Technical Specification</title>
+        <section>Overview and Objectives</section>
+        <snippet>Epic 4 implements Solutioning Phase Automation, which automatically decomposes PRD requirements into implementable epics and stories. The system employs a foundation-first architecture enabling parallel development through git worktrees, achieving a 1.8x speedup. Bob (Scrum Master) agent performs intelligent story decomposition with confidence-based decision making.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Tech Spec</title>
+        <section>Data Models and Contracts (lines 88-176)</section>
+        <snippet>Epic interface: id, title, goal, value_proposition, stories, business_value, estimated_duration. Story interface: id, epic, title, description, acceptance_criteria, dependencies, status, technical_notes, estimated_hours, complexity. TechnicalNotes: affected_files, endpoints, data_structures, test_requirements.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Tech Spec</title>
+        <section>Story 4.4 Internal Sequence (lines 396-413)</section>
+        <snippet>1. Load PRD and Architecture via SolutioningAgentContextBuilder. 2. Invoke Bob agent: formEpics() - analyze PRD functional requirements, identify natural groupings (auth, payments, admin), form 3-8 epics with business value naming. 3. For each Epic: invoke Bob agent decomposeIntoStories(epic), generate 3-10 vertical-slice stories, write clear acceptance criteria (8-12 per story), add technical notes. 4. Validate story sizing (&lt;500 words, &lt;2 hours, single responsibility). 5. Return all epics and stories for next phase.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Tech Spec</title>
+        <section>Acceptance Criteria AC-4 (lines 632-650)</section>
+        <snippet>Bob agent invoked via SolutioningAgentContextBuilder. PRD functional requirements analyzed and natural groupings identified. 3-8 epics formed with business value naming (not technical components). Each epic independently valuable and completable in 1-2 sprints. Epic descriptions include goals and value propositions. 3-10 stories generated per epic in user story format. Stories are vertical slices with end-to-end functionality. Story descriptions &lt;500 words with single responsibility. Technical notes included. Story sizing validated: fits in 200k context, &lt;2 hour development time.</snippet>
+      </doc>
+
+      <!-- Previous Story Documentation -->
+      <doc>
+        <path>docs/stories/4-1-solutioning-data-models-story-schema.md</path>
+        <title>Story 4.1: Solutioning Data Models &amp; Story Schema</title>
+        <section>Implementation Summary</section>
+        <snippet>Story 4.1 completed all foundational data models. TypeScript interfaces defined for Epic, Story, DependencyGraph, ValidationResult with complete fields. JSON schema validation implemented with ajv library. StoryTemplateBuilder class created with buildFromTemplate(), validateStoryFormat(), toMarkdown(), toYAMLFrontmatter() methods. 64 unit tests passing with 99%+ coverage. All types exported from backend/src/solutioning/types.ts for use by Stories 4.2-4.9.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/stories/4-2-bob-agent-infrastructure-context-builder.md</path>
+        <title>Story 4.2: Bob Agent Infrastructure &amp; Context Builder</title>
+        <section>Implementation Summary</section>
+        <snippet>Story 4.2 created complete Bob agent infrastructure. Bob persona loaded from bmad/bmm/agents/bob.md with role, capabilities, BMAD patterns. LLM configuration supporting 4 providers (Anthropic, OpenAI, Zhipu, Google) with default to Claude Haiku 3.5. SolutioningAgentContextBuilder implemented with buildBobContext() - extracts functional requirements from PRD, architecture overview, optimizes to &lt;30k tokens. Three prompt templates: bobEpicFormationPrompt(), bobStoryDecompositionPrompt(), bobDependencyDetectionPrompt(). Agent action method stubs (formEpics, decomposeIntoStories, detectDependencies) ready for implementation in Story 4.4. 98 tests passing with >96% coverage.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/stories/4-3-solutioning-workflow-engine-foundation.md</path>
+        <title>Story 4.3: Solutioning Workflow Engine Foundation</title>
+        <section>Implementation Summary</section>
+        <snippet>Story 4.3 implemented SolutioningWorkflowEngine class extending WorkflowEngine from Epic 1. Workflow configuration loading from YAML with parsing and validation. State machine with 4 states (not_started, in_progress, review, complete). Worktree management integration (wt/solutioning branch). State persistence to bmad/workflow-status.yaml with atomic writes. Step execution hooks (pre/post). Error handling and rollback capability with checkpoint/restore. Input loading from PRD.md and architecture.md. Progress tracking with percentage calculation. 52 tests passing with 88.13% line coverage. Infrastructure-only scope maintained (no LLM invocation).</snippet>
+      </doc>
+
+      <!-- PRD Documentation -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>Executive Summary</section>
+        <snippet>The Agent Orchestrator is an autonomous BMAD workflow execution system that revolutionizes software development by enabling 24/7 autonomous project execution with minimal human intervention. System intelligently orchestrates multiple AI agents, each powered by optimally-selected LLMs, to execute complete software development projects from requirements analysis through implementation. Key success metrics: 10x faster completion (2-3 days vs 2-3 weeks), >85% autonomy rate, &lt;$200 project LLM costs.</snippet>
+      </doc>
+
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>Executive Summary</section>
+        <snippet>Microkernel architecture pattern with event-driven extensions, optimized for autonomous agent coordination and parallel story development. Core Principles: Autonomy First (85%+ decisions independently), Parallel Intelligence (multiple stories simultaneously in git worktrees), State Resilience (all execution state persisted), Remote Accessible (REST API + WebSocket), Cost Conscious (LLM provider abstraction per agent). Core Kernel components: Workflow Engine, Agent Pool, State Manager, Template Processor, LLM Factory, Worktree Manager.</snippet>
+      </doc>
+
+      <!-- Bob Agent Persona -->
+      <doc>
+        <path>bmad/bmm/agents/bob.md</path>
+        <title>Bob - Scrum Master Persona</title>
+        <section>Role and Capabilities</section>
+        <snippet>Scrum Master specializing in epic formation, story decomposition, and dependency detection for autonomous agent teams. Core expertise: Epic Formation (analyzing PRDs to identify natural feature groupings with business value focus), Story Decomposition (breaking epics into vertical-slice, independently valuable stories), Dependency Detection (identifying technical dependencies and optimal story sequencing), Story Sizing (ensuring stories fit autonomous agent context windows &lt;500 words, &lt;2 hours). Standards: Epic naming by business value not technical components, story format "As a..., I want..., So that...", 8-12 testable acceptance criteria, confidence threshold 0.75 for autonomous decisions.</snippet>
+      </doc>
+
+      <!-- Epics Breakdown -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Agent Orchestrator - Epics Breakdown</title>
+        <section>Story 4.4 (lines 1092-1135)</section>
+        <snippet>Story 4.4: Epic Formation &amp; Story Decomposition (Combined). Epic Formation: Invoke Bob agent via SolutioningAgentContextBuilder, analyze PRD functional requirements, identify natural groupings, form epics with 3-8 related features, name epics by business value, ensure independent value, completable in 1-2 sprints. Story Decomposition: Generate 3-10 stories per epic, clear user story format, vertical slices, &lt;500 words, single responsibility, include technical notes, validate story sizing (200k context, &lt;2 hours). Integration: Use Epic and Story types from Story 4.1, execute formEpics() then decomposeIntoStories(), generate 10-20 total stories, autonomous decisions with confidence scoring, 8-12 acceptance criteria per story, complete in &lt;45 minutes.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Story 4.1: Data Models and Schemas -->
+      <artifact>
+        <path>backend/src/solutioning/types.ts</path>
+        <kind>interfaces</kind>
+        <symbol>Epic, Story, TechnicalNotes, DependencyEdge</symbol>
+        <lines>1-445</lines>
+        <reason>Core type definitions for Epic and Story objects that Story 4.4 must use. Epic interface (lines 58-79), Story interface (lines 111-141), TechnicalNotes interface (lines 160-172), DependencyEdge interface (lines 286-298).</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/solutioning/schemas.ts</path>
+        <kind>validation</kind>
+        <symbol>validateEpic, validateStory</symbol>
+        <lines>432-485</lines>
+        <reason>JSON schema validation functions for Epic and Story objects. Story 4.4 must validate all generated epics and stories against these schemas before returning.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/solutioning/story-template-builder.ts</path>
+        <kind>utility</kind>
+        <symbol>StoryTemplateBuilder</symbol>
+        <lines>66-435</lines>
+        <reason>Story template builder class that Story 4.8 will use to write story files. Story 4.4 generates Story objects that will eventually be written using this builder.</reason>
+      </artifact>
+
+      <!-- Story 4.2: Bob Agent Infrastructure -->
+      <artifact>
+        <path>backend/src/solutioning/bob-agent-loader.ts</path>
+        <kind>infrastructure</kind>
+        <symbol>loadBobPersona</symbol>
+        <lines>1-150</lines>
+        <reason>Loads Bob agent persona from bmad/bmm/agents/bob.md with caching. Story 4.4 uses this to initialize Bob agent with complete persona context.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/solutioning/bob-llm-config.ts</path>
+        <kind>configuration</kind>
+        <symbol>loadBobLLMConfig</symbol>
+        <lines>1-222</lines>
+        <reason>Loads Bob agent LLM configuration from .bmad/project-config.yaml. Supports 4 providers (Anthropic, OpenAI, Zhipu, Google). Story 4.4 uses this to configure Bob agent LLM settings.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/solutioning/context-builder.ts</path>
+        <kind>service</kind>
+        <symbol>SolutioningAgentContextBuilder, bobEpicFormationPrompt, bobStoryDecompositionPrompt</symbol>
+        <lines>96-575</lines>
+        <reason>Core infrastructure for Story 4.4 epic/story generation. buildBobContext() method (lines 96-116) extracts functional requirements from PRD, architecture overview, optimizes to &lt;30k tokens. bobEpicFormationPrompt() (lines 322-408) generates epic formation prompt. bobStoryDecompositionPrompt() (lines 426-575) generates story decomposition prompt. Story 4.4 must use these methods to build context and generate prompts.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/solutioning/bob-agent-factory.ts</path>
+        <kind>factory</kind>
+        <symbol>BobAgentActions, formEpics, decomposeIntoStories, initializeBobAgent</symbol>
+        <lines>1-195</lines>
+        <reason>Bob agent action methods that Story 4.4 must implement. formEpics() method stub (lines 58-73) throws "not yet implemented" - Story 4.4 implements actual LLM invocation. decomposeIntoStories() method stub (lines 99-115) throws "not yet implemented" - Story 4.4 implements actual LLM invocation. initializeBobAgent() function (lines 177-195) initializes Bob agent.</reason>
+      </artifact>
+
+      <!-- Story 4.3: Workflow Engine -->
+      <artifact>
+        <path>backend/src/solutioning/workflow-engine.ts</path>
+        <kind>infrastructure</kind>
+        <symbol>SolutioningWorkflowEngine</symbol>
+        <lines>159-800</lines>
+        <reason>Workflow engine infrastructure that Story 4.4 can leverage for execution orchestration. Provides state machine, worktree management, state persistence, progress tracking. Story 4.4 may use this for orchestrating epic formation → story decomposition workflow.</reason>
+      </artifact>
+
+      <!-- Epic 1: Core Infrastructure -->
+      <artifact>
+        <path>backend/src/core/llm-factory.ts</path>
+        <kind>factory</kind>
+        <symbol>LLMFactory</symbol>
+        <lines>N/A</lines>
+        <reason>LLM factory for multi-provider LLM invocation. Story 4.4 uses this to invoke Bob agent LLM calls for epic formation and story decomposition.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/core/agent-pool.ts</path>
+        <kind>infrastructure</kind>
+        <symbol>AgentPool</symbol>
+        <lines>N/A</lines>
+        <reason>Agent lifecycle management from Epic 1. Story 4.4 may use this to manage Bob agent instances.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <!-- Node.js Dependencies -->
+      <node>
+        <package>ajv</package>
+        <version>^8.17.1</version>
+        <usage>JSON schema validation for Epic and Story objects</usage>
+      </node>
+      <node>
+        <package>js-yaml</package>
+        <version>^4.1.0</version>
+        <usage>YAML parsing for LLM configuration</usage>
+      </node>
+      <node>
+        <package>vitest</package>
+        <version>^1.0.0</version>
+        <usage>Unit testing framework (project standard)</usage>
+      </node>
+      <node>
+        <package>@anthropic-ai/sdk</package>
+        <version>^0.24.0</version>
+        <usage>Claude API for Bob agent LLM invocation (if using Anthropic provider)</usage>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+## Development Constraints
+
+### Epic Formation Constraints
+- Form 3-8 epics total (not too many small epics or too few large epics)
+- Each epic must be independently valuable
+- Each epic completable in 1-2 sprints
+- Epic naming: Business value (e.g., "User Authentication") not technical components (e.g., "Auth Service")
+- Epic descriptions must include: goal, value_proposition, business_value, estimated_duration
+
+### Story Decomposition Constraints
+- Generate 3-10 stories per epic
+- Story description must be &lt;500 words total (description + acceptance criteria + technical notes)
+- Each story must have single responsibility (one clear outcome, no scope creep)
+- Stories must be vertical slices (end-to-end functionality, not horizontal layers)
+- Story format: "As a..., I want..., So that..."
+- Each story must fit in 200k token context window with full context (PRD, architecture, epic)
+- Each story must be completable in &lt;2 hours by autonomous agent
+- Each story must have 8-12 clear, testable acceptance criteria
+- Technical notes must include: affected_files, endpoints, data_structures, test_requirements
+
+### Bob Agent Constraints (from Story 4.2)
+- Context optimization: Prune PRD to &lt;30k tokens for efficiency
+- Extract only functional requirements sections from PRD (exclude introduction, glossary, appendices)
+- Extract architecture overview (exclude detailed API specs unless needed)
+- Confidence threshold: 0.75 for autonomous decisions
+- Decisions below threshold escalate to human review
+- storyMaxWords: 500
+- maxEstimatedHours: 2
+- maxContextTokens: 200000
+
+### Performance Constraints
+- Epic formation: &lt;30 seconds for 5-8 epics
+- Story decomposition per epic: &lt;60 seconds for 3-10 stories
+- Total solutioning time: &lt;45 minutes for all epics and stories
+- Target: 10-20 total stories for MVP scope
+- If execution exceeds 1 hour, fail gracefully with timeout
+
+### Testing Constraints
+- Use Vitest framework (project standard, not Jest)
+- Unit tests with mock Bob agent responses (use fixture Epic[] and Story[] data)
+- Integration tests with real PRD and architecture fixtures
+- Mock only LLM API calls (use fixture responses)
+- Target: 80%+ test coverage for all new code
+- All tests must pass before story completion
+
+### Code Quality Constraints
+- Follow patterns from Story 4.1 (types, schemas, validation)
+- Follow patterns from Story 4.2 (context builder, prompt templates, LLM config)
+- Follow patterns from Story 4.3 (workflow engine, state persistence, error handling)
+- Use structured logging (logger from Story 4.3, not console.log)
+- Comprehensive error handling with retry logic (3 attempts, exponential backoff)
+- JSDoc documentation on all public methods
+- Clean separation of concerns: epic formation service, story decomposition service, orchestrator
+
+### Integration Constraints
+- Use Epic and Story types from backend/src/solutioning/types.ts (Story 4.1)
+- Use validateEpic() and validateStory() from backend/src/solutioning/schemas.ts (Story 4.1)
+- Use SolutioningAgentContextBuilder from backend/src/solutioning/context-builder.ts (Story 4.2)
+- Use bobEpicFormationPrompt() and bobStoryDecompositionPrompt() from Story 4.2
+- Implement formEpics() and decomposeIntoStories() methods in BobAgentActions (replace stubs from Story 4.2)
+- Export all new services from backend/src/solutioning/index.ts for clean imports
+  </constraints>
+
+  <interfaces>
+## Required Interfaces (from Story 4.1)
+
+### Epic Interface
+```typescript
+interface Epic {
+  id: string; // "epic-1", "epic-2", etc.
+  title: string; // Business value name, not technical component
+  goal: string; // Clear, concise goal statement
+  value_proposition: string; // Why this epic matters
+  stories: Story[]; // 3-10 stories per epic (will be empty initially, populated by story decomposition)
+  business_value: string; // Revenue, cost reduction, user satisfaction, etc.
+  estimated_duration: string; // "1-2 sprints"
+}
+```
+
+### Story Interface
+```typescript
+interface Story {
+  id: string; // "4-1", "4-2", etc.
+  epic: string; // Parent epic ID
+  title: string; // Concise, action-oriented
+  description: string; // User story format: As a..., I want..., So that... (&lt;500 words)
+  acceptance_criteria: string[]; // 8-12 testable, atomic criteria
+  dependencies: string[]; // Array of story IDs that must complete first
+  status: StoryStatus; // "backlog" | "drafted" | "ready-for-dev" | "in-progress" | "review" | "done"
+  technical_notes: TechnicalNotes; // Implementation guidance
+  estimated_hours: number; // &lt;2 hours for autonomous completion
+  complexity: Complexity; // "low" | "medium" | "high"
+}
+```
+
+### TechnicalNotes Interface
+```typescript
+interface TechnicalNotes {
+  affected_files: string[]; // Files likely to change
+  endpoints: string[]; // API endpoints involved (if applicable)
+  data_structures: string[]; // Key data models or types
+  test_requirements: string; // Testing approach summary
+}
+```
+
+## Bob Agent Methods (from Story 4.2)
+
+### SolutioningAgentContextBuilder API
+```typescript
+class SolutioningAgentContextBuilder {
+  // Build optimized context for Bob agent (&lt;30k tokens)
+  buildBobContext(prd: string, architecture: string): AgentContext;
+
+  // Generate epic formation prompt
+  bobEpicFormationPrompt(context: AgentContext): string;
+
+  // Generate story decomposition prompt
+  bobStoryDecompositionPrompt(context: AgentContext, epic: Epic): string;
+}
+
+interface AgentContext {
+  prd: string; // Functional requirements only (&lt;30k tokens)
+  architecture: string; // Architecture overview
+  storyPatterns: string; // BMAD story patterns
+  constraints: AgentConstraints;
+}
+
+interface AgentConstraints {
+  storyMaxWords: number; // 500
+  acceptanceCriteriaMin: number; // 8
+  acceptanceCriteriaMax: number; // 12
+  maxEstimatedHours: number; // 2
+  maxContextTokens: number; // 200000
+  confidenceThreshold: number; // 0.75
+}
+```
+
+### BobAgentActions API (Methods to Implement in Story 4.4)
+```typescript
+class BobAgentActions {
+  // IMPLEMENT IN STORY 4.4: Invoke Bob agent to form epics from PRD
+  formEpics(context: AgentContext): Promise&lt;Epic[]&gt;;
+
+  // IMPLEMENT IN STORY 4.4: Invoke Bob agent to decompose epic into stories
+  decomposeIntoStories(context: AgentContext, epic: Epic): Promise&lt;Story[]&gt;;
+
+  // NOT NEEDED IN STORY 4.4: Dependency detection in Story 4.5
+  detectDependencies(context: AgentContext, stories: Story[]): Promise&lt;DependencyEdge[]&gt;;
+}
+```
+
+## Schema Validation API (from Story 4.1)
+
+```typescript
+// Validate Epic object against schema
+function validateEpic(data: unknown): ValidationResult;
+
+// Validate Story object against schema
+function validateStory(data: unknown): ValidationResult;
+
+interface ValidationResult {
+  pass: boolean; // True if all checks pass
+  score: number; // Weighted average (0.0-1.0)
+  checks: ValidationCheck[]; // Individual check results
+  blockers: string[]; // Critical issues preventing implementation
+  warnings: string[]; // Non-blocking issues for review
+}
+```
+
+## LLM Invocation Pattern
+
+Story 4.4 must invoke Bob agent LLM for epic formation and story decomposition:
+
+```typescript
+// Example pattern for LLM invocation (adapt to actual LLM provider)
+import { LLMFactory } from '../core/llm-factory.js';
+import { loadBobLLMConfig } from './bob-llm-config.js';
+
+// Load LLM configuration
+const llmConfig = await loadBobLLMConfig();
+
+// Create LLM client
+const llmClient = LLMFactory.createClient(llmConfig);
+
+// Invoke LLM with prompt
+const response = await llmClient.invoke(prompt, {
+  temperature: llmConfig.temperature,
+  max_tokens: llmConfig.max_tokens
+});
+
+// Parse JSON response
+const result = JSON.parse(response.content);
+```
+  </interfaces>
+
+  <tests>
+    <standards>
+## Testing Standards
+
+### Framework
+- **Vitest**: Project standard testing framework (NOT Jest)
+- **Mocking**: Use vi.mock() for file system and LLM API mocking
+- **Coverage Target**: 80%+ statement coverage for all new code
+- **Test Organization**: Test files in backend/tests/unit/solutioning/ and backend/tests/integration/solutioning/
+
+### Unit Testing Patterns (from Stories 4.1, 4.2, 4.3)
+- Mock file system for PRD and architecture file reads (use vi.mock('fs/promises'))
+- Mock LLM API responses with fixture data (Epic[] and Story[] objects)
+- Test both success and error paths
+- Test edge cases (empty files, malformed data, validation failures)
+- Use Arrange-Act-Assert (AAA) pattern
+- Clear, descriptive test names in "should..." format
+
+### Integration Testing Patterns
+- Use real PRD and architecture fixtures from docs/PRD.md and docs/architecture.md
+- Mock only LLM API calls (use fixture responses, not real LLM invocations)
+- Test complete epic formation → story decomposition flow
+- Validate generated epics and stories against schemas from Story 4.1
+- Test performance (&lt;45 minutes for complete solutioning)
+
+### Test Data Fixtures
+- Fixture PRD with functional requirements (use docs/PRD.md or create minimal test fixture)
+- Fixture architecture document (use docs/architecture.md or create minimal test fixture)
+- Fixture LLM responses: Epic objects (3-8 epics) with complete fields
+- Fixture LLM responses: Story objects (3-10 per epic) with 8-12 acceptance criteria
+- Known-good epic/story examples for validation testing
+
+### Coverage Expectations (from Previous Stories)
+- Story 4.1: 99%+ coverage (schemas, template builder)
+- Story 4.2: 96%+ coverage (Bob agent infrastructure)
+- Story 4.3: 88%+ coverage (workflow engine)
+- Story 4.4 Target: 80%+ coverage minimum, aim for 90%+
+
+### Error Scenarios to Test
+- LLM API failures (network errors, rate limiting)
+- Malformed LLM responses (invalid JSON, missing fields)
+- Schema validation failures (Epic or Story doesn't match schema)
+- Oversized stories (word count &gt;500, estimated hours &gt;2)
+- Too few or too many acceptance criteria (&lt;8 or &gt;12)
+- Confidence score below threshold (&lt;0.75)
+- PRD or architecture file missing or empty
+    </standards>
+
+    <locations>
+backend/tests/unit/solutioning/epic-formation-service.test.ts
+backend/tests/unit/solutioning/story-decomposition-service.test.ts
+backend/tests/unit/solutioning/solutioning-orchestrator.test.ts
+backend/tests/integration/solutioning/epic-story-generation.test.ts
+    </locations>
+
+    <ideas>
+## Test Ideas Mapped to Acceptance Criteria
+
+### AC 1-9: Epic Formation Tests
+- **AC#1**: Test Bob agent invocation via SolutioningAgentContextBuilder with PRD and architecture context
+- **AC#2**: Test PRD functional requirements analysis and feature grouping identification
+- **AC#3**: Test natural grouping identification (auth, payments, admin, etc.) based on business value
+- **AC#4**: Test epic formation with 3-8 related features each
+- **AC#5**: Test business value naming (e.g., "User Authentication") vs technical naming (e.g., "Auth Service")
+- **AC#6**: Test each epic is independently valuable and completable in 1-2 sprints
+- **AC#7**: Test epic completability validation (1-2 sprints, measurable business outcomes)
+- **AC#8**: Test domain-specific epics (compliance, validation) if applicable
+- **AC#9**: Test epic description generation with goals and value propositions
+
+### AC 10-17: Story Decomposition Tests
+- **AC#10**: Test story generation (3-10 stories per epic) using Bob agent's decomposeIntoStories() method
+- **AC#11**: Test user story format: "As a..., I want..., So that..."
+- **AC#12**: Test stories are vertical slices (end-to-end functionality, not horizontal layers)
+- **AC#13**: Test story word count validation (&lt;500 words total)
+- **AC#14**: Test single responsibility per story (one clear outcome, no scope creep)
+- **AC#15**: Test technical notes inclusion (affected files, endpoints, data structures)
+- **AC#16**: Test story sizing validation (200k context window, &lt;2 hour development time)
+- **AC#17**: Test story splitting for oversized stories (automatic split into smaller stories)
+
+### AC 18-24: Integration Tests
+- **AC#18**: Test Epic and Story type usage from Story 4.1 (src/solutioning/types.ts)
+- **AC#19**: Test formEpics() then decomposeIntoStories() method execution from Story 4.2
+- **AC#20**: Test generation of 10-20 total stories for MVP scope (3-10 per epic, 3-8 epics total)
+- **AC#21**: Test autonomous decisions on story boundaries with confidence scoring (threshold: 0.75)
+- **AC#22**: Test 8-12 clear, testable acceptance criteria per story
+- **AC#23**: Test performance (&lt;45 minutes for epic formation + story decomposition)
+- **AC#24**: Test unit tests + integration tests with mock Bob responses (meta test: verify test coverage &gt;80%)
+    </ideas>
+  </tests>
+</story-context>
