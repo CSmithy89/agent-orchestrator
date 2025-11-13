@@ -58,3 +58,15 @@ export { SolutioningAgentContextBuilder } from './context-builder.js';
 export type { AgentContext, AgentConstraints } from './context-builder.js';
 
 export { BobAgentActions, initializeBobAgent } from './bob-agent-factory.js';
+
+// Export SolutioningWorkflowEngine (Story 4.3)
+export { SolutioningWorkflowEngine } from './workflow-engine.js';
+export type {
+  SolutioningWorkflowState,
+  StepContext,
+  StepHook,
+  WorkflowCheckpoint,
+  ExecutionPlan,
+  WorkflowProgress,
+  SolutioningEngineOptions
+} from './workflow-engine.js';
