@@ -103,7 +103,7 @@ development_status:
   epic-5: contexted  # Tech spec: docs/epics/epic-5-tech-spec.md
   5-1-core-agent-infrastructure: done
   5-2-story-context-generator: done
-  5-3-workflow-orchestration-state-management: review
+  5-3-workflow-orchestration-state-management: done
   5-4-code-implementation-pipeline: backlog
   5-5-test-generation-execution: backlog
   5-6-dual-agent-code-review: backlog
