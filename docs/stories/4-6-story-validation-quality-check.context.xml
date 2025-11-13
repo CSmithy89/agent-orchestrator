@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <story>
+    <id>4-6</id>
+    <title>Story Validation &amp; Quality Check</title>
+    <status>in-progress</status>
+  </story>
+
+  <objective>
+    Implement story validation service to ensure all stories meet quality standards for autonomous development.
+  </objective>
+
+  <key-files>
+    <file>
+      <path>backend/src/solutioning/types.ts</path>
+      <purpose>Story, ValidationResult, ValidationCheck types</purpose>
+    </file>
+    <file>
+      <path>backend/src/solutioning/story-validator.ts</path>
+      <purpose>StoryValidator service implementation (to be created)</purpose>
+    </file>
+    <file>
+      <path>backend/src/solutioning/solutioning-orchestrator.ts</path>
+      <purpose>Integration point for story validation</purpose>
+    </file>
+    <file>
+      <path>backend/tests/unit/solutioning/story-validator.test.ts</path>
+      <purpose>Unit tests for StoryValidator (to be created)</purpose>
+    </file>
+  </key-files>
+
+  <integration-points>
+    <integration>
+      <point>SolutioningOrchestrator.executeSolutioning()</point>
+      <description>Add validation step after dependency detection, before status generation</description>
+    </integration>
+    <integration>
+      <point>SolutioningResult interface</point>
+      <description>Add validationMetrics field with validation statistics</description>
+    </integration>
+  </integration-points>
+
+  <validation-rules>
+    <category name="Size" weight="20%">
+      <rule>Word count &lt; 500 words</rule>
+      <rule>Acceptance criteria count: 8-12 (target), &lt;15 (max with warning)</rule>
+      <rule>Estimated hours: &lt;2 (target), &lt;8 (max with blocker)</rule>
+    </category>
+    <category name="Clarity" weight="30%">
+      <rule>User story format: "As a..., I want..., So that..."</rule>
+      <rule>Clear, action-oriented title</rule>
+      <rule>Specific, testable acceptance criteria</rule>
+    </category>
+    <category name="Completeness" weight="25%">
+      <rule>All required fields present: id, epic, title, description, acceptance_criteria, dependencies, status, technical_notes, estimated_hours, complexity</rule>
+      <rule>Technical notes complete: affected_files, endpoints, data_structures, test_requirements</rule>
+    </category>
+    <category name="Dependencies" weight="25%">
+      <rule>All dependency IDs exist in story set</rule>
+      <rule>No circular dependencies</rule>
+      <rule>No self-dependencies</rule>
+    </category>
+  </validation-rules>
+
+  <blockers>
+    <blocker>Missing required fields</blocker>
+    <blocker>Circular dependencies detected</blocker>
+    <blocker>Estimated hours &gt; 8</blocker>
+    <blocker>Self-dependencies</blocker>
+    <blocker>Invalid dependency IDs (not in story set)</blocker>
+  </blockers>
+
+  <warnings>
+    <warning>15+ acceptance criteria (consider splitting)</warning>
+    <warning>Close to 500-word limit</warning>
+    <warning>Estimated hours &gt; 2 (consider splitting)</warning>
+    <warning>Vague or untestable acceptance criteria</warning>
+  </warnings>
+
+  <performance-targets>
+    <target>Validation time: &lt;100ms per story</target>
+    <target>Batch validation: &lt;2 seconds for 20 stories</target>
+  </performance-targets>
+
+  <testing-strategy>
+    <test-type>Unit tests for each validation rule</test-type>
+    <test-type>Boundary condition tests (exactly 500 words, exactly 12 ACs)</test-type>
+    <test-type>Circular dependency detection tests</test-type>
+    <test-type>Weighted score calculation tests</test-type>
+    <test-type>Batch validation aggregation tests</test-type>
+    <test-type>Performance tests (&lt;100ms per story)</test-type>
+    <coverage-target>80%+ statement coverage</coverage-target>
+  </testing-strategy>
+</story-context>

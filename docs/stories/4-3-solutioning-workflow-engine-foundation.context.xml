@@ -1,0 +1,460 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>4</epicId>
+    <storyId>4-3</storyId>
+    <title>Solutioning Workflow Engine Foundation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/4-3-solutioning-workflow-engine-foundation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>workflow orchestrator</asA>
+    <iWant>workflow engine infrastructure for solutioning phase</iWant>
+    <soThat>subsequent stories can execute epic/story generation steps with proper state management and worktree integration</soThat>
+    <tasks>
+      ### Task 1: Create SolutioningWorkflowEngine Class
+      - Create backend/src/solutioning/workflow-engine.ts
+      - Import WorkflowEngine base class from Epic 1
+      - Implement SolutioningWorkflowEngine extending WorkflowEngine
+      - Override constructor for solutioning-specific initialization
+      - Add properties: prdContent, architectureContent, worktreeManager
+      - Add JSDoc documentation
+      - Unit test class instantiation and inheritance
+
+      ### Task 2: Implement Workflow Configuration Loading
+      - Add loadWorkflowConfig(configPath: string): Promise&lt;WorkflowConfig&gt;
+      - Parse YAML using js-yaml library
+      - Define WorkflowConfig interface
+      - Validate workflow schema
+      - Error handling for missing/malformed files
+      - Unit tests for valid/invalid configs
+
+      ### Task 3: Implement Workflow Step Parsing
+      - Add parseWorkflowSteps(config: WorkflowConfig): WorkflowStep[]
+      - Define WorkflowStep interface
+      - Add buildExecutionPlan(steps: WorkflowStep[]): ExecutionPlan
+      - Create execution graph with dependencies
+      - Detect circular dependencies
+      - Unit tests for step parsing and execution plan
+
+      ### Task 4: Implement State Machine Transitions
+      - Define WorkflowState type
+      - Add state properties: currentState, currentStep, progressPercentage, timestamps
+      - Add transitionState(newState: WorkflowState): void
+      - Validate state transitions
+      - Emit events for state changes
+      - Calculate progress percentage
+      - Unit tests for valid/invalid transitions
+
+      ### Task 5: Integrate Worktree Management
+      - Import WorktreeManager from Epic 1
+      - Add setupWorktree(): Promise&lt;void&gt;
+      - Call worktreeManager.createWorktree("wt/solutioning", "solutioning/epics-stories")
+      - Add cleanupWorktree(): Promise&lt;void&gt;
+      - Integrate cleanup in completion and error handlers
+      - Unit and integration tests
+
+      ### Task 6: Implement State Persistence
+      - Add persistState(): Promise&lt;void&gt;
+      - Build state object with workflow details
+      - Use js-yaml to serialize
+      - Atomic write pattern (temp file + rename)
+      - Add loadState(): Promise&lt;WorkflowState | null&gt;
+      - Unit tests for persistence and recovery
+
+      ### Task 7: Implement Step Execution Hooks
+      - Define StepHook type
+      - Add hook properties: preStepHooks, postStepHooks
+      - Add registerPreStepHook(stepName: string, hook: StepHook): void
+      - Add registerPostStepHook(stepName: string, hook: StepHook): void
+      - Add executePreStepHooks/executePostStepHooks methods
+      - Handle hook errors
+      - Unit tests for hook registration and execution
+
+      ### Task 8: Implement Error Handling and Rollback
+      - Add checkpoints property
+      - Add createCheckpoint(): WorkflowCheckpoint
+      - Add rollbackToCheckpoint(checkpoint: WorkflowCheckpoint): Promise&lt;void&gt;
+      - Add handleStepError(error: Error, step: WorkflowStep): Promise&lt;void&gt;
+      - Implement retry logic (configurable retries)
+      - Cleanup on failure
+      - Unit tests for checkpoint and rollback
+
+      ### Task 9: Implement Input Loading
+      - Add loadInputs(): Promise&lt;void&gt;
+      - Read docs/PRD.md
+      - Read docs/architecture.md
+      - Validate inputs exist and non-empty
+      - Store in properties
+      - Add getStepContext(step: WorkflowStep): StepContext
+      - Unit tests for input loading
+
+      ### Task 10: Implement Workflow Progress Tracking
+      - Add updateProgress(): void
+      - Calculate progress percentage
+      - Update progressPercentage property
+      - Call persistState() to save
+      - Add getCurrentProgress(): WorkflowProgress
+      - Unit tests for progress calculation
+
+      ### Task 11: Write Unit Tests
+      - Create backend/tests/unit/solutioning/workflow-engine.test.ts
+      - Test suites for all components
+      - Use Vitest framework with mocking
+      - Target 80%+ coverage
+      - All tests passing
+
+      ### Task 12: Verify Infrastructure-Only Scope
+      - Review code for NO LLM API calls
+      - Verify NO epic/story generation
+      - Verify NO Bob agent invocation
+      - Ensure workflow steps are stubs
+      - Add TODO comments for Stories 4.4/4.5
+      - Unit test to verify no LLM calls
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    1. **SolutioningWorkflowEngine Class Implementation**: Class extends WorkflowEngine from Epic 1, inherits base capabilities, adds solutioning-specific features (worktree management, PRD/architecture loading), clean separation of concerns
+
+    2. **Workflow Configuration Loading**: Load from bmad/bmm/workflows/create-epics-and-stories/workflow.yaml, parse YAML structure, validate schema, error handling for missing/malformed files, support for configuration overrides
+
+    3. **Workflow Step Parsing and Execution Planning**: Parse individual steps from YAML (name, action, inputs, outputs), build execution plan with ordering and dependencies, validate dependencies are acyclic, generate step execution graph, track step metadata
+
+    4. **State Machine Transitions**: Implement transitions (not_started → in_progress → review → complete), track current step/progress/timestamps, support state persistence across interruptions, validate transitions, emit events for state changes
+
+    5. **Worktree Management Integration**: Create worktree wt/solutioning with branch solutioning/epics-stories, integrate WorktreeManager from Epic 1, automatic cleanup on completion/failure, support multiple concurrent worktrees
+
+    6. **State Persistence to workflow-status.yaml**: Persist state after each step to bmad/workflow-status.yaml, atomic file writes, state recovery on restart, human-readable YAML format with comments
+
+    7. **Step Execution Hooks**: Pre-step hooks (validation, setup, context prep), post-step hooks (validation, cleanup, state update), hook error handling (continue/retry/abort), async hook support, hook registration API
+
+    8. **Error Handling and Rollback Capability**: Comprehensive error handling for step failures, rollback to previous checkpoint, cleanup on failure (destroy worktree, revert changes), error logging with context, retry logic for transient failures
+
+    9. **Input Loading from Epic 2 and Epic 3**: Read docs/PRD.md and docs/architecture.md as inputs, validate existence and non-empty, parse markdown to extract sections, make available to workflow steps via context
+
+    10. **Workflow Progress Tracking**: Update bmad/workflow-status.yaml with progress, track current workflow/step/percentage/timestamps, calculate progress from completed/total steps, support progress reporting API
+
+    11. **Unit Tests for Workflow Engine and State Machine**: Test class initialization, workflow loading/parsing, state machine transitions, worktree creation/cleanup, state persistence/recovery, error handling/rollback, step execution hooks, use Vitest framework, 80%+ coverage target
+
+    12. **Infrastructure Only - No Content Generation**: Creates workflow infrastructure only, does NOT execute epic/story generation, does NOT invoke Bob agent or LLM APIs, provides execution framework for Stories 4.4 and 4.5, all workflow steps are stubs or no-ops
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 4 Technical Specification -->
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4: Solutioning Phase Automation - Technical Specification</title>
+        <section>SolutioningWorkflowEngine Design</section>
+        <snippet>Lines 70-84: "SolutioningWorkflowEngine extends WorkflowEngine from Epic 1. Executes solutioning workflow steps, manages worktrees, tracks state transitions. Workflow.yaml loaded from bmad/bmm/workflows/create-epics-and-stories/workflow.yaml. State persistence to bmad/workflow-status.yaml after each step. Pre/post step execution hooks implemented. PRD and architecture read as inputs."</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Tech Spec</title>
+        <section>Workflow Sequencing - Story 4.3</section>
+        <snippet>Lines 351-358: "Story 4.3: Solutioning Workflow Engine - Extend WorkflowEngine from Epic 1, load workflow.yaml and parse steps, implement state machine transitions, integrate worktree management, state persistence to sprint-status.yaml. Foundation-first architecture enables parallel development in Stories 4.4-4.9."</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-4-tech-spec.md</path>
+        <title>Epic 4 Tech Spec</title>
+        <section>Acceptance Criteria AC-3</section>
+        <snippet>Lines 617-630: "SolutioningWorkflowEngine class extends WorkflowEngine from Epic 1. Workflow.yaml loaded, steps parsed, execution plan built. State machine transitions: not_started → in_progress → review → complete. Worktree wt/solutioning created. State persistence to bmad/workflow-status.yaml. Pre/post step hooks. Error handling with rollback. PRD.md and architecture.md read. Progress tracking. Unit tests 80%+ coverage. No actual epic/story generation (infrastructure only)."</snippet>
+      </doc>
+
+      <!-- PRD -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>Project Classification</section>
+        <snippet>Level 3 complexity - Multi-agent coordination, LLM integration, git operations, state management. Greenfield developer-focused platform combining AI/LLM integration, development tools, workflow automation, and distributed systems.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - PRD</title>
+        <section>Success Criteria - Testing &amp; Quality</section>
+        <snippet>Test strategy defined in architecture phase (required), all stories include test acceptance criteria, 80%+ code coverage for new code, automated test execution in CI/CD, zero critical bugs in production.</snippet>
+      </doc>
+
+      <!-- Architecture -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>High-Level Architecture</section>
+        <snippet>Microkernel pattern with event-driven extensions. Core kernel (Epic 1) includes WorkflowEngine, AgentPool, StateManager, WorktreeManager, TemplateProcessor, LLMFactory. Workflow plugins (Epics 2-5) extend core with PRD workflow, Architecture workflow, Story workflow, Dev workflow. State resilience - all execution state persisted for crash recovery.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Architecture</title>
+        <section>Autonomy First Principle</section>
+        <snippet>System makes 85%+ decisions independently with confidence-based escalation. Parallel intelligence enables multiple stories to develop simultaneously in isolated git worktrees. State resilience ensures crash recovery and resume capabilities.</snippet>
+      </doc>
+
+      <!-- Testing Guide -->
+      <doc>
+        <path>docs/testing-guide.md</path>
+        <title>Testing Guide</title>
+        <section>Test Types and Structure</section>
+        <snippet>Unit tests in tests/unit/ (isolated, mocked dependencies), integration tests in tests/integration/ (real dependencies), e2e tests in tests/e2e/ (full workflows). Shared test utilities in tests/utils/ (apiKeys.ts, mockAgents.ts, gitSetup.ts, fixtures.ts). Use Vitest framework throughout project.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- WorkflowEngine Base Class (Epic 1) -->
+      <artifact>
+        <path>backend/src/core/WorkflowEngine.ts</path>
+        <kind>class</kind>
+        <symbol>WorkflowEngine</symbol>
+        <lines>27-150</lines>
+        <reason>Base class to extend for SolutioningWorkflowEngine. Provides workflow execution, state management, step parsing, variable substitution, crash recovery. Must understand inheritance patterns and extension points.</reason>
+      </artifact>
+
+      <!-- WorktreeManager (Epic 1) -->
+      <artifact>
+        <path>backend/src/core/WorktreeManager.ts</path>
+        <kind>class</kind>
+        <symbol>WorktreeManager</symbol>
+        <lines>25-100</lines>
+        <reason>Manages git worktrees for isolated development. SolutioningWorkflowEngine integrates this for wt/solutioning worktree creation/cleanup. Methods: createWorktree(storyId, baseBranch), destroyWorktree(), initialize().</reason>
+      </artifact>
+
+      <!-- Solutioning Types (Story 4.1) -->
+      <artifact>
+        <path>backend/src/solutioning/types.ts</path>
+        <kind>types</kind>
+        <symbol>Epic, Story, DependencyGraph, ValidationResult, StoryStatus, Complexity</symbol>
+        <lines>1-446</lines>
+        <reason>Core data models from Story 4.1. Defines Epic, Story, DependencyGraph, ValidationResult interfaces. SolutioningWorkflowEngine works with these types for state and validation.</reason>
+      </artifact>
+
+      <!-- Solutioning Context Builder (Story 4.2) -->
+      <artifact>
+        <path>backend/src/solutioning/context-builder.ts</path>
+        <kind>class</kind>
+        <symbol>SolutioningAgentContextBuilder</symbol>
+        <lines>78-100</lines>
+        <reason>Builds Bob agent context from PRD and architecture. Story 4.3 loads PRD/architecture inputs that will be used by this builder in Story 4.4. Demonstrates PRD/architecture parsing patterns.</reason>
+      </artifact>
+
+      <!-- Workflow Types (Epic 1) -->
+      <artifact>
+        <path>backend/src/types/workflow.types.ts</path>
+        <kind>types</kind>
+        <symbol>WorkflowConfig, WorkflowState, Step, Action, Check</symbol>
+        <lines>full file</lines>
+        <reason>Type definitions for workflow configuration and state. SolutioningWorkflowEngine uses these types for workflow parsing, execution planning, and state management.</reason>
+      </artifact>
+
+      <!-- State Manager (Epic 1) -->
+      <artifact>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>class</kind>
+        <symbol>StateManager</symbol>
+        <lines>full file</lines>
+        <reason>Manages workflow state persistence to files. SolutioningWorkflowEngine uses StateManager for saving/loading workflow state to bmad/workflow-status.yaml with atomic writes.</reason>
+      </artifact>
+
+      <!-- Workflow Parser (Epic 1) -->
+      <artifact>
+        <path>backend/src/core/WorkflowParser.ts</path>
+        <kind>class</kind>
+        <symbol>WorkflowParser</symbol>
+        <lines>full file</lines>
+        <reason>Parses workflow.yaml files and resolves variables. SolutioningWorkflowEngine uses WorkflowParser for loading and validating workflow configuration from bmad/bmm/workflows/create-epics-and-stories/workflow.yaml.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package>js-yaml</package>
+        <version>^4.1.0</version>
+        <purpose>YAML parsing for workflow.yaml and state persistence</purpose>
+      </node>
+      <node>
+        <package>@types/js-yaml</package>
+        <version>^4.0.0</version>
+        <purpose>TypeScript types for js-yaml</purpose>
+      </node>
+      <node>
+        <package>simple-git</package>
+        <version>^3.20.0</version>
+        <purpose>Git operations for worktree management (via WorktreeManager)</purpose>
+      </node>
+      <node>
+        <package>vitest</package>
+        <version>^1.0.0</version>
+        <purpose>Unit testing framework (project standard)</purpose>
+      </node>
+      <node>
+        <package>@vitest/coverage-v8</package>
+        <version>^1.0.0</version>
+        <purpose>Code coverage reporting for tests</purpose>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>^5.3.0</version>
+        <purpose>TypeScript compiler and type checking</purpose>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    1. **Extend WorkflowEngine Base Class**: Must extend backend/src/core/WorkflowEngine.ts from Epic 1. Inherit base workflow execution capabilities (step parsing, execution, error handling). Override constructor for solutioning-specific initialization. Do not duplicate base class functionality.
+
+    2. **Use Established Types**: Import Epic, Story, ValidationResult from backend/src/solutioning/types.ts (Story 4.1). Import WorkflowConfig, WorkflowState from backend/src/types/workflow.types.ts. Maintain type consistency across solutioning module.
+
+    3. **Infrastructure-Only Scope**: This story creates workflow engine infrastructure ONLY. NO epic/story generation. NO Bob agent invocation. NO LLM API calls. All workflow steps are stubs or no-ops. Actual implementation deferred to Stories 4.4 and 4.5. Add TODO comments referencing downstream stories.
+
+    4. **Module Structure**: Code in backend/src/solutioning/workflow-engine.ts. Tests in backend/tests/unit/solutioning/workflow-engine.test.ts. Export from backend/src/solutioning/index.ts for clean imports. Follow patterns from Stories 4.1 and 4.2.
+
+    5. **Testing Requirements**: Use Vitest framework (NOT Jest). Target 80%+ test coverage. Mock file system operations (vi.mock('fs/promises')). Mock WorktreeManager for worktree tests. Test both success and error paths. Edge case coverage (missing files, malformed data, invalid state transitions).
+
+    6. **State Persistence Pattern**: Save workflow state to bmad/workflow-status.yaml after each step. Use atomic write pattern (write to .tmp file, then rename). Human-readable YAML format with comments. Support state recovery on workflow restart.
+
+    7. **Error Handling**: Comprehensive error handling for all operations. Checkpoint workflow state before major steps. Rollback capability to restore previous state. Cleanup on failure (destroy worktree, revert file changes). Retry logic for transient failures (configurable retry count).
+
+    8. **Worktree Management**: Create worktree at wt/solutioning with branch solutioning/epics-stories. Use WorktreeManager from backend/src/core/WorktreeManager.ts. Automatic cleanup on workflow completion and failure. Support multiple concurrent worktrees (unique naming).
+
+    9. **Code Quality Standards**: JSDoc documentation for all public methods. TypeScript strict mode enabled. ESLint compliant. No console.log in production code (use proper logging). Clear error messages with context.
+
+    10. **Foundation-First Architecture**: This is the LAST foundation story (4.1 → 4.2 → 4.3). After completion, Stories 4.4-4.9 can develop in parallel using git worktrees. Workflow engine provides orchestration framework for all feature stories.
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>WorkflowEngine</name>
+      <kind>Base class to extend</kind>
+      <signature>
+        class WorkflowEngine {
+          constructor(workflowPath: string, options: EngineOptions)
+          async execute(): Promise&lt;void&gt;
+          async parseInstructions(instructionsPath: string): Promise&lt;Step[]&gt;
+          async evaluateCondition(condition: string, variables: Record&lt;string, any&gt;): Promise&lt;boolean&gt;
+          async saveState(currentStep: number, status: string): Promise&lt;void&gt;
+          protected workflowParser: WorkflowParser
+          protected stateManager: StateManager
+          protected templateProcessor: TemplateProcessor
+          protected projectRoot: string
+          protected variables: Record&lt;string, any&gt;
+        }
+      </signature>
+      <path>backend/src/core/WorkflowEngine.ts</path>
+    </interface>
+
+    <interface>
+      <name>WorktreeManager</name>
+      <kind>Worktree management API</kind>
+      <signature>
+        class WorktreeManager {
+          constructor(projectRoot: string, baseBranch: string = 'main')
+          async initialize(): Promise&lt;void&gt;
+          async createWorktree(storyId: string, baseBranch?: string): Promise&lt;Worktree&gt;
+          async destroyWorktree(storyId: string, force?: boolean): Promise&lt;void&gt;
+          async getWorktree(storyId: string): Promise&lt;Worktree | undefined&gt;
+          async listWorktrees(): Promise&lt;Worktree[]&gt;
+        }
+
+        interface Worktree {
+          storyId: string
+          path: string
+          branch: string
+          createdAt: Date
+          status: 'active' | 'stale'
+        }
+      </signature>
+      <path>backend/src/core/WorktreeManager.ts</path>
+    </interface>
+
+    <interface>
+      <name>StateManager</name>
+      <kind>State persistence API</kind>
+      <signature>
+        class StateManager {
+          constructor(projectRoot: string)
+          async saveState(state: WorkflowState): Promise&lt;void&gt;
+          async loadState(workflowName: string): Promise&lt;WorkflowState | null&gt;
+          async clearState(workflowName: string): Promise&lt;void&gt;
+        }
+
+        interface WorkflowState {
+          workflowName: string
+          currentStep: number
+          status: 'running' | 'completed' | 'failed'
+          variables: Record&lt;string, any&gt;
+          startedAt: string
+          completedAt?: string
+        }
+      </signature>
+      <path>backend/src/core/StateManager.ts</path>
+    </interface>
+
+    <interface>
+      <name>WorkflowParser</name>
+      <kind>Workflow YAML parsing API</kind>
+      <signature>
+        class WorkflowParser {
+          constructor(projectRoot: string)
+          async parseYAML(workflowPath: string): Promise&lt;WorkflowConfig&gt;
+          async resolveVariables(config: WorkflowConfig, projectConfig: ProjectConfig): Promise&lt;WorkflowConfig&gt;
+          async validateWorkflow(config: WorkflowConfig): Promise&lt;ValidationResult&gt;
+        }
+
+        interface WorkflowConfig {
+          name: string
+          description: string
+          version?: string
+          variables: Record&lt;string, any&gt;
+          instructions: string
+          template?: string
+          validation?: string
+        }
+      </signature>
+      <path>backend/src/core/WorkflowParser.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest framework for all testing (project standard established in Epic 1). Unit tests in tests/unit/solutioning/, integration tests if needed in tests/integration/solutioning/. Mock external dependencies: file system (vi.mock('fs/promises')), git operations (mock WorktreeManager), YAML parsing (use real js-yaml with fixture files). Test both success and error paths. Edge cases: missing files, malformed YAML, invalid state transitions, concurrent worktrees. Target 80%+ statement coverage for all new code, 100% coverage for critical paths (state machine, error handling, rollback). Use shared test utilities from tests/utils/ (gitSetup.ts, fixtures.ts). Follow testing patterns from Stories 4.1 and 4.2 (98 tests, >96% coverage achieved).
+    </standards>
+
+    <locations>
+      backend/tests/unit/solutioning/workflow-engine.test.ts
+    </locations>
+
+    <ideas>
+      AC-1: Test SolutioningWorkflowEngine class instantiation and verify inheritance from WorkflowEngine
+      AC-1: Test solutioning-specific property initialization (prdContent, architectureContent, worktreeManager)
+      AC-2: Test workflow config loading with valid workflow.yaml file
+      AC-2: Test error handling for missing workflow.yaml (ENOENT)
+      AC-2: Test error handling for malformed YAML (parse errors)
+      AC-3: Test workflow step parsing with simple workflow (3-5 steps)
+      AC-3: Test execution plan building with step dependencies
+      AC-3: Test circular dependency detection and error escalation
+      AC-4: Test valid state transitions (not_started → in_progress → review → complete)
+      AC-4: Test invalid state transitions throw appropriate errors (e.g., not_started → complete)
+      AC-4: Test progress percentage calculation (completed steps / total steps)
+      AC-5: Test worktree creation with WorktreeManager (mock)
+      AC-5: Test worktree cleanup on workflow completion
+      AC-5: Test worktree cleanup on workflow failure (error handling)
+      AC-6: Test state persistence to bmad/workflow-status.yaml with mock file system
+      AC-6: Test state loading and recovery from persisted state
+      AC-6: Test atomic write pattern (no corruption on failure)
+      AC-7: Test pre-step hook registration and execution
+      AC-7: Test post-step hook registration and execution
+      AC-7: Test hook error handling (continue vs abort scenarios)
+      AC-8: Test checkpoint creation at workflow milestones
+      AC-8: Test rollback to previous checkpoint with state restoration
+      AC-8: Test retry logic for transient errors (3 retries with backoff)
+      AC-9: Test PRD.md loading with mock file system
+      AC-9: Test architecture.md loading with mock file system
+      AC-9: Test error handling for missing input files (PRD or architecture)
+      AC-10: Test progress tracking updates to workflow-status.yaml
+      AC-10: Test progress calculation for various step counts (0%, 50%, 100%)
+      AC-12: Test that workflow engine does NOT make LLM API calls
+      AC-12: Test that workflow steps are stubs (no actual epic/story generation)
+    </ideas>
+  </tests>
+</story-context>

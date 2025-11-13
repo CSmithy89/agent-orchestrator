@@ -47,3 +47,60 @@ export {
 // Export StoryTemplateBuilder
 export { StoryTemplateBuilder } from './story-template-builder.js';
 export type { StoryObject } from './story-template-builder.js';
+
+// Export Bob Agent Infrastructure (Story 4.2)
+export { loadBobPersona, clearPersonaCache } from './bob-agent-loader.js';
+export type { BobPersona } from './bob-agent-loader.js';
+
+export { loadBobLLMConfig, validateBobLLMConfig } from './bob-llm-config.js';
+
+export { SolutioningAgentContextBuilder } from './context-builder.js';
+export type { AgentContext, AgentConstraints } from './context-builder.js';
+
+export { BobAgentActions, initializeBobAgent } from './bob-agent-factory.js';
+
+// Export SolutioningWorkflowEngine (Story 4.3)
+export { SolutioningWorkflowEngine } from './workflow-engine.js';
+export type {
+  SolutioningWorkflowState,
+  StepContext,
+  StepHook,
+  WorkflowCheckpoint,
+  ExecutionPlan,
+  WorkflowProgress,
+  SolutioningEngineOptions
+} from './workflow-engine.js';
+
+// Export Epic Formation Service (Story 4.4)
+export { EpicFormationService } from './epic-formation-service.js';
+export type { EpicFormationMetrics } from './epic-formation-service.js';
+
+// Export Story Decomposition Service (Story 4.4)
+export { StoryDecompositionService } from './story-decomposition-service.js';
+export type { StoryDecompositionMetrics } from './story-decomposition-service.js';
+
+// Export Solutioning Orchestrator (Story 4.4)
+export { SolutioningOrchestrator } from './solutioning-orchestrator.js';
+export type { SolutioningResult } from './solutioning-orchestrator.js';
+
+// Export Dependency Detection Service (Story 4.5)
+export { DependencyDetectionService } from './dependency-detection-service.js';
+export type { DependencyDetectionResult, DependencyDetectionMetrics } from './dependency-detection-service.js';
+
+// Export Dependency Graph Generator (Story 4.5)
+export { DependencyGraphGenerator } from './dependency-graph-generator.js';
+
+// Export Story Validator (Story 4.6)
+export { StoryValidator } from './story-validator.js';
+export type { BatchValidationResult } from './story-validator.js';
+
+// Export Sprint Status Generator (Story 4.7)
+export { SprintStatusGenerator } from './sprint-status-generator.js';
+
+// Export Story File Writer (Story 4.8)
+export { StoryFileWriter } from './story-file-writer.js';
+export type { WriteSummary, SolutioningResult as SolutioningResultForWriter } from './story-file-writer.js';
+
+// Export Readiness Gate Validator (Story 4.9)
+export { ReadinessGateValidator } from './readiness-gate-validator.js';
+export type { ReadinessGateResult, CheckResult } from './readiness-gate-validator.js';
