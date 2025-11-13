@@ -100,7 +100,7 @@ development_status:
   epic-4-retrospective: completed
 
   # Epic 5: Story Implementation Automation (Restructured for Parallel Development)
-  epic-5: backlog
+  epic-5: contexted  # Tech spec: docs/epics/epic-5-tech-spec.md
   5-1-core-agent-infrastructure: backlog
   5-2-story-context-generator: backlog
   5-3-workflow-orchestration-state-management: backlog
