@@ -199,9 +199,9 @@ export class StoryTemplateBuilder {
     const schemaValidation = validateStory(story);
 
     // Additional format checks
-    const checks: SolutioningValidationResult['checks'] = [...schemaValidation.checks];
-    const blockers: string[] = [...schemaValidation.blockers];
-    const warnings: string[] = [...schemaValidation.warnings];
+    const checks = [...schemaValidation.checks];
+    const blockers = [...schemaValidation.blockers];
+    const warnings = [...schemaValidation.warnings];
 
     // Check for required sections in StoryObject
     if (!story.role || story.role.length === 0) {
