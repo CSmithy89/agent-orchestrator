@@ -95,7 +95,7 @@ development_status:
   4-5-dependency-detection-graph-generation-combined: done
   4-6-story-validation-quality-check: done
   4-7-sprint-status-file-generation: done
-  4-8-story-file-writer-epics-document-generator: backlog
+  4-8-story-file-writer-epics-document-generator: done
   4-9-implementation-readiness-gate-validation: backlog
   epic-4-retrospective: optional
 

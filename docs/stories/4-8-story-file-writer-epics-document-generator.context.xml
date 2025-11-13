@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <story-id>4-8-story-file-writer-epics-document-generator</story-id>
+  <epic-id>epic-4</epic-id>
+  <generated-date>2025-11-13</generated-date>
+
+  <purpose>
+    Write individual story markdown files and consolidated epics.md document to provide
+    complete documentation for development. This is the final output generation step in
+    the solutioning workflow before implementation readiness validation.
+  </purpose>
+
+  <dependencies>
+    <story-dependency id="4-1" status="done">
+      Provides StoryTemplateBuilder for markdown generation and YAML frontmatter
+    </story-dependency>
+    <story-dependency id="4-6" status="done">
+      Provides validated stories ready for file writing
+    </story-dependency>
+    <story-dependency id="4-7" status="done">
+      Establishes file writing pattern and YAML generation approach
+    </story-dependency>
+  </dependencies>
+
+  <core-references>
+    <reference type="implementation" path="backend/src/solutioning/story-template-builder.ts">
+      StoryTemplateBuilder class with methods:
+      - buildFromTemplate(story: Story): Promise&lt;StoryObject&gt;
+      - toMarkdown(story: StoryObject): string
+      - toYAMLFrontmatter(story: StoryObject): string
+      - titleToKebabCase(title: string): string
+
+      Use this builder to generate consistent markdown formatting for all story files.
+    </reference>
+
+    <reference type="implementation" path="backend/src/solutioning/types.ts">
+      Core types: Epic, Story, SolutioningResult interfaces
+    </reference>
+
+    <reference type="implementation" path="backend/src/solutioning/solutioning-orchestrator.ts">
+      Integration point: Add Step 9 after sprint status generation (line 380)
+    </reference>
+
+    <reference type="specification" path="docs/epics/epic-4-tech-spec.md">
+      Story 4.8 requirements and acceptance criteria
+    </reference>
+
+    <reference type="example" path="docs/stories/4-1-solutioning-data-models-story-schema.md">
+      Example story file format with YAML frontmatter and markdown sections
+    </reference>
+  </core-references>
+
+  <technical-guidance>
+    <file-structure>
+      <new-file path="backend/src/solutioning/story-file-writer.ts">
+        StoryFileWriter service implementation:
+
+        Interface WriteSummary {
+          storiesWritten: number;
+          epicsDocumentWritten: boolean;
+          storyFilePaths: string[];
+          epicsDocumentPath: string | null;
+        }
+
+        Class StoryFileWriter {
+          private templateBuilder: StoryTemplateBuilder;
+
+          constructor() {
+            this.templateBuilder = new StoryTemplateBuilder();
+          }
+
+          async writeStoryFile(story: Story, epic: Epic): Promise&lt;string&gt; {
+            // 1. Build StoryObject using templateBuilder.buildFromTemplate()
+            // 2. Generate markdown with templateBuilder.toMarkdown()
+            // 3. Generate file name: {epic_num}-{story_num}-{title-kebab-case}.md
+            // 4. Ensure docs/stories/ directory exists (fs.mkdir with recursive)
+            // 5. Write file to docs/stories/{filename} with UTF-8 encoding
+            // 6. Log success and return file path
+            // 7. Error handling with try-catch
+          }
+
+          async writeEpicsDocument(epics: Epic[]): Promise&lt;string | null&gt; {
+            // 1. Generate header with date, total epics, total stories
+            // 2. For each epic, create section with:
+            //    - ## Epic N: Title
+            //    - **Goal**: ...
+            //    - **Value Proposition**: ...
+            //    - **Business Value**: ...
+            //    - **Estimated Duration**: ...
+            //    - **Stories**: X stories
+            //    - ### Stories: (numbered list)
+            // 3. Add markdown separator (---) between epics
+            // 4. Write to docs/epics.md
+            // 5. Return file path or null on error
+          }
+
+          async writeAllStoryFiles(result: SolutioningResult): Promise&lt;WriteSummary&gt; {
+            // 1. Initialize WriteSummary
+            // 2. For each epic in result.epics:
+            //    - For each story in epic.stories:
+            //      - Call writeStoryFile(story, epic)
+            //      - Add path to summary
+            //      - Handle failures gracefully
+            // 3. Call writeEpicsDocument(result.epics)
+            // 4. Return WriteSummary with counts and paths
+          }
+
+          private async ensureDirectory(dirPath: string): Promise&lt;void&gt; {
+            // Create directory if it doesn't exist (fs.mkdir with recursive: true)
+          }
+        }
+      </new-file>
+
+      <modified-file path="backend/src/solutioning/solutioning-orchestrator.ts">
+        Add Step 9 after sprint status generation:
+
+        Line ~380 (after sprint status write):
+
+        // Step 9: Write story files and epics document
+        console.log('[SolutioningOrchestrator] Writing story files...');
+
+        try {
+          const writeSummary = await this.storyFileWriter.writeAllStoryFiles(result);
+          console.log(
+            `[SolutioningOrchestrator] Files written: ${writeSummary.storiesWritten} stories, ` +
+            `epics document: ${writeSummary.epicsDocumentWritten}`
+          );
+        } catch (error) {
+          console.error('[SolutioningOrchestrator] Failed to write story files:', (error as Error).message);
+        }
+      </modified-file>
+
+      <test-file path="backend/tests/unit/solutioning/story-file-writer.test.ts">
+        12+ comprehensive tests:
+        - writeStoryFile with valid inputs
+        - writeStoryFile file naming convention
+        - writeStoryFile directory creation
+        - writeStoryFile error handling
+        - writeEpicsDocument with single epic
+        - writeEpicsDocument with multiple epics
+        - writeEpicsDocument formatting
+        - writeAllStoryFiles batch operation
+        - writeAllStoryFiles partial failures
+        - WriteSummary result structure
+        - YAML frontmatter integration
+        - Markdown content format
+
+        Mock fs.promises (writeFile, mkdir) for all tests
+      </test-file>
+    </file-structure>
+
+    <story-file-format>
+      <example>
+        File name: 4-1-solutioning-data-models-story-schema.md
+
+        Content structure:
+        ---
+        id: 4-1
+        epic: epic-4
+        title: Solutioning Data Models &amp; Story Schema
+        status: backlog
+        estimated_hours: 8
+        complexity: medium
+        dependencies: []
+        acceptance_criteria_count: 10
+        ---
+
+        # Story 4.1: Solutioning Data Models &amp; Story Schema
+
+        Status: backlog
+
+        ## Story
+
+        As a solutioning system developer,
+        I want foundational data models and schemas,
+        So that all solutioning stories can build on consistent types.
+
+        ## Acceptance Criteria
+
+        1. First criterion
+        2. Second criterion
+        ...
+
+        ## Tasks / Subtasks
+
+        ...
+
+        ## Dependencies
+
+        **Blocking Dependencies:**
+        - story-dep-1
+
+        **Enables:**
+        - story-x
+
+        **Soft Dependencies:**
+        None
+
+        ## Dev Notes
+
+        ### Architecture Context
+        ...
+
+        ### Project Structure Notes
+        ...
+
+        ### Testing Strategy
+        ...
+
+        ### References
+        ...
+
+        ## Change Log
+
+        - YYYY-MM-DD: Story created
+
+        ## Dev Agent Record
+
+        ### Context Reference
+        ...
+      </example>
+    </story-file-format>
+
+    <epics-document-format>
+      <example>
+        File name: docs/epics.md
+
+        # Epics Overview
+
+        Generated: 2025-11-13
+        Total Epics: 4
+        Total Stories: 18
+
+        ## Epic 1: Foundation &amp; Core Engine
+
+        **Goal**: Build microkernel architecture with workflow execution engine
+        **Value Proposition**: Enables all future automation workflows
+        **Business Value**: Foundation for 500+ hours of automation savings
+        **Estimated Duration**: 2-3 sprints
+        **Stories**: 5 stories
+
+        ### Stories:
+        1. Story 1-1: Project Repository Structure (2 hours, medium)
+        2. Story 1-2: Workflow YAML Parser (1.5 hours, low)
+        3. Story 1-3: LLM Factory Pattern (2 hours, medium)
+        ...
+
+        ---
+
+        ## Epic 2: Analysis Phase Automation
+
+        **Goal**: Automate PRD generation from product concepts
+        ...
+      </example>
+    </epics-document-format>
+
+    <key-patterns>
+      <pattern name="Sequential File Writing">
+        Write files sequentially (not parallel) to avoid race conditions and
+        ensure consistent ordering in logs. Use for-loop, not Promise.all().
+      </pattern>
+
+      <pattern name="Directory Creation">
+        Always check/create directories before writing:
+        await fs.mkdir('docs/stories', { recursive: true });
+
+        Recursive option creates parent directories if needed.
+      </pattern>
+
+      <pattern name="Error Handling">
+        Wrap all fs operations in try-catch. Log errors but don't throw in
+        writeAllStoryFiles - collect successes and continue.
+      </pattern>
+
+      <pattern name="File Naming">
+        Use StoryTemplateBuilder's titleToKebabCase() method for consistency:
+        const kebabTitle = this.templateBuilder.titleToKebabCase(story.title);
+        const fileName = `${story.id}-${kebabTitle}.md`;
+      </pattern>
+
+      <pattern name="StoryTemplateBuilder Reuse">
+        Instantiate once in constructor, reuse for all stories:
+        - Leverages template caching
+        - Consistent formatting across all files
+        - Reduced I/O operations
+      </pattern>
+    </key-patterns>
+  </technical-guidance>
+
+  <implementation-notes>
+    <note priority="high">
+      Use StoryTemplateBuilder from Story 4.1 for all markdown generation.
+      Do not duplicate markdown formatting logic.
+    </note>
+
+    <note priority="high">
+      File writing is idempotent - overwrite existing files on each solutioning run.
+      This ensures generated documentation always matches the current solutioning result.
+    </note>
+
+    <note priority="medium">
+      WriteSummary provides visibility into what was written. Log this clearly
+      in SolutioningOrchestrator for troubleshooting.
+    </note>
+
+    <note priority="medium">
+      Epics document is a human-readable summary. Focus on clarity and formatting
+      for Scrum Masters and Product Managers reviewing the solutioning output.
+    </note>
+
+    <note priority="low">
+      Consider truncating very long story titles in file names (max 50 chars after
+      kebab-case) to avoid file system path length issues.
+    </note>
+  </implementation-notes>
+
+  <test-requirements>
+    <requirement>12+ unit tests covering all public methods</requirement>
+    <requirement>100% statement coverage target</requirement>
+    <requirement>Mock all fs.promises operations (writeFile, mkdir)</requirement>
+    <requirement>Test error scenarios with fs mock rejections</requirement>
+    <requirement>Verify file content matches expected markdown format</requirement>
+    <requirement>Verify YAML frontmatter structure</requirement>
+    <requirement>Test WriteSummary result structure and accuracy</requirement>
+  </test-requirements>
+
+  <success-criteria>
+    <criterion>All 12 acceptance criteria met</criterion>
+    <criterion>All tests passing (100% pass rate)</criterion>
+    <criterion>TypeScript compilation successful</criterion>
+    <criterion>StoryFileWriter writes valid markdown files with YAML frontmatter</criterion>
+    <criterion>SolutioningOrchestrator successfully integrates file writing</criterion>
+    <criterion>Generated files are human-readable and properly formatted</criterion>
+  </success-criteria>
+</story-context>

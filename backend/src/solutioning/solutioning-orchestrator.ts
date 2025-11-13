@@ -16,6 +16,8 @@ import { DependencyDetectionService } from './dependency-detection-service.js';
 import { DependencyGraphGenerator } from './dependency-graph-generator.js';
 import { StoryValidator } from './story-validator.js';
 import { SprintStatusGenerator } from './sprint-status-generator.js';
+import { StoryFileWriter } from './story-file-writer.js';
+import type { WriteSummary } from './story-file-writer.js';
 
 /**
  * Solutioning result with epics, stories, dependency graph, and comprehensive metrics
@@ -126,6 +128,7 @@ export class SolutioningOrchestrator {
   private dependencyGraphGenerator: DependencyGraphGenerator;
   private storyValidator: StoryValidator;
   private sprintStatusGenerator: SprintStatusGenerator;
+  private storyFileWriter: StoryFileWriter;
 
   constructor() {
     this.epicFormationService = new EpicFormationService();
@@ -134,6 +137,7 @@ export class SolutioningOrchestrator {
     this.dependencyGraphGenerator = new DependencyGraphGenerator();
     this.storyValidator = new StoryValidator();
     this.sprintStatusGenerator = new SprintStatusGenerator();
+    this.storyFileWriter = new StoryFileWriter();
   }
 
   /**
@@ -379,7 +383,39 @@ export class SolutioningOrchestrator {
       console.error('[SolutioningOrchestrator] Failed to save sprint status:', (error as Error).message);
     }
 
-    // Step 9: Calculate aggregate metrics
+    // Step 9: Write story files and epics document
+    console.log('[SolutioningOrchestrator] Writing story files and epics document...');
+    let writeSummary: WriteSummary;
+
+    try {
+      writeSummary = await this.storyFileWriter.writeAllStoryFiles(tempResult);
+      console.log(
+        `[SolutioningOrchestrator] Files written: ${writeSummary.storiesWritten} stories, ` +
+        `epics document: ${writeSummary.epicsDocumentWritten}`
+      );
+
+      if (writeSummary.storiesFailed > 0) {
+        console.warn(
+          `[SolutioningOrchestrator] Warning: ${writeSummary.storiesFailed} story files failed to write`
+        );
+      }
+    } catch (error) {
+      console.error(
+        '[SolutioningOrchestrator] Failed to write story files:',
+        (error as Error).message
+      );
+      // Continue workflow even if file writing fails
+      writeSummary = {
+        storiesWritten: 0,
+        epicsDocumentWritten: false,
+        storyFilePaths: [],
+        epicsDocumentPath: null,
+        storiesFailed: 0,
+        errors: [(error as Error).message],
+      };
+    }
+
+    // Step 10: Calculate aggregate metrics
     const executionTimeMs = Date.now() - startTime;
     const avgStoryDecompositionConfidence = epics.length > 0
       ? totalStoryDecompositionConfidence / epics.length

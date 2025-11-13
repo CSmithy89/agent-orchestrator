@@ -96,3 +96,7 @@ export type { BatchValidationResult } from './story-validator.js';
 
 // Export Sprint Status Generator (Story 4.7)
 export { SprintStatusGenerator } from './sprint-status-generator.js';
+
+// Export Story File Writer (Story 4.8)
+export { StoryFileWriter } from './story-file-writer.js';
+export type { WriteSummary, SolutioningResult as SolutioningResultForWriter } from './story-file-writer.js';
