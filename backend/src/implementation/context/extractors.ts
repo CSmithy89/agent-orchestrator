@@ -262,6 +262,7 @@ export async function loadRelevantCode(
           content: truncated,
           relevance: `Modified by this story (truncated to fit token budget)`
         });
+        totalTokens = tokenLimit; // Update token count to reflect budget usage
         break; // Stop loading more files
       }
 

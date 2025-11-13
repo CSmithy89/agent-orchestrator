@@ -671,7 +671,8 @@ export class WorkflowOrchestrator {
 
     const agent = await this.agentPool.createAgent('amelia', {
       taskDescription: context.story.description,
-      workflowState: state as unknown as Record<string, unknown>
+      workflowState: state as unknown as Record<string, unknown>,
+      onboardingDocs: [context.onboardingDocs]
     });
 
     state.agentActivity.amelia.agentId = agent.id;
@@ -694,7 +695,8 @@ export class WorkflowOrchestrator {
 
     const agent = await this.agentPool.createAgent('alex', {
       taskDescription: context.story.description,
-      workflowState: state as unknown as Record<string, unknown>
+      workflowState: state as unknown as Record<string, unknown>,
+      onboardingDocs: [context.onboardingDocs]
     });
 
     state.agentActivity.alex.agentId = agent.id;
@@ -1317,7 +1319,7 @@ export class WorkflowOrchestrator {
 
           // Any checks failed
           if (failedChecks.length > 0) {
-            logger.error('CI checks failed', {
+            logger.error('CI checks failed', undefined, {
               storyId: state.storyId,
               prUrl: state.prUrl,
               failedChecks: failedChecks.map(c => c.name)

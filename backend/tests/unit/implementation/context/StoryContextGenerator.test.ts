@@ -10,7 +10,6 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 import { StoryContextGenerator } from '../../../../src/implementation/context/StoryContextGenerator.js';
 import type { StoryContext } from '../../../../src/implementation/types.js';
 

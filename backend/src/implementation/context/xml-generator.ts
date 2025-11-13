@@ -5,7 +5,7 @@
  * Handles XML escaping for special characters in code and content.
  */
 
-import { ContextData } from './tokenizer.js';
+import type { ContextData } from './tokenizer.js';
 
 /**
  * Generate Story Context XML document
@@ -51,7 +51,7 @@ export function generateXML(context: ContextData): string {
   // Acceptance criteria
   xml.push(`    <acceptanceCriteria>`);
   for (const ac of story.acceptanceCriteria) {
-    xml.push(`      <criterion><![CDATA[${ac}]]></criterion>`);
+    xml.push(`      <criterion><![CDATA[${escapeCData(ac)}]]></criterion>`);
   }
   xml.push(`    </acceptanceCriteria>`);
 
@@ -60,7 +60,7 @@ export function generateXML(context: ContextData): string {
     xml.push(`    <technicalNotes>`);
 
     if (story.technicalNotes.architectureAlignment) {
-      xml.push(`      <architectureAlignment><![CDATA[${story.technicalNotes.architectureAlignment}]]></architectureAlignment>`);
+      xml.push(`      <architectureAlignment><![CDATA[${escapeCData(story.technicalNotes.architectureAlignment)}]]></architectureAlignment>`);
     }
 
     if (story.technicalNotes.designDecisions && story.technicalNotes.designDecisions.length > 0) {
@@ -90,7 +90,7 @@ export function generateXML(context: ContextData): string {
     if (story.technicalNotes.constraints && story.technicalNotes.constraints.length > 0) {
       xml.push(`      <constraints>`);
       for (const constraint of story.technicalNotes.constraints) {
-        xml.push(`        <constraint><![CDATA[${constraint}]]></constraint>`);
+        xml.push(`        <constraint><![CDATA[${escapeCData(constraint)}]]></constraint>`);
       }
       xml.push(`      </constraints>`);
     }
@@ -119,7 +119,7 @@ export function generateXML(context: ContextData): string {
   if (story.tasks && story.tasks.length > 0) {
     xml.push(`    <tasks>`);
     for (const task of story.tasks) {
-      xml.push(`      <task><![CDATA[${task}]]></task>`);
+      xml.push(`      <task><![CDATA[${escapeCData(task)}]]></task>`);
     }
     xml.push(`    </tasks>`);
   }
@@ -128,17 +128,17 @@ export function generateXML(context: ContextData): string {
 
   // PRD Context
   xml.push(`  <prd-context>`);
-  xml.push(`    <![CDATA[${prdContext}]]>`);
+  xml.push(`    <![CDATA[${escapeCData(prdContext)}]]>`);
   xml.push(`  </prd-context>`);
 
   // Architecture Context
   xml.push(`  <architecture-context>`);
-  xml.push(`    <![CDATA[${architectureContext}]]>`);
+  xml.push(`    <![CDATA[${escapeCData(architectureContext)}]]>`);
   xml.push(`  </architecture-context>`);
 
   // Onboarding Docs
   xml.push(`  <onboarding-docs>`);
-  xml.push(`    <![CDATA[${onboardingDocs}]]>`);
+  xml.push(`    <![CDATA[${escapeCData(onboardingDocs)}]]>`);
   xml.push(`  </onboarding-docs>`);
 
   // Existing Code
@@ -148,7 +148,7 @@ export function generateXML(context: ContextData): string {
     xml.push(`      <path>${escapeXML(codeFile.file)}</path>`);
     xml.push(`      <relevance>${escapeXML(codeFile.relevance)}</relevance>`);
     if (codeFile.content) {
-      xml.push(`      <content><![CDATA[${codeFile.content}]]></content>`);
+      xml.push(`      <content><![CDATA[${escapeCData(codeFile.content)}]]></content>`);
     } else {
       xml.push(`      <content></content>`);
       xml.push(`      <note>File does not exist - to be created</note>`);
@@ -160,7 +160,7 @@ export function generateXML(context: ContextData): string {
   // Dependency Context (optional)
   if (dependencyContext !== undefined) {
     xml.push(`  <dependency-context>`);
-    xml.push(`    <![CDATA[${dependencyContext}]]>`);
+    xml.push(`    <![CDATA[${escapeCData(dependencyContext)}]]>`);
     xml.push(`  </dependency-context>`);
   }
 
@@ -186,6 +186,20 @@ function escapeXML(text: string | undefined): string {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&apos;');
+}
+
+/**
+ * Make content safe for inclusion inside CDATA sections.
+ * Splits "]]>" sequences into adjacent CDATA blocks to prevent premature section closure.
+ *
+ * Example: "foo]]>bar" → "foo]]]]><![CDATA[>bar"
+ *
+ * @param text Text to escape for CDATA
+ * @returns CDATA-safe text
+ */
+function escapeCData(text: string | undefined): string {
+  if (!text) return '';
+  return text.replace(/]]>/g, ']]]]><![CDATA[>');
 }
 
 /**

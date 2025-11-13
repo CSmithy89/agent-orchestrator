@@ -297,10 +297,10 @@ function trimCodeFiles(
   // Separate files by category
   const newFiles = codeFiles.filter(f => !f.content);
   const modifiedFiles = codeFiles.filter(
-    f => f.content && f.relevance.includes('modified')
+    f => f.content && f.relevance.toLowerCase().includes('modified')
   );
   const referenceFiles = codeFiles.filter(
-    f => f.content && !f.relevance.includes('modified')
+    f => f.content && !f.relevance.toLowerCase().includes('modified')
   );
 
   const result: ExistingCodeFile[] = [];
