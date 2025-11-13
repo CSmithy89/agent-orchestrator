@@ -28,15 +28,12 @@
  * ```
  */
 
-import * as fs from 'fs/promises';
-import * as path from 'path';
 import { logger } from '../../utils/logger.js';
 import { AmeliaAgentInfrastructure } from '../agents/amelia.js';
 import {
   StoryContext,
   CodeImplementation,
-  AcceptanceCriteriaMapping,
-  CodeFile
+  AcceptanceCriteriaMapping
 } from '../types.js';
 import {
   validateArchitectureCompliance,
@@ -46,8 +43,7 @@ import {
   ValidationResult
 } from './validators.js';
 import {
-  applyFileChanges,
-  FileOperationResult
+  applyFileChanges
 } from './file-operations.js';
 import {
   createGitCommit,
@@ -150,7 +146,7 @@ export class CodeImplementationPipeline {
 
     try {
       // Step 1: Parse and validate context
-      const parsedContext = await this.parseAndValidateContext(context);
+      await this.parseAndValidateContext(context);
       logger.info('Context parsed and validated', {
         storyId: context.story.id,
         totalTokens: context.totalTokens

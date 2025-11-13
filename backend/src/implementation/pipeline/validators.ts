@@ -108,7 +108,7 @@ export async function validateArchitectureCompliance(
         });
 
         // Simple check: if file imports from same directory and is imported by it
-        const sameDir = importPaths.filter(p => p.startsWith('.'));
+        const sameDir = importPaths.filter(p => p && p.startsWith('.'));
         if (sameDir.length > 3) {
           warnings.push(
             `File ${file.path} has many same-directory imports. Check for circular dependencies.`
@@ -168,7 +168,7 @@ export async function validateArchitectureCompliance(
  */
 export async function validateCodingStandards(
   implementation: CodeImplementation,
-  context: StoryContext
+  _context: StoryContext
 ): Promise<ValidationResult> {
   const issues: string[] = [];
   const warnings: string[] = [];
@@ -185,7 +185,7 @@ export async function validateCodingStandards(
       }
 
       // Check for 'any' types (should be minimal)
-      const anyTypeMatches = file.content.match(/:\s*any[,;\s\]\)]/g);
+      const anyTypeMatches = file.content.match(/:\s*any[,;\s\])]/g);
       if (anyTypeMatches && anyTypeMatches.length > 2) {
         warnings.push(
           `File ${file.path} contains multiple 'any' types. Consider explicit typing.`

@@ -5,13 +5,11 @@
  * Follows AAA pattern (Arrange, Act, Assert).
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { CodeImplementationPipeline } from '../../../../src/implementation/pipeline/CodeImplementationPipeline.js';
-import { AmeliaAgentInfrastructure } from '../../../../src/implementation/agents/amelia.js';
 import {
   StoryContext,
   CodeImplementation,
-  CodeFile,
   AcceptanceCriteriaMapping
 } from '../../../../src/implementation/types.js';
 

@@ -4,7 +4,7 @@
  * Tests file create, modify, delete operations with mocked file system.
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as fs from 'fs/promises';
 import {
   applyFileChanges,

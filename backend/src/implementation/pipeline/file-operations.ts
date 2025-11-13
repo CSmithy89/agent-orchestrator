@@ -13,6 +13,7 @@
  */
 
 import * as fs from 'fs/promises';
+import { type Stats } from 'fs';
 import * as path from 'path';
 import { logger } from '../../utils/logger.js';
 import { CodeFile } from '../types.js';
@@ -292,7 +293,7 @@ export async function fileExists(filePath: string): Promise<boolean> {
  */
 export async function getFileStats(
   filePath: string
-): Promise<fs.Stats | null> {
+): Promise<Stats | null> {
   try {
     return await fs.stat(filePath);
   } catch {
