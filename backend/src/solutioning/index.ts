@@ -93,3 +93,6 @@ export { DependencyGraphGenerator } from './dependency-graph-generator.js';
 // Export Story Validator (Story 4.6)
 export { StoryValidator } from './story-validator.js';
 export type { BatchValidationResult } from './story-validator.js';
+
+// Export Sprint Status Generator (Story 4.7)
+export { SprintStatusGenerator } from './sprint-status-generator.js';

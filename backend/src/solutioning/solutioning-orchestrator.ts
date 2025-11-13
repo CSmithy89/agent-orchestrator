@@ -15,6 +15,7 @@ import { StoryDecompositionService, StoryDecompositionMetrics } from './story-de
 import { DependencyDetectionService } from './dependency-detection-service.js';
 import { DependencyGraphGenerator } from './dependency-graph-generator.js';
 import { StoryValidator } from './story-validator.js';
+import { SprintStatusGenerator } from './sprint-status-generator.js';
 
 /**
  * Solutioning result with epics, stories, dependency graph, and comprehensive metrics
@@ -124,6 +125,7 @@ export class SolutioningOrchestrator {
   private dependencyDetectionService: DependencyDetectionService;
   private dependencyGraphGenerator: DependencyGraphGenerator;
   private storyValidator: StoryValidator;
+  private sprintStatusGenerator: SprintStatusGenerator;
 
   constructor() {
     this.epicFormationService = new EpicFormationService();
@@ -131,6 +133,7 @@ export class SolutioningOrchestrator {
     this.dependencyDetectionService = new DependencyDetectionService();
     this.dependencyGraphGenerator = new DependencyGraphGenerator();
     this.storyValidator = new StoryValidator();
+    this.sprintStatusGenerator = new SprintStatusGenerator();
   }
 
   /**
@@ -330,7 +333,53 @@ export class SolutioningOrchestrator {
       }
     }
 
-    // Step 8: Calculate aggregate metrics
+    // Step 8: Generate sprint status YAML
+    console.log('[SolutioningOrchestrator] Generating sprint status file...');
+
+    // Build temporary result for sprint status generation
+    const tempResult: SolutioningResult = {
+      epics,
+      stories: allStories,
+      dependencyGraph,
+      metrics: {
+        totalEpics: epics.length,
+        totalStories: allStories.length,
+        avgStoriesPerEpic: epics.length > 0 ? allStories.length / epics.length : 0,
+        executionTimeMs: Date.now() - startTime,
+        llmTokensUsed: 0,
+        epicFormationConfidence: epicFormationMetrics.confidence,
+        avgStoryDecompositionConfidence: 0,
+        lowConfidenceDecisions: [],
+        oversizedStoriesSplit: 0,
+        epicMetrics: [],
+        dependencyDetectionTimeMs,
+        graphGenerationTimeMs,
+        totalDependencies: dependencyDetectionResult.metrics.totalDependencies,
+        hardDependencies: dependencyDetectionResult.metrics.hardDependencies,
+        softDependencies: dependencyDetectionResult.metrics.softDependencies,
+        validationTimeMs,
+        totalStoriesValidated: batchValidationResult.totalStories,
+        avgValidationScore: batchValidationResult.avgScore,
+        totalBlockers,
+        totalWarnings,
+        failedStoryIds
+      }
+    };
+
+    // Extract project name from PRD path or use default
+    const projectName = this.extractProjectName(prdPath);
+    const sprintStatusYaml = this.sprintStatusGenerator.generateSprintStatus(tempResult, projectName);
+
+    // Save sprint status to file
+    try {
+      const sprintStatusPath = 'docs/sprint-status.yaml';
+      await fs.writeFile(sprintStatusPath, sprintStatusYaml, 'utf-8');
+      console.log(`[SolutioningOrchestrator] Sprint status saved to ${sprintStatusPath}`);
+    } catch (error) {
+      console.error('[SolutioningOrchestrator] Failed to save sprint status:', (error as Error).message);
+    }
+
+    // Step 9: Calculate aggregate metrics
     const executionTimeMs = Date.now() - startTime;
     const avgStoryDecompositionConfidence = epics.length > 0
       ? totalStoryDecompositionConfidence / epics.length
@@ -423,6 +472,37 @@ export class SolutioningOrchestrator {
         `Failed to read file "${filePath}": ${(error as Error).message}`
       );
     }
+  }
+
+  /**
+   * Extract project name from PRD file path
+   *
+   * Tries to extract a meaningful project name from the file path.
+   * Falls back to "Agent Orchestrator" if extraction fails.
+   *
+   * @param prdPath Path to PRD file
+   * @returns Project name
+   */
+  private extractProjectName(prdPath: string): string {
+    // Try to extract from path (e.g., /home/user/my-project/docs/PRD.md → "My Project")
+    const pathParts = prdPath.split('/');
+
+    // Look for a meaningful directory name (not docs, home, user, etc.)
+    const excludedDirs = ['home', 'user', 'docs', 'tmp', 'var'];
+    for (let i = pathParts.length - 1; i >= 0; i--) {
+      const part = pathParts[i];
+      if (part && !excludedDirs.includes(part.toLowerCase()) && part !== 'PRD.md') {
+        // Convert kebab-case or snake_case to Title Case
+        return part
+          .replace(/[-_]/g, ' ')
+          .split(' ')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
+      }
+    }
+
+    // Default fallback
+    return 'Agent Orchestrator';
   }
 
   /**
