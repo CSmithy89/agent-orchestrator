@@ -72,7 +72,7 @@ export async function applyFileChanges(
 
   for (const file of files) {
     try {
-      // Validate path safety before performing any operations
+      // Validate path safety before performing any operation
       if (!isPathSafe(file.path, worktreePath)) {
         const failure: FileOperationFailure = {
           path: file.path,

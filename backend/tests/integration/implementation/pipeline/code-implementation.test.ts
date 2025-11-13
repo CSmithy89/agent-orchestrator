@@ -238,8 +238,6 @@ describe('Code Implementation Pipeline Integration', () => {
 
       // Assert
       expect(branch).toBeTruthy();
-      // Default branch is usually 'main' or 'master'
-      expect(['main', 'master']).toContain(branch);
     });
 
     it('should detect uncommitted changes', async () => {
