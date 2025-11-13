@@ -1,0 +1,840 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>5-4-code-implementation-pipeline</story-id>
+    <title>Code Implementation Pipeline</title>
+    <epic>epic-5</epic>
+    <status>ready-for-dev</status>
+    <priority>high</priority>
+    <estimate>2</estimate>
+    <generated-at>2025-11-13</generated-at>
+  </metadata>
+
+  <story>
+    <description>
+As a **Story Implementation System**,
+I want **a CodeImplementationPipeline that executes Amelia agent's code implementation following architecture and coding standards**,
+so that **stories are autonomously implemented with high-quality code, proper error handling, and full traceability to acceptance criteria**.
+    </description>
+
+    <dependencies>
+      <dependency>5-1-core-agent-infrastructure</dependency>
+      <dependency>5-2-story-context-generator</dependency>
+      <dependency>5-3-workflow-orchestration-state-management</dependency>
+    </dependencies>
+
+    <acceptance-criteria>
+      <criterion id="AC1">
+        <title>CodeImplementationPipeline Class Implemented</title>
+        <requirements>
+          - CodeImplementationPipeline class created with `execute(context: StoryContext): Promise&lt;CodeImplementation&gt;` method
+          - Class implements Epic 5 type definitions per tech spec (CodeImplementation interface)
+          - Constructor accepts dependencies: Amelia agent, file system utilities, git client
+          - Method orchestrates complete code implementation pipeline
+          - Proper error handling for each implementation step with clear error messages
+          - Logging at INFO level for each major implementation phase
+          - Exports class for use in WorkflowOrchestrator (Story 5.3)
+        </requirements>
+      </criterion>
+
+      <criterion id="AC2">
+        <title>Story Context XML Read and Parsed</title>
+        <requirements>
+          - Story Context XML loaded from StoryContextGenerator output
+          - XML parsed to extract: story metadata, PRD context, architecture context, onboarding docs, existing code
+          - Context validation: Total tokens &lt;50k, all required sections present
+          - Story acceptance criteria extracted as implementation requirements
+          - Technical notes parsed for affected files and implementation guidance
+          - Dependencies context loaded for prerequisite story awareness
+          - Error handling for malformed or incomplete context
+        </requirements>
+      </criterion>
+
+      <criterion id="AC3">
+        <title>Code Implemented Following Architecture and Coding Standards</title>
+        <requirements>
+          - Architecture patterns from context applied (microkernel, plugin architecture, etc.)
+          - Coding standards from onboarding docs enforced (naming conventions, file structure, TypeScript best practices)
+          - Project structure conventions followed (src/ layout, import patterns)
+          - TypeScript strict mode compliance (no `any` types except where documented)
+          - Code formatting consistent with project style
+          - Comments and JSDoc documentation added for public APIs
+          - Design patterns applied appropriately (dependency injection, factory, etc.)
+        </requirements>
+      </criterion>
+
+      <criterion id="AC4">
+        <title>All Acceptance Criteria from Story Addressed in Implementation</title>
+        <requirements>
+          - Each acceptance criterion from story file mapped to implementation
+          - Acceptance criteria mapping generated: { criterion: string, implemented: boolean, evidence: string }[]
+          - All criteria marked as implemented with file/function evidence
+          - Implementation notes document key decisions and tradeoffs
+          - Gaps or deviations from criteria documented with justification
+          - Criteria completeness validated before marking implementation complete
+        </requirements>
+      </criterion>
+
+      <criterion id="AC5">
+        <title>Files Created/Modified as Needed</title>
+        <requirements>
+          - New files created at appropriate paths (src/**/*.ts)
+          - Existing files modified when extending functionality
+          - File operations tracked: { path: string, content: string, operation: 'create' | 'modify' | 'delete' }[]
+          - Directory structure created recursively as needed
+          - File content properly formatted with correct line endings
+          - Import statements added/updated for new dependencies
+          - Export statements added for public APIs
+        </requirements>
+      </criterion>
+
+      <criterion id="AC6">
+        <title>Error Handling and Logging Added to All Functions</title>
+        <requirements>
+          - Try-catch blocks added for operations that may fail
+          - Error messages descriptive and actionable
+          - Errors propagated appropriately (throw vs return error object)
+          - Logging added at appropriate levels (DEBUG, INFO, WARN, ERROR)
+          - Structured logging with context (story ID, file, function)
+          - No swallowed exceptions
+          - Edge cases handled gracefully (null checks, validation)
+        </requirements>
+      </criterion>
+
+      <criterion id="AC7">
+        <title>Security Best Practices Followed</title>
+        <requirements>
+          - Input validation for all external data (user input, file content, API responses)
+          - No hardcoded secrets or credentials in code
+          - Secrets loaded from environment variables or secure stores
+          - SQL injection prevention (parameterized queries if database operations)
+          - XSS prevention (proper escaping if HTML/DOM operations)
+          - Authentication/authorization checks where applicable
+          - Secure defaults (fail closed, least privilege)
+          - Sensitive data not logged (passwords, tokens, PII)
+        </requirements>
+      </criterion>
+
+      <criterion id="AC8">
+        <title>Implementation Notes Generated Documenting Key Decisions</title>
+        <requirements>
+          - Implementation notes include: architectural decisions, design patterns applied, tradeoffs considered
+          - Alternative approaches considered and rejected documented
+          - Assumptions made during implementation listed
+          - Known limitations or future improvements noted
+          - Performance considerations documented
+          - Security considerations documented
+          - Integration points with other components noted
+        </requirements>
+      </criterion>
+
+      <criterion id="AC9">
+        <title>Acceptance Criteria Mapping Provided</title>
+        <requirements>
+          - AcceptanceCriteriaMapping interface implemented per tech spec
+          - Each criterion from story mapped to implementation evidence
+          - Format: { criterion: string, implemented: boolean, evidence: string }
+          - Evidence includes file paths and line numbers or function names
+          - Unimplemented criteria flagged with justification
+          - Mapping validated for completeness before completion
+        </requirements>
+      </criterion>
+
+      <criterion id="AC10">
+        <title>Git Commit Created with Descriptive Message</title>
+        <requirements>
+          - Git commit created after successful implementation
+          - Commit message format: "Story {{story-id}}: {{brief description}}"
+          - Commit message body includes: acceptance criteria summary, key changes, implementation notes
+          - All modified/created files staged in commit
+          - Commit created in worktree (isolated from main branch)
+          - Commit SHA captured for traceability
+          - No partial or broken commits
+        </requirements>
+      </criterion>
+
+      <criterion id="AC11">
+        <title>Implementation Completes in &lt;1 Hour</title>
+        <requirements>
+          - Complete implementation pipeline measured: context → code → commit
+          - Target: &lt;1 hour for typical story (moderate complexity, 100-300 LOC)
+          - Performance logging: Duration logged for each major step
+          - Bottleneck identification: Steps &gt;15 minutes logged as warnings
+          - Performance metrics tracked: context parsing, code generation, file operations, git commit
+          - Optimization opportunities logged for future improvements
+        </requirements>
+      </criterion>
+
+      <criterion id="AC12">
+        <title>Integration with Story 5.3 Orchestrator</title>
+        <requirements>
+          - CodeImplementationPipeline invoked by WorkflowOrchestrator.executeAmeliaImplementation()
+          - Input: StoryContext from Story 5.2 (StoryContextGenerator)
+          - Output: CodeImplementation object with files, commit message, acceptance criteria mapping
+          - Error handling integrates with WorkflowOrchestrator retry logic
+          - State updates communicated back to orchestrator
+          - No direct dependencies on WorkflowOrchestrator (loose coupling)
+        </requirements>
+      </criterion>
+
+      <criterion id="AC13">
+        <title>Unit Tests for CodeImplementationPipeline</title>
+        <requirements>
+          - Unit tests created for CodeImplementationPipeline class
+          - Test code implementation with mock Amelia agent and mock story context
+          - Test error handling for each step (malformed context, file operation failures, git failures)
+          - Test acceptance criteria mapping generation
+          - Test file operations (create, modify, delete)
+          - Test commit message generation
+          - Test security validations
+          - All tests pass with &gt;80% code coverage for implementation pipeline module
+        </requirements>
+      </criterion>
+
+      <criterion id="AC14">
+        <title>Integration Tests with Mock Story Context</title>
+        <requirements>
+          - Integration tests created for complete implementation pipeline
+          - Mock story context with realistic acceptance criteria
+          - Test happy path: context → code → commit
+          - Test error scenarios: invalid context, file write failures
+          - Test integration with real file system (test directory)
+          - Test integration with real git operations (test repository)
+          - Test implementation notes and criteria mapping generation
+          - All integration tests pass in &lt;5 minutes
+        </requirements>
+      </criterion>
+    </acceptance-criteria>
+
+    <technical-notes>
+      <architecture-alignment>
+        <point>This story implements the code generation component invoked by Story 5.3 WorkflowOrchestrator</point>
+        <point>CodeImplementationPipeline executes Amelia agent to generate code following architecture and standards</point>
+        <point>Complete pipeline: context → parse → generate → validate → commit</point>
+        <point>Integration point: WorkflowOrchestrator.executeAmeliaImplementation() calls CodeImplementationPipeline.execute()</point>
+      </architecture-alignment>
+
+      <integration-points>
+        <integration name="Epic 1 Core">
+          <detail>Uses FileSystemUtils from Epic 1 for file operations</detail>
+          <detail>Uses GitClient from Epic 1 for git commits</detail>
+          <detail>Follows workflow plugin pattern from Epic 1</detail>
+        </integration>
+
+        <integration name="Story 5.1 Core Agent Infrastructure">
+          <detail>Invokes Amelia agent methods: implementStory(context)</detail>
+          <detail>Receives CodeImplementation response with files and metadata</detail>
+          <detail>Different from Story 5.3 (which orchestrates Amelia) - this story implements the pipeline Amelia uses</detail>
+        </integration>
+
+        <integration name="Story 5.2 Story Context Generator">
+          <detail>Receives StoryContext XML from context generator</detail>
+          <detail>Parses context for implementation guidance</detail>
+          <detail>Context includes: PRD, architecture, onboarding, existing code</detail>
+        </integration>
+
+        <integration name="Story 5.3 Workflow Orchestration">
+          <detail>Invoked by WorkflowOrchestrator at Step 3 (implementation phase)</detail>
+          <detail>Returns CodeImplementation to orchestrator</detail>
+          <detail>Error handling integrates with orchestrator retry logic</detail>
+        </integration>
+      </integration-points>
+
+      <file-structure>
+        <location>backend/src/implementation/pipeline/</location>
+        <files>
+          <file>CodeImplementationPipeline.ts - Main pipeline class</file>
+          <file>validators.ts - Architecture, standards, security validators</file>
+          <file>file-operations.ts - File create/modify/delete utilities</file>
+          <file>git-operations.ts - Git commit utilities</file>
+          <file>index.ts - Pipeline exports</file>
+        </files>
+        <test-files>
+          <file>backend/tests/unit/implementation/pipeline/CodeImplementationPipeline.test.ts</file>
+          <file>backend/tests/unit/implementation/pipeline/validators.test.ts</file>
+          <file>backend/tests/unit/implementation/pipeline/file-operations.test.ts</file>
+          <file>backend/tests/integration/implementation/pipeline/code-implementation.test.ts</file>
+        </test-files>
+      </file-structure>
+
+      <design-decisions>
+        <decision>
+          <name>Pipeline Pattern</name>
+          <rationale>Sequential steps with validation gates ensure code quality</rationale>
+        </decision>
+        <decision>
+          <name>Amelia Agent Integration</name>
+          <rationale>Amelia generates code, pipeline validates and applies</rationale>
+        </decision>
+        <decision>
+          <name>Validation Gates</name>
+          <rationale>Architecture, coding standards, security checks before file operations</rationale>
+        </decision>
+        <decision>
+          <name>Acceptance Criteria Mapping</name>
+          <rationale>Traceability from requirements to implementation</rationale>
+        </decision>
+        <decision>
+          <name>Performance Target</name>
+          <rationale>&lt;1 hour implementation for moderate complexity stories</rationale>
+        </decision>
+        <decision>
+          <name>Error Recovery</name>
+          <rationale>Compatible with WorkflowOrchestrator retry logic</rationale>
+        </decision>
+      </design-decisions>
+    </technical-notes>
+  </story>
+
+  <prd-context>
+    <section title="Developer Tool Specific Requirements">
+      <subsection title="API &amp; Integration Requirements">
+        <requirement id="FR-API-001">Multi-Provider LLM Support - Support Anthropic (Claude), OpenAI (GPT), Zhipu (GLM) providers with factory pattern for extensible provider addition</requirement>
+        <requirement id="FR-API-002">LLM Factory Pattern - Instantiate agents with specified model/provider, model string validation, API key injection from secrets manager</requirement>
+        <requirement id="FR-WF-001">YAML Workflow Parsing - Read and parse workflow.yaml files per workflow.xml spec, resolve variables</requirement>
+        <requirement id="FR-WF-002">Step Execution Engine - Execute steps in exact order, handle conditional logic, process loops and iterations</requirement>
+        <requirement id="FR-WF-003">Template Processing - Load template files (markdown with {{placeholders}}), replace variables, support conditional blocks</requirement>
+      </subsection>
+    </section>
+
+    <section title="Success Criteria">
+      <metric>Code Quality: Generated code passes tests and review &gt;90% on first attempt</metric>
+      <metric>High Autonomy Rate: &gt;85% of decisions made without human escalation</metric>
+      <metric>Testing &amp; Quality: 80%+ code coverage for new code, Automated test execution in CI/CD, Zero critical bugs in production</metric>
+      <metric>Per-Phase Costs: Story &lt;$2-5</metric>
+    </section>
+  </prd-context>
+
+  <architecture-context>
+    <section title="System Architecture Overview">
+      <pattern>Microkernel Architecture (Plugin Architecture)</pattern>
+      <rationale>
+        - Core Kernel: Minimal, stable workflow execution engine (Epic 1)
+        - Plugins: BMAD workflows loaded dynamically (Epics 2-5)
+        - Extensibility: New workflows added without core changes
+        - Stability: Core engine changes rarely; workflows evolve independently
+        - Testability: Each workflow plugin tested in isolation
+      </rationale>
+    </section>
+
+    <section title="Agent Pool Component">
+      <description>Manages AI agent lifecycle, LLM assignment, and resource limits</description>
+      <key-classes>
+        <class name="Agent">
+          <properties>
+            - id: string
+            - name: string (e.g., "amelia", "alex")
+            - persona: string (loaded from bmad/bmm/agents/{name}.md)
+            - llmClient: LLMClient
+            - context: AgentContext
+            - startTime: Date
+            - estimatedCost: number
+          </properties>
+        </class>
+
+        <class name="AgentPool">
+          <methods>
+            - async createAgent(name: string, llmModel: string, context: AgentContext): Promise&lt;Agent&gt;
+            - async destroyAgent(agentId: string): Promise&lt;void&gt;
+            - async invokeAgent(agentId: string, prompt: string): Promise&lt;string&gt;
+            - getActiveAgents(): Agent[]
+          </methods>
+        </class>
+
+        <class name="LLMFactory">
+          <methods>
+            - registerProvider(name: string, provider: LLMProvider): void
+            - createClient(modelName: string): LLMClient
+          </methods>
+        </class>
+      </key-classes>
+
+      <agent-lifecycle>
+        1. Create: Load persona markdown → Initialize LLM client → Inject context
+        2. Active: Process tasks, track cost, emit events
+        3. Destroy: Save logs → Release LLM connection → Cleanup within 30s
+      </agent-lifecycle>
+    </section>
+
+    <section title="Workflow Plugins">
+      <description>Each BMAD workflow is a plugin to the core kernel</description>
+      <structure>
+        - workflow.yaml: Configuration and variables
+        - instructions.md: Step-by-step execution logic (XML tags)
+        - template.md: Output document template (if applicable)
+        - Supporting files: checklists, catalogs, patterns
+      </structure>
+
+      <execution-model>
+        1. Kernel loads workflow.yaml → Resolves variables → Validates
+        2. Kernel parses instructions.md → Builds step list
+        3. Kernel executes steps in order → Spawns agents as needed → Saves state
+        4. Workflow completes → Updates workflow-status.yaml → Emits event
+      </execution-model>
+    </section>
+
+    <section title="File System Structure">
+      <directories>
+        <dir path="backend/src/">
+          <subdir path="implementation/">
+            <subdir path="agents/">Amelia and Alex agent implementations</subdir>
+            <subdir path="context/">StoryContextGenerator and extractors</subdir>
+            <subdir path="orchestration/">WorkflowOrchestrator</subdir>
+            <subdir path="pipeline/">CodeImplementationPipeline (THIS STORY)</subdir>
+            <subdir path="prompts/">Agent-specific prompts</subdir>
+          </subdir>
+          <subdir path="core/">Epic 1 core components (AgentPool, WorkflowEngine, etc.)</subdir>
+          <subdir path="types/">TypeScript interfaces and types</subdir>
+        </dir>
+
+        <dir path="backend/tests/">
+          <subdir path="unit/">Unit tests mirroring src/ structure</subdir>
+          <subdir path="integration/">Integration tests for workflows</subdir>
+        </dir>
+      </directories>
+
+      <conventions>
+        - Files: kebab-case (code-implementation-pipeline.ts)
+        - Classes: PascalCase (CodeImplementationPipeline)
+        - Interfaces: PascalCase (CodeImplementation)
+        - Imports: ES modules with .js extension
+        - Exports: Named exports preferred over default
+      </conventions>
+    </section>
+
+    <section title="TypeScript Best Practices">
+      <practices>
+        - Strict mode enabled (no `any` types except where documented)
+        - Explicit return types on public methods
+        - Interface over type for object shapes
+        - JSDoc comments on public APIs
+        - Error types explicitly defined
+        - Async/await for asynchronous operations
+        - Proper null/undefined handling
+      </practices>
+    </section>
+
+    <section title="Error Handling Patterns">
+      <pattern name="Try-Catch with Context">
+        <code>
+try {
+  // Operation
+} catch (error) {
+  logger.error('Operation failed', error as Error, { context });
+  throw new Error(`Descriptive message: ${(error as Error).message}`);
+}
+        </code>
+      </pattern>
+
+      <pattern name="Validation with Clear Messages">
+        <code>
+if (!input.isValid) {
+  throw new Error(`Invalid input: ${input.validationError}`);
+}
+        </code>
+      </pattern>
+
+      <pattern name="Structured Logging">
+        <code>
+logger.info('Operation started', { storyId, step, timestamp });
+logger.error('Operation failed', error, { storyId, step });
+        </code>
+      </pattern>
+    </section>
+  </architecture-context>
+
+  <onboarding-docs>
+    <section title="Coding Standards">
+      <standard>TypeScript strict mode: All types explicitly defined</standard>
+      <standard>Naming: kebab-case files, PascalCase classes, camelCase functions/variables</standard>
+      <standard>Error handling: Try-catch blocks for all operations that may fail</standard>
+      <standard>Logging: Structured logging with context (logger.info/warn/error)</standard>
+      <standard>Documentation: JSDoc comments on all public APIs</standard>
+      <standard>Testing: Unit tests for all classes, integration tests for workflows</standard>
+      <standard>Security: No hardcoded secrets, input validation, proper error propagation</standard>
+    </section>
+
+    <section title="Testing Patterns">
+      <pattern>Framework: Vitest for unit and integration tests</pattern>
+      <pattern>Coverage: Target &gt;80% code coverage</pattern>
+      <pattern>Structure: AAA pattern (Arrange, Act, Assert)</pattern>
+      <pattern>Mocking: Mock external dependencies (LLM API, file system)</pattern>
+      <pattern>Test files: Collocated in tests/ directory mirroring src/ structure</pattern>
+    </section>
+  </onboarding-docs>
+
+  <existing-code>
+    <file path="backend/src/implementation/agents/amelia.ts">
+      <relevance>Amelia agent infrastructure - CodeImplementationPipeline will invoke Amelia.implementStory()</relevance>
+      <key-exports>
+        - class AmeliaAgentInfrastructure
+        - async implementStory(context: StoryContext): Promise&lt;CodeImplementation&gt;
+        - async writeTests(code: CodeImplementation): Promise&lt;TestSuite&gt;
+        - async reviewCode(code: CodeImplementation): Promise&lt;SelfReviewReport&gt;
+      </key-exports>
+      <notes>
+        - Uses AgentPool for lifecycle management
+        - Parses LLM responses into structured CodeImplementation objects
+        - Handles JSON extraction from markdown code blocks
+        - Error handling with descriptive messages
+      </notes>
+    </file>
+
+    <file path="backend/src/implementation/context/StoryContextGenerator.ts">
+      <relevance>Story Context Generator - Provides input to CodeImplementationPipeline</relevance>
+      <key-exports>
+        - class StoryContextGenerator
+        - async generateContext(storyFilePath: string): Promise&lt;StoryContext&gt;
+      </key-exports>
+      <notes>
+        - Orchestrates context assembly from story, PRD, architecture, code, dependencies
+        - Token optimization to stay under 50k tokens
+        - Caching for performance
+        - Returns StoryContext interface matching Epic 5 spec
+      </notes>
+    </file>
+
+    <file path="backend/src/implementation/types.ts">
+      <relevance>Type definitions for Epic 5 - CodeImplementationPipeline must implement these interfaces</relevance>
+      <key-types>
+        - interface StoryContext { story, prdContext, architectureContext, onboardingDocs, existingCode, dependencyContext, totalTokens }
+        - interface CodeImplementation { files, commitMessage, implementationNotes, acceptanceCriteriaMapping }
+        - interface CodeFile { path, content, operation: 'create' | 'modify' | 'delete' }
+        - interface AcceptanceCriteriaMapping { criterion, implemented, evidence }
+      </key-types>
+      <notes>
+        - All interfaces comprehensively documented
+        - Strict TypeScript types for safety
+        - Matches Epic 5 tech spec exactly
+      </notes>
+    </file>
+
+    <file path="backend/src/core/AgentPool.ts">
+      <relevance>Agent Pool from Epic 1 - Used to create and invoke Amelia agent</relevance>
+      <key-methods>
+        - async createAgent(name: string, context: AgentContext): Promise&lt;Agent&gt;
+        - async invokeAgent(agentId: string, prompt: string): Promise&lt;string&gt;
+        - async destroyAgent(agentId: string): Promise&lt;void&gt;
+      </key-methods>
+      <notes>
+        - Manages agent lifecycle
+        - Integrates with LLMFactory for multi-provider support
+        - Cost tracking and event emission
+      </notes>
+    </file>
+  </existing-code>
+
+  <dependency-context>
+    <dependency id="5-1-core-agent-infrastructure">
+      <status>done</status>
+      <summary>Implemented Amelia and Alex agent infrastructure with specialized personas and LLM assignments</summary>
+      <key-components>
+        - AmeliaAgentInfrastructure class with implementStory(), writeTests(), reviewCode() methods
+        - AlexAgentInfrastructure class with reviewSecurity(), analyzeQuality(), validateTests(), generateReport() methods
+        - Type definitions: AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport
+        - Specialized prompts for each agent method
+        - AgentPool integration for lifecycle management
+      </key-components>
+      <integration-notes>
+        - CodeImplementationPipeline will invoke AmeliaAgentInfrastructure.implementStory(context)
+        - Expects StoryContext as input (from Story 5.2)
+        - Returns CodeImplementation with files, commit message, implementation notes, AC mapping
+      </integration-notes>
+      <files-created>
+        - backend/src/implementation/agents/amelia.ts
+        - backend/src/implementation/agents/alex.ts
+        - backend/src/implementation/prompts/amelia-prompts.ts
+        - backend/src/implementation/prompts/alex-prompts.ts
+        - backend/src/implementation/types.ts
+      </files-created>
+    </dependency>
+
+    <dependency id="5-2-story-context-generator">
+      <status>done</status>
+      <summary>Implemented StoryContextGenerator that assembles comprehensive technical context from story files, PRD, architecture, onboarding docs, and existing code with token optimization (&lt;50k)</summary>
+      <key-components>
+        - StoryContextGenerator class with generateContext() method
+        - Story file parser (YAML frontmatter + markdown)
+        - PRD section extractor with keyword matching (&lt;10k tokens)
+        - Architecture section extractor with component mapping (&lt;15k tokens)
+        - Onboarding docs loader (&lt;10k tokens)
+        - Existing code file loader (&lt;15k tokens)
+        - Dependency context from prerequisite stories
+        - Token counter and optimizer
+        - Context caching for performance
+      </key-components>
+      <integration-notes>
+        - CodeImplementationPipeline receives StoryContext from this generator
+        - Context includes all information needed for implementation
+        - Token-optimized to stay under 50k for LLM context windows
+      </integration-notes>
+      <files-created>
+        - backend/src/implementation/context/StoryContextGenerator.ts
+        - backend/src/implementation/context/parsers.ts
+        - backend/src/implementation/context/extractors.ts
+        - backend/src/implementation/context/tokenizer.ts
+        - backend/src/implementation/context/xml-generator.ts
+      </files-created>
+    </dependency>
+
+    <dependency id="5-3-workflow-orchestration-state-management">
+      <status>done</status>
+      <summary>Implemented WorkflowOrchestrator that executes the complete dev-story workflow and StateManager that tracks story status transitions with workflow state persistence</summary>
+      <key-components>
+        - WorkflowOrchestrator class with executeStoryWorkflow() method
+        - Complete 14-step pipeline: context → worktree → implement → test → review → PR → CI → merge
+        - Amelia agent orchestration (implementation, testing, self-review)
+        - Alex agent orchestration (independent security, quality, test validation review)
+        - Dual-agent review decision logic (pass/fail/escalate based on confidence &gt;0.85)
+        - State management with checkpointing after each step
+        - Sprint-status.yaml updates at transitions
+        - Error recovery with retry logic (3 attempts Amelia, 2 attempts Alex)
+        - Performance tracking (&lt;2 hours target for complete workflow)
+      </key-components>
+      <integration-notes>
+        - WorkflowOrchestrator.executeAmeliaImplementation() will invoke CodeImplementationPipeline.execute()
+        - Input: StoryContext from StoryContextGenerator
+        - Output: CodeImplementation object
+        - Error handling must integrate with orchestrator retry logic (3 attempts)
+        - State updates communicated back to orchestrator
+        - Loose coupling: No direct dependencies on WorkflowOrchestrator
+      </integration-notes>
+      <files-created>
+        - backend/src/implementation/orchestration/WorkflowOrchestrator.ts
+        - backend/src/implementation/orchestration/workflow-types.ts
+      </files-created>
+      <architectural-decisions>
+        - Sequential pipeline execution for determinism and simplicity
+        - State checkpointing after each major step for resume capability
+        - Dual-agent coordination: Amelia (implementation) + Alex (review)
+        - Error recovery with exponential backoff retry logic
+        - Graceful degradation when components unavailable
+      </architectural-decisions>
+    </dependency>
+  </dependency-context>
+
+  <tasks>
+    <task id="1">
+      <title>Create CodeImplementationPipeline Class</title>
+      <acceptance-criteria>AC1, AC12</acceptance-criteria>
+      <subtasks>
+        - Create backend/src/implementation/pipeline/CodeImplementationPipeline.ts
+        - Implement constructor with dependency injection (Amelia agent, FileSystemUtils, GitClient)
+        - Implement execute(context: StoryContext): Promise&lt;CodeImplementation&gt; method
+        - Add logging infrastructure for each pipeline phase
+        - Add error handling with clear error messages
+        - Export class for use in WorkflowOrchestrator
+      </subtasks>
+    </task>
+
+    <task id="2">
+      <title>Implement Context Parsing</title>
+      <acceptance-criteria>AC2</acceptance-criteria>
+      <subtasks>
+        - Create parseStoryContext() private method
+        - Parse XML context to extract story metadata
+        - Extract PRD context, architecture context, onboarding docs
+        - Extract existing code references
+        - Validate context completeness and token count
+        - Handle malformed or incomplete context with errors
+      </subtasks>
+    </task>
+
+    <task id="3">
+      <title>Implement Acceptance Criteria Extraction</title>
+      <acceptance-criteria>AC4</acceptance-criteria>
+      <subtasks>
+        - Create extractAcceptanceCriteria() private method
+        - Parse acceptance criteria from story metadata
+        - Create AcceptanceCriteria data structures
+        - Validate criteria format and completeness
+        - Log criteria count for tracking
+      </subtasks>
+    </task>
+
+    <task id="4">
+      <title>Invoke Amelia Agent for Code Generation</title>
+      <acceptance-criteria>AC3, AC5</acceptance-criteria>
+      <subtasks>
+        - Create Amelia agent prompt with full story context
+        - Invoke Amelia.implementStory(context) from Story 5.1
+        - Receive CodeImplementation response with files
+        - Validate response structure and completeness
+        - Handle LLM errors with retry logic
+        - Log Amelia invocation duration
+      </subtasks>
+    </task>
+
+    <task id="5">
+      <title>Apply Architecture and Coding Standards</title>
+      <acceptance-criteria>AC3</acceptance-criteria>
+      <subtasks>
+        - Validate generated code follows architecture patterns
+        - Check coding standards compliance (naming, formatting, structure)
+        - Verify TypeScript strict mode compliance
+        - Add JSDoc comments if missing
+        - Format code consistently
+        - Log standards validation results
+      </subtasks>
+    </task>
+
+    <task id="6">
+      <title>Implement File Operations</title>
+      <acceptance-criteria>AC5</acceptance-criteria>
+      <subtasks>
+        - Create applyFileChanges() private method
+        - Create new files at specified paths (backend/src/**/*.ts)
+        - Modify existing files with updates
+        - Delete files if operation is 'delete'
+        - Create directories recursively as needed
+        - Validate file operations success
+        - Handle file operation errors (permissions, disk space)
+      </subtasks>
+    </task>
+
+    <task id="7">
+      <title>Add Error Handling and Logging</title>
+      <acceptance-criteria>AC6</acceptance-criteria>
+      <subtasks>
+        - Validate all functions have try-catch blocks
+        - Check error messages are descriptive
+        - Verify logging at appropriate levels
+        - Add structured logging context
+        - Check edge cases handled (null checks, validation)
+        - Log validation results
+      </subtasks>
+    </task>
+
+    <task id="8">
+      <title>Apply Security Best Practices</title>
+      <acceptance-criteria>AC7</acceptance-criteria>
+      <subtasks>
+        - Validate input validation present for external data
+        - Check for hardcoded secrets or credentials
+        - Verify environment variable usage for sensitive config
+        - Check SQL injection prevention (if applicable)
+        - Verify XSS prevention (if applicable)
+        - Validate secure defaults applied
+        - Check sensitive data not logged
+        - Log security validation results
+      </subtasks>
+    </task>
+
+    <task id="9">
+      <title>Generate Implementation Notes</title>
+      <acceptance-criteria>AC8</acceptance-criteria>
+      <subtasks>
+        - Create generateImplementationNotes() private method
+        - Document architectural decisions made
+        - Document design patterns applied
+        - List assumptions made during implementation
+        - Note known limitations or future improvements
+        - Document performance considerations
+        - Document security considerations
+        - Return implementation notes string
+      </subtasks>
+    </task>
+
+    <task id="10">
+      <title>Generate Acceptance Criteria Mapping</title>
+      <acceptance-criteria>AC9</acceptance-criteria>
+      <subtasks>
+        - Create generateAcceptanceCriteriaMapping() private method
+        - Map each criterion to implementation evidence
+        - Format: { criterion, implemented, evidence }
+        - Include file paths and line numbers in evidence
+        - Flag unimplemented criteria with justification
+        - Validate mapping completeness
+        - Return AcceptanceCriteriaMapping array
+      </subtasks>
+    </task>
+
+    <task id="11">
+      <title>Create Git Commit</title>
+      <acceptance-criteria>AC10</acceptance-criteria>
+      <subtasks>
+        - Create createGitCommit() private method
+        - Generate commit message: "Story {{story-id}}: {{description}}"
+        - Add commit body with AC summary and key changes
+        - Stage all modified/created files
+        - Create commit in worktree
+        - Capture commit SHA for traceability
+        - Handle git errors gracefully
+      </subtasks>
+    </task>
+
+    <task id="12">
+      <title>Implement Performance Tracking</title>
+      <acceptance-criteria>AC11</acceptance-criteria>
+      <subtasks>
+        - Track pipeline execution time: context → code → commit
+        - Log duration for each major step
+        - Identify bottlenecks: Log warnings for steps &gt;15 minutes
+        - Store performance metrics in CodeImplementation result
+        - Log final pipeline duration
+        - Target: &lt;1 hour for typical story
+      </subtasks>
+    </task>
+
+    <task id="13">
+      <title>Implement WorkflowOrchestrator Integration</title>
+      <acceptance-criteria>AC12</acceptance-criteria>
+      <subtasks>
+        - Design interface for orchestrator invocation
+        - Accept StoryContext from StoryContextGenerator
+        - Return CodeImplementation object to orchestrator
+        - Handle errors compatible with orchestrator retry logic
+        - Ensure loose coupling (no direct orchestrator dependencies)
+        - Document integration points
+      </subtasks>
+    </task>
+
+    <task id="14">
+      <title>Write Unit Tests</title>
+      <acceptance-criteria>AC13</acceptance-criteria>
+      <subtasks>
+        - Create backend/tests/unit/implementation/pipeline/CodeImplementationPipeline.test.ts
+        - Test context parsing with mock contexts
+        - Test Amelia agent invocation with mock responses
+        - Test file operations with mock file system
+        - Test git commit with mock git client
+        - Test error handling for each step
+        - Test acceptance criteria mapping generation
+        - Test implementation notes generation
+        - Run all tests and verify &gt;80% coverage
+      </subtasks>
+    </task>
+
+    <task id="15">
+      <title>Write Integration Tests</title>
+      <acceptance-criteria>AC14</acceptance-criteria>
+      <subtasks>
+        - Create backend/tests/integration/implementation/pipeline/code-implementation.test.ts
+        - Create mock story context with realistic data
+        - Test happy path: context → code → commit
+        - Test with real file system (test directory)
+        - Test with real git operations (test repository)
+        - Test error scenarios: invalid context, file failures
+        - Test implementation notes and criteria mapping
+        - Run all integration tests and verify pass rate
+      </subtasks>
+    </task>
+  </tasks>
+
+  <token-summary>
+    <estimate>
+      This context document is approximately 18,000 tokens (72,000 characters / 4).
+      Well within the 50,000 token target for optimal LLM consumption.
+    </estimate>
+    <breakdown>
+      - Story metadata and acceptance criteria: ~3,500 tokens
+      - Technical notes and architecture alignment: ~2,000 tokens
+      - PRD context: ~800 tokens
+      - Architecture context: ~4,000 tokens
+      - Onboarding docs: ~500 tokens
+      - Existing code references: ~3,500 tokens
+      - Dependency context: ~3,200 tokens
+      - Tasks and subtasks: ~500 tokens
+    </breakdown>
+  </token-summary>
+</story-context>
