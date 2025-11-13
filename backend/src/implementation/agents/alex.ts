@@ -60,9 +60,6 @@ export class AlexAgentInfrastructure {
   /** Agent Pool for lifecycle management */
   private readonly agentPool: AgentPool;
 
-  /** Project configuration */
-  private readonly _projectConfig: ProjectConfig;
-
   /** Active agent instance (null when not active) */
   private agent: Agent | null = null;
 
@@ -71,10 +68,10 @@ export class AlexAgentInfrastructure {
    */
   private constructor(
     agentPool: AgentPool,
-    projectConfig: ProjectConfig
+    _projectConfig: ProjectConfig
   ) {
     this.agentPool = agentPool;
-    this._projectConfig = projectConfig;
+    // _projectConfig reserved for future use
   }
 
   /**

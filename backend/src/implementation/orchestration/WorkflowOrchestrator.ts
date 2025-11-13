@@ -88,7 +88,6 @@ export class WorkflowOrchestrator {
   private config: Required<WorkflowOrchestratorConfig>;
   private contextGenerator: StoryContextGenerator;
   private worktreeManager: WorktreeManager;
-  private _stateManager: StateManager;
   private agentPool: AgentPool;
   private octokit: Octokit;
 
@@ -109,7 +108,7 @@ export class WorkflowOrchestrator {
 
     this.contextGenerator = dependencies.contextGenerator;
     this.worktreeManager = dependencies.worktreeManager;
-    this._stateManager = dependencies.stateManager;
+    // stateManager reserved for future use
     this.agentPool = dependencies.agentPool;
 
     // Initialize Octokit with GitHub token from environment
@@ -672,7 +671,7 @@ export class WorkflowOrchestrator {
 
     const agent = await this.agentPool.createAgent('amelia', {
       taskDescription: context.story.description,
-      workflowState: state
+      workflowState: state as unknown as Record<string, unknown>
     });
 
     state.agentActivity.amelia.agentId = agent.id;
@@ -695,7 +694,7 @@ export class WorkflowOrchestrator {
 
     const agent = await this.agentPool.createAgent('alex', {
       taskDescription: context.story.description,
-      workflowState: state
+      workflowState: state as unknown as Record<string, unknown>
     });
 
     state.agentActivity.alex.agentId = agent.id;
@@ -826,9 +825,9 @@ export class WorkflowOrchestrator {
           const skippedMatch = stdout.match(/(\d+) skipped/);
 
           const result = {
-            passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-            failed: failedMatch ? parseInt(failedMatch[1], 10) : (exitCode === 0 ? 0 : 1),
-            skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
+            passed: passedMatch?.[1] ? parseInt(passedMatch[1], 10) : 0,
+            failed: failedMatch?.[1] ? parseInt(failedMatch[1], 10) : (exitCode === 0 ? 0 : 1),
+            skipped: skippedMatch?.[1] ? parseInt(skippedMatch[1], 10) : 0,
             duration: 0,
             coverage: this.extractCoverageFromOutput(stdout)
           };
@@ -1319,11 +1318,13 @@ export class WorkflowOrchestrator {
           // Any checks failed
           if (failedChecks.length > 0) {
             logger.error('CI checks failed', {
+              storyId: state.storyId,
               prUrl: state.prUrl,
               failedChecks: failedChecks.map(c => c.name)
             });
             state.ciStatus = 'failed';
-            throw new Error(`CI checks failed: ${failedChecks.map(c => c.name).join(', ')}`);
+            const error = new Error(`CI checks failed: ${failedChecks.map(c => c.name).join(', ')}`);
+            throw error;
           }
 
           // Checks still running
@@ -1535,6 +1536,7 @@ export class WorkflowOrchestrator {
           name: 'Agent Orchestrator',
           level: 3
         },
+        currentWorkflow: 'dev-story',
         status: 'running',
         variables: {},
         startTime: new Date(),

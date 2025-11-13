@@ -5,8 +5,6 @@
  * These types extend Epic 1 core types with Story 5.3 specific requirements.
  */
 
-import { WorkflowState } from '../../types/workflow.types.js';
-
 /**
  * Story Workflow State
  *
