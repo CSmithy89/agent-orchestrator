@@ -1,0 +1,472 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>2</storyId>
+    <title>Story Context Generator</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-2-story-context-generator.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Story Implementation Orchestrator</asA>
+    <iWant>a Story Context Generator that assembles comprehensive technical context from story files, PRD, architecture, onboarding docs, and existing code with token optimization (&lt;50k)</iWant>
+    <soThat>Amelia (Developer) agent has all necessary context to autonomously implement stories with high quality code that follows project standards</soThat>
+    <tasks>
+- Task 1: Create StoryContextGenerator Class (AC: #1)
+  - Create `src/implementation/context/StoryContextGenerator.ts`
+  - Implement constructor with configuration
+  - Implement `generateContext(storyFilePath: string): Promise&lt;StoryContext&gt;` method
+  - Add logging infrastructure for each phase
+  - Add error handling for missing files and invalid data
+  - Export class for use in workflow orchestrator
+
+- Task 2: Implement Story File Parser (AC: #2)
+  - Create `parseStoryFile(filePath: string)` private method
+  - Parse YAML frontmatter using gray-matter library
+  - Extract story statement (role, action, benefit)
+  - Parse acceptance criteria list
+  - Extract technical notes (affectedFiles, patterns, constraints)
+  - Extract dependencies list
+  - Parse tasks/subtasks structure
+  - Handle malformed story files gracefully
+
+- Task 3: Implement PRD Context Extractor (AC: #3)
+  - Create `extractRelevantPRDSections(story: Story): Promise&lt;string&gt;` private method
+  - Load PRD file from docs/PRD.md or sharded equivalent
+  - Extract keywords from story description and acceptance criteria
+  - Implement keyword matching algorithm (fuzzy match, stemming)
+  - Extract relevant sections with surrounding context
+  - Optimize to &lt;10k tokens by trimming irrelevant subsections
+  - Preserve citation metadata (section titles, line numbers)
+  - Return formatted PRD context string
+
+- Task 4: Implement Architecture Context Extractor (AC: #4)
+  - Create `extractRelevantArchSections(story: Story): Promise&lt;string&gt;` private method
+  - Load architecture file from docs/architecture.md or sharded version
+  - Map story affectedFiles to architecture components
+  - Extract relevant architecture sections (microkernel, agent pool, etc.)
+  - Include design patterns, constraints, coding standards
+  - Optimize to &lt;15k tokens by focusing on affected components
+  - Preserve architectural context and component relationships
+  - Return formatted architecture context string
+
+- Task 5: Implement Onboarding Docs Loader (AC: #5)
+  - Create `loadOnboardingDocs(): Promise&lt;string&gt;` private method
+  - Check for `.bmad/onboarding/` directory
+  - Load coding standards, testing patterns, security practices
+  - Load error handling and logging patterns
+  - Prioritize content by story type (e.g., more testing docs for test stories)
+  - Optimize to &lt;10k tokens
+  - Return formatted onboarding context string
+  - Handle missing onboarding docs gracefully (not required)
+
+- Task 6: Implement Existing Code Loader (AC: #6)
+  - Create `loadRelevantCode(files: string[]): Promise&lt;CodeFile[]&gt;` private method
+  - Iterate over story technical notes affectedFiles list
+  - Load each file from repository if exists
+  - Generate relevance explanation for each file
+  - Optimize to &lt;15k tokens (full files for modified, snippets for reference)
+  - Flag non-existent files for creation (include in context as "to be created")
+  - Return array of CodeFile objects with path, content, relevance
+
+- Task 7: Implement Dependency Context Loader (AC: #7)
+  - Create `loadDependencyContext(deps: string[]): Promise&lt;string&gt;` private method
+  - Iterate over story dependencies list
+  - Load each dependency story file (e.g., 5-1-core-agent-infrastructure.md)
+  - Extract key implementation details from Dev Agent Record section
+  - Document services/interfaces created
+  - Include file list from dependencies
+  - Extract architectural decisions
+  - Create token-optimized summary
+  - Return formatted dependency context string
+
+- Task 8: Implement XML Document Generator (AC: #8)
+  - Create `generateXML(context: ContextData): string` private method
+  - Build XML structure per Epic 5 tech spec
+  - Include all sections: story, PRD, architecture, onboarding, code, dependencies
+  - Escape special XML characters (&lt;, &gt;, &amp;, ", ')
+  - Format XML with proper indentation for readability
+  - Validate XML structure
+  - Return complete Story Context XML document
+
+- Task 9: Implement Token Counter and Optimizer (AC: #9)
+  - Create `calculateTokens(content: string): number` utility method
+  - Implement token estimation (character count / 4 heuristic)
+  - Create `optimizeContext(context: ContextData, targetTokens: number)` method
+  - Implement optimization strategy (trim sections in priority order)
+  - Log final token count with breakdown
+  - Log warning if optimization required
+  - Throw error if cannot achieve &lt;50k after aggressive optimization
+
+- Task 10: Implement Context Caching (AC: #10)
+  - Create `.bmad/cache/story-context/` directory structure
+  - Implement `saveToCache(storyId: string, xml: string)` method
+  - Implement `loadFromCache(storyId: string, storyMtime: Date): string | null` method
+  - Check story file modification time for cache invalidation
+  - Create cache directory if doesn't exist
+  - Log cache hits and misses for monitoring
+  - Handle cache file errors gracefully
+
+- Task 11: Write Unit Tests (AC: #11)
+  - Create `test/unit/implementation/context/StoryContextGenerator.test.ts`
+  - Write test fixtures: mock story file, PRD, architecture
+  - Test story file parsing (happy path and malformed)
+  - Test PRD section extraction with keyword matching
+  - Test architecture section extraction with component mapping
+  - Test onboarding docs loading (present and missing)
+  - Test existing code loading (files exist, don't exist, mixed)
+  - Test dependency context loading
+  - Test token counting and optimization logic
+  - Test XML generation and structure
+  - Test cache operations (save, load, invalidate)
+  - Run all tests and verify &gt;80% coverage
+
+- Task 12: Integration Testing (AC: #11)
+  - Create `test/integration/implementation/context-generator.test.ts`
+  - Test end-to-end context generation with real story file
+  - Test with Story 5.1 as input (real-world test)
+  - Verify token count is &lt;50k for realistic story
+  - Verify XML structure is valid
+  - Test cache lifecycle (generate → cache → load → invalidate → regenerate)
+  - Verify integration with Story 5.3 orchestrator
+  - Run integration tests in CI
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+### AC1: StoryContextGenerator Class Implemented
+- StoryContextGenerator class created with generateContext() method
+- Class implements Epic 5 type definition: `generateContext(storyFilePath: string): Promise&lt;StoryContext&gt;`
+- Method orchestrates all context assembly steps
+- Returns StoryContext interface per Epic 5 tech spec
+- Proper error handling for missing or invalid files
+- Logging at INFO level for each context assembly phase
+
+### AC2: Story File Read and Parsed
+- Story file read from `docs/stories/story-XXX.md` path
+- YAML frontmatter parsed (status, dependencies)
+- Story statement extracted (role, action, benefit)
+- Acceptance criteria list parsed
+- Technical notes extracted (affectedFiles, patterns, constraints)
+- Dependencies list extracted for prerequisite context
+- Tasks/subtasks parsed for implementation guidance
+
+### AC3: Relevant PRD Sections Extracted
+- PRD file loaded from `docs/PRD.md` or sharded equivalent
+- Keyword extraction from story description and acceptance criteria
+- Relevant PRD sections identified using keyword matching
+- Sections extracted with surrounding context (±1 section for continuity)
+- Token count target: &lt;10k tokens for PRD context
+- PRD context optimized by removing irrelevant subsections
+- Citation metadata preserved (section titles, line numbers)
+
+### AC4: Relevant Architecture Sections Extracted
+- Architecture file loaded from `docs/architecture.md` or sharded equivalent
+- Technical notes affectedFiles used to identify relevant architecture components
+- Architecture sections extracted based on component/module mapping
+- Design patterns, constraints, and coding standards included
+- Token count target: &lt;15k tokens for architecture context
+- Architecture context optimized by focusing on affected components
+- Includes microkernel pattern, agent pool, workflow engine details as needed
+
+### AC5: Onboarding Docs Loaded
+- Onboarding docs loaded from `.bmad/onboarding/` directory if present
+- Coding standards document loaded (naming conventions, code style)
+- Testing patterns and frameworks documented
+- Security best practices included
+- Error handling and logging patterns documented
+- Token count target: &lt;10k tokens for onboarding docs
+- Onboarding content prioritized by relevance to story type
+
+### AC6: Existing Code Files Loaded
+- Affected files list extracted from story technical notes
+- Each file loaded from repository if it exists
+- File content included with full path for context
+- Relevance explanation generated (why this file matters for story)
+- Token count target: &lt;15k tokens for existing code
+- Code snippets optimized (full files for modified files, key sections for reference files)
+- Non-existent files flagged for creation (no error)
+
+### AC7: Dependency Context Loaded
+- Prerequisite story dependencies identified from story file
+- Dependency story files loaded (e.g., if story depends on 5.1, load 5-1-*.md)
+- Key implementation details extracted from dependency stories
+- Services/interfaces created by dependencies documented
+- File list from dependencies included (what's available to reuse)
+- Architectural decisions from dependencies included
+- Token-optimized summary of dependency context
+
+### AC8: Story Context XML Document Generated
+- Story Context XML document generated per Epic 5 tech spec structure
+- XML includes: story metadata, PRD context, architecture context, onboarding docs, existing code, dependency context
+- All sections properly formatted with XML tags
+- Content escaped for XML safety (special characters handled)
+- XML validates against expected structure
+- Document saved to cache for potential reuse
+
+### AC9: Token Count Calculated and Optimized
+- Token count calculated for complete context (approximate using character count / 4)
+- Total tokens validated against &lt;50k target
+- If exceeds target: Optimization applied (trim least relevant sections first)
+- Optimization strategy: PRD → Architecture → Existing Code → Onboarding → Dependency
+- Final token count logged with breakdown by section
+- Warning logged if optimization required
+- Error thrown if cannot achieve &lt;50k after optimization
+
+### AC10: Context Caching Implemented
+- Context XML saved to `.bmad/cache/story-context/{{story-id}}.xml`
+- Cache invalidation on story file modification (check mtime)
+- Cache key includes story file hash or modification timestamp
+- Cache directory created if doesn't exist
+- Cached context loaded if valid (file unchanged)
+- Cache miss logged for monitoring
+
+### AC11: Unit Tests Written and Passing
+- Unit tests created for StoryContextGenerator class
+- Test context generation with mock story file
+- Test PRD section extraction with mock PRD
+- Test architecture section extraction with mock architecture
+- Test onboarding docs loading
+- Test existing code file loading (existing and non-existing files)
+- Test dependency context loading
+- Test token counting and optimization
+- Test XML generation and structure validation
+- Test cache operations (save, load, invalidate)
+- All tests pass with &gt;80% code coverage for context generator module
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- PRD: Context Generation Requirements -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>FR-CORE-004: Autonomous Story Development</section>
+        <snippet>Story development requires generating story context (gather relevant docs/code), creating git worktree, implementing with Amelia agent, self code review, and creating pull request. Context generation must be comprehensive yet token-optimized to stay under LLM limits.</snippet>
+      </doc>
+
+      <!-- PRD: Agent Context Management -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>FR-AGENT-003: Agent Context Management</section>
+        <snippet>Build relevant context for each agent invocation including onboarding docs, previous phase outputs, current task description. Exclude irrelevant history. Optimize context size to minimize tokens. This is critical for cost efficiency and staying within LLM context windows.</snippet>
+      </doc>
+
+      <!-- Epic 5 Tech Spec: Story Context Generator Design -->
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic Technical Specification: Story Implementation Automation</title>
+        <section>Services and Modules - StoryContextGenerator</section>
+        <snippet>StoryContextGenerator is responsible for building comprehensive story context from story file, PRD, architecture, onboarding docs, existing code with token optimization (&lt;50k). Inputs: Story file path, PRD, Architecture, Onboarding. Output: Story Context XML document. Critical component for Amelia agent implementation.</snippet>
+      </doc>
+
+      <!-- Epic 5 Tech Spec: StoryContext Interface -->
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic Technical Specification: Story Implementation Automation</title>
+        <section>Data Models and Contracts - StoryContext</section>
+        <snippet>StoryContext interface defines: story (id, title, description, acceptanceCriteria, technicalNotes, dependencies), prdContext (relevant PRD sections &lt;10k tokens), architectureContext (relevant architecture sections &lt;15k tokens), onboardingDocs (coding standards, patterns &lt;10k tokens), existingCode (existing code files &lt;15k tokens), dependencyContext (prerequisite stories), totalTokens (&lt;50k target).</snippet>
+      </doc>
+
+      <!-- Epic 5 Tech Spec: StoryContextGenerator API -->
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic Technical Specification: Story Implementation Automation</title>
+        <section>APIs and Interfaces - StoryContextGenerator API</section>
+        <snippet>StoryContextGenerator class provides async generateContext(storyFilePath: string): Promise&lt;StoryContext&gt; method. Internally: readStoryFile, extractRelevantPRDSections, extractRelevantArchSections, loadOnboardingDocs, loadRelevantCode, loadDependencyContext, calculateTokens. Token optimization critical for agent efficiency.</snippet>
+      </doc>
+
+      <!-- Story 5.1: Core Agent Infrastructure (Completed Dependency) -->
+      <doc>
+        <path>docs/stories/5-1-core-agent-infrastructure.md</path>
+        <title>Story 5.1: Core Agent Infrastructure</title>
+        <section>Dev Agent Record - Learnings from Previous Story</section>
+        <snippet>Story 5.1 established agent infrastructure. Created: AmeliaAgentInfrastructure at backend/src/implementation/agents/amelia.ts, AlexAgentInfrastructure at backend/src/implementation/agents/alex.ts, Type definitions at backend/src/implementation/types.ts. StoryContext interface defined (lines 83-155) with token targets. Context structure MUST match exactly for agent compatibility.</snippet>
+      </doc>
+
+      <!-- Architecture: Microkernel Pattern -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>1.2 Architectural Pattern: Microkernel + Event-Driven</section>
+        <snippet>Microkernel architecture with plugin-based workflows. Core kernel provides WorkflowEngine, AgentPool, StateManager, TemplateProcessor. Workflows are self-contained plugins with workflow.yaml, instructions.md, template files. This pattern ensures stability and extensibility for context generation integration.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing Implementation Types -->
+      <file>
+        <path>backend/src/implementation/types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>StoryContext, AmeliaAgent, AlexAgent</symbol>
+        <lines>1-200</lines>
+        <reason>Story 5.1 created comprehensive TypeScript interfaces for Epic 5. StoryContext interface (lines 83-110) defines EXACT structure StoryContextGenerator must produce. Must match this interface exactly or Amelia agent integration will fail.</reason>
+      </file>
+
+      <!-- Agent Infrastructure from Story 5.1 -->
+      <file>
+        <path>backend/src/implementation/agents/amelia.ts</path>
+        <kind>agent-infrastructure</kind>
+        <symbol>AmeliaAgentInfrastructure</symbol>
+        <lines>1-250</lines>
+        <reason>Amelia agent infrastructure created in Story 5.1. Method implementStory(context: StoryContext) expects StoryContext as input. Context generator output MUST match this interface signature for proper integration. Review for context structure expectations.</reason>
+      </file>
+
+      <!-- File System Utilities Pattern -->
+      <file>
+        <path>backend/src/solutioning/story-file-writer.ts</path>
+        <kind>service</kind>
+        <symbol>StoryFileWriter</symbol>
+        <lines>1-100</lines>
+        <reason>Example of file reading/writing patterns in this project. Uses fs/promises for async file operations, path for path manipulation. StoryContextGenerator should follow similar patterns for file operations including error handling and path resolution.</reason>
+      </file>
+
+      <!-- Template Processing Pattern -->
+      <file>
+        <path>backend/src/core/TemplateProcessor.ts</path>
+        <kind>core-service</kind>
+        <symbol>TemplateProcessor</symbol>
+        <lines>all</lines>
+        <reason>Template processor for markdown template substitution. May be useful reference for XML generation patterns. Shows variable replacement, file writing patterns, and error handling. StoryContextGenerator XML output should follow similar quality standards.</reason>
+      </file>
+
+      <!-- State Manager for File Operations -->
+      <file>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>core-service</kind>
+        <symbol>StateManager</symbol>
+        <lines>all</lines>
+        <reason>State manager handles YAML file reading/writing with atomic writes. Demonstrates project patterns for file persistence, error handling, and path management. Context generator should follow similar reliability patterns for cache operations.</reason>
+      </file>
+
+      <!-- Project Config for Paths -->
+      <file>
+        <path>backend/src/config/ProjectConfig.ts</path>
+        <kind>config</kind>
+        <symbol>ProjectConfig</symbol>
+        <lines>all</lines>
+        <reason>Project configuration handling including path resolution, config loading. StoryContextGenerator needs to resolve paths for story files, PRD, architecture, onboarding docs. Should use ProjectConfig for consistent path handling.</reason>
+      </file>
+
+      <!-- Logger Utility -->
+      <file>
+        <path>backend/src/utils/logger.ts</path>
+        <kind>utility</kind>
+        <symbol>logger</symbol>
+        <lines>all</lines>
+        <reason>Logging infrastructure for the project. StoryContextGenerator should use consistent logging at INFO level for each context assembly phase per AC1. Follow established logging patterns for consistency.</reason>
+      </file>
+    </code>
+
+    <dependencies>
+      <npm>
+        <package name="gray-matter" version="^4.0.0">YAML frontmatter parser for story files</package>
+        <package name="fast-xml-parser" version="^4.0.0">XML validation (if needed for context XML)</package>
+        <package name="typescript" version="^5.0.0">TypeScript for type-safe implementation</package>
+        <package name="vitest" version="^1.0.0">Test framework for unit and integration tests</package>
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- StoryContext interface MUST match Epic 5 type definitions exactly (backend/src/implementation/types.ts lines 83-110)
+- Token count MUST be &lt;50k total with breakdown: PRD &lt;10k, architecture &lt;15k, onboarding &lt;10k, code &lt;15k
+- Context generator is INPUT to Amelia agent - output structure must be compatible with agent methods
+- XML format required for structured, parseable context (XML safety: escape &lt;, &gt;, &amp;, ", ')
+- Token optimization strategy: Trim PRD first (verbose), then architecture (detailed), preserve code and dependencies (critical)
+- Character count / 4 heuristic for token estimation (industry standard, accurate within 10%)
+- Cache invalidation on story file modification (check mtime) to prevent stale context
+- Graceful handling of missing files: onboarding docs optional, non-existent code files flagged for creation
+- File paths should be absolute internally but resolved from project root
+- Follow existing project patterns for file operations (fs/promises), logging (logger.ts), path resolution (ProjectConfig)
+- TypeScript strict mode enabled - no any types, proper interface usage
+- Error messages should be clear and actionable with recovery suggestions
+- Unit tests must cover happy path, edge cases, error conditions with &gt;80% coverage target
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>StoryContext</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface StoryContext {
+  story: {
+    id: string;
+    title: string;
+    description: string;
+    acceptanceCriteria: string[];
+    technicalNotes: TechnicalNotes;
+    dependencies: string[];
+  };
+  prdContext: string;
+  architectureContext: string;
+  onboardingDocs: string;
+  existingCode: ExistingCodeFile[];
+  dependencyContext?: string;
+  totalTokens: number;
+}
+      </signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+
+    <interface>
+      <name>StoryContextGenerator.generateContext</name>
+      <kind>Method signature</kind>
+      <signature>async generateContext(storyFilePath: string): Promise&lt;StoryContext&gt;</signature>
+      <path>Epic 5 Tech Spec - StoryContextGenerator API</path>
+    </interface>
+
+    <interface>
+      <name>AmeliaAgent.implementStory</name>
+      <kind>Method signature</kind>
+      <signature>implementStory(context: StoryContext): Promise&lt;CodeImplementation&gt;</signature>
+      <path>backend/src/implementation/agents/amelia.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+- Test framework: Vitest for unit and integration tests
+- Test location: backend/tests/unit/implementation/context/ and backend/tests/integration/implementation/
+- Mock strategy: Mock all file system operations for fast, deterministic unit tests; Use real files for integration tests
+- Test data: Create realistic mock story files, PRD, architecture matching production formats
+- Coverage target: &gt;80% code coverage for StoryContextGenerator and utility modules
+- Test patterns: AAA pattern (Arrange, Act, Assert), independent tests with proper beforeEach/afterEach cleanup
+- Edge cases: Malformed YAML, missing files, empty sections, token overflow scenarios
+- Error handling: Invalid file paths, parse errors, XML generation errors must be tested
+- Integration tests: Use real story file (Story 5.1) as test input, verify XML structure, validate token count
+    </standards>
+
+    <locations>
+- backend/tests/unit/implementation/context/StoryContextGenerator.test.ts
+- backend/tests/integration/implementation/context-generator.test.ts
+- Test fixtures: backend/tests/fixtures/stories/, backend/tests/fixtures/docs/
+    </locations>
+
+    <ideas>
+- Test parseStoryFile with valid story file (AC2 coverage)
+- Test parseStoryFile with malformed YAML (error handling)
+- Test extractRelevantPRDSections with keyword matching (AC3 coverage)
+- Test extractRelevantPRDSections token optimization (AC3 coverage)
+- Test extractRelevantArchSections with component mapping (AC4 coverage)
+- Test loadOnboardingDocs when directory exists (AC5 coverage)
+- Test loadOnboardingDocs when directory missing (AC5 graceful handling)
+- Test loadRelevantCode with existing files (AC6 coverage)
+- Test loadRelevantCode with non-existent files (AC6 flagging for creation)
+- Test loadDependencyContext with Story 5.1 as dependency (AC7 coverage)
+- Test generateXML with complete context data (AC8 coverage)
+- Test generateXML with special characters requiring escaping (AC8 XML safety)
+- Test calculateTokens accuracy (AC9 coverage)
+- Test optimizeContext when exceeding 50k tokens (AC9 optimization)
+- Test optimizeContext optimization strategy priority (AC9 coverage)
+- Test saveToCache and loadFromCache (AC10 caching)
+- Test cache invalidation on story file modification (AC10 mtime check)
+- Integration test: Generate context for Story 5.1 end-to-end (AC11 real-world scenario)
+- Integration test: Verify token count &lt;50k for realistic story (AC9 validation)
+- Integration test: Cache lifecycle (generate → cache → load → invalidate → regenerate) (AC10 validation)
+    </ideas>
+  </tests>
+</story-context>

@@ -1,0 +1,833 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>5-3-workflow-orchestration-state-management</story-id>
+    <story-title>Workflow Orchestration State Management</story-title>
+    <epic-id>epic-5</epic-id>
+    <epic-title>Story Implementation Automation</epic-title>
+    <generated-at>2025-11-13</generated-at>
+    <dependencies>
+      <dependency>5-1-core-agent-infrastructure</dependency>
+      <dependency>5-2-story-context-generator</dependency>
+    </dependencies>
+  </metadata>
+
+  <story>
+    <description>
+As a **Story Implementation System**,
+I want **a WorkflowOrchestrator that executes the complete dev-story workflow and a StateManager that tracks story status transitions with workflow state persistence**,
+so that **stories can be autonomously implemented through a coordinated pipeline (context → worktree → implement → test → review → PR → CI → merge) with full state tracking and error recovery**.
+    </description>
+
+    <acceptance-criteria>
+      <criterion id="AC1">WorkflowOrchestrator Class Implemented - Class with executeStoryWorkflow() method, dependency injection, logging, error handling</criterion>
+      <criterion id="AC2">Dev-Story Workflow YAML Loaded and Parsed - Load from bmad/bmm/workflows/dev-story/workflow.yaml, parse steps, validate metadata</criterion>
+      <criterion id="AC3">Complete Story Development Pipeline Orchestrated - 14 steps from context to cleanup with sequential execution and checkpointing</criterion>
+      <criterion id="AC4">Worktree Created for Isolated Development - Delegate to WorktreeManager, branch format story/{{id}}-{{title}}</criterion>
+      <criterion id="AC5">Amelia Agent Spawned for Implementation and Testing - Create via AgentPool, track activity, invoke methods, destroy after completion</criterion>
+      <criterion id="AC6">Alex Agent Spawned for Independent Code Review - Different LLM than Amelia, review security/quality/tests, generate report</criterion>
+      <criterion id="AC7">State Transitions Tracked - StoryWorkflowState with status transitions: idle → implementing → testing → reviewing → pr-created → done</criterion>
+      <criterion id="AC8">StateManager Integrated for Workflow State Persistence - Checkpoint after each step, atomic writes, resume capability</criterion>
+      <criterion id="AC9">Sprint-Status.yaml Updated with Story Status - Track transitions: ready-for-dev → in-progress → review → done</criterion>
+      <criterion id="AC10">Error Recovery and Retry Logic Implemented - Exponential backoff, test auto-fix, escalation on persistent failure</criterion>
+      <criterion id="AC11">Complete Story Workflow Performance Target - Execute complete workflow in &lt;2 hours, log durations</criterion>
+      <criterion id="AC12">Failures Handled with Clear Error Messages and Escalation - Include story ID, step, error details, escalation triggers</criterion>
+      <criterion id="AC13">Unit Tests for Orchestrator Logic - Test step execution, error handling, state transitions, 80%+ coverage</criterion>
+      <criterion id="AC14">Integration Tests with Mock Agents - Test complete workflow, error scenarios, state persistence, worktree lifecycle</criterion>
+    </acceptance-criteria>
+
+    <technical-notes>
+      <architecture-alignment>
+This story implements the orchestration layer that coordinates all Epic 5 components into a complete story development pipeline. WorkflowOrchestrator is the "conductor" that invokes Story 5.1 agents (Amelia, Alex) and Story 5.2 context generator in sequence. StateManager provides workflow state persistence for resume capability and monitoring. Complete pipeline: context → worktree → implement → test → review → PR → CI → merge.
+
+Integration with Epic 1 Core:
+- Leverages WorktreeManager from Epic 1 for isolated development environments
+- Uses AgentPool from Epic 1 for Amelia and Alex agent lifecycle management
+- Integrates with StateManager from Epic 1 for workflow state persistence
+- Uses WorkflowEngine pattern from Epic 1 for step execution
+      </architecture-alignment>
+
+      <design-decisions>
+1. Sequential Pipeline: Workflow steps execute sequentially (not parallel) for simplicity and determinism
+2. State Checkpointing: State persisted after each major step for resume capability and monitoring
+3. Dual-Agent Coordination: Orchestrator coordinates Amelia (implementation) and Alex (review) with different LLMs
+4. Error Recovery: Retry logic with exponential backoff for transient failures, escalation for persistent issues
+5. Performance Target: &lt;2 hours complete workflow execution (measured and logged)
+6. Graceful Degradation: If Alex unavailable, proceed with Amelia self-review only (add warning to PR)
+      </design-decisions>
+
+      <affected-files>
+- backend/src/implementation/workflow/WorkflowOrchestrator.ts (new)
+- backend/src/implementation/workflow/workflow-types.ts (new)
+- backend/tests/unit/implementation/workflow/WorkflowOrchestrator.test.ts (new)
+- backend/tests/integration/implementation/workflow/story-workflow.test.ts (new)
+- docs/sprint-status.yaml (update)
+      </affected-files>
+    </technical-notes>
+  </story>
+
+  <prd-context>
+From Agent Orchestrator PRD:
+
+## Success Criteria
+
+**Speed &amp; Availability:**
+- ✅ 10x Faster Completion: Complete project (PRD → Working Code) in 2-3 days vs 2-3 weeks human timeline
+- ✅ 24/7 Operation: Projects progress continuously, not limited to working hours
+- ✅ Parallel Execution: 3x speedup through simultaneous story development
+
+**Quality &amp; Autonomy:**
+- ✅ High Autonomy Rate: &gt;85% of decisions made without human escalation
+- ✅ Code Quality: Generated code passes tests and review &gt;90% on first attempt
+
+**Testing &amp; Quality:**
+- ✅ Test strategy defined in architecture phase (required, not optional)
+- ✅ All stories include test acceptance criteria
+- ✅ 80%+ code coverage for new code
+- ✅ Automated test execution in CI/CD
+- ✅ Zero critical bugs in production
+
+## MVP - Minimum Viable Product
+
+**4. Single Story Implementation:**
+- ✅ Story context generation
+- ✅ Code implementation with Amelia (Developer)
+- ✅ Test generation and execution
+- ✅ Code review workflow
+- ✅ PR creation and submission
+- Success: Story completion in &lt;2 hours with passing tests
+
+**5. Essential Infrastructure:**
+- ✅ Workflow engine (reads and executes workflow.yaml files)
+- ✅ Agent pool with LLM factory pattern
+- ✅ Per-project agent LLM assignment from config
+- ✅ State management (workflow-status.yaml, sprint-status.yaml)
+- ✅ Git worktree manager for isolated development
+- ✅ Basic CLI for local orchestrator control
+
+**6. Code Review Automation:**
+- ✅ Alex agent with dedicated LLM for unbiased review
+- ✅ Automated code review workflow integrated with dev-story
+- ✅ Review report generation with actionable feedback
+- ✅ Security and quality gate enforcement
+- Success: &gt;90% code quality score, &lt;5% critical issues in production
+
+## Developer Tool Specific Requirements
+
+**Workflow Engine:**
+
+FR-WF-001: YAML Workflow Parsing
+- Read and parse workflow.yaml files per workflow.xml spec
+- Resolve variables: {project-root}, {config_source}, system-generated
+- Support structural tags: step, optional, if, for-each, repeat
+- Support execution tags: action, ask, goto, invoke-workflow, invoke-task
+
+FR-WF-002: Step Execution Engine
+- Execute steps in exact order
+- Handle conditional logic (if="condition")
+- Process loops and iterations
+- Jump to steps via goto
+
+FR-WF-004: State Checkpointing
+- Save state after each step execution
+- Enable workflow resume after crash
+- Track current step, workflow status, variables
+
+**Git Operations:**
+
+FR-GIT-001: Worktree Management
+- Create worktree from main branch for story
+- Track worktree location and branch name
+- Push worktree branch to remote
+- Delete worktree after merge completion
+  </prd-context>
+
+  <architecture-context>
+## Epic 5 Technical Specification - Workflow Orchestration &amp; State Management
+
+### Data Models and Contracts
+
+```typescript
+interface StoryWorkflowState extends WorkflowState {
+  workflow: 'dev-story';
+  storyId: string;
+  currentStep: number; // 1-8 (context, worktree, implement, test, review, pr, ci-monitor, cleanup)
+  worktreePath?: string;
+  branchName?: string;
+  agentActivity: {
+    amelia: {
+      status: 'idle' | 'implementing' | 'testing' | 'reviewing' | 'completed';
+      startTime?: Date;
+      endTime?: Date;
+    };
+    alex: {
+      status: 'idle' | 'reviewing' | 'completed';
+      startTime?: Date;
+      endTime?: Date;
+    };
+  };
+  reviewStatus: {
+    selfReviewPassed: boolean;
+    independentReviewPassed: boolean;
+    confidence: number;
+  };
+  prUrl?: string;
+  ciStatus?: 'pending' | 'running' | 'passed' | 'failed';
+}
+```
+
+### WorkflowOrchestrator API
+
+```typescript
+class WorkflowOrchestrator {
+  async executeStoryWorkflow(storyId: string): Promise&lt;PRResult&gt; {
+    // Step 1: Generate context
+    const context = await this.contextGenerator.generateContext(storyId);
+
+    // Step 2: Create worktree
+    const worktree = await this.worktreeManager.createWorktree(storyId);
+
+    // Step 3: Implement story (Amelia)
+    const implementation = await this.ameliaAgent.implementStory(context);
+    await this.applyCodeChanges(worktree, implementation);
+
+    // Step 4: Generate tests (Amelia)
+    const tests = await this.ameliaAgent.writeTests(implementation);
+    await this.applyTestChanges(worktree, tests);
+
+    // Step 5: Run tests
+    const testResults = await this.runTests(worktree);
+    if (!testResults.passed) {
+      await this.fixFailingTests(worktree, testResults);
+    }
+
+    // Step 6: Dual-agent review
+    const selfReview = await this.ameliaAgent.reviewCode(implementation);
+    const independentReview = await this.alexAgent.generateReport([
+      await this.alexAgent.reviewSecurity(implementation),
+      await this.alexAgent.analyzeQuality(implementation),
+      await this.alexAgent.validateTests(tests, testResults.coverage)
+    ]);
+
+    // Step 7: Make pass/fail decision
+    if (!this.shouldProceedToPR(selfReview, independentReview)) {
+      return this.escalateForHumanReview(storyId, selfReview, independentReview);
+    }
+
+    // Step 8: Create PR
+    const pr = await this.prAutomator.createPR(worktree, storyId, independentReview);
+
+    // Step 9: Monitor CI and auto-merge
+    await this.monitorCIAndMerge(pr, worktree);
+
+    // Step 10: Update status
+    await this.stateManager.updateStoryStatus(storyId, 'done');
+
+    return pr;
+  }
+
+  private async shouldProceedToPR(
+    selfReview: SelfReviewReport,
+    independentReview: IndependentReviewReport
+  ): Promise&lt;boolean&gt;;
+}
+```
+
+### Story 5.3 Internal Sequence
+
+```
+1. Load story file from docs/stories/story-XXX.md
+2. Invoke StoryContextGenerator.generateContext(storyId)
+3. Create worktree via WorktreeManager (branch: story/XXX-title)
+4. Update StateManager (story status: in-progress, agent: amelia → implementing)
+5. Invoke Amelia: implementStory(context)
+6. Apply code changes to worktree
+7. Invoke Amelia: writeTests(implementation)
+8. Apply test changes to worktree
+9. Run tests in worktree: npm test
+10. If tests fail: Fix and re-run (max 3 attempts)
+11. Invoke Amelia: reviewCode(implementation)
+12. If critical issues: Fix and re-review
+13. Invoke Alex: generateReport([security, quality, testValidation])
+14. Make final decision based on both reviews:
+    - If both pass and confidence &gt;0.85: Proceed to PR
+    - If either fail or confidence &lt;0.85: Escalate to human
+    - If fixable issues: Return to Amelia for fixes
+15. If decision is pass: Invoke PRCreationAutomator
+16. Create PR with story details and review summary
+17. Monitor CI status via GitHub API
+18. If CI passes and auto-merge enabled: Merge PR
+19. Cleanup worktree
+20. Update StateManager (story status: done)
+21. Emit event: story.completed
+```
+
+### Non-Functional Requirements
+
+**Performance:**
+- Complete story development (context → PR merged): &lt;2 hours target
+- Story context generation: &lt;5 minutes
+- Code implementation (Amelia): &lt;60 minutes
+- Test generation and execution: &lt;30 minutes
+- Dual-agent code review: &lt;15 minutes
+- PR creation and CI monitoring: &lt;10 minutes
+
+**Reliability/Availability:**
+- Workflow state checkpointed after each major step
+- Resume capability from any step after crash
+- Amelia agent retry logic: 3 attempts with exponential backoff
+- Alex agent retry logic: 2 attempts, escalate if persistent
+- Test failure auto-fix: Up to 3 attempts
+
+**Observability:**
+- Structured logs (JSON format) for all workflow steps with correlation IDs
+- Log levels: DEBUG, INFO, WARN, ERROR, CRITICAL
+- Key log events:
+  - story.workflow.started
+  - story.context.generated
+  - amelia.implementing
+  - amelia.tests.generated
+  - amelia.self-review.completed
+  - alex.independent-review.started
+  - review.decision
+  - pr.created
+  - pr.merged
+  - story.completed
+  </architecture-context>
+
+  <epic-context>
+From Epic 5 Tech Spec:
+
+### Services and Modules
+
+| Service/Module | Responsibilities | Integration Points |
+|----------------|------------------|-------------------|
+| **WorkflowOrchestrator** | Execute dev-story workflow steps in sequence; Coordinate Amelia and Alex agents; Manage worktree lifecycle; Track state transitions | Story 5.1 agents, Story 5.2 context generator, Epic 1 WorktreeManager/AgentPool/StateManager |
+| **StateManager** | Track story status transitions (backlog → drafted → ready-for-dev → in-progress → review → done); Persist agent state | Epic 1 StateManager, sprint-status.yaml |
+
+### Error Recovery Strategy
+
+**Transient LLM failures:**
+- Retry with exponential backoff (3 attempts for Amelia, 2 for Alex)
+- Checkpoint state before retry (rollback on persistent failure)
+
+**Test failures:**
+- Auto-fix cycle with Amelia (up to 3 attempts)
+- Parse test output, generate fixes, re-run
+- Escalate if tests still fail after 3 attempts
+
+**Review failures:**
+- Re-implementation cycle if fixable issues identified
+- Escalation to human if confidence &lt;0.85 or critical issues
+
+**Graceful Degradation:**
+- If Alex unavailable: Fall back to Amelia self-review only, add warning to PR
+- If test execution fails: Escalate with test output, do not proceed to review
+- If PR creation fails: Save code to worktree, log error, escalate
+- If CI fails after 2 retries: Escalate with CI logs, do not auto-merge
+  </epic-context>
+
+  <dependency-context>
+### Story 5.1: Core Agent Infrastructure (Status: done)
+
+**Created Services:**
+- AmeliaAgentInfrastructure at backend/src/implementation/agents/amelia.ts
+  - implementStory(context: StoryContext): Promise&lt;CodeImplementation&gt;
+  - writeTests(code: CodeImplementation): Promise&lt;TestSuite&gt;
+  - reviewCode(code: CodeImplementation): Promise&lt;SelfReviewReport&gt;
+
+- AlexAgentInfrastructure at backend/src/implementation/agents/alex.ts
+  - reviewSecurity(code: CodeImplementation): Promise&lt;SecurityReview&gt;
+  - analyzeQuality(code: CodeImplementation): Promise&lt;QualityAnalysis&gt;
+  - validateTests(tests: TestSuite, coverage: CoverageReport): Promise&lt;TestValidation&gt;
+  - generateReport(reviews: Review[]): Promise&lt;IndependentReviewReport&gt;
+
+- Type definitions at backend/src/implementation/types.ts
+  - AmeliaAgent, AlexAgent interfaces
+  - StoryContext, CodeImplementation, TestSuite interfaces
+  - SelfReviewReport, IndependentReviewReport interfaces
+  - All review-related types
+
+**Architectural Decisions:**
+- Thin wrapper pattern: Agent infrastructure delegates to AgentPool for lifecycle management
+- Different LLMs: Amelia uses GPT-4o (openai), Alex uses Claude Sonnet 4.5 (anthropic)
+- Agents created via AgentPool.createAgent('amelia'|'alex', llmModel, context)
+- Cost tracking and event emission integrated with Epic 1
+
+**Integration Points:**
+- Create agents: const ameliaAgent = await agentPool.createAgent('amelia', 'gpt-4o', context)
+- Invoke methods: const implementation = await ameliaAgent.implementStory(context)
+- Destroy after use: await agentPool.destroyAgent(ameliaId)
+
+### Story 5.2: Story Context Generator (Status: done)
+
+**Created Services:**
+- StoryContextGenerator at backend/src/implementation/context/StoryContextGenerator.ts
+  - generateContext(storyFilePath: string): Promise&lt;StoryContext&gt;
+  - Returns complete StoryContext with all required sections
+  - Token-optimized to stay under 50k tokens
+
+**Context Structure:**
+- Story metadata (id, title, description, acceptanceCriteria, technicalNotes, dependencies)
+- PRD context (&lt;10k tokens) - keyword-based extraction
+- Architecture context (&lt;15k tokens) - component-based mapping
+- Onboarding docs (&lt;10k tokens) - coding standards, patterns
+- Existing code files (&lt;15k tokens) - files mentioned in story
+- Dependency context - implementation details from prerequisite stories
+- Total tokens tracked and validated (&lt;50k target)
+
+**Token Optimization Strategy:**
+Priority order for trimming: PRD → Architecture → Code → Onboarding → Dependencies
+
+**Context Caching:**
+- Cache location: .bmad/cache/story-context/{{story-id}}.json
+- Invalidation based on file modification times
+- Cache miss logged for monitoring
+
+**Integration Points:**
+- const generator = new StoryContextGenerator({ projectRoot })
+- const context = await generator.generateContext('docs/stories/5-3-....md')
+- Pass context to Amelia/Alex agents
+  </dependency-context>
+
+  <epic1-components>
+### WorktreeManager (Epic 1)
+
+**Location:** backend/src/core/WorktreeManager.ts
+
+**Key Methods:**
+```typescript
+constructor(projectRoot: string, baseBranch: string = 'main')
+async initialize(): Promise&lt;void&gt;
+async createWorktree(storyId: string, baseBranch?: string): Promise&lt;Worktree&gt;
+async pushBranch(storyId: string): Promise&lt;void&gt;
+async destroyWorktree(storyId: string): Promise&lt;void&gt;
+async listActiveWorktrees(): Promise&lt;Worktree[]&gt;
+getWorktree(storyId: string): Worktree | undefined
+```
+
+**Worktree Interface:**
+```typescript
+interface Worktree {
+  storyId: string;
+  path: string;          // e.g., "wt/story-5-3"
+  branch: string;        // e.g., "story/5-3"
+  baseBranch: string;    // e.g., "main"
+  createdAt: Date;
+  status: 'active' | 'pr-created' | 'merged';
+}
+```
+
+**Usage Pattern:**
+1. Initialize: await worktreeManager.initialize()
+2. Create: const worktree = await worktreeManager.createWorktree('5-3')
+3. Work in worktree.path directory
+4. Push: await worktreeManager.pushBranch('5-3')
+5. Cleanup: await worktreeManager.destroyWorktree('5-3')
+
+**Error Handling:**
+- WorktreeExistsError: Worktree already exists for story
+- WorktreeNotFoundError: Worktree doesn't exist
+- WorktreeGitError: Git operation failed
+- WorktreePathError: Path doesn't exist or not accessible
+
+### StateManager (Epic 1)
+
+**Location:** backend/src/core/StateManager.ts
+
+**Key Methods:**
+```typescript
+constructor(baseDir: string = process.cwd())
+async saveState(state: WorkflowState): Promise&lt;void&gt;
+async loadState(projectId: string): Promise&lt;WorkflowState | null&gt;
+async getProjectPhase(projectId: string): Promise&lt;string&gt;
+async getStoryStatus(projectId: string, storyId: string): Promise&lt;StoryStatus | null&gt;
+async appendToFile(filePath: string, content: string): Promise&lt;void&gt;
+async readFile(filePath: string): Promise&lt;string&gt;
+clearCache(): void
+```
+
+**WorkflowState Interface:**
+```typescript
+interface WorkflowState {
+  project: { id: string; name: string; level: number };
+  currentWorkflow: string;
+  currentStep: number;
+  status: 'running' | 'paused' | 'completed' | 'error';
+  variables: Record&lt;string, unknown&gt;;
+  agentActivity: Array&lt;{
+    agentId: string;
+    agentName: string;
+    action: string;
+    timestamp: Date;
+    duration?: number;
+    status: 'started' | 'completed' | 'failed';
+    output?: string;
+  }&gt;;
+  startTime: Date;
+  lastUpdate: Date;
+}
+```
+
+**Usage Pattern:**
+1. Initialize: const stateManager = new StateManager(projectRoot)
+2. Load: const state = await stateManager.loadState(projectId)
+3. Update: state.currentStep++; state.agentActivity.push({...})
+4. Save: await stateManager.saveState(state)
+
+**Features:**
+- Atomic writes (write to .tmp, rename on success)
+- Dual-format state files (YAML + Markdown)
+- Auto-commit state changes to git (non-blocking)
+- State validation before persisting
+
+### AgentPool (Epic 1)
+
+**Location:** backend/src/core/AgentPool.ts
+
+**Key Methods:**
+```typescript
+constructor(llmFactory, projectConfig, config?, costOptimizer?)
+async createAgent(name: string, context: AgentContext): Promise&lt;Agent&gt;
+async invokeAgent(agentId: string, prompt: string): Promise&lt;string&gt;
+async destroyAgent(agentId: string): Promise&lt;void&gt;
+getActiveAgents(filters?): Agent[]
+getAgentById(agentId: string): Agent | undefined
+getQueuedTasks(): AgentTask[]
+getStats(): AgentPoolStats
+getCostMetrics(): CostMetrics
+on(event: AgentLifecycleEvent, listener): void
+async shutdown(): Promise&lt;void&gt;
+```
+
+**Agent Interface:**
+```typescript
+interface Agent {
+  id: string;
+  name: string;
+  persona: string;
+  llmClient: LLMClient;
+  context: AgentContext;
+  startTime: Date;
+  estimatedCost: number;
+}
+```
+
+**Usage Pattern:**
+1. Create: const agent = await agentPool.createAgent('amelia', { taskDescription, workflowState })
+2. Invoke: const response = await agentPool.invokeAgent(agent.id, prompt)
+3. Track: const stats = agentPool.getStats()
+4. Destroy: await agentPool.destroyAgent(agent.id)
+
+**Features:**
+- Agent lifecycle management (creation → active → destroy)
+- Agent queueing when pool at capacity
+- Cost tracking per agent and project
+- Event emission for monitoring
+- Health checks and hung agent cleanup
+- Per-agent LLM assignment from project config
+  </epic1-components>
+
+  <code-examples>
+### Example: WorkflowOrchestrator Structure
+
+```typescript
+import { StoryContextGenerator } from '../context/StoryContextGenerator.js';
+import { WorktreeManager } from '../../core/WorktreeManager.js';
+import { StateManager } from '../../core/StateManager.js';
+import { AgentPool } from '../../core/AgentPool.js';
+import { StoryContext, CodeImplementation, TestSuite } from '../types.js';
+import { logger } from '../../utils/logger.js';
+
+export class WorkflowOrchestrator {
+  constructor(
+    private contextGenerator: StoryContextGenerator,
+    private worktreeManager: WorktreeManager,
+    private stateManager: StateManager,
+    private agentPool: AgentPool
+  ) {}
+
+  async executeStoryWorkflow(storyId: string): Promise&lt;PRResult&gt; {
+    logger.info('Starting story workflow', { storyId });
+
+    try {
+      // Step 1: Generate context
+      const context = await this.contextGenerator.generateContext(
+        `docs/stories/${storyId}.md`
+      );
+
+      // Step 2: Create worktree
+      const worktree = await this.worktreeManager.createWorktree(storyId);
+
+      // Step 3: Create Amelia agent
+      const ameliaAgent = await this.agentPool.createAgent('amelia', {
+        taskDescription: context.story.description,
+        workflowState: { storyId, currentStep: 3 }
+      });
+
+      // Step 4: Implement story
+      const implementation = await ameliaAgent.implementStory(context);
+
+      // ... continue with remaining steps ...
+
+    } catch (error) {
+      logger.error('Story workflow failed', error as Error, { storyId });
+      throw error;
+    }
+  }
+
+  private async shouldProceedToPR(
+    selfReview: SelfReviewReport,
+    independentReview: IndependentReviewReport
+  ): Promise&lt;boolean&gt; {
+    // Decision logic: Both pass AND confidence &gt; 0.85
+    if (!selfReview.confidence || selfReview.confidence &lt; 0.85) {
+      return false;
+    }
+
+    if (independentReview.decision !== 'pass') {
+      return false;
+    }
+
+    if (independentReview.confidence &lt; 0.85) {
+      return false;
+    }
+
+    return true;
+  }
+}
+```
+
+### Example: State Management
+
+```typescript
+// Initialize state for story workflow
+const initialState: StoryWorkflowState = {
+  workflow: 'dev-story',
+  storyId: '5-3',
+  currentStep: 1,
+  agentActivity: {
+    amelia: { status: 'idle' },
+    alex: { status: 'idle' }
+  },
+  reviewStatus: {
+    selfReviewPassed: false,
+    independentReviewPassed: false,
+    confidence: 0
+  },
+  project: { id: 'agent-orchestrator', name: 'Agent Orchestrator', level: 3 },
+  status: 'running',
+  variables: {},
+  startTime: new Date(),
+  lastUpdate: new Date()
+};
+
+// Save state checkpoint
+await stateManager.saveState(initialState);
+
+// Update state after step
+initialState.currentStep = 2;
+initialState.agentActivity.amelia = {
+  status: 'implementing',
+  startTime: new Date()
+};
+await stateManager.saveState(initialState);
+```
+
+### Example: Sprint Status Update
+
+```yaml
+# docs/sprint-status.yaml
+development_status:
+  5-3-workflow-orchestration-state-management: in-progress  # ← Update this
+```
+
+### Example: Error Recovery with Retry
+
+```typescript
+async function retryWithBackoff&lt;T&gt;(
+  operation: () =&gt; Promise&lt;T&gt;,
+  maxAttempts: number,
+  baseDelay: number
+): Promise&lt;T&gt; {
+  for (let attempt = 1; attempt &lt;= maxAttempts; attempt++) {
+    try {
+      return await operation();
+    } catch (error) {
+      if (attempt === maxAttempts) {
+        throw error;
+      }
+
+      const delay = baseDelay * Math.pow(2, attempt - 1);
+      logger.warn(`Retry attempt ${attempt}/${maxAttempts} after ${delay}ms`, {
+        error: (error as Error).message
+      });
+
+      await new Promise(resolve =&gt; setTimeout(resolve, delay));
+    }
+  }
+
+  throw new Error('Retry failed');
+}
+
+// Usage
+const implementation = await retryWithBackoff(
+  () =&gt; ameliaAgent.implementStory(context),
+  3,  // max attempts
+  1000  // 1s base delay
+);
+```
+  </code-examples>
+
+  <testing-patterns>
+### Unit Test Structure
+
+```typescript
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { WorkflowOrchestrator } from './WorkflowOrchestrator.js';
+
+describe('WorkflowOrchestrator', () => {
+  let orchestrator: WorkflowOrchestrator;
+  let mockContextGenerator: any;
+  let mockWorktreeManager: any;
+  let mockStateManager: any;
+  let mockAgentPool: any;
+
+  beforeEach(() => {
+    // Setup mocks
+    mockContextGenerator = {
+      generateContext: vi.fn()
+    };
+
+    mockWorktreeManager = {
+      createWorktree: vi.fn(),
+      destroyWorktree: vi.fn()
+    };
+
+    mockStateManager = {
+      saveState: vi.fn(),
+      loadState: vi.fn()
+    };
+
+    mockAgentPool = {
+      createAgent: vi.fn(),
+      invokeAgent: vi.fn(),
+      destroyAgent: vi.fn()
+    };
+
+    orchestrator = new WorkflowOrchestrator(
+      mockContextGenerator,
+      mockWorktreeManager,
+      mockStateManager,
+      mockAgentPool
+    );
+  });
+
+  it('should execute complete workflow successfully', async () => {
+    // Arrange
+    mockContextGenerator.generateContext.mockResolvedValue({
+      story: { id: '5-3', title: 'Test Story' },
+      totalTokens: 30000
+    });
+
+    mockWorktreeManager.createWorktree.mockResolvedValue({
+      storyId: '5-3',
+      path: 'wt/story-5-3',
+      branch: 'story/5-3'
+    });
+
+    // Act
+    const result = await orchestrator.executeStoryWorkflow('5-3');
+
+    // Assert
+    expect(mockContextGenerator.generateContext).toHaveBeenCalledWith('docs/stories/5-3.md');
+    expect(mockWorktreeManager.createWorktree).toHaveBeenCalledWith('5-3');
+    expect(result).toBeDefined();
+  });
+
+  it('should handle LLM failures with retry', async () => {
+    // Test retry logic
+  });
+
+  it('should checkpoint state after each step', async () => {
+    // Test state checkpointing
+  });
+});
+```
+
+### Integration Test Structure
+
+```typescript
+describe('Story Workflow Integration', () => {
+  it('should execute complete workflow with mock agents', async () => {
+    // Test with realistic mock responses
+  });
+
+  it('should resume from checkpoint after failure', async () => {
+    // Test state persistence and resume
+  });
+
+  it('should cleanup worktree on success', async () => {
+    // Test worktree lifecycle
+  });
+});
+```
+  </testing-patterns>
+
+  <implementation-guidance>
+### File Structure
+
+```
+backend/src/implementation/
+├── workflow/
+│   ├── WorkflowOrchestrator.ts       # Main orchestrator class
+│   ├── workflow-types.ts             # StoryWorkflowState interface
+│   └── index.ts                      # Workflow exports
+
+backend/tests/unit/implementation/workflow/
+├── WorkflowOrchestrator.test.ts
+
+backend/tests/integration/implementation/workflow/
+└── story-workflow.test.ts
+```
+
+### Implementation Steps
+
+1. Create WorkflowOrchestrator class with dependency injection
+2. Implement executeStoryWorkflow() method with 14-step pipeline
+3. Add loadWorkflowConfig() to parse dev-story workflow.yaml
+4. Implement state management integration (checkpointing)
+5. Add retry logic with exponential backoff
+6. Implement shouldProceedToPR() decision logic
+7. Add error handling and escalation
+8. Implement sprint-status.yaml updates
+9. Add performance tracking and logging
+10. Write unit tests with mocked dependencies
+11. Write integration tests with mock agents
+12. Verify all acceptance criteria met
+
+### Key Considerations
+
+- Sequential execution: Steps run in order, not parallel
+- State checkpointing: Save after each major step
+- Atomic writes: sprint-status.yaml updates must be atomic
+- Error context: Include story ID, step, error details in all errors
+- Logging: INFO level for phases, DEBUG for details
+- Performance: Track duration for each step
+- Testing: Mock all Epic 1 components for unit tests
+  </implementation-guidance>
+
+  <token-summary>
+Total estimated tokens: ~45,000
+- Story content: ~5,000 tokens
+- PRD context: ~3,000 tokens
+- Architecture context: ~8,000 tokens
+- Epic 5 context: ~6,000 tokens
+- Dependency context: ~8,000 tokens
+- Epic 1 components: ~10,000 tokens
+- Code examples: ~3,000 tokens
+- Testing patterns: ~2,000 tokens
+
+This context provides comprehensive information for implementing Story 5.3 while staying within the 50k token target.
+  </token-summary>
+</story-context>

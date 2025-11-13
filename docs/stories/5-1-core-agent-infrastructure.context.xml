@@ -1,0 +1,409 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-1</storyId>
+    <title>Core Agent Infrastructure</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-13</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-1-core-agent-infrastructure.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Story Implementation Orchestrator</asA>
+    <iWant>Amelia (Developer) and Alex (Code Reviewer) agent infrastructure with specialized personas and LLM assignments</iWant>
+    <soThat>stories can be autonomously implemented with high-quality code and independent code review using diverse AI perspectives</soThat>
+    <tasks>
+- Task 1: Load Amelia Persona and Configure LLM (AC: #1, #3, #4)
+  - Create src/implementation/agents/amelia.ts
+  - Read persona from bmad/bmm/agents/amelia.md (may need to be created or use existing dev.md pattern)
+  - Parse persona markdown into structured format
+  - Read LLM config from .bmad/project-config.yaml
+  - Create AmeliaAgent class implementing interface
+  - Implement constructor to initialize LLM client
+  - Implement implementStory() method with specialized prompt
+  - Implement writeTests() method with specialized prompt
+  - Implement reviewCode() method with specialized prompt
+
+- Task 2: Load Alex Persona and Configure LLM (AC: #2, #3, #5)
+  - Create src/implementation/agents/alex.ts
+  - Read persona from bmad/bmm/agents/alex.md (may need to be created based on code review pattern)
+  - Parse persona markdown into structured format
+  - Read LLM config from .bmad/project-config.yaml (different from Amelia)
+  - Create AlexAgent class implementing interface
+  - Implement constructor to initialize LLM client
+  - Implement reviewSecurity() method with security-focused prompt
+  - Implement analyzeQuality() method with quality-focused prompt
+  - Implement validateTests() method with test validation prompt
+  - Implement generateReport() method to aggregate reviews
+
+- Task 3: Create Type Definitions (AC: #7)
+  - Create src/implementation/types.ts
+  - Define AmeliaAgent interface per tech spec
+  - Define AlexAgent interface per tech spec
+  - Define StoryContext interface
+  - Define CodeImplementation interface
+  - Define TestSuite interface
+  - Define SelfReviewReport interface
+  - Define IndependentReviewReport interface
+  - Define SecurityReview interface
+  - Define QualityAnalysis interface
+  - Define TestValidation interface
+  - Export all interfaces
+
+- Task 4: Create Specialized Prompts (AC: #8)
+  - Create src/implementation/prompts/amelia-prompts.ts
+  - Implement ameliaImplementPrompt(context: StoryContext): string
+  - Implement ameliaTestPrompt(context: StoryContext, code: CodeImplementation): string
+  - Implement ameliaSelfReviewPrompt(context: StoryContext, code: CodeImplementation, tests: TestSuite): string
+  - Create src/implementation/prompts/alex-prompts.ts
+  - Implement alexSecurityPrompt(context: StoryContext, code: CodeImplementation): string
+  - Implement alexQualityPrompt(context: StoryContext, code: CodeImplementation): string
+  - Implement alexTestValidationPrompt(tests: TestSuite, coverage: CoverageReport): string
+  - Implement alexReportPrompt(reviews: Review[]): string
+
+- Task 5: Register Agents in AgentPool (AC: #6, #10)
+  - Update AgentPool factory to support "amelia" agent type
+  - Update AgentPool factory to support "alex" agent type
+  - Implement agent creation logic: load persona → create LLM client → instantiate agent
+  - Integrate cost tracking for agent invocations
+  - Integrate activity logging for agent lifecycle
+  - Emit events: agent.created, agent.invoked, agent.destroyed
+
+- Task 6: Write Unit Tests (AC: #9)
+  - Create test/unit/implementation/agents/amelia.test.ts
+  - Test Amelia agent initialization
+  - Test Amelia LLM configuration loading
+  - Test Amelia method invocations with mocked LLM responses
+  - Create test/unit/implementation/agents/alex.test.ts
+  - Test Alex agent initialization
+  - Test Alex LLM configuration loading (different from Amelia)
+  - Test Alex method invocations with mocked LLM responses
+  - Create test/unit/implementation/agents/agent-pool.test.ts
+  - Test AgentPool registration for both agents
+  - Test agent creation via AgentPool
+  - Run all tests and verify >80% coverage
+
+- Task 7: Integration Testing (AC: #10)
+  - Create test/integration/implementation/agents.test.ts
+  - Test complete agent creation workflow: AgentPool → LLMFactory → Agent instance
+  - Test Amelia and Alex created with different LLMs
+  - Test agent method invocations with real LLM calls (mocked in CI)
+  - Verify cost tracking integration
+  - Verify activity logging integration
+  - Verify event emission
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC1: Amelia Agent Persona Loaded
+- Amelia agent persona loaded from bmad/bmm/agents/amelia.md (or dev.md as template) with full developer context
+- Persona includes: role (Developer), expertise areas (code implementation, test generation, debugging, refactoring, documentation)
+- Persona provides context for story implementation, test writing, and self-review
+- Persona markdown parsed and structured for agent initialization
+
+AC2: Alex Agent Persona Loaded
+- Alex agent persona loaded from bmad/bmm/agents/alex.md with full code reviewer context
+- Persona includes: role (Code Reviewer), expertise areas (security review, code quality analysis, test coverage validation, architecture compliance, performance analysis)
+- Persona provides context for independent code review with security, quality, and test validation focus
+- Persona markdown parsed and structured for agent initialization
+
+AC3: LLM Configuration from Project Config
+- Both agents read LLM assignments from .bmad/project-config.yaml agent_assignments section
+- Amelia configured with assigned LLM (gpt-4o per project config)
+- Alex configured with DIFFERENT LLM than Amelia (claude-sonnet-4-5 per project config)
+- Different LLMs ensure diverse perspectives (key to dual-agent review value)
+- LLM parameters loaded: provider, model, temperature, max_tokens
+
+AC4: Amelia Agent Methods Implemented
+- implementStory(context: StoryContext): Promise<CodeImplementation> method created
+- writeTests(code: CodeImplementation): Promise<TestSuite> method created
+- reviewCode(code: CodeImplementation): Promise<SelfReviewReport> method created
+- Methods accept appropriate input parameters per Story 5.1 type definitions
+- Methods return structured output per Story 5.1 type definitions
+- Amelia methods integrate with LLM client for inference
+
+AC5: Alex Agent Methods Implemented
+- reviewSecurity(code: CodeImplementation): Promise<SecurityReview> method created
+- analyzeQuality(code: CodeImplementation): Promise<QualityAnalysis> method created
+- validateTests(tests: TestSuite, coverage: CoverageReport): Promise<TestValidation> method created
+- generateReport(reviews: Review[]): Promise<IndependentReviewReport> method created
+- Methods accept appropriate input parameters per Story 5.1 type definitions
+- Methods return structured output per Story 5.1 type definitions
+- Alex methods integrate with LLM client for inference
+
+AC6: Agent Factory Registration in AgentPool
+- AmeliaAgentInfrastructure class registered in AgentPool from Epic 1
+- AlexAgentInfrastructure class registered in AgentPool from Epic 1
+- AgentPool can instantiate Amelia agent via createAgent("amelia", llmModel, context)
+- AgentPool can instantiate Alex agent via createAgent("alex", llmModel, context)
+- Agent lifecycle managed: creation → active → destroy
+- Agent instances track cost and activity
+
+AC7: Type Definitions Integration
+- AmeliaAgent interface implemented per Epic 5 tech spec type definitions
+- AlexAgent interface implemented per Epic 5 tech spec type definitions
+- Type definitions include: name, role, expertise, llm config, methods
+- Type definitions exported from src/implementation/types.ts
+- All interfaces properly typed with TypeScript
+
+AC8: Specialized Prompts Created
+- Amelia implementation prompt created for story code generation
+- Amelia test generation prompt created for test writing
+- Amelia self-review prompt created for code review
+- Alex security review prompt created for vulnerability detection
+- Alex quality analysis prompt created for code quality metrics
+- Alex test validation prompt created for coverage validation
+- Prompts include: role context, task description, output format, quality standards
+- Prompts optimized for respective LLM strengths
+
+AC9: Unit Tests Written and Passing
+- Unit tests created for Amelia agent initialization
+- Unit tests created for Alex agent initialization
+- Unit tests created for Amelia method invocations (mocked LLM responses)
+- Unit tests created for Alex method invocations (mocked LLM responses)
+- Unit tests verify LLM configuration loading
+- Unit tests verify different LLMs assigned to Amelia vs Alex
+- Unit tests verify AgentPool registration
+- All tests pass with 100% success rate
+- Test coverage >80% for new agent infrastructure code
+
+AC10: Integration with Epic 1 Core
+- Agent infrastructure integrates with LLMFactory from Epic 1 for LLM client creation
+- Agent infrastructure integrates with AgentPool from Epic 1 for lifecycle management
+- Agent cost tracking integrated with Epic 1 cost tracking system
+- Agent activity logging integrated with Epic 1 logging infrastructure
+- Agents emit events for monitoring: agent.created, agent.invoked, agent.destroyed
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification: Story Implementation Automation</title>
+        <section>Core Agent Infrastructure</section>
+        <snippet>Epic 5 implements autonomous code development where AI agents (Amelia as Developer and Alex as Code Reviewer) implement stories with code, comprehensive tests, and thorough independent code review. The dual-agent architecture ensures higher code quality through Amelia's self-review combined with Alex's independent security, quality, and test coverage validation. Amelia uses GPT-4 for superior code generation, Alex uses Claude Sonnet for superior analytical reasoning.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>Comprehensive type definitions for AmeliaAgent interface (name, role, expertise, llm, methods: implementStory, writeTests, reviewCode) and AlexAgent interface (name, role, expertise, llm, methods: reviewSecurity, analyzeQuality, validateTests, generateReport). Also defines StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport, SecurityReview, QualityAnalysis, TestValidation interfaces.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>Per-Agent LLM Assignment Innovation</section>
+        <snippet>The orchestrator assigns optimal LLMs to each specialized agent based on task requirements. Mary uses Claude Sonnet for deep reasoning, Amelia can use GPT-4 Turbo for superior code generation, Bob uses Claude Haiku for cost-effective story writing. Project-configurable via .bmad/project-config.yaml. This provides 30-50% cost reduction vs single premium model and optimal quality where it matters most.</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator - Product Requirements Document</title>
+        <section>Dedicated Code Review Agent Innovation</section>
+        <snippet>Separate AI agent (Alex) with different LLM for code review, preventing confirmation bias. Developer agent (Amelia) uses GPT-4 for code generation. Review agent (Alex) uses Claude Sonnet for analytical review. Different models = different perspectives = better quality. Eliminates "reviewing own work" bias in AI systems.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>Agent Pool Component</section>
+        <snippet>Manages AI agent lifecycle, LLM assignment, and resource limits. Agent lifecycle: Create (load persona markdown → initialize LLM client → inject context), Active (process tasks, track cost, emit events), Destroy (save logs → release LLM connection → cleanup within 30s). Supports concurrency control, cost tracking, and agent health monitoring. Agent types include core BMAD agents (Mary, John, Winston, Murat, Bob, Amelia, Alex) and CIS agents.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>LLM Factory Pattern</section>
+        <snippet>Factory pattern for extensible provider addition. Model string validation (e.g., "claude-sonnet-4-5", "gpt-4-turbo"). API key injection from secrets manager. Request/response logging for debugging. Supports Anthropic (Claude), OpenAI (GPT), Zhipu (GLM) providers.</snippet>
+      </doc>
+      <doc>
+        <path>docs/tech-spec-epic-1.md</path>
+        <title>Epic 1 Technical Specification: Foundation & Core Engine</title>
+        <section>Agent Pool and LLM Factory</section>
+        <snippet>Epic 1 establishes the foundational agent pool with lifecycle management and LLM factory supporting multiple providers. Agent interface includes: id, name, persona (loaded from bmad/bmm/agents/{name}.md), llmClient, context, startTime, estimatedCost. LLMClient interface: provider, model, invoke(), stream(), estimateCost() methods. AgentPool public API: createAgent(), invokeAgent(), destroyAgent(), getActiveAgents().</snippet>
+      </doc>
+      <doc>
+        <path>.bmad/project-config.yaml</path>
+        <title>Agent Orchestrator - Project Configuration</title>
+        <section>Agent LLM Assignments</section>
+        <snippet>Per-agent model configuration enables cost/quality optimization. Amelia (Developer) assigned to gpt-4o (OpenAI) for fast, high-quality code generation. Alex (Code Reviewer) assigned to claude-sonnet-4-5 (Anthropic) for thorough code review with security focus. Different LLMs ensure diverse perspectives in dual-agent review.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>bmad/bmm/agents/dev.md</path>
+        <kind>agent-persona</kind>
+        <symbol>Amelia (Developer Agent)</symbol>
+        <lines>1-70</lines>
+        <reason>Existing BMAD agent pattern showing how developer agent (Amelia) is structured. Includes persona definition (role, identity, communication_style, principles), activation instructions, and menu-driven workflow execution. This serves as the template for creating the Amelia agent persona if bmad/bmm/agents/amelia.md doesn't exist. The dev.md file shows Amelia as a Senior Implementation Engineer who executes approved stories with strict adherence to acceptance criteria.</reason>
+      </artifact>
+      <artifact>
+        <path>src/implementation/agents/</path>
+        <kind>directory</kind>
+        <symbol>N/A - to be created</symbol>
+        <lines>N/A</lines>
+        <reason>Target directory for Amelia and Alex agent implementations. Will contain amelia.ts and alex.ts files with agent classes implementing the AmeliaAgent and AlexAgent interfaces.</reason>
+      </artifact>
+      <artifact>
+        <path>src/implementation/types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>N/A - to be created</symbol>
+        <lines>N/A</lines>
+        <reason>Target file for all Epic 5 type definitions including AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, and all review-related interfaces. This file will be imported by agent implementations and workflows.</reason>
+      </artifact>
+      <artifact>
+        <path>src/implementation/prompts/</path>
+        <kind>directory</kind>
+        <symbol>N/A - to be created</symbol>
+        <lines>N/A</lines>
+        <reason>Target directory for specialized prompts for Amelia and Alex agents. Will contain amelia-prompts.ts and alex-prompts.ts with prompt generation functions optimized for each agent's responsibilities and LLM strengths.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>@anthropic-ai/sdk</package>
+        <version>TBD - to be added</version>
+        <reason>Anthropic SDK for Alex agent (Claude Sonnet 4.5)</reason>
+      </node>
+      <node>
+        <package>openai</package>
+        <version>TBD - to be added</version>
+        <reason>OpenAI SDK for Amelia agent (GPT-4o)</reason>
+      </node>
+      <node>
+        <package>vitest</package>
+        <version>TBD - existing in workspace</version>
+        <reason>Test framework for unit and integration tests</reason>
+      </node>
+      <node>
+        <package>@vitest/coverage-v8</package>
+        <version>TBD - to be added</version>
+        <reason>Code coverage reporting for test validation</reason>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>^5.3.0</version>
+        <reason>TypeScript for type-safe agent implementation</reason>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+Development Constraints from Epic 5 Tech Spec and Architecture:
+
+1. **Dual-Agent Architecture**: Two agents with different roles and LLMs ensure high-quality code through independent review. This is a CRITICAL architectural decision.
+
+2. **LLM Diversity**: Amelia uses GPT-4o (superior code generation), Alex uses Claude Sonnet 4.5 (superior analytical reasoning). Different LLMs provide meaningfully diverse perspectives, not just different responses from same capability.
+
+3. **Persona-Driven**: Each agent loaded with role-specific persona from BMAD agent markdown files (bmad/bmm/agents/amelia.md and bmad/bmm/agents/alex.md). If these don't exist, use bmad/bmm/agents/dev.md as template for Amelia.
+
+4. **Integration with Epic 1**: Must integrate with existing AgentPool and LLMFactory from Epic 1 core infrastructure. Follow established patterns for agent registration and lifecycle management.
+
+5. **Type Safety**: Comprehensive TypeScript interfaces required for all data structures. All agent methods must be properly typed with strict type checking enabled.
+
+6. **Cost Tracking**: Agent invocations must integrate with Epic 1 cost tracking system. Track LLM costs per invocation: implementStory, writeTests, reviewCode (Amelia), reviewSecurity, analyzeQuality, validateTests (Alex).
+
+7. **Event Emission**: Agents must emit events for monitoring: agent.created, agent.invoked, agent.destroyed. Events consumed by dashboard and state management systems.
+
+8. **Testing Standards**: >80% code coverage required for all new code. Unit tests with mocked LLM responses. Integration tests verify Epic 1 component integration.
+
+9. **File Structure**: Follow established naming conventions: kebab-case for files, PascalCase for classes. New src/implementation/ directory for Epic 5 components.
+
+10. **Configuration-Driven**: LLM assignments read from .bmad/project-config.yaml under agent_assignments section. No hardcoded model names in code.
+  </constraints>
+
+  <interfaces>
+AgentPool API (from Epic 1):
+- createAgent(name: string, context: AgentContext): Promise<Agent>
+- invokeAgent(agentId: string, prompt: string): Promise<string>
+- destroyAgent(agentId: string): Promise<void>
+- getActiveAgents(): Agent[]
+
+LLMFactory API (from Epic 1):
+- registerProvider(name: string, provider: LLMProvider): void
+- createClient(config: LLMConfig): LLMClient
+
+LLMClient Interface:
+- provider: string
+- model: string
+- invoke(prompt: string, options?: InvokeOptions): Promise<string>
+- stream(prompt: string, options?: StreamOptions): AsyncIterator<string>
+- estimateCost(prompt: string, response: string): number
+
+Agent Interface (Base):
+- id: string
+- name: string
+- persona: string
+- llmClient: LLMClient
+- context: AgentContext
+- startTime: Date
+- estimatedCost: number
+
+AmeliaAgent Interface (extends Agent):
+- name: 'amelia'
+- role: 'Developer'
+- expertise: ['code-implementation', 'test-generation', 'debugging', 'refactoring', 'documentation']
+- llm: { model: string, provider: string, temperature: number }
+- methods:
+  - implementStory(context: StoryContext): Promise<CodeImplementation>
+  - writeTests(code: CodeImplementation): Promise<TestSuite>
+  - reviewCode(code: CodeImplementation): Promise<SelfReviewReport>
+
+AlexAgent Interface (extends Agent):
+- name: 'alex'
+- role: 'Code Reviewer'
+- expertise: ['security-review', 'code-quality-analysis', 'test-coverage-validation', 'architecture-compliance', 'performance-analysis']
+- llm: { model: string, provider: string, temperature: number }
+- methods:
+  - reviewSecurity(code: CodeImplementation): Promise<SecurityReview>
+  - analyzeQuality(code: CodeImplementation): Promise<QualityAnalysis>
+  - validateTests(tests: TestSuite, coverage: CoverageReport): Promise<TestValidation>
+  - generateReport(reviews: Review[]): Promise<IndependentReviewReport>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing Framework: Vitest for unit and integration tests, @vitest/coverage-v8 for coverage reporting.
+
+Test Requirements:
+- Unit tests: Mock all LLM API calls for fast, deterministic tests. Test each agent method independently.
+- Integration tests: Test complete agent creation workflow with Epic 1 core components. Verify Amelia and Alex use different LLMs.
+- Coverage target: >80% for all new code
+- Test organization: test/unit/implementation/agents/ and test/integration/implementation/
+
+Test Data:
+- Mock LLM responses with realistic CodeImplementation, TestSuite, and Review objects
+- Fixture story contexts for testing agent methods
+- Known-good and known-bad code samples for review testing
+
+ATDD Approach: Write acceptance criteria tests BEFORE implementation. Map each AC to executable test. Use BDD-style test descriptions (given/when/then).
+    </standards>
+    <locations>
+test/unit/implementation/agents/amelia.test.ts
+test/unit/implementation/agents/alex.test.ts
+test/unit/implementation/agents/agent-pool.test.ts
+test/integration/implementation/agents.test.ts
+    </locations>
+    <ideas>
+Test Ideas Mapped to Acceptance Criteria:
+
+AC1 (Amelia Persona): Test persona loading from markdown, verify role and expertise fields parsed correctly, test persona structure matches expected format.
+
+AC2 (Alex Persona): Test persona loading from markdown, verify role and expertise fields parsed correctly, test persona structure differs from Amelia.
+
+AC3 (LLM Configuration): Test reading agent_assignments from project config, verify Amelia gets gpt-4o, verify Alex gets claude-sonnet-4-5, verify LLM parameters loaded correctly.
+
+AC4 (Amelia Methods): Test implementStory method with mock story context, test writeTests method with mock code implementation, test reviewCode method with mock code and tests, verify method signatures match interfaces.
+
+AC5 (Alex Methods): Test reviewSecurity with mock code, test analyzeQuality with mock code, test validateTests with mock test suite and coverage, test generateReport with mock reviews, verify method signatures match interfaces.
+
+AC6 (AgentPool Registration): Test Amelia agent registration in AgentPool, test Alex agent registration, test agent creation via AgentPool.createAgent("amelia"), test agent creation via AgentPool.createAgent("alex"), test agent lifecycle (create → active → destroy).
+
+AC7 (Type Definitions): Test all interfaces exported from types.ts, verify AmeliaAgent interface structure, verify AlexAgent interface structure, test TypeScript compilation with strict type checking.
+
+AC8 (Specialized Prompts): Test Amelia prompts generate valid strings, test Alex prompts generate valid strings, verify prompts include role context and output format, test prompt functions accept correct parameters.
+
+AC9 (Unit Tests): Verify all unit tests pass, verify test coverage >80%, test Amelia agent initialization with mocked LLM, test Alex agent initialization with mocked LLM, verify different LLMs assigned.
+
+AC10 (Epic 1 Integration): Test LLMFactory integration for client creation, test AgentPool integration for lifecycle management, test cost tracking integration, test activity logging integration, test event emission (agent.created, agent.invoked, agent.destroyed).
+    </ideas>
+  </tests>
+</story-context>
