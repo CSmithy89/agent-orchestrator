@@ -128,7 +128,7 @@ describe('WorkflowOrchestrator', () => {
     recommendations: []
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     // Setup mocks
     mockContextGenerator = {
       generateContext: vi.fn().mockResolvedValue(mockContext)
@@ -198,6 +198,29 @@ describe('WorkflowOrchestrator', () => {
 
     // Mock file system operations
     vi.mock('fs/promises');
+
+    // Mock the private methods that use child_process and GitHub API
+    // These need real implementations but we mock them for unit tests
+    (orchestrator as any).runTests = vi.fn().mockResolvedValue({
+      passed: 10,
+      failed: 0,
+      skipped: 0,
+      duration: 5000,
+      coverage: { lines: 85, functions: 90, branches: 80, statements: 85 }
+    });
+
+    (orchestrator as any).createPullRequest = vi.fn().mockResolvedValue({
+      url: 'https://github.com/org/repo/pull/123',
+      number: 123,
+      title: `Story ${testStoryId}`,
+      body: 'Automated PR',
+      baseBranch: 'main',
+      headBranch: 'story/5-3-workflow-orchestration',
+      state: 'open',
+      autoMergeEnabled: false
+    });
+
+    (orchestrator as any).monitorCIAndMerge = vi.fn().mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -285,11 +308,17 @@ describe('WorkflowOrchestrator', () => {
     it('should initialize new workflow state', async () => {
       const fs = await import('fs/promises');
 
-      // State file doesn't exist
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+      // State file doesn't exist, but sprint-status does
+      vi.mocked(fs.readFile).mockImplementation(async (path: any) => {
+        if (path.includes('sprint-status.yaml')) {
+          return `development_status:\n  ${testStoryId}: ready-for-dev\n`;
+        }
+        throw new Error('ENOENT');
+      });
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
       vi.mocked(fs.rename).mockResolvedValue(undefined);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
       // Start workflow (will initialize state)
       try {
@@ -304,7 +333,12 @@ describe('WorkflowOrchestrator', () => {
 
     it('should checkpoint state after each step', async () => {
       const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.readFile).mockImplementation(async (path: any) => {
+        if (path.includes('sprint-status.yaml')) {
+          return `development_status:\n  ${testStoryId}: ready-for-dev\n`;
+        }
+        throw new Error('ENOENT');
+      });
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
       vi.mocked(fs.rename).mockResolvedValue(undefined);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
@@ -343,19 +377,42 @@ describe('WorkflowOrchestrator', () => {
 
     it('should escalate when self-review confidence is low', async () => {
       const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.readFile).mockImplementation(async (path: any) => {
+        if (path.includes('sprint-status.yaml')) {
+          return `development_status:\n  ${testStoryId}: ready-for-dev\n`;
+        }
+        throw new Error('ENOENT');
+      });
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
       vi.mocked(fs.rename).mockResolvedValue(undefined);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
-      // Mock low confidence
-      const lowConfidenceReview = {
-        ...mockSelfReview,
-        confidence: 0.7 // Below threshold
-      };
-
-      const ameliaAgent = await mockAgentPool.createAgent('amelia', {});
-      ameliaAgent.reviewCode = vi.fn().mockResolvedValue(lowConfidenceReview);
+      // Mock low confidence - need to update the mock agent pool
+      mockAgentPool.createAgent = vi.fn((name: string) => {
+        if (name === 'amelia') {
+          return Promise.resolve({
+            id: 'amelia-123',
+            name: 'amelia',
+            implementStory: vi.fn().mockResolvedValue(mockImplementation),
+            writeTests: vi.fn().mockResolvedValue(mockTests),
+            reviewCode: vi.fn().mockResolvedValue({
+              ...mockSelfReview,
+              confidence: 0.7 // Below threshold
+            })
+          });
+        } else if (name === 'alex') {
+          return Promise.resolve({
+            id: 'alex-456',
+            name: 'alex',
+            reviewSecurity: vi.fn().mockResolvedValue(mockIndependentReview.securityReview),
+            analyzeQuality: vi.fn().mockResolvedValue(mockIndependentReview.qualityAnalysis),
+            validateTests: vi.fn().mockResolvedValue(mockIndependentReview.testValidation),
+            generateReport: vi.fn().mockResolvedValue(mockIndependentReview)
+          });
+        }
+        throw new Error(`Unknown agent: ${name}`);
+      });
 
       await expect(orchestrator.executeStoryWorkflow(testStoryId)).rejects.toThrow(
         'Workflow escalated to human review'
@@ -364,19 +421,42 @@ describe('WorkflowOrchestrator', () => {
 
     it('should escalate when critical issues are found', async () => {
       const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.readFile).mockImplementation(async (path: any) => {
+        if (path.includes('sprint-status.yaml')) {
+          return `development_status:\n  ${testStoryId}: ready-for-dev\n`;
+        }
+        throw new Error('ENOENT');
+      });
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
       vi.mocked(fs.rename).mockResolvedValue(undefined);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
       // Mock critical issues
-      const criticalReview = {
-        ...mockSelfReview,
-        criticalIssues: ['Critical security vulnerability']
-      };
-
-      const ameliaAgent = await mockAgentPool.createAgent('amelia', {});
-      ameliaAgent.reviewCode = vi.fn().mockResolvedValue(criticalReview);
+      mockAgentPool.createAgent = vi.fn((name: string) => {
+        if (name === 'amelia') {
+          return Promise.resolve({
+            id: 'amelia-123',
+            name: 'amelia',
+            implementStory: vi.fn().mockResolvedValue(mockImplementation),
+            writeTests: vi.fn().mockResolvedValue(mockTests),
+            reviewCode: vi.fn().mockResolvedValue({
+              ...mockSelfReview,
+              criticalIssues: ['Critical security vulnerability']
+            })
+          });
+        } else if (name === 'alex') {
+          return Promise.resolve({
+            id: 'alex-456',
+            name: 'alex',
+            reviewSecurity: vi.fn().mockResolvedValue(mockIndependentReview.securityReview),
+            analyzeQuality: vi.fn().mockResolvedValue(mockIndependentReview.qualityAnalysis),
+            validateTests: vi.fn().mockResolvedValue(mockIndependentReview.testValidation),
+            generateReport: vi.fn().mockResolvedValue(mockIndependentReview)
+          });
+        }
+        throw new Error(`Unknown agent: ${name}`);
+      });
 
       await expect(orchestrator.executeStoryWorkflow(testStoryId)).rejects.toThrow(
         'Workflow escalated to human review'
@@ -385,19 +465,42 @@ describe('WorkflowOrchestrator', () => {
 
     it('should escalate when independent review fails', async () => {
       const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.readFile).mockImplementation(async (path: any) => {
+        if (path.includes('sprint-status.yaml')) {
+          return `development_status:\n  ${testStoryId}: ready-for-dev\n`;
+        }
+        throw new Error('ENOENT');
+      });
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
       vi.mocked(fs.rename).mockResolvedValue(undefined);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
       // Mock failed independent review
-      const failedReview = {
-        ...mockIndependentReview,
-        decision: 'fail' as const
-      };
-
-      const alexAgent = await mockAgentPool.createAgent('alex', {});
-      alexAgent.generateReport = vi.fn().mockResolvedValue(failedReview);
+      mockAgentPool.createAgent = vi.fn((name: string) => {
+        if (name === 'amelia') {
+          return Promise.resolve({
+            id: 'amelia-123',
+            name: 'amelia',
+            implementStory: vi.fn().mockResolvedValue(mockImplementation),
+            writeTests: vi.fn().mockResolvedValue(mockTests),
+            reviewCode: vi.fn().mockResolvedValue(mockSelfReview)
+          });
+        } else if (name === 'alex') {
+          return Promise.resolve({
+            id: 'alex-456',
+            name: 'alex',
+            reviewSecurity: vi.fn().mockResolvedValue(mockIndependentReview.securityReview),
+            analyzeQuality: vi.fn().mockResolvedValue(mockIndependentReview.qualityAnalysis),
+            validateTests: vi.fn().mockResolvedValue(mockIndependentReview.testValidation),
+            generateReport: vi.fn().mockResolvedValue({
+              ...mockIndependentReview,
+              decision: 'fail' as const
+            })
+          });
+        }
+        throw new Error(`Unknown agent: ${name}`);
+      });
 
       await expect(orchestrator.executeStoryWorkflow(testStoryId)).rejects.toThrow(
         'Workflow escalated to human review'
@@ -408,20 +511,45 @@ describe('WorkflowOrchestrator', () => {
   describe('Error Recovery', () => {
     it('should retry LLM operations with exponential backoff', async () => {
       const fs = await import('fs/promises');
-      vi.mocked(fs.readFile).mockRejectedValue(new Error('ENOENT'));
+      vi.mocked(fs.readFile).mockImplementation(async (path: any) => {
+        if (path.includes('sprint-status.yaml')) {
+          return `development_status:\n  ${testStoryId}: ready-for-dev\n`;
+        }
+        throw new Error('ENOENT');
+      });
       vi.mocked(fs.writeFile).mockResolvedValue(undefined);
       vi.mocked(fs.rename).mockResolvedValue(undefined);
       vi.mocked(fs.mkdir).mockResolvedValue(undefined);
+      vi.mocked(fs.unlink).mockResolvedValue(undefined);
 
       // Mock failure then success
       let attempts = 0;
-      const ameliaAgent = await mockAgentPool.createAgent('amelia', {});
-      ameliaAgent.implementStory = vi.fn().mockImplementation(async () => {
-        attempts++;
-        if (attempts < 2) {
-          throw new Error('Transient LLM failure');
+      mockAgentPool.createAgent = vi.fn((name: string) => {
+        if (name === 'amelia') {
+          return Promise.resolve({
+            id: 'amelia-123',
+            name: 'amelia',
+            implementStory: vi.fn().mockImplementation(async () => {
+              attempts++;
+              if (attempts < 2) {
+                throw new Error('Transient LLM failure');
+              }
+              return mockImplementation;
+            }),
+            writeTests: vi.fn().mockResolvedValue(mockTests),
+            reviewCode: vi.fn().mockResolvedValue(mockSelfReview)
+          });
+        } else if (name === 'alex') {
+          return Promise.resolve({
+            id: 'alex-456',
+            name: 'alex',
+            reviewSecurity: vi.fn().mockResolvedValue(mockIndependentReview.securityReview),
+            analyzeQuality: vi.fn().mockResolvedValue(mockIndependentReview.qualityAnalysis),
+            validateTests: vi.fn().mockResolvedValue(mockIndependentReview.testValidation),
+            generateReport: vi.fn().mockResolvedValue(mockIndependentReview)
+          });
         }
-        return mockImplementation;
+        throw new Error(`Unknown agent: ${name}`);
       });
 
       try {
@@ -431,7 +559,7 @@ describe('WorkflowOrchestrator', () => {
       }
 
       // Should have retried
-      expect(attempts).toBeGreaterThanOrEqual(1);
+      expect(attempts).toBeGreaterThanOrEqual(2);
     }, 30000);
 
     it('should handle graceful degradation when Alex unavailable', async () => {
@@ -619,5 +747,112 @@ describe('WorkflowOrchestrator', () => {
       expect(result).toBeDefined();
       expect(mockWorktreeManager.destroyWorktree).toHaveBeenCalledWith(testStoryId);
     }, 30000);
+  });
+
+  describe('Helper Methods', () => {
+    it('should extract PR number from URL', () => {
+      const prUrl = 'https://github.com/org/repo/pull/123';
+      const prNumber = (orchestrator as any).extractPRNumber(prUrl);
+      expect(prNumber).toBe(123);
+    });
+
+    it('should extract PR number from GitHub URL with trailing slash', () => {
+      const prUrl = 'https://github.com/org/repo/pull/456/';
+      const prNumber = (orchestrator as any).extractPRNumber(prUrl);
+      expect(prNumber).toBe(456);
+    });
+
+    it('should generate PR body with review summaries', () => {
+      const state = {
+        storyId: testStoryId,
+        variables: {
+          selfReview: mockSelfReview,
+          independentReview: mockIndependentReview
+        },
+        performance: {
+          totalDuration: 3600000 // 1 hour
+        }
+      };
+
+      const body = (orchestrator as any).generatePRBody(state);
+
+      expect(body).toContain('Story');
+      expect(body).toContain('Self-Review');
+      expect(body).toContain('Independent Review');
+      expect(body).toContain('Performance');
+      expect(body).toContain('60 minutes');
+    });
+
+    it('should extract coverage from test output', () => {
+      const output = `
+All files          |   85.23   |   90.45   |   82.67   |   85.23   |
+      `;
+
+      const coverage = (orchestrator as any).extractCoverageFromOutput(output);
+
+      expect(coverage.lines).toBe(85.23);
+      expect(coverage.functions).toBe(90.45);
+      expect(coverage.branches).toBe(82.67);
+      expect(coverage.statements).toBe(85.23);
+    });
+
+    it('should return zero coverage when no match found', () => {
+      const output = 'No coverage data found';
+
+      const coverage = (orchestrator as any).extractCoverageFromOutput(output);
+
+      expect(coverage.lines).toBe(0);
+      expect(coverage.functions).toBe(0);
+      expect(coverage.branches).toBe(0);
+      expect(coverage.statements).toBe(0);
+    });
+
+    it('should handle retryWithBackoff success after failures', async () => {
+      let attempts = 0;
+      const operation = vi.fn().mockImplementation(async () => {
+        attempts++;
+        if (attempts < 3) {
+          throw new Error('Transient failure');
+        }
+        return 'success';
+      });
+
+      const result = await (orchestrator as any).retryWithBackoff(
+        operation,
+        3,
+        100,
+        'test-operation'
+      );
+
+      expect(result).toBe('success');
+      expect(attempts).toBe(3);
+    });
+
+    it('should throw error after max retry attempts', async () => {
+      const operation = vi.fn().mockRejectedValue(new Error('Persistent failure'));
+
+      await expect((orchestrator as any).retryWithBackoff(
+        operation,
+        3,
+        100,
+        'test-operation'
+      )).rejects.toThrow('Persistent failure');
+
+      expect(operation).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle checkpoint state errors gracefully', async () => {
+      const state = {
+        storyId: testStoryId,
+        currentStep: 5,
+        status: 'in-progress'
+      };
+
+      // Mock state manager to throw error
+      mockStateManager.saveState = vi.fn().mockRejectedValue(new Error('State save failed'));
+
+      // Should not throw - checkpoint failure is non-critical
+      await expect((orchestrator as any).checkpointState(state)).resolves.not.toThrow();
+    });
   });
 });

@@ -30,6 +30,8 @@
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as yaml from 'yaml';
+import { spawn } from 'child_process';
+import { Octokit } from '@octokit/rest';
 import { logger } from '../../utils/logger.js';
 import { StoryContextGenerator } from '../context/StoryContextGenerator.js';
 import { WorktreeManager } from '../../core/WorktreeManager.js';
@@ -89,6 +91,7 @@ export class WorkflowOrchestrator {
   private worktreeManager: WorktreeManager;
   private stateManager: StateManager;
   private agentPool: AgentPool;
+  private octokit: Octokit;
 
   /**
    * Create a new Workflow Orchestrator
@@ -109,6 +112,12 @@ export class WorkflowOrchestrator {
     this.worktreeManager = dependencies.worktreeManager;
     this.stateManager = dependencies.stateManager;
     this.agentPool = dependencies.agentPool;
+
+    // Initialize Octokit with GitHub token from environment
+    const githubToken = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+    this.octokit = new Octokit({
+      auth: githubToken
+    });
   }
 
   /**
@@ -758,20 +767,133 @@ export class WorkflowOrchestrator {
   private async runTests(worktreePath: string): Promise<unknown> {
     logger.info('Running tests', { worktreePath });
 
-    // Mock test execution for now (actual implementation would run npm test)
-    // This would use child_process to run tests in the worktree
-    return {
-      passed: 10,
-      failed: 0,
-      skipped: 0,
-      duration: 5000,
-      coverage: {
-        lines: 85,
-        functions: 90,
-        branches: 80,
-        statements: 85
-      }
-    };
+    return new Promise((resolve, reject) => {
+      const testProcess = spawn('npm', ['test', '--', '--reporter=json'], {
+        cwd: worktreePath,
+        shell: true,
+        env: { ...process.env, NODE_ENV: 'test' }
+      });
+
+      let stdout = '';
+      let stderr = '';
+
+      testProcess.stdout.on('data', (data) => {
+        stdout += data.toString();
+      });
+
+      testProcess.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      testProcess.on('close', (code) => {
+        logger.info('Test execution completed', { exitCode: code });
+
+        try {
+          // Try to parse vitest JSON output
+          const lines = stdout.split('\n');
+          let testResults: any = null;
+
+          // Find the JSON output line from vitest
+          for (const line of lines) {
+            try {
+              const parsed = JSON.parse(line);
+              if (parsed.testResults || parsed.numTotalTests !== undefined) {
+                testResults = parsed;
+                break;
+              }
+            } catch (e) {
+              // Not JSON, skip
+            }
+          }
+
+          // If JSON parsing succeeds, use it
+          if (testResults) {
+            const result = {
+              passed: testResults.numPassedTests || 0,
+              failed: testResults.numFailedTests || 0,
+              skipped: testResults.numPendingTests || 0,
+              duration: testResults.testResults?.reduce((sum: number, t: any) => sum + (t.perfStats?.runtime || 0), 0) || 0,
+              coverage: this.extractCoverage(testResults)
+            };
+            resolve(result);
+            return;
+          }
+
+          // Fallback: Parse text output
+          const passedMatch = stdout.match(/(\d+) passed/);
+          const failedMatch = stdout.match(/(\d+) failed/);
+          const skippedMatch = stdout.match(/(\d+) skipped/);
+
+          const result = {
+            passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
+            failed: failedMatch ? parseInt(failedMatch[1], 10) : (code === 0 ? 0 : 1),
+            skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
+            duration: 0,
+            coverage: this.extractCoverageFromOutput(stdout)
+          };
+
+          if (code !== 0 && result.failed === 0) {
+            result.failed = 1; // Mark as failed if exit code is non-zero
+          }
+
+          resolve(result);
+        } catch (error) {
+          logger.error('Failed to parse test results', error as Error, { stdout, stderr });
+
+          // Return minimal result based on exit code
+          resolve({
+            passed: code === 0 ? 1 : 0,
+            failed: code === 0 ? 0 : 1,
+            skipped: 0,
+            duration: 0,
+            coverage: { lines: 0, functions: 0, branches: 0, statements: 0 }
+          });
+        }
+      });
+
+      testProcess.on('error', (error) => {
+        logger.error('Test execution failed', error, { worktreePath });
+        reject(new Error(`Test execution failed: ${error.message}`));
+      });
+    });
+  }
+
+  /**
+   * Extract coverage from test results JSON
+   *
+   * @param testResults Test results object
+   * @returns Coverage object
+   */
+  private extractCoverage(testResults: any): any {
+    const coverage = testResults.coverage || testResults.coverageMap;
+    if (coverage) {
+      return {
+        lines: coverage.lines?.pct || 0,
+        functions: coverage.functions?.pct || 0,
+        branches: coverage.branches?.pct || 0,
+        statements: coverage.statements?.pct || 0
+      };
+    }
+    return { lines: 0, functions: 0, branches: 0, statements: 0 };
+  }
+
+  /**
+   * Extract coverage from text output
+   *
+   * @param output Test output
+   * @returns Coverage object
+   */
+  private extractCoverageFromOutput(output: string): any {
+    const coverageMatch = output.match(/All files\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)/);
+    if (coverageMatch) {
+      return {
+        lines: parseFloat(coverageMatch[1]),
+        functions: parseFloat(coverageMatch[2]),
+        branches: parseFloat(coverageMatch[3]),
+        statements: parseFloat(coverageMatch[4])
+      };
+    }
+    return { lines: 0, functions: 0, branches: 0, statements: 0 };
   }
 
   /**
@@ -933,21 +1055,184 @@ export class WorkflowOrchestrator {
       branch: state.branchName
     });
 
-    // Mock PR creation (actual implementation would use GitHub API)
-    const pr: PRResult = {
-      url: `https://github.com/org/repo/pull/123`,
-      number: 123,
-      title: `Story ${state.storyId}`,
-      body: 'Automated PR from story workflow',
-      baseBranch: 'main',
-      headBranch: state.branchName!,
-      state: 'open',
-      autoMergeEnabled: this.config.autoMerge
-    };
+    try {
+      // Extract owner and repo from git config or environment
+      const owner = process.env.GITHUB_OWNER || await this.getGitHubOwner();
+      const repo = process.env.GITHUB_REPO || await this.getGitHubRepo();
 
-    logger.info('Pull request created', { prUrl: pr.url });
+      // Push branch to remote first
+      await this.pushBranch(state);
 
-    return pr;
+      // Create PR title and body
+      const title = `Story ${state.storyId}`;
+      const body = this.generatePRBody(state);
+
+      // Create PR using GitHub API
+      const response = await this.octokit.pulls.create({
+        owner,
+        repo,
+        title,
+        body,
+        head: state.branchName!,
+        base: 'main'
+      });
+
+      const pr: PRResult = {
+        url: response.data.html_url,
+        number: response.data.number,
+        title: response.data.title,
+        body: response.data.body || '',
+        baseBranch: response.data.base.ref,
+        headBranch: response.data.head.ref,
+        state: 'open',
+        autoMergeEnabled: this.config.autoMerge
+      };
+
+      logger.info('Pull request created', { prUrl: pr.url, prNumber: pr.number });
+
+      return pr;
+    } catch (error) {
+      logger.error('Failed to create pull request', error as Error, {
+        storyId: state.storyId,
+        branch: state.branchName
+      });
+      throw new Error(`PR creation failed: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Get GitHub owner from git remote
+   *
+   * @returns Owner name
+   */
+  private async getGitHubOwner(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const gitProcess = spawn('git', ['remote', 'get-url', 'origin'], {
+        cwd: this.config.projectRoot,
+        shell: true
+      });
+
+      let output = '';
+      gitProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      gitProcess.on('close', (code) => {
+        if (code === 0) {
+          // Parse git@github.com:owner/repo.git or https://github.com/owner/repo.git
+          const match = output.match(/github\.com[:/]([^/]+)\//);
+          if (match) {
+            resolve(match[1]);
+            return;
+          }
+        }
+        reject(new Error('Could not determine GitHub owner from git remote'));
+      });
+    });
+  }
+
+  /**
+   * Get GitHub repo from git remote
+   *
+   * @returns Repo name
+   */
+  private async getGitHubRepo(): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const gitProcess = spawn('git', ['remote', 'get-url', 'origin'], {
+        cwd: this.config.projectRoot,
+        shell: true
+      });
+
+      let output = '';
+      gitProcess.stdout.on('data', (data) => {
+        output += data.toString();
+      });
+
+      gitProcess.on('close', (code) => {
+        if (code === 0) {
+          // Parse git@github.com:owner/repo.git or https://github.com/owner/repo.git
+          const match = output.match(/\/([^/]+?)(?:\.git)?$/);
+          if (match) {
+            resolve(match[1].replace('.git', ''));
+            return;
+          }
+        }
+        reject(new Error('Could not determine GitHub repo from git remote'));
+      });
+    });
+  }
+
+  /**
+   * Push branch to remote
+   *
+   * @param state Workflow state
+   */
+  private async pushBranch(state: StoryWorkflowState): Promise<void> {
+    return new Promise((resolve, reject) => {
+      logger.info('Pushing branch to remote', { branch: state.branchName });
+
+      const gitProcess = spawn('git', ['push', '-u', 'origin', state.branchName!], {
+        cwd: state.worktreePath || this.config.projectRoot,
+        shell: true
+      });
+
+      gitProcess.on('close', (code) => {
+        if (code === 0) {
+          logger.info('Branch pushed successfully', { branch: state.branchName });
+          resolve();
+        } else {
+          reject(new Error(`Failed to push branch: exit code ${code}`));
+        }
+      });
+
+      gitProcess.on('error', (error) => {
+        reject(error);
+      });
+    });
+  }
+
+  /**
+   * Generate PR body from workflow state
+   *
+   * @param state Workflow state
+   * @returns PR body markdown
+   */
+  private generatePRBody(state: StoryWorkflowState): string {
+    const selfReview = state.variables.selfReview as SelfReviewReport;
+    const independentReview = state.variables.independentReview as IndependentReviewReport;
+
+    let body = `## Story ${state.storyId}\n\n`;
+    body += `Automated PR from story workflow orchestrator.\n\n`;
+    body += `### Review Summary\n\n`;
+
+    if (selfReview) {
+      body += `**Self-Review (Amelia):**\n`;
+      body += `- Confidence: ${(selfReview.confidence * 100).toFixed(0)}%\n`;
+      body += `- Critical Issues: ${selfReview.criticalIssues.length}\n\n`;
+    }
+
+    if (independentReview) {
+      body += `**Independent Review (Alex):**\n`;
+      body += `- Decision: ${independentReview.decision}\n`;
+      body += `- Confidence: ${(independentReview.confidence * 100).toFixed(0)}%\n`;
+      body += `- Overall Score: ${(independentReview.overallScore * 100).toFixed(0)}%\n\n`;
+
+      if (independentReview.recommendations.length > 0) {
+        body += `**Recommendations:**\n`;
+        independentReview.recommendations.forEach(rec => {
+          body += `- ${rec}\n`;
+        });
+        body += `\n`;
+      }
+    }
+
+    body += `### Performance\n\n`;
+    if (state.performance.totalDuration) {
+      const durationMins = Math.round(state.performance.totalDuration / 1000 / 60);
+      body += `- Total Duration: ${durationMins} minutes\n`;
+    }
+
+    return body;
   }
 
   /**
@@ -961,30 +1246,166 @@ export class WorkflowOrchestrator {
       prUrl: state.prUrl
     });
 
-    // Mock CI monitoring (actual implementation would poll GitHub Checks API)
-    // Poll every 30 seconds, max 30 minutes timeout
-    const maxPolls = 60; // 30 minutes / 30 seconds
-    let polls = 0;
+    try {
+      // Extract owner, repo, and PR number
+      const owner = process.env.GITHUB_OWNER || await this.getGitHubOwner();
+      const repo = process.env.GITHUB_REPO || await this.getGitHubRepo();
+      const prNumber = this.extractPRNumber(state.prUrl!);
 
-    while (polls < maxPolls) {
-      polls++;
+      // Poll every 30 seconds, max 30 minutes timeout
+      const pollInterval = 30000; // 30 seconds
+      const maxPolls = 60; // 30 minutes
+      let polls = 0;
 
-      // Mock: Assume CI passes after a few polls
-      if (polls >= 3) {
-        logger.info('CI passed, merging PR', { prUrl: state.prUrl });
+      while (polls < maxPolls) {
+        polls++;
 
-        // Merge PR (mock)
-        state.ciStatus = 'passed';
+        // Get PR details to check CI status
+        const pr = await this.octokit.pulls.get({
+          owner,
+          repo,
+          pull_number: prNumber
+        });
 
-        return;
+        // Get commit SHA for checks
+        const headSha = pr.data.head.sha;
+
+        // Get check runs for the commit
+        const checkRuns = await this.octokit.checks.listForRef({
+          owner,
+          repo,
+          ref: headSha
+        });
+
+        // Analyze check run statuses
+        const checks = checkRuns.data.check_runs;
+        const totalChecks = checks.length;
+
+        if (totalChecks === 0) {
+          logger.debug('No CI checks found yet, waiting...', {
+            poll: polls,
+            maxPolls
+          });
+        } else {
+          const completedChecks = checks.filter(c => c.status === 'completed');
+          const successfulChecks = checks.filter(c => c.conclusion === 'success');
+          const failedChecks = checks.filter(c => c.conclusion === 'failure' || c.conclusion === 'cancelled');
+
+          logger.info('CI check status', {
+            total: totalChecks,
+            completed: completedChecks.length,
+            successful: successfulChecks.length,
+            failed: failedChecks.length
+          });
+
+          // All checks completed successfully
+          if (completedChecks.length === totalChecks && failedChecks.length === 0) {
+            logger.info('All CI checks passed', { prUrl: state.prUrl });
+            state.ciStatus = 'passed';
+
+            // Merge PR if auto-merge is enabled
+            if (this.config.autoMerge) {
+              await this.mergePR(owner, repo, prNumber, state);
+            } else {
+              logger.info('Auto-merge disabled, PR ready for manual merge', {
+                prUrl: state.prUrl
+              });
+            }
+
+            return;
+          }
+
+          // Any checks failed
+          if (failedChecks.length > 0) {
+            logger.error('CI checks failed', {
+              prUrl: state.prUrl,
+              failedChecks: failedChecks.map(c => c.name)
+            });
+            state.ciStatus = 'failed';
+            throw new Error(`CI checks failed: ${failedChecks.map(c => c.name).join(', ')}`);
+          }
+
+          // Checks still running
+          state.ciStatus = 'running';
+        }
+
+        // Wait before next poll
+        if (polls < maxPolls) {
+          await new Promise(resolve => setTimeout(resolve, pollInterval));
+        }
       }
 
-      // Wait 30 seconds
-      await new Promise(resolve => setTimeout(resolve, 30000));
+      // Timeout
+      logger.warn('CI monitoring timeout', {
+        prUrl: state.prUrl,
+        polls,
+        maxDuration: '30 minutes'
+      });
+      throw new Error('CI monitoring timeout (30 minutes)');
+    } catch (error) {
+      logger.error('CI monitoring failed', error as Error, {
+        storyId: state.storyId,
+        prUrl: state.prUrl
+      });
+      throw error;
     }
+  }
 
-    // CI timeout
-    throw new Error('CI monitoring timeout (30 minutes)');
+  /**
+   * Merge pull request
+   *
+   * @param owner GitHub owner
+   * @param repo GitHub repo
+   * @param prNumber PR number
+   * @param state Workflow state
+   */
+  private async mergePR(
+    owner: string,
+    repo: string,
+    prNumber: number,
+    state: StoryWorkflowState
+  ): Promise<void> {
+    logger.info('Merging pull request', {
+      prUrl: state.prUrl,
+      prNumber
+    });
+
+    try {
+      await this.octokit.pulls.merge({
+        owner,
+        repo,
+        pull_number: prNumber,
+        merge_method: 'squash',
+        commit_title: `Story ${state.storyId}`,
+        commit_message: `Automated merge after successful CI checks`
+      });
+
+      logger.info('Pull request merged successfully', {
+        prUrl: state.prUrl,
+        prNumber
+      });
+
+      // Delete branch after merge (optional but recommended)
+      try {
+        await this.octokit.git.deleteRef({
+          owner,
+          repo,
+          ref: `heads/${state.branchName}`
+        });
+        logger.info('Branch deleted after merge', { branch: state.branchName });
+      } catch (error) {
+        logger.warn('Failed to delete branch after merge (non-critical)', {
+          branch: state.branchName,
+          error: (error as Error).message
+        });
+      }
+    } catch (error) {
+      logger.error('Failed to merge pull request', error as Error, {
+        prUrl: state.prUrl,
+        prNumber
+      });
+      throw new Error(`PR merge failed: ${(error as Error).message}`);
+    }
   }
 
   /**
