@@ -10,17 +10,7 @@
  */
 
 import Ajv, { type ErrorObject } from 'ajv';
-import type {
-  Epic,
-  Story,
-  TechnicalNotes,
-  DependencyGraph,
-  GraphNode,
-  DependencyEdge,
-  GraphMetadata,
-  ValidationResult as SolutioningValidationResult,
-  ValidationCheck,
-} from './types.js';
+import type { ValidationResult as SolutioningValidationResult } from './types.js';
 
 // Initialize ajv for better error messages
 const ajv = new Ajv({
