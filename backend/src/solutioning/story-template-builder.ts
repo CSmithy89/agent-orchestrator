@@ -211,7 +211,7 @@ export class StoryTemplateBuilder {
         pass: false,
         details: 'Story must have a role defined (As a...)',
       });
-      warnings.push('Story role is missing or empty');
+      blockers.push('Story role is missing or empty');
     } else {
       checks.push({
         category: 'completeness',
@@ -228,7 +228,7 @@ export class StoryTemplateBuilder {
         pass: false,
         details: 'Story must have an action defined (I want...)',
       });
-      warnings.push('Story action is missing or empty');
+      blockers.push('Story action is missing or empty');
     } else {
       checks.push({
         category: 'completeness',
@@ -245,7 +245,7 @@ export class StoryTemplateBuilder {
         pass: false,
         details: 'Story must have a benefit defined (So that...)',
       });
-      warnings.push('Story benefit is missing or empty');
+      blockers.push('Story benefit is missing or empty');
     } else {
       checks.push({
         category: 'completeness',

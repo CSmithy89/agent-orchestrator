@@ -143,21 +143,24 @@ describe('StoryTemplateBuilder', () => {
       const incompleteStory = { ...storyObject, role: undefined };
       const result = builder.validateStoryFormat(incompleteStory);
 
-      expect(result.warnings.some((w) => w.includes('role'))).toBe(true);
+      expect(result.pass).toBe(false);
+      expect(result.blockers.some((b) => b.includes('role'))).toBe(true);
     });
 
     it('should detect missing action', () => {
       const incompleteStory = { ...storyObject, action: undefined };
       const result = builder.validateStoryFormat(incompleteStory);
 
-      expect(result.warnings.some((w) => w.includes('action'))).toBe(true);
+      expect(result.pass).toBe(false);
+      expect(result.blockers.some((b) => b.includes('action'))).toBe(true);
     });
 
     it('should detect missing benefit', () => {
       const incompleteStory = { ...storyObject, benefit: undefined };
       const result = builder.validateStoryFormat(incompleteStory);
 
-      expect(result.warnings.some((w) => w.includes('benefit'))).toBe(true);
+      expect(result.pass).toBe(false);
+      expect(result.blockers.some((b) => b.includes('benefit'))).toBe(true);
     });
 
     it('should validate story with all required sections', () => {
