@@ -4,7 +4,7 @@
 id: 5-4-code-implementation-pipeline
 title: Code Implementation Pipeline
 epic: epic-5
-status: drafted
+status: done
 priority: high
 estimate: 2
 dependencies:
