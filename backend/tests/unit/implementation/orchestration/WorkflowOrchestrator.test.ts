@@ -7,9 +7,8 @@
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { WorkflowOrchestrator } from '../../../../src/implementation/orchestration/WorkflowOrchestrator.js';
-import type { WorkflowOrchestratorConfig } from '../../../../src/implementation/orchestration/WorkflowOrchestrator.js';
+import type { WorkflowOrchestratorConfig, StoryWorkflowState } from '../../../../src/implementation/orchestration/workflow-types.js';
 import type { StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport } from '../../../../src/implementation/types.js';
-import type { StoryWorkflowState } from '../../../../src/implementation/orchestration/workflow-types.js';
 
 describe('WorkflowOrchestrator', () => {
   let orchestrator: WorkflowOrchestrator;

@@ -10,10 +10,6 @@
  */
 
 export { WorkflowOrchestrator } from './WorkflowOrchestrator.js';
-export type {
-  WorkflowOrchestratorConfig,
-  WorkflowOrchestratorDependencies
-} from './WorkflowOrchestrator.js';
 
 export type {
   StoryWorkflowState,
@@ -22,5 +18,6 @@ export type {
   ReviewStatus,
   PerformanceMetrics,
   EscalationContext,
-  StepExecutionResult
+  StepExecutionResult,
+  WorkflowOrchestratorConfig
 } from './workflow-types.js';

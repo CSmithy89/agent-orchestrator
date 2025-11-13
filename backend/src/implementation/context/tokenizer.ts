@@ -102,7 +102,7 @@ export async function optimizeContext(
   let optimizedArch = context.architectureContext;
   let optimizedOnboarding = context.onboardingDocs;
   let optimizedCode = context.existingCode;
-  let optimizedDep = context.dependencyContext;
+  const optimizedDep = context.dependencyContext;
 
   // Phase 1: Trim PRD if exceeds individual limit
   if (prdTokens > limits.prd) {

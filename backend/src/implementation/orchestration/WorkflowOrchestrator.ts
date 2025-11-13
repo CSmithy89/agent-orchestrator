@@ -43,7 +43,6 @@ import {
   PRResult,
   WorkflowOrchestratorConfig,
   EscalationContext,
-  StepExecutionResult,
   PerformanceMetrics
 } from './workflow-types.js';
 
@@ -89,7 +88,7 @@ export class WorkflowOrchestrator {
   private config: Required<WorkflowOrchestratorConfig>;
   private contextGenerator: StoryContextGenerator;
   private worktreeManager: WorktreeManager;
-  private stateManager: StateManager;
+  private _stateManager: StateManager;
   private agentPool: AgentPool;
   private octokit: Octokit;
 
@@ -110,7 +109,7 @@ export class WorkflowOrchestrator {
 
     this.contextGenerator = dependencies.contextGenerator;
     this.worktreeManager = dependencies.worktreeManager;
-    this.stateManager = dependencies.stateManager;
+    this._stateManager = dependencies.stateManager;
     this.agentPool = dependencies.agentPool;
 
     // Initialize Octokit with GitHub token from environment
@@ -395,7 +394,7 @@ export class WorkflowOrchestrator {
             this.config.maxRetryAttempts,
             this.config.baseRetryDelay,
             'Amelia reviewCode'
-          );
+          ) as SelfReviewReport;
 
           state.reviewStatus.selfReviewPassed = selfReview.criticalIssues.length === 0;
           state.reviewStatus.confidence = selfReview.confidence;
@@ -528,7 +527,7 @@ export class WorkflowOrchestrator {
           2,
           this.config.baseRetryDelay * 2,
           'Alex generateReport'
-        );
+        ) as IndependentReviewReport;
 
         state.reviewStatus.independentReviewPassed = independentReview.decision === 'pass';
 
@@ -788,6 +787,8 @@ export class WorkflowOrchestrator {
       testProcess.on('close', (code) => {
         logger.info('Test execution completed', { exitCode: code });
 
+        const exitCode = code ?? 1; // Default to 1 if null
+
         try {
           // Try to parse vitest JSON output
           const lines = stdout.split('\n');
@@ -826,13 +827,13 @@ export class WorkflowOrchestrator {
 
           const result = {
             passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-            failed: failedMatch ? parseInt(failedMatch[1], 10) : (code === 0 ? 0 : 1),
+            failed: failedMatch ? parseInt(failedMatch[1], 10) : (exitCode === 0 ? 0 : 1),
             skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
             duration: 0,
             coverage: this.extractCoverageFromOutput(stdout)
           };
 
-          if (code !== 0 && result.failed === 0) {
+          if (exitCode !== 0 && result.failed === 0) {
             result.failed = 1; // Mark as failed if exit code is non-zero
           }
 
@@ -842,8 +843,8 @@ export class WorkflowOrchestrator {
 
           // Return minimal result based on exit code
           resolve({
-            passed: code === 0 ? 1 : 0,
-            failed: code === 0 ? 0 : 1,
+            passed: exitCode === 0 ? 1 : 0,
+            failed: exitCode === 0 ? 0 : 1,
             skipped: 0,
             duration: 0,
             coverage: { lines: 0, functions: 0, branches: 0, statements: 0 }
@@ -885,7 +886,7 @@ export class WorkflowOrchestrator {
    */
   private extractCoverageFromOutput(output: string): any {
     const coverageMatch = output.match(/All files\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)\s+\|\s+([\d.]+)/);
-    if (coverageMatch) {
+    if (coverageMatch && coverageMatch[1] && coverageMatch[2] && coverageMatch[3] && coverageMatch[4]) {
       return {
         lines: parseFloat(coverageMatch[1]),
         functions: parseFloat(coverageMatch[2]),
@@ -1121,7 +1122,7 @@ export class WorkflowOrchestrator {
         if (code === 0) {
           // Parse git@github.com:owner/repo.git or https://github.com/owner/repo.git
           const match = output.match(/github\.com[:/]([^/]+)\//);
-          if (match) {
+          if (match && match[1]) {
             resolve(match[1]);
             return;
           }
@@ -1152,7 +1153,7 @@ export class WorkflowOrchestrator {
         if (code === 0) {
           // Parse git@github.com:owner/repo.git or https://github.com/owner/repo.git
           const match = output.match(/\/([^/]+?)(?:\.git)?$/);
-          if (match) {
+          if (match && match[1]) {
             resolve(match[1].replace('.git', ''));
             return;
           }
@@ -1662,6 +1663,6 @@ export class WorkflowOrchestrator {
    */
   private extractPRNumber(prUrl: string): number {
     const match = prUrl.match(/\/pull\/(\d+)/);
-    return match ? parseInt(match[1], 10) : 0;
+    return match && match[1] ? parseInt(match[1], 10) : 0;
   }
 }

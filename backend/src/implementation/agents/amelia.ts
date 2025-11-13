@@ -52,7 +52,7 @@ export class AmeliaAgentInfrastructure {
   private readonly agentPool: AgentPool;
 
   /** Project configuration */
-  private readonly projectConfig: ProjectConfig;
+  private readonly _projectConfig: ProjectConfig;
 
   /** Active agent instance (null when not active) */
   private agent: Agent | null = null;
@@ -65,7 +65,7 @@ export class AmeliaAgentInfrastructure {
     projectConfig: ProjectConfig
   ) {
     this.agentPool = agentPool;
-    this.projectConfig = projectConfig;
+    this._projectConfig = projectConfig;
   }
 
   /**

@@ -5,7 +5,7 @@
  * These types extend Epic 1 core types with Story 5.3 specific requirements.
  */
 
-import { WorkflowState } from '../../types/workflow.js';
+import { WorkflowState } from '../../types/workflow.types.js';
 
 /**
  * Story Workflow State
@@ -13,7 +13,29 @@ import { WorkflowState } from '../../types/workflow.js';
  * Extends Epic 1 WorkflowState with story-specific orchestration data.
  * Persisted to `.bmad/state/story-workflow-{storyId}.json` for resume capability.
  */
-export interface StoryWorkflowState extends WorkflowState {
+export interface StoryWorkflowState {
+  /** Project information (from WorkflowState) */
+  project: {
+    id: string;
+    name: string;
+    level: number;
+  };
+
+  /** Currently executing workflow path (from WorkflowState) */
+  currentWorkflow: string;
+
+  /** Workflow execution status (from WorkflowState) */
+  status: 'running' | 'paused' | 'completed' | 'error';
+
+  /** Workflow variables (from WorkflowState) */
+  variables: Record<string, any>;
+
+  /** When workflow execution started (from WorkflowState) */
+  startTime: Date;
+
+  /** Last time state was updated (from WorkflowState) */
+  lastUpdate: Date;
+
   /** Workflow type identifier */
   workflow: 'dev-story';
 

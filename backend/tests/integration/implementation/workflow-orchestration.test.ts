@@ -10,8 +10,7 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as os from 'os';
 import { WorkflowOrchestrator } from '../../../src/implementation/orchestration/WorkflowOrchestrator.js';
-import { StoryContextGenerator } from '../../../src/implementation/context/StoryContextGenerator.js';
-import type { WorkflowOrchestratorConfig } from '../../../src/implementation/orchestration/WorkflowOrchestrator.js';
+import type { WorkflowOrchestratorConfig } from '../../../src/implementation/orchestration/workflow-types.js';
 import type { StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport } from '../../../src/implementation/types.js';
 
 describe('Workflow Orchestration Integration', () => {
