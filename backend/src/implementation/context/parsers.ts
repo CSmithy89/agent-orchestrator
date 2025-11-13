@@ -10,6 +10,7 @@
  */
 
 import * as fs from 'fs/promises';
+import * as path from 'path';
 import matter from 'gray-matter';
 import { TechnicalNotes } from '../types.js';
 
@@ -91,8 +92,7 @@ export async function parseStoryFile(storyFilePath: string): Promise<ParsedStory
     const frontmatter = parsed.data;
 
     // Extract story ID and title from filename or first heading
-    const filename = storyFilePath.split('/').pop() || '';
-    const id = filename.replace('.md', '');
+    const id = path.basename(storyFilePath, '.md');
 
     // Extract title from first # heading
     const titleMatch = markdown.match(/^#\s+(.+)$/m);

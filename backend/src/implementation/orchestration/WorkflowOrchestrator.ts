@@ -670,6 +670,7 @@ export class WorkflowOrchestrator {
     logger.info('Creating Amelia agent', { storyId: state.storyId });
 
     const agent = await this.agentPool.createAgent('amelia', {
+      onboardingDocs: [context.onboardingDocs],
       taskDescription: context.story.description,
       workflowState: state as unknown as Record<string, unknown>
     });
@@ -693,6 +694,7 @@ export class WorkflowOrchestrator {
     logger.info('Creating Alex agent', { storyId: state.storyId });
 
     const agent = await this.agentPool.createAgent('alex', {
+      onboardingDocs: [context.onboardingDocs],
       taskDescription: context.story.description,
       workflowState: state as unknown as Record<string, unknown>
     });
@@ -1317,7 +1319,7 @@ export class WorkflowOrchestrator {
 
           // Any checks failed
           if (failedChecks.length > 0) {
-            logger.error('CI checks failed', {
+            logger.error('CI checks failed', undefined, {
               storyId: state.storyId,
               prUrl: state.prUrl,
               failedChecks: failedChecks.map(c => c.name)
@@ -1345,7 +1347,8 @@ export class WorkflowOrchestrator {
       });
       throw new Error('CI monitoring timeout (30 minutes)');
     } catch (error) {
-      logger.error('CI monitoring failed', error as Error, {
+      const err = error as Error;
+      logger.error('CI monitoring failed', err, {
         storyId: state.storyId,
         prUrl: state.prUrl
       });

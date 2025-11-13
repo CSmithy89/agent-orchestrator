@@ -51,9 +51,6 @@ export class AmeliaAgentInfrastructure {
   /** Agent Pool for lifecycle management */
   private readonly agentPool: AgentPool;
 
-  /** Active agent instance (null when not active) */
-  private agent: Agent | null = null;
-
   /**
    * Private constructor - use AmeliaAgentInfrastructure.create() instead
    */
@@ -91,6 +88,7 @@ export class AmeliaAgentInfrastructure {
    */
   async implementStory(context: StoryContext): Promise<CodeImplementation> {
     this.log('Starting story implementation', context.story.id);
+    let agent: Agent | null = null;
 
     try {
       // Create agent context for AgentPool
@@ -104,14 +102,14 @@ export class AmeliaAgentInfrastructure {
       };
 
       // Create Amelia agent via AgentPool
-      this.agent = await this.agentPool.createAgent('amelia', agentContext);
-      this.log('Agent created', this.agent.id);
+      agent = await this.agentPool.createAgent('amelia', agentContext);
+      this.log('Agent created', agent.id);
 
       // Build specialized prompt for implementation
       const prompt = ameliaImplementPrompt(context);
 
       // Invoke agent with prompt
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Agent invoked successfully', response.length);
 
       // Parse response into CodeImplementation
@@ -125,9 +123,8 @@ export class AmeliaAgentInfrastructure {
       );
     } finally {
       // Destroy agent to free resources
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }
@@ -144,6 +141,7 @@ export class AmeliaAgentInfrastructure {
    */
   async writeTests(code: CodeImplementation): Promise<TestSuite> {
     this.log('Starting test generation', code.files.length);
+    let agent: Agent | null = null;
 
     try {
       // Create minimal story context for test generation
@@ -173,14 +171,14 @@ export class AmeliaAgentInfrastructure {
       };
 
       // Create Amelia agent
-      this.agent = await this.agentPool.createAgent('amelia', agentContext);
-      this.log('Agent created for test generation', this.agent.id);
+      agent = await this.agentPool.createAgent('amelia', agentContext);
+      this.log('Agent created for test generation', agent.id);
 
       // Build specialized prompt for test generation
       const prompt = ameliaTestPrompt(context, code);
 
       // Invoke agent
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Test generation complete', response.length);
 
       // Parse response into TestSuite
@@ -194,9 +192,8 @@ export class AmeliaAgentInfrastructure {
       );
     } finally {
       // Destroy agent
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }
@@ -213,6 +210,7 @@ export class AmeliaAgentInfrastructure {
    */
   async reviewCode(code: CodeImplementation): Promise<SelfReviewReport> {
     this.log('Starting self-review', code.files.length);
+    let agent: Agent | null = null;
 
     try {
       // Create minimal context for self-review
@@ -262,14 +260,14 @@ export class AmeliaAgentInfrastructure {
       };
 
       // Create Amelia agent
-      this.agent = await this.agentPool.createAgent('amelia', agentContext);
-      this.log('Agent created for self-review', this.agent.id);
+      agent = await this.agentPool.createAgent('amelia', agentContext);
+      this.log('Agent created for self-review', agent.id);
 
       // Build specialized prompt for self-review
       const prompt = ameliaSelfReviewPrompt(context, code, tests);
 
       // Invoke agent
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Self-review complete', response.length);
 
       // Parse response into SelfReviewReport
@@ -283,9 +281,8 @@ export class AmeliaAgentInfrastructure {
       );
     } finally {
       // Destroy agent
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }

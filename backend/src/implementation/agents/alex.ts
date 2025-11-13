@@ -60,9 +60,6 @@ export class AlexAgentInfrastructure {
   /** Agent Pool for lifecycle management */
   private readonly agentPool: AgentPool;
 
-  /** Active agent instance (null when not active) */
-  private agent: Agent | null = null;
-
   /**
    * Private constructor - use AlexAgentInfrastructure.create() instead
    */
@@ -100,6 +97,7 @@ export class AlexAgentInfrastructure {
    */
   async reviewSecurity(code: CodeImplementation): Promise<SecurityReview> {
     this.log('Starting security review', code.files.length);
+    let agent: Agent | null = null;
 
     try {
       // Create minimal story context for security review
@@ -129,14 +127,14 @@ export class AlexAgentInfrastructure {
       };
 
       // Create Alex agent via AgentPool
-      this.agent = await this.agentPool.createAgent('alex', agentContext);
-      this.log('Agent created', this.agent.id);
+      agent = await this.agentPool.createAgent('alex', agentContext);
+      this.log('Agent created', agent.id);
 
       // Build specialized prompt for security review
       const prompt = alexSecurityPrompt(context, code);
 
       // Invoke agent with prompt
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Security review complete', response.length);
 
       // Parse response into SecurityReview
@@ -150,9 +148,8 @@ export class AlexAgentInfrastructure {
       );
     } finally {
       // Destroy agent to free resources
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }
@@ -169,6 +166,7 @@ export class AlexAgentInfrastructure {
    */
   async analyzeQuality(code: CodeImplementation): Promise<QualityAnalysis> {
     this.log('Starting quality analysis', code.files.length);
+    let agent: Agent | null = null;
 
     try {
       // Create minimal story context for quality analysis
@@ -198,14 +196,14 @@ export class AlexAgentInfrastructure {
       };
 
       // Create Alex agent
-      this.agent = await this.agentPool.createAgent('alex', agentContext);
-      this.log('Agent created for quality analysis', this.agent.id);
+      agent = await this.agentPool.createAgent('alex', agentContext);
+      this.log('Agent created for quality analysis', agent.id);
 
       // Build specialized prompt
       const prompt = alexQualityPrompt(context, code);
 
       // Invoke agent
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Quality analysis complete', response.length);
 
       // Parse response
@@ -219,9 +217,8 @@ export class AlexAgentInfrastructure {
       );
     } finally {
       // Destroy agent
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }
@@ -242,6 +239,7 @@ export class AlexAgentInfrastructure {
     coverage: CoverageReport
   ): Promise<TestValidation> {
     this.log('Starting test validation', tests.testCount);
+    let agent: Agent | null = null;
 
     try {
       // Create agent context
@@ -254,14 +252,14 @@ export class AlexAgentInfrastructure {
       };
 
       // Create Alex agent
-      this.agent = await this.agentPool.createAgent('alex', agentContext);
-      this.log('Agent created for test validation', this.agent.id);
+      agent = await this.agentPool.createAgent('alex', agentContext);
+      this.log('Agent created for test validation', agent.id);
 
       // Build specialized prompt
       const prompt = alexTestValidationPrompt(tests, coverage);
 
       // Invoke agent
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Test validation complete', response.length);
 
       // Parse response
@@ -275,9 +273,8 @@ export class AlexAgentInfrastructure {
       );
     } finally {
       // Destroy agent
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }
@@ -294,6 +291,7 @@ export class AlexAgentInfrastructure {
    */
   async generateReport(reviews: Review[]): Promise<IndependentReviewReport> {
     this.log('Generating review report', reviews.length);
+    let agent: Agent | null = null;
 
     try {
       // Create agent context
@@ -306,14 +304,14 @@ export class AlexAgentInfrastructure {
       };
 
       // Create Alex agent
-      this.agent = await this.agentPool.createAgent('alex', agentContext);
-      this.log('Agent created for report generation', this.agent.id);
+      agent = await this.agentPool.createAgent('alex', agentContext);
+      this.log('Agent created for report generation', agent.id);
 
       // Build specialized prompt
       const prompt = alexReportPrompt(reviews);
 
       // Invoke agent
-      const response = await this.agentPool.invokeAgent(this.agent.id, prompt);
+      const response = await this.agentPool.invokeAgent(agent.id, prompt);
       this.log('Report generation complete', response.length);
 
       // Parse response
@@ -327,9 +325,8 @@ export class AlexAgentInfrastructure {
       );
     } finally {
       // Destroy agent
-      if (this.agent) {
-        await this.agentPool.destroyAgent(this.agent.id);
-        this.agent = null;
+      if (agent) {
+        await this.agentPool.destroyAgent(agent.id);
       }
     }
   }
