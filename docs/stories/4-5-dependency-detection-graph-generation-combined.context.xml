@@ -1,0 +1,309 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context>
+  <metadata>
+    <story-id>4-5-dependency-detection-graph-generation-combined</story-id>
+    <epic>Epic 4: Solutioning Phase Automation</epic>
+    <title>Dependency Detection &amp; Graph Generation (Combined)</title>
+    <generated-date>2025-11-13</generated-date>
+  </metadata>
+
+  <story-description>
+    <user-story>
+      As a Scrum Master planning story implementation order,
+      I want the system to automatically detect dependencies between stories and generate a dependency graph with critical path analysis,
+      So that I can identify which stories can be worked in parallel and which must be completed sequentially.
+    </user-story>
+
+    <goals>
+      <goal>Detect technical dependencies between stories using Bob agent analysis</goal>
+      <goal>Generate dependency graph with nodes, edges, critical path, and bottlenecks</goal>
+      <goal>Calculate parallelization opportunities for concurrent story development</goal>
+      <goal>Detect circular dependencies and error if found</goal>
+      <goal>Save dependency graph to docs/dependency-graph.json for visualization</goal>
+    </goals>
+  </story-description>
+
+  <technical-context>
+    <data-models>
+      <model name="DependencyEdge" source="backend/src/solutioning/types.ts">
+        <description>Represents a dependency relationship between two stories</description>
+        <fields>
+          <field name="from" type="string">Prerequisite story ID (must complete first)</field>
+          <field name="to" type="string">Dependent story ID (depends on prerequisite)</field>
+          <field name="type" type="'hard' | 'soft'">Dependency type: hard (blocking) or soft (suggested)</field>
+          <field name="blocking" type="boolean">Whether this dependency blocks work from starting</field>
+        </fields>
+      </model>
+
+      <model name="DependencyGraph" source="backend/src/solutioning/types.ts">
+        <description>Complete dependency graph with metadata and analysis results</description>
+        <fields>
+          <field name="nodes" type="GraphNode[]">All stories with metadata for visualization</field>
+          <field name="edges" type="DependencyEdge[]">Dependency relationships between stories</field>
+          <field name="critical_path" type="string[]">Longest dependency chain (story IDs in order)</field>
+          <field name="bottlenecks" type="string[]">Stories blocking 3 or more other stories</field>
+          <field name="parallelizable" type="string[][]">Groups of stories with no blocking dependencies</field>
+          <field name="metadata" type="GraphMetadata">Aggregate statistics about the graph</field>
+        </fields>
+      </model>
+
+      <model name="GraphNode" source="backend/src/solutioning/types.ts">
+        <description>Story representation in dependency graph</description>
+        <fields>
+          <field name="id" type="string">Story ID</field>
+          <field name="title" type="string">Story title</field>
+          <field name="status" type="StoryStatus">Current status in development lifecycle</field>
+          <field name="epic" type="string">Parent epic ID</field>
+          <field name="complexity" type="Complexity">Complexity level</field>
+        </fields>
+      </model>
+
+      <model name="DependencyDetectionResult" source="backend/src/solutioning/dependency-detection-service.ts">
+        <description>Result of dependency detection with metrics</description>
+        <fields>
+          <field name="edges" type="DependencyEdge[]">Detected dependency edges</field>
+          <field name="metrics" type="DependencyDetectionMetrics">Execution metrics</field>
+        </fields>
+      </model>
+    </data-models>
+
+    <bob-agent-context>
+      <prompt-template name="bobDependencyDetectionPrompt" source="backend/src/solutioning/context-builder.ts">
+        <description>Generates prompt for Bob agent to detect dependencies between stories</description>
+        <location>Lines 593-705</location>
+        <inputs>
+          <input>AgentContext - PRD, architecture, story patterns</input>
+          <input>Story[] - All stories to analyze</input>
+        </inputs>
+        <output>String prompt for LLM invocation</output>
+        <key-features>
+          <feature>Analyzes technical dependencies (auth → protected features, data models → logic, API → frontend)</feature>
+          <feature>Classifies dependencies as hard (blocking) or soft (suggested)</feature>
+          <feature>Provides reasoning for each dependency</feature>
+          <feature>Returns JSON array of DependencyEdge objects</feature>
+        </key-features>
+      </prompt-template>
+
+      <llm-invocation>
+        <provider>Via LLMFactory from Story 4.2</provider>
+        <model>GLM-4-Plus (Zhipu) - configured in .bmad/project-config.yaml</model>
+        <temperature>0.3 (low for consistent dependency detection)</temperature>
+        <max-tokens>4096</max-tokens>
+        <retry-logic>3 attempts with exponential backoff (2s, 4s, 8s)</retry-logic>
+      </llm-invocation>
+    </bob-agent-context>
+
+    <graph-algorithms>
+      <algorithm name="Topological Sort (Kahn's Algorithm)">
+        <purpose>Calculate critical path (longest dependency chain)</purpose>
+        <complexity>O(V + E) where V = stories, E = dependencies</complexity>
+        <steps>
+          <step>1. Build adjacency list from dependency edges</step>
+          <step>2. Calculate in-degree for each node (number of incoming edges)</step>
+          <step>3. Add all nodes with in-degree 0 to queue (no dependencies)</step>
+          <step>4. While queue not empty:
+            - Dequeue node and add to result
+            - For each neighbor: decrement in-degree, enqueue if in-degree becomes 0
+          </step>
+          <step>5. If result length &lt; total nodes, circular dependency detected</step>
+          <step>6. Return result as critical path</step>
+        </steps>
+      </algorithm>
+
+      <algorithm name="Bottleneck Detection">
+        <purpose>Identify stories blocking 3 or more other stories</purpose>
+        <complexity>O(E) where E = dependencies</complexity>
+        <steps>
+          <step>1. Count outgoing edges for each node</step>
+          <step>2. Flag nodes with outgoing edge count ≥ 3</step>
+          <step>3. Return list of bottleneck story IDs</step>
+        </steps>
+      </algorithm>
+
+      <algorithm name="Parallel Group Detection">
+        <purpose>Find groups of stories that can be worked in parallel</purpose>
+        <complexity>O(V + E)</complexity>
+        <steps>
+          <step>1. Perform topological sort to get execution levels</step>
+          <step>2. Group stories by topological level (distance from root nodes)</step>
+          <step>3. Within each level, stories have no dependencies on each other</step>
+          <step>4. Return groups as array of story ID arrays</step>
+        </steps>
+      </algorithm>
+
+      <algorithm name="Circular Dependency Detection">
+        <purpose>Detect cycles in dependency graph</purpose>
+        <complexity>O(V + E)</complexity>
+        <steps>
+          <step>1. Run topological sort</step>
+          <step>2. If not all nodes processed, cycle exists</step>
+          <step>3. Identify cycle path using DFS from unprocessed nodes</step>
+          <step>4. Throw error with cycle path details</step>
+        </steps>
+      </algorithm>
+    </graph-algorithms>
+
+    <integration-points>
+      <integration name="Story 4.1 - Data Models">
+        <description>Import DependencyEdge, DependencyGraph, GraphNode, GraphMetadata types</description>
+        <source>backend/src/solutioning/types.ts</source>
+      </integration>
+
+      <integration name="Story 4.2 - Bob Agent Infrastructure">
+        <description>Use SolutioningAgentContextBuilder and bobDependencyDetectionPrompt</description>
+        <source>backend/src/solutioning/context-builder.ts</source>
+      </integration>
+
+      <integration name="Story 4.4 - Stories for Analysis">
+        <description>Receive stories from SolutioningOrchestrator after epic formation and story decomposition</description>
+        <source>backend/src/solutioning/solutioning-orchestrator.ts</source>
+      </integration>
+
+      <integration name="Epic 1 - LLMFactory">
+        <description>Use LLMFactory for Bob agent LLM invocation</description>
+        <source>backend/src/core/llm/llm-factory.ts (assumed path)</source>
+      </integration>
+    </integration-points>
+
+    <file-outputs>
+      <output name="dependency-graph.json" path="docs/dependency-graph.json">
+        <description>Complete dependency graph in JSON format</description>
+        <schema>
+          <field name="nodes">Array of GraphNode objects with story metadata</field>
+          <field name="edges">Array of DependencyEdge objects with dependency relationships</field>
+          <field name="critical_path">Array of story IDs in critical path order</field>
+          <field name="bottlenecks">Array of bottleneck story IDs</field>
+          <field name="parallelizable">Array of parallelizable story groups</field>
+          <field name="metadata">GraphMetadata with aggregate statistics</field>
+        </schema>
+      </output>
+    </file-outputs>
+  </technical-context>
+
+  <dependencies>
+    <blocking-dependencies>
+      <dependency id="4-1" title="Solutioning Data Models &amp; Story Schema">
+        <reason>Provides DependencyEdge, DependencyGraph, GraphNode types</reason>
+      </dependency>
+      <dependency id="4-2" title="Bob Agent Infrastructure &amp; Context Builder">
+        <reason>Provides bobDependencyDetectionPrompt and LLM invocation infrastructure</reason>
+      </dependency>
+      <dependency id="4-4" title="Epic Formation &amp; Story Decomposition">
+        <reason>Provides stories to analyze for dependencies</reason>
+      </dependency>
+    </blocking-dependencies>
+
+    <enables>
+      <enabled-story id="4-6" title="Story Validation &amp; Quality Check">
+        <reason>Can validate dependency completeness and circular dependency absence</reason>
+      </enabled-story>
+      <enabled-story id="4-7" title="Sprint Status File Generation">
+        <reason>Can include dependency graph metadata in sprint status</reason>
+      </enabled-story>
+      <enabled-story id="4-8" title="Story File Writer">
+        <reason>Can include dependency information in story markdown files</reason>
+      </enabled-story>
+      <enabled-story id="6-8" title="Dependency Graph Visualization (Epic 6)">
+        <reason>Provides dependency-graph.json for UI visualization</reason>
+      </enabled-story>
+    </enables>
+  </dependencies>
+
+  <acceptance-criteria-summary>
+    <criteria-group name="Dependency Detection (AC 1-6)">
+      <criterion>Invoke Bob agent with all stories from Story 4.4</criterion>
+      <criterion>Analyze technical dependencies (auth, data models, API patterns)</criterion>
+      <criterion>Mark dependencies as hard (blocking) or soft (suggested)</criterion>
+      <criterion>Generate DependencyEdge[] array with validated story IDs</criterion>
+      <criterion>Complete detection in &lt;30 seconds for 20-30 stories</criterion>
+    </criteria-group>
+
+    <criteria-group name="Graph Generation (AC 7-14)">
+      <criterion>Build graph nodes from stories</criterion>
+      <criterion>Add dependency edges to graph</criterion>
+      <criterion>Calculate critical path using topological sort</criterion>
+      <criterion>Identify bottlenecks (≥3 blocked stories)</criterion>
+      <criterion>Find parallel groups (no blocking dependencies)</criterion>
+      <criterion>Detect circular dependencies and error</criterion>
+      <criterion>Save graph to docs/dependency-graph.json</criterion>
+    </criteria-group>
+
+    <criteria-group name="Integration (AC 15-20)">
+      <criterion>Use types from Story 4.1</criterion>
+      <criterion>Use Bob agent infrastructure from Story 4.2</criterion>
+      <criterion>Integrate with SolutioningOrchestrator</criterion>
+      <criterion>Track metrics (execution time, token usage)</criterion>
+      <criterion>Update sprint-status.yaml with graph timestamp</criterion>
+      <criterion>Unit tests + integration test with 80%+ coverage</criterion>
+    </criteria-group>
+  </acceptance-criteria-summary>
+
+  <performance-requirements>
+    <requirement>Dependency detection: &lt;30 seconds for 20-30 stories</requirement>
+    <requirement>Graph generation: &lt;3 seconds for 30 stories with 50 dependencies</requirement>
+    <requirement>Memory usage: &lt;500MB for graph operations</requirement>
+    <requirement>LLM token usage: ~15k tokens for dependency detection</requirement>
+  </performance-requirements>
+
+  <test-strategy>
+    <unit-tests>
+      <test-file path="backend/tests/unit/solutioning/dependency-detection-service.test.ts">
+        <test-case>Successful dependency detection with mock LLM response</test-case>
+        <test-case>Parse JSON from markdown code blocks</test-case>
+        <test-case>Validate DependencyEdge schema compliance</test-case>
+        <test-case>Validate story ID references</test-case>
+        <test-case>Handle LLM failures with retry logic</test-case>
+        <test-case>Track metrics correctly</test-case>
+      </test-file>
+
+      <test-file path="backend/tests/unit/solutioning/dependency-graph-generator.test.ts">
+        <test-case>Build graph nodes correctly</test-case>
+        <test-case>Calculate critical path with linear dependencies</test-case>
+        <test-case>Calculate critical path with branching</test-case>
+        <test-case>Identify bottlenecks correctly</test-case>
+        <test-case>Find parallel groups</test-case>
+        <test-case>Detect circular dependencies</test-case>
+        <test-case>Handle empty dependencies (all independent)</test-case>
+      </test-file>
+    </unit-tests>
+
+    <integration-tests>
+      <test-file path="backend/tests/integration/solutioning/dependency-graph-generation.test.ts">
+        <test-case>Complete workflow: stories → detection → graph generation</test-case>
+        <test-case>Validate graph structure and metadata</test-case>
+        <test-case>Verify graph saved to docs/dependency-graph.json</test-case>
+        <test-case>Test circular dependency error handling</test-case>
+      </test-file>
+    </integration-tests>
+
+    <coverage-target>80%+ statement coverage for all new code</coverage-target>
+  </test-strategy>
+
+  <references>
+    <reference type="tech-spec" path="docs/epics/epic-4-tech-spec.md">
+      <section>AC-5 (Dependency Detection and Graph Generation)</section>
+      <lines>651-669</lines>
+    </reference>
+    <reference type="tech-spec" path="docs/epics/epic-4-tech-spec.md">
+      <section>Story 4.5 Internal Sequence</section>
+      <lines>414-433</lines>
+    </reference>
+    <reference type="source" path="backend/src/solutioning/types.ts">
+      <section>DependencyEdge, DependencyGraph interfaces</section>
+      <lines>269-332</lines>
+    </reference>
+    <reference type="source" path="backend/src/solutioning/context-builder.ts">
+      <section>bobDependencyDetectionPrompt method</section>
+      <lines>593-705</lines>
+    </reference>
+    <reference type="story" path="docs/stories/4-1-solutioning-data-models-story-schema.md">
+      <description>Data models and schemas</description>
+    </reference>
+    <reference type="story" path="docs/stories/4-2-bob-agent-infrastructure-context-builder.md">
+      <description>Bob agent infrastructure</description>
+    </reference>
+    <reference type="story" path="docs/stories/4-4-epic-formation-story-decomposition-combined.md">
+      <description>Epic and story generation (provides stories for analysis)</description>
+    </reference>
+  </references>
+</story-context>

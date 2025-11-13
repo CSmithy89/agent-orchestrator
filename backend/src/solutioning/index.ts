@@ -82,3 +82,10 @@ export type { StoryDecompositionMetrics } from './story-decomposition-service.js
 // Export Solutioning Orchestrator (Story 4.4)
 export { SolutioningOrchestrator } from './solutioning-orchestrator.js';
 export type { SolutioningResult } from './solutioning-orchestrator.js';
+
+// Export Dependency Detection Service (Story 4.5)
+export { DependencyDetectionService } from './dependency-detection-service.js';
+export type { DependencyDetectionResult, DependencyDetectionMetrics } from './dependency-detection-service.js';
+
+// Export Dependency Graph Generator (Story 4.5)
+export { DependencyGraphGenerator } from './dependency-graph-generator.js';

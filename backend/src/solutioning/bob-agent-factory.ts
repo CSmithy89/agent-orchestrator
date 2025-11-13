@@ -133,22 +133,19 @@ export class BobAgentActions {
    * console.log(dependencies); // [{ from: "4-2", to: "4-1", type: "hard", blocking: true }]
    * ```
    */
-  async detectDependencies(_context: AgentContext, _stories: Story[]): Promise<DependencyEdge[]> {
-    // TODO: Story 4.5 - Dependency Detection & Graph Generation
-    // Implementation will:
-    // 1. Load Bob persona via loadBobPersona()
-    // 2. Load Bob LLM config via loadBobLLMConfig()
-    // 3. Generate dependency detection prompt via context builder
-    // 4. Invoke Bob agent via AgentPool/LLM client
-    // 5. Parse JSON response into DependencyEdge[] array
-    // 6. Validate dependencies against DependencyEdge schema
-    // 7. Check for circular dependencies
-    // 8. Return validated DependencyEdge[] array
+  async detectDependencies(_context: AgentContext, stories: Story[]): Promise<DependencyEdge[]> {
+    // Story 4.5 implementation: Delegate to DependencyDetectionService
+    const { DependencyDetectionService } = await import('./dependency-detection-service.js');
+    const service = new DependencyDetectionService();
 
-    throw new Error(
-      'detectDependencies() not yet implemented - see Story 4.5 (Dependency Detection & Graph Generation). ' +
-      'This is infrastructure-only Story 4.2 - actual LLM invocation happens in Story 4.5.'
-    );
+    // Build PRD and architecture content from context
+    const prd = _context.prd;
+    const architecture = _context.architecture;
+
+    // Invoke dependency detection service
+    const result = await service.detectDependencies(stories, prd, architecture);
+
+    return result.edges;
   }
 }
 

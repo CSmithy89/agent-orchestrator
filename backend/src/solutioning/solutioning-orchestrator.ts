@@ -9,12 +9,14 @@
  */
 
 import * as fs from 'fs/promises';
-import { Epic, Story } from './types.js';
+import { Epic, Story, DependencyGraph } from './types.js';
 import { EpicFormationService } from './epic-formation-service.js';
 import { StoryDecompositionService, StoryDecompositionMetrics } from './story-decomposition-service.js';
+import { DependencyDetectionService } from './dependency-detection-service.js';
+import { DependencyGraphGenerator } from './dependency-graph-generator.js';
 
 /**
- * Solutioning result with epics, stories, and comprehensive metrics
+ * Solutioning result with epics, stories, dependency graph, and comprehensive metrics
  */
 export interface SolutioningResult {
   /** Array of epics formed from PRD */
@@ -22,6 +24,9 @@ export interface SolutioningResult {
 
   /** Array of all stories across all epics */
   stories: Story[];
+
+  /** Dependency graph with critical path and bottleneck analysis */
+  dependencyGraph: DependencyGraph;
 
   /** Aggregate metrics for the entire solutioning process */
   metrics: {
@@ -54,6 +59,21 @@ export interface SolutioningResult {
 
     /** Per-epic metrics */
     epicMetrics: StoryDecompositionMetrics[];
+
+    /** Dependency detection execution time in milliseconds */
+    dependencyDetectionTimeMs: number;
+
+    /** Graph generation execution time in milliseconds */
+    graphGenerationTimeMs: number;
+
+    /** Total number of dependencies detected */
+    totalDependencies: number;
+
+    /** Number of hard (blocking) dependencies */
+    hardDependencies: number;
+
+    /** Number of soft (suggested) dependencies */
+    softDependencies: number;
   };
 }
 
@@ -82,10 +102,14 @@ export interface SolutioningResult {
 export class SolutioningOrchestrator {
   private epicFormationService: EpicFormationService;
   private storyDecompositionService: StoryDecompositionService;
+  private dependencyDetectionService: DependencyDetectionService;
+  private dependencyGraphGenerator: DependencyGraphGenerator;
 
   constructor() {
     this.epicFormationService = new EpicFormationService();
     this.storyDecompositionService = new StoryDecompositionService();
+    this.dependencyDetectionService = new DependencyDetectionService();
+    this.dependencyGraphGenerator = new DependencyGraphGenerator();
   }
 
   /**
@@ -183,7 +207,66 @@ export class SolutioningOrchestrator {
       );
     }
 
-    // Step 4: Calculate aggregate metrics
+    // Step 4: Detect dependencies between stories
+    console.log('[SolutioningOrchestrator] Detecting dependencies between stories...');
+    const dependencyDetectionStartTime = Date.now();
+
+    let dependencyDetectionResult;
+    try {
+      dependencyDetectionResult = await this.dependencyDetectionService.detectDependencies(
+        allStories,
+        prd,
+        architecture
+      );
+    } catch (error) {
+      console.error('[SolutioningOrchestrator] Dependency detection failed:', (error as Error).message);
+      console.warn('[SolutioningOrchestrator] Continuing without dependency graph');
+
+      // Create empty dependency graph
+      dependencyDetectionResult = {
+        edges: [],
+        metrics: {
+          executionTimeMs: Date.now() - dependencyDetectionStartTime,
+          llmTokensUsed: 0,
+          totalDependencies: 0,
+          hardDependencies: 0,
+          softDependencies: 0,
+          confidence: 0,
+          reasoning: 'Dependency detection failed'
+        }
+      };
+    }
+
+    const dependencyDetectionTimeMs = Date.now() - dependencyDetectionStartTime;
+    console.log(
+      `[SolutioningOrchestrator] Dependency detection complete in ${dependencyDetectionTimeMs}ms: ` +
+      `${dependencyDetectionResult.edges.length} dependencies detected`
+    );
+
+    // Step 5: Generate dependency graph
+    console.log('[SolutioningOrchestrator] Generating dependency graph...');
+    const graphGenerationStartTime = Date.now();
+
+    const dependencyGraph = this.dependencyGraphGenerator.generateGraph(
+      allStories,
+      dependencyDetectionResult.edges
+    );
+
+    const graphGenerationTimeMs = Date.now() - graphGenerationStartTime;
+    console.log(
+      `[SolutioningOrchestrator] Dependency graph generated in ${graphGenerationTimeMs}ms`
+    );
+
+    // Step 6: Save dependency graph to file
+    try {
+      const graphPath = 'docs/dependency-graph.json';
+      await fs.writeFile(graphPath, JSON.stringify(dependencyGraph, null, 2), 'utf-8');
+      console.log(`[SolutioningOrchestrator] Dependency graph saved to ${graphPath}`);
+    } catch (error) {
+      console.error('[SolutioningOrchestrator] Failed to save dependency graph:', (error as Error).message);
+    }
+
+    // Step 7: Calculate aggregate metrics
     const executionTimeMs = Date.now() - startTime;
     const avgStoryDecompositionConfidence = epics.length > 0
       ? totalStoryDecompositionConfidence / epics.length
@@ -197,11 +280,13 @@ export class SolutioningOrchestrator {
 
     // Calculate total token usage
     const llmTokensUsed = epicFormationMetrics.llmTokensUsed +
-      epicMetrics.reduce((sum, m) => sum + m.llmTokensUsed, 0);
+      epicMetrics.reduce((sum, m) => sum + m.llmTokensUsed, 0) +
+      dependencyDetectionResult.metrics.llmTokensUsed;
 
     const result: SolutioningResult = {
       epics,
       stories: allStories,
+      dependencyGraph,
       metrics: {
         totalEpics: epics.length,
         totalStories: allStories.length,
@@ -212,7 +297,12 @@ export class SolutioningOrchestrator {
         avgStoryDecompositionConfidence,
         lowConfidenceDecisions,
         oversizedStoriesSplit: totalOversizedStoriesSplit,
-        epicMetrics
+        epicMetrics,
+        dependencyDetectionTimeMs,
+        graphGenerationTimeMs,
+        totalDependencies: dependencyDetectionResult.metrics.totalDependencies,
+        hardDependencies: dependencyDetectionResult.metrics.hardDependencies,
+        softDependencies: dependencyDetectionResult.metrics.softDependencies
       }
     };
 
@@ -221,6 +311,11 @@ export class SolutioningOrchestrator {
     console.log(`  - Epics: ${result.metrics.totalEpics}`);
     console.log(`  - Stories: ${result.metrics.totalStories}`);
     console.log(`  - Avg stories/epic: ${result.metrics.avgStoriesPerEpic.toFixed(1)}`);
+    console.log(`  - Dependencies: ${result.metrics.totalDependencies} ` +
+      `(${result.metrics.hardDependencies} hard, ${result.metrics.softDependencies} soft)`);
+    console.log(`  - Critical path length: ${dependencyGraph.critical_path.length}`);
+    console.log(`  - Bottlenecks: ${dependencyGraph.bottlenecks.length}`);
+    console.log(`  - Parallel groups: ${dependencyGraph.parallelizable.length}`);
     console.log(`  - Execution time: ${(executionTimeMs / 1000).toFixed(1)}s`);
     console.log(`  - LLM tokens: ${llmTokensUsed.toLocaleString()}`);
     console.log(`  - Epic formation confidence: ${epicFormationMetrics.confidence.toFixed(2)}`);
