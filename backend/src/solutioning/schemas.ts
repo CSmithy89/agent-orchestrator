@@ -376,7 +376,9 @@ function formatValidationErrors(errors: ErrorObject[] | null | undefined): strin
   }
 
   return errors.map((error) => {
-    const field = error.instancePath || 'root';
+    // Type assertion needed as ErrorObject type may not include instancePath in some type definitions
+    // At runtime with Ajv v8, instancePath is the correct property (v6 used dataPath)
+    const field = (error as any).instancePath || 'root';
     const fieldPath = field.replace(/^\//, '').replace(/\//g, '.');
     const fieldName = fieldPath || 'root';
 
