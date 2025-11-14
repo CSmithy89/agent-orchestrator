@@ -16,13 +16,14 @@
  */
 
 import { AmeliaAgent, CodeImplementation, StoryContext, TestSuite, TestFile, CoverageReport, TestResults, TestFailure, TestFailureContext } from '../types.js';
-import { Logger } from '../../utils/logger.js';
+import { logger } from '../../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import { promisify } from 'util';
 
 const execAsync = promisify(exec);
+const execFileAsync = promisify(execFile);
 
 /**
  * Test framework configuration detected from project
@@ -73,7 +74,7 @@ export interface TestPerformanceMetrics {
  * Performance Target: <30 minutes for typical story
  */
 export class TestGenerationExecutor {
-  private readonly logger: Logger;
+  private readonly logger: typeof logger;
   private readonly ameliaAgent: AmeliaAgent;
   private readonly projectRoot: string;
 
@@ -84,10 +85,10 @@ export class TestGenerationExecutor {
    * @param projectRoot - Project root directory path
    * @param logger - Logger instance
    */
-  constructor(ameliaAgent: AmeliaAgent, projectRoot: string, logger?: Logger) {
+  constructor(ameliaAgent: AmeliaAgent, projectRoot: string, customLogger?: typeof logger) {
     this.ameliaAgent = ameliaAgent;
     this.projectRoot = projectRoot;
-    this.logger = logger || new Logger();
+    this.logger = customLogger || logger;
   }
 
   /**
@@ -930,9 +931,14 @@ export class TestGenerationExecutor {
     context: StoryContext
   ): Promise<string> {
     try {
-      // Stage test files
-      for (const testFile of testSuite.files) {
-        await execAsync(`git add ${testFile.path}`, {
+      // Stage test files using execFile for security (prevents command injection)
+      const filePaths = testSuite.files.map(f => f.path);
+
+      // Stage files in batches to avoid command line length limits
+      const batchSize = 50;
+      for (let i = 0; i < filePaths.length; i += batchSize) {
+        const batch = filePaths.slice(i, i + batchSize);
+        await execFileAsync('git', ['add', '--', ...batch], {
           cwd: this.projectRoot,
         });
       }
@@ -944,14 +950,17 @@ Test Count: ${testSuite.testCount} (${results.passed} passed, ${results.failed} 
 Coverage: ${coverage.lines.toFixed(1)}% lines, ${coverage.functions.toFixed(1)}% functions, ${coverage.branches.toFixed(1)}% branches, ${coverage.statements.toFixed(1)}% statements
 Framework: ${testSuite.framework}`;
 
-      // Create commit
-      const { stdout } = await execAsync(`git commit -m "${commitMessage}"`, {
+      // Create commit using execFile with argument array (prevents command injection)
+      await execFileAsync('git', ['commit', '-m', commitMessage], {
         cwd: this.projectRoot,
       });
 
-      // Extract commit SHA
-      const shaMatch = stdout.match(/\[.+?\s+([a-f0-9]+)\]/);
-      const commitSha = shaMatch?.[1] ?? 'unknown';
+      // Get commit SHA safely
+      const { stdout } = await execFileAsync('git', ['rev-parse', 'HEAD'], {
+        cwd: this.projectRoot,
+      });
+
+      const commitSha = stdout.trim();
 
       this.logger.info('Test suite committed', {
         commitSha,

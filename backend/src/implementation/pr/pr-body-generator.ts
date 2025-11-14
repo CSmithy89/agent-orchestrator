@@ -207,7 +207,8 @@ function groupFindingsBySeverity(findings: Array<{ severity: string; title: stri
 
 /**
  * Get relative path from project root
+ * Normalizes to POSIX separators for GitHub markdown links
  */
 function getRelativePath(projectRoot: string, filePath: string): string {
-  return path.relative(projectRoot, filePath);
+  return path.relative(projectRoot, filePath).replace(/\\/g, '/');
 }

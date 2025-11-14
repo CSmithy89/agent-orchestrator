@@ -79,8 +79,17 @@ export class DualAgentCodeReviewer {
   ) {
     this.ameliaAgent = ameliaAgent;
     this.alexAgent = alexAgent;
-    this.confidenceThreshold = options?.confidenceThreshold ??
-      parseFloat(process.env.REVIEW_CONFIDENCE_THRESHOLD ?? '0.85');
+
+    // Validate confidence threshold to prevent NaN
+    if (options?.confidenceThreshold !== undefined) {
+      this.confidenceThreshold = options.confidenceThreshold;
+    } else {
+      const envValue = process.env.REVIEW_CONFIDENCE_THRESHOLD;
+      const parsed = envValue !== undefined ? Number(envValue) : 0.85;
+      // Ensure valid number between 0 and 1, fallback to 0.85 if invalid
+      this.confidenceThreshold =
+        Number.isFinite(parsed) && parsed > 0 && parsed <= 1 ? parsed : 0.85;
+    }
   }
 
   /**
@@ -161,7 +170,6 @@ export class DualAgentCodeReviewer {
       const recommendations = this.aggregateRecommendations(ameliaReview, alexReview);
 
       metrics.endTotal();
-      metrics.trackFindings(findings);
 
       const result: CombinedReviewResult = {
         ameliaReview,
@@ -172,7 +180,7 @@ export class DualAgentCodeReviewer {
         decisionRationale: decision.rationale,
         findings,
         recommendations,
-        metrics: metrics.getMetrics()
+        metrics: metrics.getMetrics(findings)
       };
 
       this.logMetrics(result.metrics);
