@@ -1,0 +1,413 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>3</storyId>
+    <title>Extended API Endpoints</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-3-extended-api-endpoints.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a dashboard developer</asA>
+    <iWant>orchestrator control, state query, and escalation API endpoints</iWant>
+    <soThat>the UI can control workflows, query state, and manage escalations</soThat>
+    <tasks>
+### Task 1: Orchestrator Control Endpoints (AC 1-8)
+- [ ] 1.1: Create orchestrator.types.ts with TypeScript interfaces and Zod schemas
+  - OrchestratorStatus, OrchestratorControlRequest, OrchestratorControlResponse
+- [ ] 1.2: Implement OrchestratorService with control methods
+  - getStatus(), start(), pause(), resume()
+  - Integration with WorkflowEngine and Agent Pool
+  - Concurrent request handling with mutex/locks
+- [ ] 1.3: Create orchestrators.ts route handler
+  - GET /api/orchestrators/:projectId/status
+  - POST /api/orchestrators/:projectId/start
+  - POST /api/orchestrators/:projectId/pause
+  - POST /api/orchestrators/:projectId/resume
+- [ ] 1.4: Add WebSocket event emission on status changes
+  - Emit orchestrator.started, orchestrator.paused, orchestrator.resumed events
+- [ ] 1.5: Write unit tests for OrchestratorService (15+ tests)
+- [ ] 1.6: Write integration tests for orchestrator endpoints (12+ tests)
+
+### Task 2: State Query Endpoints (AC 9-16)
+- [ ] 2.1: Create state.types.ts with TypeScript interfaces and Zod schemas
+  - WorkflowStatus, SprintStatus, StoryStatus, StoryDetail
+- [ ] 2.2: Implement StateService with query methods
+  - getWorkflowStatus(), getSprintStatus(), listStories(), getStoryDetail()
+  - Parse sprint-status.yaml efficiently (cache parsed data)
+  - Support filtering by status and epic
+- [ ] 2.3: Create state.ts route handler
+  - GET /api/projects/:id/workflow-status
+  - GET /api/projects/:id/sprint-status
+  - GET /api/projects/:id/stories (with query params: status, epic)
+  - GET /api/projects/:id/stories/:storyId
+- [ ] 2.4: Implement caching layer to optimize file reads
+- [ ] 2.5: Write unit tests for StateService (18+ tests)
+- [ ] 2.6: Write integration tests for state endpoints (16+ tests)
+
+### Task 3: Escalation API Endpoints (AC 17-24)
+- [ ] 3.1: Create escalation.types.ts with TypeScript interfaces and Zod schemas
+  - EscalationStatus, EscalationDetail, EscalationResponse
+- [ ] 3.2: Implement EscalationService with management methods
+  - listEscalations(), getEscalation(), respondToEscalation()
+  - Integration with Escalation Queue from Epic 2
+  - Workflow resumption after response
+- [ ] 3.3: Create escalations.ts route handler
+  - GET /api/escalations (with query params: status, projectId)
+  - GET /api/escalations/:id
+  - POST /api/escalations/:id/respond
+- [ ] 3.4: Add WebSocket event emission for escalations
+  - Emit escalation.created, escalation.responded events
+- [ ] 3.5: Write unit tests for EscalationService (15+ tests)
+- [ ] 3.6: Write integration tests for escalation endpoints (12+ tests)
+
+### Task 4: Server Integration & Documentation
+- [ ] 4.1: Register all new routes in server.ts
+- [ ] 4.2: Update OpenAPI documentation with new endpoints
+- [ ] 4.3: Run all tests and verify >80% coverage
+- [ ] 4.4: Manual testing with Postman/Thunder Client
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+### Orchestrator Control Endpoints (AC 1-8)
+
+1. [ ] GET /api/orchestrators/:projectId/status - Get current orchestrator status
+2. [ ] POST /api/orchestrators/:projectId/start - Start workflow execution
+3. [ ] POST /api/orchestrators/:projectId/pause - Pause workflow execution
+4. [ ] POST /api/orchestrators/:projectId/resume - Resume paused workflow
+5. [ ] Return data: workflow name, current step, status, agent activity, progress percentage
+6. [ ] Validate project exists and workflow configured before operations
+7. [ ] Handle concurrent control requests safely (prevent race conditions)
+8. [ ] Emit WebSocket events on status changes (integration with Story 6.2)
+
+### State Query Endpoints (AC 9-16)
+
+9. [ ] GET /api/projects/:id/workflow-status - Get workflow state (current phase, steps)
+10. [ ] GET /api/projects/:id/sprint-status - Get sprint state (epics, stories, status)
+11. [ ] GET /api/projects/:id/stories - List all stories with status
+12. [ ] GET /api/projects/:id/stories/:storyId - Get detailed story information
+13. [ ] Return comprehensive data: phases, epics, stories, dependencies, status, timestamps
+14. [ ] Support filtering stories by status (backlog, drafted, ready-for-dev, in-progress, review, done) or epic
+15. [ ] Include story PR links when available
+16. [ ] Implement efficient queries (cache or optimize file reads, no reading entire files on each request)
+
+### Escalation API Endpoints (AC 17-24)
+
+17. [ ] GET /api/escalations - List all escalations with optional filters (status, project)
+18. [ ] GET /api/escalations/:id - Get escalation details (question, context, reasoning)
+19. [ ] POST /api/escalations/:id/respond - Submit response to escalation
+20. [ ] Return escalation data: question, AI reasoning, confidence, context, status
+21. [ ] Resume workflow execution when escalation is responded to
+22. [ ] Support bulk escalation queries (multiple escalations at once)
+23. [ ] Mark escalations as resolved after response submitted
+24. [ ] Emit WebSocket event on new escalation created (integration with Story 6.2)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access & Monitoring</title>
+        <section>Story 6.3: Extended API Endpoints</section>
+        <snippet>As a dashboard developer, I want orchestrator control, state query, and escalation API endpoints. Includes 24 acceptance criteria covering orchestrator control (AC 1-8), state queries (AC 9-16), and escalation management (AC 17-24).</snippet>
+      </doc>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Functional Requirements - API & Dashboard</section>
+        <snippet>FR-API-101 to FR-API-105 define REST API requirements. FR-DASH-001 to FR-DASH-005 define dashboard requirements. NFR-PERF-002 specifies API response time &lt;200ms for state queries.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Component Architecture - API Gateway Layer</section>
+        <snippet>Fastify REST API Server with JWT authentication, rate limiting, request validation. WebSocket server for real-time event streaming with project-level subscriptions. Microkernel pattern with event-driven extensions.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-1-api-infrastructure-type-system.md</path>
+        <title>Story 6.1: API Infrastructure & Type System</title>
+        <section>Implementation Notes</section>
+        <snippet>Established Fastify server foundation with JWT middleware, Zod validation, shared TypeScript types (Project, WorkflowStatus, StoryStatus, EscalationStatus), and OpenAPI documentation generation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-2-core-api-endpoints-websocket.md</path>
+        <title>Story 6.2: Core API Endpoints & WebSocket</title>
+        <section>Dev Notes - New Services Created</section>
+        <snippet>EventService at backend/src/api/services/event.service.ts for WebSocket event emission. ProjectService at backend/src/api/services/project.service.ts using singleton pattern. All services emit events through EventService for real-time updates.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/api/types/api.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>APIResponse, APIError, Project, WorkflowStatus, StoryStatus, EscalationStatus, OrchestratorStatus</symbol>
+        <lines>1-74</lines>
+        <reason>Existing TypeScript interfaces for API entities. Need to extend with new types for orchestrator control, state queries, and escalation management.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/types/events.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>Event, EventType</symbol>
+        <lines>1-50</lines>
+        <reason>Event types for WebSocket real-time updates. Need to add orchestrator.started, orchestrator.paused, orchestrator.resumed, escalation.created, escalation.responded event types.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/services/event.service.ts</path>
+        <kind>service</kind>
+        <symbol>EventService</symbol>
+        <lines>1-162</lines>
+        <reason>Singleton event bus for real-time updates. Use emit() and emitEvent() methods to publish WebSocket events for orchestrator status changes and escalations.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/services/project.service.ts</path>
+        <kind>service</kind>
+        <symbol>ProjectService</symbol>
+        <lines>1-289</lines>
+        <reason>Reference implementation for service pattern: singleton, file-based persistence, in-memory caching, event emission, CRUD operations. Follow this pattern for OrchestratorService, StateService, and EscalationService.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/schemas/api.schemas.ts</path>
+        <kind>validation-schemas</kind>
+        <symbol>Zod schemas</symbol>
+        <lines>1-100</lines>
+        <reason>Zod schemas for request/response validation. Create new schemas for orchestrator control requests, state query responses, and escalation requests/responses.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/projects.ts</path>
+        <kind>route-handler</kind>
+        <symbol>projectRoutes</symbol>
+        <lines>1-150</lines>
+        <reason>Example route handler with JWT authentication, Zod validation, error handling. Use as template for orchestrators.ts, state.ts, and escalations.ts route handlers.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/websocket.ts</path>
+        <kind>route-handler</kind>
+        <symbol>WebSocket server</symbol>
+        <lines>1-200</lines>
+        <reason>WebSocket server implementation at /ws/status-updates. Events emitted here will be received by dashboard clients. Orchestrator and escalation services must emit events through EventService.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/WorkflowEngine.ts</path>
+        <kind>core-engine</kind>
+        <symbol>WorkflowEngine</symbol>
+        <lines>1-500</lines>
+        <reason>Core workflow execution engine. OrchestratorService needs to interact with WorkflowEngine for start(), pause(), resume() operations and to query current workflow status.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>core-service</kind>
+        <symbol>StateManager</symbol>
+        <lines>1-300</lines>
+        <reason>Workflow state persistence and recovery. StateService needs to query StateManager for workflow status, parse sprint-status.yaml for sprint state, and read story files for story details.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>core-service</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-400</lines>
+        <reason>Agent lifecycle management. OrchestratorService needs to query AgentPool for active agent information to include in orchestrator status responses.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/services/escalation-queue.ts</path>
+        <kind>service</kind>
+        <symbol>EscalationQueue, Escalation interface</symbol>
+        <lines>1-300</lines>
+        <reason>Escalation queue from Epic 2 Story 2.2. EscalationService needs to integrate with EscalationQueue methods: list(), getById(), respond(). File-based storage in .bmad-escalations/ directory.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/api/projects.test.ts</path>
+        <kind>test</kind>
+        <symbol>Project API integration tests</symbol>
+        <lines>1-200</lines>
+        <reason>Example integration tests using Vitest + Supertest. Use as template for orchestrators.test.ts, state.test.ts, and escalations.test.ts test files.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/api/project.service.test.ts</path>
+        <kind>test</kind>
+        <symbol>ProjectService unit tests</symbol>
+        <lines>1-300</lines>
+        <reason>Example service unit tests with mocking. Use as template for orchestrator.service.test.ts, state.service.test.ts, and escalation.service.test.ts unit tests.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <production>
+          <package name="fastify" version="^4.25.0">REST API framework</package>
+          <package name="@fastify/jwt" version="^7.2.0">JWT authentication middleware</package>
+          <package name="@fastify/cors" version="^9.0.0">CORS support</package>
+          <package name="@fastify/rate-limit" version="^9.1.0">Rate limiting</package>
+          <package name="@fastify/swagger" version="^8.13.0">OpenAPI documentation</package>
+          <package name="@fastify/swagger-ui" version="^2.1.0">Swagger UI</package>
+          <package name="zod" version="^3.22.0">Runtime type validation and schema generation</package>
+          <package name="ws" version="^8.18.3">WebSocket server (from Story 6.2)</package>
+          <package name="uuid" version="^13.0.0">UUID generation</package>
+          <package name="js-yaml" version="^4.1.0">YAML parsing for sprint-status.yaml</package>
+        </production>
+        <dev>
+          <package name="vitest" version="^1.0.0">Test framework</package>
+          <package name="supertest" version="^6.3.0">HTTP endpoint testing</package>
+          <package name="@vitest/coverage-v8" version="^1.0.0">Code coverage</package>
+          <package name="@types/ws" version="^8.18.1">WebSocket TypeScript types</package>
+          <package name="@types/supertest" version="^6.0.2">Supertest TypeScript types</package>
+        </dev>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+- **Authentication**: All API endpoints MUST use JWT middleware from Story 6.1 for authentication
+- **Service Pattern**: All services (OrchestratorService, StateService, EscalationService) MUST follow singleton pattern with getInstance()
+- **Event Emission**: All state changes MUST emit WebSocket events through EventService.emitEvent()
+- **Error Handling**: Use existing error handling middleware from Story 6.1, return standard APIError format
+- **Validation**: All request/response data MUST be validated using Zod schemas
+- **File Structure**: Routes in backend/src/api/routes/, Services in backend/src/api/services/, Types in backend/src/api/types/
+- **Testing**: Unit tests for services (>15 tests each), Integration tests for endpoints (>12 tests each), >80% coverage target
+- **Performance**: Implement caching for sprint-status.yaml parsing, optimize file reads to avoid reading entire files on each request
+- **Concurrency**: Use mutex/locks for orchestrator control operations to prevent race conditions on concurrent requests
+- **State Files**: Sprint status at {project-root}/docs/sprint-status.yaml, Workflow state managed by StateManager, Escalation queue in .bmad-escalations/
+- **Integration Points**: WorkflowEngine (Epic 1) for orchestrator control, StateManager (Epic 1) for state queries, AgentPool (Epic 1) for agent activity, EscalationQueue (Epic 2) for escalation management
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>EventService.emitEvent()</name>
+      <kind>service-method</kind>
+      <signature>emitEvent(projectId: string, eventType: EventType, data: unknown): void</signature>
+      <path>backend/src/api/services/event.service.ts</path>
+      <description>Emit WebSocket events for real-time updates. Use for orchestrator.started, orchestrator.paused, orchestrator.resumed, escalation.created, escalation.responded events.</description>
+    </interface>
+    <interface>
+      <name>WorkflowEngine</name>
+      <kind>core-class</kind>
+      <signature>execute(): Promise&lt;void&gt;, pause(): Promise&lt;void&gt;, resume(): Promise&lt;void&gt;, getStatus(): WorkflowState</signature>
+      <path>backend/src/core/WorkflowEngine.ts</path>
+      <description>Core workflow execution engine. OrchestratorService integrates with these methods for workflow control operations.</description>
+    </interface>
+    <interface>
+      <name>StateManager</name>
+      <kind>core-class</kind>
+      <signature>getState(projectId: string): Promise&lt;WorkflowState&gt;, saveState(state: WorkflowState): Promise&lt;void&gt;</signature>
+      <path>backend/src/core/StateManager.ts</path>
+      <description>State persistence and recovery. StateService queries StateManager for workflow status and reads sprint-status.yaml for sprint state.</description>
+    </interface>
+    <interface>
+      <name>EscalationQueue</name>
+      <kind>service-class</kind>
+      <signature>list(filters): Promise&lt;Escalation[]&gt;, getById(id): Promise&lt;Escalation&gt;, respond(id, response): Promise&lt;void&gt;</signature>
+      <path>backend/src/core/services/escalation-queue.ts</path>
+      <description>Escalation management from Epic 2. EscalationService wraps these methods with REST API endpoints and adds WebSocket event emission.</description>
+    </interface>
+    <interface>
+      <name>GET /api/orchestrators/:projectId/status</name>
+      <kind>REST-endpoint</kind>
+      <signature>GET /api/orchestrators/:projectId/status → APIResponse&lt;OrchestratorStatus&gt;</signature>
+      <path>backend/src/api/routes/orchestrators.ts</path>
+      <description>Returns current orchestrator status: workflow name, current step, status, agent activity, progress percentage.</description>
+    </interface>
+    <interface>
+      <name>POST /api/orchestrators/:projectId/start</name>
+      <kind>REST-endpoint</kind>
+      <signature>POST /api/orchestrators/:projectId/start → APIResponse&lt;void&gt;</signature>
+      <path>backend/src/api/routes/orchestrators.ts</path>
+      <description>Starts workflow execution for the project. Validates project exists and workflow configured. Emits orchestrator.started event.</description>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/sprint-status</name>
+      <kind>REST-endpoint</kind>
+      <signature>GET /api/projects/:id/sprint-status → APIResponse&lt;SprintStatus&gt;</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <description>Returns sprint state: epics, stories, dependencies, status, timestamps. Parses sprint-status.yaml efficiently with caching.</description>
+    </interface>
+    <interface>
+      <name>GET /api/escalations</name>
+      <kind>REST-endpoint</kind>
+      <signature>GET /api/escalations?status=pending&projectId=abc → APIResponse&lt;Escalation[]&gt;</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>Lists escalations with optional filters (status, projectId). Supports bulk queries for multiple escalations.</description>
+    </interface>
+    <interface>
+      <name>POST /api/escalations/:id/respond</name>
+      <kind>REST-endpoint</kind>
+      <signature>POST /api/escalations/:id/respond {response: string} → APIResponse&lt;void&gt;</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>Submits response to escalation, marks as resolved, resumes workflow execution, emits escalation.responded event.</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing framework: Vitest + Supertest for API integration tests. All services follow unit test pattern with mocks for external dependencies (WorkflowEngine, StateManager, EscalationQueue). Integration tests use Supertest to test HTTP endpoints with real Fastify server. Coverage target: >80% for services and routes. Test files mirror source structure in backend/tests/api/. Each service needs 15+ unit tests, each endpoint group needs 12+ integration tests. Mock file system operations, WebSocket connections, and external API calls.
+    </standards>
+    <locations>
+backend/tests/api/orchestrators.test.ts
+backend/tests/api/orchestrator.service.test.ts
+backend/tests/api/state.test.ts
+backend/tests/api/state.service.test.ts
+backend/tests/api/escalations.test.ts
+backend/tests/api/escalation.service.test.ts
+    </locations>
+    <ideas>
+**OrchestratorService Unit Tests (15+ tests):**
+- Test getStatus() returns correct orchestrator status with workflow name, step, agent activity
+- Test start() validates project exists before starting workflow
+- Test start() emits orchestrator.started event through EventService
+- Test pause() updates workflow state and emits orchestrator.paused event
+- Test resume() continues from last checkpoint and emits orchestrator.resumed event
+- Test concurrent start requests are handled safely with mutex/locks
+- Test start() throws error if workflow already running
+- Test resume() throws error if no paused workflow exists
+- Test getStatus() includes progress percentage calculation
+
+**Orchestrator Endpoint Integration Tests (12+ tests):**
+- Test GET /api/orchestrators/:projectId/status returns 200 with valid status
+- Test POST /api/orchestrators/:projectId/start returns 200 and starts workflow
+- Test POST /api/orchestrators/:projectId/pause returns 200 and pauses workflow
+- Test POST /api/orchestrators/:projectId/resume returns 200 and resumes workflow
+- Test all endpoints return 401 without JWT token
+- Test endpoints return 404 for non-existent projectId
+- Test WebSocket events are emitted on orchestrator status changes
+
+**StateService Unit Tests (18+ tests):**
+- Test getWorkflowStatus() parses sprint-status.yaml correctly
+- Test getSprintStatus() returns epics and stories with correct status
+- Test listStories() supports filtering by status (backlog, drafted, ready-for-dev, in-progress, review, done)
+- Test listStories() supports filtering by epic
+- Test getStoryDetail() returns full story information including PR links
+- Test caching layer reduces file reads on repeated queries
+- Test parsing handles missing or malformed sprint-status.yaml gracefully
+
+**State Endpoint Integration Tests (16+ tests):**
+- Test GET /api/projects/:id/workflow-status returns 200 with workflow state
+- Test GET /api/projects/:id/sprint-status returns 200 with sprint state
+- Test GET /api/projects/:id/stories returns 200 with story list
+- Test GET /api/projects/:id/stories with status filter returns filtered results
+- Test GET /api/projects/:id/stories/:storyId returns 200 with story details
+- Test endpoints return 401 without JWT token
+- Test endpoints return 404 for non-existent project
+- Test response times are &lt;200ms (performance requirement)
+
+**EscalationService Unit Tests (15+ tests):**
+- Test listEscalations() queries EscalationQueue with filters
+- Test listEscalations() supports filtering by status and projectId
+- Test getEscalation() returns full escalation details with AI reasoning and context
+- Test respondToEscalation() marks escalation as resolved
+- Test respondToEscalation() resumes workflow execution after response
+- Test respondToEscalation() emits escalation.responded event
+- Test respondToEscalation() validates response is not empty
+- Test bulk escalation queries return multiple escalations
+
+**Escalation Endpoint Integration Tests (12+ tests):**
+- Test GET /api/escalations returns 200 with escalation list
+- Test GET /api/escalations with status filter returns filtered results
+- Test GET /api/escalations/:id returns 200 with escalation details
+- Test POST /api/escalations/:id/respond returns 200 and resolves escalation
+- Test POST /api/escalations/:id/respond emits WebSocket event
+- Test endpoints return 401 without JWT token
+- Test POST /api/escalations/:id/respond validates response is not empty
+- Test workflow resumes correctly after escalation response
+    </ideas>
+  </tests>
+</story-context>
