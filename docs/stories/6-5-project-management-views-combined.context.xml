@@ -1,0 +1,353 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>5</storyId>
+    <title>Project Management Views (Combined)</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-5-project-management-views-combined.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user with multiple projects</asA>
+    <iWant>to see all projects at a glance and view detailed project information</iWant>
+    <soThat>I can monitor status across my portfolio and track individual project progress</soThat>
+    <tasks>
+      <task id="1" title="Project Data Types and API Integration">
+        <subtask id="1.1">Define TypeScript types in src/types/project.ts (ProjectResponse, WorkflowStatusResponse, SprintStatusResponse, PhaseProgress, EventLog, AgentActivity interfaces)</subtask>
+        <subtask id="1.2">Add API methods to src/api/projects.ts (getProjects, getProject, getWorkflowStatus, getSprintStatus, pauseOrchestrator, resumeOrchestrator)</subtask>
+        <subtask id="1.3">Create TanStack Query hooks in src/hooks/ (useProjects.ts, useProject.ts, useProjectWorkflowStatus.ts)</subtask>
+        <subtask id="1.4">Write unit tests for API methods and hooks</subtask>
+      </task>
+      <task id="2" title="Projects Overview Page">
+        <subtask id="2.1">Create ProjectsListPage component with layout, filters, loading/error states</subtask>
+        <subtask id="2.2">Create ProjectCard component with phase badge, progress bar, last update</subtask>
+        <subtask id="2.3">Create ProjectsGrid component with responsive grid layout</subtask>
+        <subtask id="2.4">Create ProjectFilters component with phase filter, status filter, search input, sort toggle</subtask>
+        <subtask id="2.5">Integrate filters and search logic (filter by phase/status, search by name, sort)</subtask>
+        <subtask id="2.6">Add "Create Project" button and modal placeholder</subtask>
+        <subtask id="2.7">Write component tests for ProjectsListPage</subtask>
+      </task>
+      <task id="3" title="Project Detail Page">
+        <subtask id="3.1">Create ProjectDetailPage component with responsive layout</subtask>
+        <subtask id="3.2">Create PhaseProgressStepper component with 4-phase visualization</subtask>
+        <subtask id="3.3">Create ActiveAgentsList component showing active agents and tasks</subtask>
+        <subtask id="3.4">Create EventTimeline component with scrollable timeline</subtask>
+        <subtask id="3.5">Create QuickActions component with Pause/Resume/View Docs buttons</subtask>
+        <subtask id="3.6">Integrate workflow and sprint status data</subtask>
+        <subtask id="3.7">Write component tests for ProjectDetailPage</subtask>
+      </task>
+      <task id="4" title="Real-Time WebSocket Updates">
+        <subtask id="4.1">Create useProjectWebSocket hook for event subscriptions</subtask>
+        <subtask id="4.2">Integrate WebSocket into ProjectsListPage</subtask>
+        <subtask id="4.3">Integrate WebSocket into ProjectDetailPage</subtask>
+        <subtask id="4.4">Test real-time updates with mock WebSocket events</subtask>
+      </task>
+      <task id="5" title="Responsive Design and Polish">
+        <subtask id="5.1">Implement responsive layout for ProjectsListPage (mobile/tablet/desktop)</subtask>
+        <subtask id="5.2">Implement responsive layout for ProjectDetailPage (stacked/grid layouts)</subtask>
+        <subtask id="5.3">Add loading skeletons</subtask>
+        <subtask id="5.4">Add error boundaries</subtask>
+        <subtask id="5.5">Add accessibility improvements (ARIA labels, keyboard navigation)</subtask>
+      </task>
+      <task id="6" title="Documentation and Testing">
+        <subtask id="6.1">Write unit tests for all new components (15+ tests)</subtask>
+        <subtask id="6.2">Write integration tests for pages (8+ tests)</subtask>
+        <subtask id="6.3">Write hook tests for TanStack Query hooks (6+ tests)</subtask>
+        <subtask id="6.4">Run all tests and verify &gt;70% coverage</subtask>
+        <subtask id="6.5">Update README.md with project views documentation</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC-1" priority="high">Projects list page showing all projects at route /projects</criterion>
+    <criterion id="AC-2" priority="high">Display per project: Name, description, current phase (color-coded badge), progress indicator, active tasks count, last update timestamp (relative time)</criterion>
+    <criterion id="AC-3" priority="medium">Filter by phase or status dropdown</criterion>
+    <criterion id="AC-4" priority="medium">Search by project name (live search, debounced)</criterion>
+    <criterion id="AC-5" priority="high">Click project card to navigate to detail view</criterion>
+    <criterion id="AC-6" priority="low">Create Project button (opens create project modal)</criterion>
+    <criterion id="AC-7" priority="high">Real-time updates via WebSocket (project.phase.changed, story.status.changed events)</criterion>
+    <criterion id="AC-8" priority="medium">Sort by last updated (default) or name (toggle button)</criterion>
+    <criterion id="AC-9" priority="high">Project detail page at route /projects/:id</criterion>
+    <criterion id="AC-10" priority="high">Show: Phase progress visualization, current workflow and step, active agents and tasks, recent events log, quick actions (Pause, Resume, View Docs)</criterion>
+    <criterion id="AC-11" priority="medium">Phase visualization using stepper component (horizontal progress indicator with 4 phases)</criterion>
+    <criterion id="AC-12" priority="medium">Event timeline with timestamps (relative time, expandable details)</criterion>
+    <criterion id="AC-13" priority="medium">Links to generated documents (PRD, architecture, epics, stories) with download/view options</criterion>
+    <criterion id="AC-14" priority="high">Real-time updates (phase progress, agent activity, events via WebSocket)</criterion>
+    <criterion id="AC-15" priority="high">Responsive layout (mobile: stacked, tablet: 2-column grid, desktop: 3-column grid)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Agent Orchestrator Product Requirements Document</title>
+        <section>Remote Access Requirements</section>
+        <snippet>REST API for project status and escalation management, Simple web dashboard for project monitoring, Escalation response interface. Enhanced Remote Access (v1.2): Full-featured PWA dashboard, Two-level Kanban board (Phase overview + detail).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator System Architecture</title>
+        <section>Remote Access & WebSocket</section>
+        <snippet>React PWA Dashboard with WebSocket Server for real-time event streaming and project-level subscriptions. Event Bus for internal event streaming (agent.started, story.completed, phase.changed, escalation.created, pr.merged) consumed by WebSocket server, State manager, and Notification service.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access & Monitoring</title>
+        <section>Story 6.5: Project Management Views (Combined)</section>
+        <snippet>Combined story delivering both Project Overview Dashboard (showing all projects with filters, search, real-time updates) and Project Detail View (showing phase progress, workflow status, active agents, event timeline, quick actions). Combines original stories 6.8 and 6.9 for efficiency. Prerequisites: Stories 6.1-6.4 complete. Estimated Time: 5-6 hours.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-4-react-dashboard-foundation-api-integration.md</path>
+        <title>Story 6.4: React Dashboard Foundation</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>React 18.3.1 + TypeScript 5.5.4 with Vite 5.4.3. TanStack Query 5.56.2 configured with 5min stale time. Zustand 4.5.5 for client state. Tailwind CSS 3.4.10 with dark mode. shadcn/ui with 11 components installed. BaseAPI class at dashboard/src/api/client.ts with JWT token injection. useWebSocket hook with exponential backoff reconnection. MainLayout with Header and Sidebar. 35 tests passing with Vitest 1.6.1.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>dashboard/src/api/client.ts</path>
+        <kind>api-client</kind>
+        <symbol>baseApi</symbol>
+        <reason>BaseAPI class with get/post/patch/delete methods, automatic JWT token injection, error handling with APIError class. Required for all API calls.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/api/types.ts</path>
+        <kind>types</kind>
+        <symbol>Project, WorkflowStatus, SprintStatus, StoryStatus, PhaseProgress, WebSocketEvent</symbol>
+        <reason>Existing TypeScript interfaces for API entities. Need to extend for project views (add ProjectResponse, EventLog, AgentActivity types).</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/api/projects.ts</path>
+        <kind>api-client</kind>
+        <symbol>projectsApi</symbol>
+        <reason>Existing project API methods (getProjects, getProject, getWorkflowStatus, getSprintStatus, getStories). Need to add pauseOrchestrator and resumeOrchestrator methods.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useWebSocket</symbol>
+        <reason>WebSocket hook with automatic reconnection (exponential backoff 1s-16s), event subscription system, connection status tracking. Will be used for real-time updates in project views.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/layout/MainLayout.tsx</path>
+        <kind>component</kind>
+        <symbol>MainLayout</symbol>
+        <reason>Layout wrapper with Header and Sidebar. All new pages (ProjectsListPage, ProjectDetailPage) will be wrapped in this layout.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/button.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Button</symbol>
+        <reason>shadcn/ui Button component for actions (Create Project, Pause, Resume, View Docs buttons).</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/card.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Card</symbol>
+        <reason>shadcn/ui Card component for ProjectCard layout.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/dialog.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Dialog</symbol>
+        <reason>shadcn/ui Dialog component for Create Project modal.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/input.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Input</symbol>
+        <reason>shadcn/ui Input component for search field in project filters.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/select.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Select</symbol>
+        <reason>shadcn/ui Select component for phase and status filter dropdowns.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/skeleton.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Skeleton</symbol>
+        <reason>shadcn/ui Skeleton component for loading states in project cards and detail pages.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/tabs.tsx</path>
+        <kind>ui-component</kind>
+        <symbol>Tabs</symbol>
+        <reason>shadcn/ui Tabs component for organizing sections in ProjectDetailPage.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/lib/utils.ts</path>
+        <kind>utility</kind>
+        <symbol>cn, formatDate, formatRelativeTime</symbol>
+        <reason>Utility functions including formatRelativeTime for displaying "2 hours ago" timestamps and cn for className merging.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="react" version="^18.3.1">Core React library for UI components</package>
+        <package name="react-dom" version="^18.3.1">React DOM rendering</package>
+        <package name="react-router-dom" version="^6.26.1">Routing for /projects and /projects/:id pages</package>
+        <package name="@tanstack/react-query" version="^5.56.2">Server state management for API data fetching and caching</package>
+        <package name="zustand" version="^4.5.5">Client state management (auth, UI state)</package>
+        <package name="tailwindcss" version="^3.4.10">Utility-first CSS framework for styling</package>
+        <package name="@radix-ui/react-dialog" version="^1.0.5">Dialog primitive for Create Project modal</package>
+        <package name="@radix-ui/react-dropdown-menu" version="^2.0.6">Dropdown menu primitive for View Docs actions</package>
+        <package name="@radix-ui/react-select" version="^2.0.0">Select primitive for filters</package>
+        <package name="@radix-ui/react-tabs" version="^1.0.4">Tabs primitive for detail page sections</package>
+        <package name="@radix-ui/react-toast" version="^1.1.5">Toast notifications for success/error messages</package>
+        <package name="lucide-react" version="^0.294.0">Icon library for UI icons</package>
+        <package name="class-variance-authority" version="^0.7.0">Component variant styling</package>
+        <package name="clsx" version="^2.1.1">Conditional className utility</package>
+        <package name="tailwind-merge" version="^2.5.2">Tailwind class merging utility</package>
+      </npm>
+      <npm-dev>
+        <package name="typescript" version="^5.5.4">TypeScript compiler for type safety</package>
+        <package name="vite" version="^5.4.3">Build tool and dev server</package>
+        <package name="vitest" version="^1.0.4">Testing framework (unit and integration tests)</package>
+        <package name="@testing-library/react" version="^14.1.2">React testing utilities</package>
+        <package name="@testing-library/user-event" version="^14.5.1">User interaction testing</package>
+        <package name="@testing-library/jest-dom" version="^6.1.5">Jest DOM matchers for assertions</package>
+        <package name="jsdom" version="^23.0.1">DOM implementation for testing</package>
+      </npm-dev>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint id="ARCH-1" category="architecture">Container/Presenter Pattern: Page components fetch data using TanStack Query hooks, presentational components display data passed as props. Keeps concerns separated.</constraint>
+    <constraint id="ARCH-2" category="architecture">Query Invalidation: Use TanStack Query's invalidateQueries() on WebSocket events to trigger automatic refetching. No manual state management needed.</constraint>
+    <constraint id="ARCH-3" category="architecture">Optimistic Updates: Update UI immediately on user actions, rollback on API error. Provides better UX.</constraint>
+    <constraint id="UI-1" category="design">Skeleton Loading: Show skeleton screens while loading instead of spinners. Better perceived performance.</constraint>
+    <constraint id="UI-2" category="design">Error Boundaries: Wrap pages in error boundaries to gracefully handle errors with retry options.</constraint>
+    <constraint id="UI-3" category="design">Responsive Design: Mobile-first approach with breakpoints (mobile: &lt;768px, tablet: 768px-1024px, desktop: &gt;1024px). Use Tailwind responsive classes.</constraint>
+    <constraint id="PERF-1" category="performance">Query Caching: TanStack Query caches API responses (5min stale time for list view, 2min for detail view). Background refetch every 30s for lists, 10s for detail.</constraint>
+    <constraint id="PERF-2" category="performance">WebSocket Efficiency: Single WebSocket connection shared across components using useWebSocket hook. Don't create multiple connections.</constraint>
+    <constraint id="PERF-3" category="performance">Debounced Search: 500ms debounce on search input to reduce API calls and improve performance.</constraint>
+    <constraint id="TEST-1" category="testing">Test Framework: Vitest + React Testing Library. Co-locate tests with source files (*.test.tsx pattern).</constraint>
+    <constraint id="TEST-2" category="testing">Coverage Target: Minimum 70% code coverage per component. Run tests with npm test, coverage with npm run test:coverage.</constraint>
+    <constraint id="TEST-3" category="testing">Test Pattern: Render component, assert content, test interactions, verify behavior. Mock API calls and WebSocket events.</constraint>
+    <constraint id="SEC-1" category="security">Authentication: All API calls include JWT token from localStorage (handled automatically by BaseAPI class).</constraint>
+    <constraint id="SEC-2" category="security">Input Sanitization: Search input sanitized before sending to API. React automatically escapes rendered content for XSS protection.</constraint>
+    <constraint id="FILE-1" category="structure">File Organization: Pages in dashboard/src/pages/, feature components in dashboard/src/components/projects/, shared UI in dashboard/src/components/ui/, hooks in dashboard/src/hooks/.</constraint>
+    <constraint id="FILE-2" category="structure">TypeScript Types: Define types in dashboard/src/types/project.ts. Export all interfaces for reuse across components.</constraint>
+  </constraints>
+
+  <interfaces>
+    <api>
+      <endpoint method="GET" path="/api/projects">
+        <description>List all projects with pagination support</description>
+        <response>APIResponse&lt;Project[]&gt;</response>
+        <usage>Used by ProjectsListPage to display all projects</usage>
+      </endpoint>
+      <endpoint method="GET" path="/api/projects/:id">
+        <description>Get detailed information for a specific project</description>
+        <response>APIResponse&lt;Project&gt;</response>
+        <usage>Used by ProjectDetailPage to display project details</usage>
+      </endpoint>
+      <endpoint method="GET" path="/api/projects/:id/workflow-status">
+        <description>Get current workflow state including active agents and phase progress</description>
+        <response>APIResponse&lt;WorkflowStatus&gt;</response>
+        <usage>Used by ProjectDetailPage to display workflow status, agents, and phase progress</usage>
+      </endpoint>
+      <endpoint method="GET" path="/api/projects/:id/sprint-status">
+        <description>Get sprint status including story statuses and velocity</description>
+        <response>APIResponse&lt;SprintStatus&gt;</response>
+        <usage>Used by ProjectDetailPage to display sprint information and story progress</usage>
+      </endpoint>
+      <endpoint method="POST" path="/api/orchestrators/:projectId/pause">
+        <description>Pause workflow execution for a project</description>
+        <request>{}</request>
+        <response>APIResponse&lt;void&gt;</response>
+        <usage>Used by QuickActions component Pause button</usage>
+      </endpoint>
+      <endpoint method="POST" path="/api/orchestrators/:projectId/resume">
+        <description>Resume paused workflow execution for a project</description>
+        <request>{}</request>
+        <response>APIResponse&lt;void&gt;</response>
+        <usage>Used by QuickActions component Resume button</usage>
+      </endpoint>
+      <websocket path="/ws/status-updates">
+        <description>WebSocket endpoint for real-time project updates</description>
+        <authentication>JWT token passed as query parameter: ?token=...</authentication>
+        <events>
+          <event type="project.phase.changed">Emitted when project phase changes (Analysis → Planning → Solutioning → Implementation)</event>
+          <event type="story.status.changed">Emitted when story status changes (drafted → ready-for-dev → in-progress → review → done)</event>
+          <event type="agent.started">Emitted when agent begins work on a task</event>
+          <event type="agent.completed">Emitted when agent completes a task</event>
+          <event type="pr.created">Emitted when pull request is created</event>
+          <event type="pr.merged">Emitted when pull request is merged</event>
+          <event type="workflow.error">Emitted when workflow encounters an error</event>
+        </events>
+        <usage>Used by useProjectWebSocket hook to invalidate TanStack Query cache and trigger UI updates</usage>
+      </websocket>
+    </api>
+    <types>
+      <interface name="Project">
+        <signature>interface Project { id: string; name: string; status: 'active' | 'paused' | 'completed' | 'error'; phase: 'analysis' | 'planning' | 'solutioning' | 'implementation' | 'review'; createdAt: string; updatedAt: string; repository?: string; config?: ProjectConfig; }</signature>
+        <path>dashboard/src/api/types.ts</path>
+        <usage>Core project entity used throughout project views</usage>
+      </interface>
+      <interface name="WorkflowStatus">
+        <signature>interface WorkflowStatus { projectId: string; currentPhase: string; currentStory?: string; phaseProgress: PhaseProgress[]; estimatedCompletion?: string; }</signature>
+        <path>dashboard/src/api/types.ts</path>
+        <usage>Workflow state for PhaseProgressStepper and workflow display</usage>
+      </interface>
+      <interface name="PhaseProgress">
+        <signature>interface PhaseProgress { phase: string; progress: number; completedTasks: number; totalTasks: number; }</signature>
+        <path>dashboard/src/api/types.ts</path>
+        <usage>Phase-level progress for progress bars and stepper visualization</usage>
+      </interface>
+      <interface name="SprintStatus">
+        <signature>interface SprintStatus { projectKey: string; currentEpic: string; stories: Record&lt;string, string&gt;; velocity?: number; }</signature>
+        <path>dashboard/src/api/types.ts</path>
+        <usage>Sprint state for displaying story progress and velocity metrics</usage>
+      </interface>
+      <interface name="WebSocketEvent">
+        <signature>interface WebSocketEvent { projectId: string; eventType: WebSocketEventType; data: unknown; timestamp: string; }</signature>
+        <path>dashboard/src/api/types.ts</path>
+        <usage>WebSocket event structure for real-time updates</usage>
+      </interface>
+    </types>
+  </interfaces>
+
+  <tests>
+    <standards>Testing uses Vitest 1.0.4 as test runner with React Testing Library 14.1.2 for component testing. Tests are co-located with source files using *.test.tsx naming convention. Test pattern follows: import from test-utils, render component with test-utils/test-utils.tsx wrapper (provides QueryClient and Router context), assert content with screen queries, test user interactions with @testing-library/user-event, verify behavior with expect assertions. Mock API calls with vi.fn(), mock WebSocket with custom mock implementation. Minimum 70% code coverage required. Run tests: npm test, watch mode: npm run test:watch, coverage: npm run test:coverage.</standards>
+    <locations>
+      <location>dashboard/src/pages/*.test.tsx</location>
+      <location>dashboard/src/components/projects/*.test.tsx</location>
+      <location>dashboard/src/hooks/*.test.ts</location>
+    </locations>
+    <ideas>
+      <test id="TEST-1" ac="AC-1" category="page">ProjectsListPage renders with projects list fetched from API</test>
+      <test id="TEST-2" ac="AC-2" category="component">ProjectCard displays name, description, phase badge (color-coded), progress bar, active tasks count, relative timestamp</test>
+      <test id="TEST-3" ac="AC-3,AC-4" category="integration">ProjectFilters component filters projects by phase and status, searches by name with debounce</test>
+      <test id="TEST-4" ac="AC-5" category="interaction">Clicking ProjectCard navigates to project detail page with correct project ID</test>
+      <test id="TEST-5" ac="AC-6" category="interaction">Create Project button opens modal dialog</test>
+      <test id="TEST-6" ac="AC-7" category="integration">WebSocket events (project.phase.changed) invalidate query cache and update project list</test>
+      <test id="TEST-7" ac="AC-8" category="interaction">Sort toggle button changes project list order (last updated vs name)</test>
+      <test id="TEST-8" ac="AC-9" category="page">ProjectDetailPage renders with project details at route /projects/:id</test>
+      <test id="TEST-9" ac="AC-10,AC-11" category="component">PhaseProgressStepper displays 4 phases with current phase highlighted and progress bars</test>
+      <test id="TEST-10" ac="AC-10" category="component">ActiveAgentsList displays agent name, current task, start time in relative format</test>
+      <test id="TEST-11" ac="AC-12" category="component">EventTimeline displays events in reverse chronological order with expandable details</test>
+      <test id="TEST-12" ac="AC-10" category="component">QuickActions displays Pause button when workflow running, Resume when paused, View Docs dropdown</test>
+      <test id="TEST-13" ac="AC-10" category="interaction">QuickActions Pause button calls pauseOrchestrator API and shows success toast</test>
+      <test id="TEST-14" ac="AC-13" category="component">Links to generated documents (PRD, architecture) are displayed with correct paths</test>
+      <test id="TEST-15" ac="AC-14" category="integration">WebSocket events (story.status.changed) update ProjectDetailPage workflow status display</test>
+      <test id="TEST-16" ac="AC-15" category="responsive">ProjectsListPage layout adapts to mobile (1 col), tablet (2 col), desktop (3 col)</test>
+      <test id="TEST-17" ac="AC-15" category="responsive">ProjectDetailPage layout stacks on mobile, 2-col on tablet, 3-col on desktop</test>
+      <test id="TEST-18" category="hook">useProjects hook fetches projects with 5min stale time and 30s refetch interval</test>
+      <test id="TEST-19" category="hook">useProject hook fetches single project with 2min stale time</test>
+      <test id="TEST-20" category="hook">useProjectWorkflowStatus hook fetches workflow status with 1min stale time and 10s refetch</test>
+      <test id="TEST-21" category="hook">useProjectWebSocket hook subscribes to project events and invalidates queries on events</test>
+      <test id="TEST-22" category="error">ProjectsListPage shows error boundary when API call fails with retry option</test>
+      <test id="TEST-23" category="loading">ProjectsListPage shows skeleton loading state while fetching projects</test>
+      <test id="TEST-24" category="loading">ProjectDetailPage shows skeleton loading state while fetching project details</test>
+      <test id="TEST-25" category="accessibility">ProjectCard has ARIA labels and keyboard navigation (Tab to focus, Enter to navigate)</test>
+      <test id="TEST-26" category="accessibility">ProjectFilters have proper ARIA labels for screen readers</test>
+      <test id="TEST-27" category="accessibility">QuickActions buttons have descriptive ARIA labels</test>
+    </ideas>
+  </tests>
+</story-context>

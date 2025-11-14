@@ -13,6 +13,196 @@ Modern React dashboard for monitoring and managing the Agent Orchestrator system
 - **Type Safety:** Full TypeScript coverage with strict mode
 - **Testing:** Vitest + React Testing Library for comprehensive test coverage
 
+## Project Management Views
+
+The dashboard provides comprehensive project management UI with real-time updates for monitoring autonomous development workflows.
+
+### Components Architecture
+
+**Overview Page (`/projects`):**
+- **ProjectsListPage**: Container component that fetches and manages project list data
+- **ProjectsGrid**: Responsive grid layout (1/2/3 columns for mobile/tablet/desktop)
+- **ProjectCard**: Individual project card displaying status, phase, progress, and metadata
+- **ProjectFilters**: Filter controls (phase, status, search, sort)
+- **CreateProjectModal**: Dialog for creating new projects
+
+**Detail Page (`/projects/:id`):**
+- **ProjectDetailPage**: Container component for individual project monitoring
+- **PhaseProgressStepper**: Visual timeline showing 4 development phases (Analysis, Planning, Solutioning, Implementation) with progress indicators
+- **ActiveAgentsList**: Real-time display of active agents and their current tasks
+- **EventTimeline**: Scrollable, expandable timeline of recent project events
+- **QuickActions**: Control buttons for pause/resume workflow and viewing generated documents
+
+### Component Hierarchy
+
+```
+ProjectsListPage
+├── ProjectFilters (search, phase filter, status filter, sort toggle)
+├── ProjectsGrid
+│   └── ProjectCard (×N projects)
+│       ├── Phase Badge (color-coded)
+│       ├── Progress Bar
+│       ├── Status Indicator
+│       └── Relative Timestamp
+└── CreateProjectModal
+
+ProjectDetailPage
+├── PhaseProgressStepper (4 phases with progress)
+├── ActiveAgentsList (agent cards with tasks)
+├── EventTimeline (expandable event items)
+└── QuickActions (Pause/Resume/View Docs)
+```
+
+### API Integration Patterns
+
+**Projects API:**
+```typescript
+import { useProjects, useProject } from '@/hooks/useProjects';
+
+// List all projects (5min cache, 30s background refetch)
+const { data: projects, isLoading, error } = useProjects();
+
+// Get single project details (2min cache)
+const { data: project } = useProject(projectId);
+```
+
+**Workflow Status API:**
+```typescript
+import { useProjectWorkflowStatus } from '@/hooks/useProjects';
+
+// Get workflow state (1min cache, 10s refetch)
+const { data: workflowStatus } = useProjectWorkflowStatus(projectId);
+// Returns: current workflow, step, progress, active agents
+```
+
+**Sprint Status API:**
+```typescript
+import { useProjectSprintStatus } from '@/hooks/useProjects';
+
+// Get sprint state for project
+const { data: sprintStatus } = useProjectSprintStatus(projectId);
+// Returns: stories, epics, completion metrics
+```
+
+**Orchestrator Control:**
+```typescript
+import { pauseOrchestrator, resumeOrchestrator } from '@/api/orchestrators';
+
+// Pause workflow
+await pauseOrchestrator(projectId);
+
+// Resume workflow
+await resumeOrchestrator(projectId);
+```
+
+### Real-Time WebSocket Updates
+
+The project views use WebSocket subscriptions for live updates:
+
+**Event Types:**
+- `project.phase.changed`: Phase transitions (Analysis → Planning, etc.)
+- `story.status.changed`: Story status updates (drafted → ready-for-dev → in-progress, etc.)
+- `agent.*`: Agent activity events (started, completed, error)
+- `pr.*`: Pull request events (created, merged, failed)
+- `workflow.error`: Workflow errors requiring attention
+
+**Integration Pattern:**
+```typescript
+import { useProjectWebSocket } from '@/hooks/useProjectWebSocket';
+
+function ProjectsListPage() {
+  const { data: projects } = useProjects();
+
+  // Subscribe to all project updates
+  useProjectWebSocket();
+
+  // TanStack Query cache automatically invalidates on events
+  // Component re-renders with fresh data
+}
+
+function ProjectDetailPage({ id }: { id: string }) {
+  const { data: project } = useProject(id);
+  const { data: workflowStatus } = useProjectWorkflowStatus(id);
+
+  // Subscribe to project-specific updates
+  useProjectWebSocket(id);
+
+  // Cache invalidation triggers on:
+  // - project.phase.changed → refetches project data
+  // - story.status.changed → refetches workflow status
+  // - agent.* → refetches workflow status and agent list
+}
+```
+
+**How It Works:**
+1. Component mounts and subscribes to WebSocket events via `useProjectWebSocket`
+2. Events arrive from backend WebSocket connection
+3. Hook maps event types to TanStack Query cache keys
+4. Calls `queryClient.invalidateQueries()` for affected queries
+5. TanStack Query automatically refetches data in background
+6. Component re-renders with updated data (no manual state management)
+
+**Benefits:**
+- Automatic cache synchronization with backend state
+- No manual WebSocket event handling in components
+- Optimistic updates with automatic rollback on errors
+- Single WebSocket connection shared across all components
+
+### Usage Examples
+
+**Rendering Projects List:**
+```typescript
+import { ProjectsListPage } from '@/pages/ProjectsListPage';
+
+// In App.tsx or router
+<Route path="/projects" element={<ProjectsListPage />} />
+```
+
+**Filtering Projects:**
+```typescript
+// ProjectFilters handles all filter logic internally
+<ProjectFilters
+  onPhaseChange={setPhaseFilter}
+  onStatusChange={setStatusFilter}
+  onSearchChange={setSearchQuery}
+  onSortChange={setSortBy}
+/>
+
+// Projects are filtered with useMemo in ProjectsListPage
+const filteredProjects = useMemo(() => {
+  return projects
+    .filter(p => phaseFilter === 'all' || p.phase === phaseFilter)
+    .filter(p => statusFilter === 'all' || p.status === statusFilter)
+    .filter(p => p.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => sortBy === 'name' ? a.name.localeCompare(b.name) : b.updatedAt - a.updatedAt);
+}, [projects, phaseFilter, statusFilter, searchQuery, sortBy]);
+```
+
+**Displaying Project Detail:**
+```typescript
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
+
+// In App.tsx or router
+<Route path="/projects/:id" element={<ProjectDetailPage />} />
+
+// Uses useParams() to get project ID from URL
+// Automatically fetches project data, workflow status, sprint status
+```
+
+**Controlling Workflow:**
+```typescript
+import { QuickActions } from '@/components/projects/QuickActions';
+
+<QuickActions
+  projectId={project.id}
+  status={workflowStatus?.status}
+  documents={project.documents}
+/>
+
+// Handles pause/resume with loading states and toast notifications
+// View Docs dropdown provides links to PRD, architecture, epics, stories
+```
+
 ## Tech Stack
 
 - **Framework:** React 18.3.1

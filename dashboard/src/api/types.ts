@@ -116,6 +116,28 @@ export interface SprintStatus {
   velocity?: number;
 }
 
+// Event Log types
+export interface EventLog {
+  id: string;
+  projectId: string;
+  eventType: WebSocketEventType;
+  description: string;
+  timestamp: string;
+  data?: unknown;
+  agentId?: string;
+  workflowStep?: string;
+}
+
+// Agent Activity types
+export interface AgentActivity {
+  agentId: string;
+  agentName: string;
+  currentTask: string;
+  startTime: string;
+  status: 'active' | 'idle' | 'paused' | 'error';
+  projectId: string;
+}
+
 // WebSocket Event types
 export interface WebSocketEvent {
   projectId: string;
