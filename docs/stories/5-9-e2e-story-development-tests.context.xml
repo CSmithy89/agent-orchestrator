@@ -1,0 +1,605 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>epic-5</epicId>
+    <storyId>5-9-e2e-story-development-tests</storyId>
+    <title>E2E Story Development Tests</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-9-e2e-story-development-tests.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Story Implementation System</asA>
+    <iWant>comprehensive end-to-end tests that validate the complete story development workflow with real-world scenarios</iWant>
+    <soThat>the autonomous implementation engine operates reliably in production with validated performance benchmarks and real story execution patterns</soThat>
+    <tasks>
+- Task 1: Create E2E Test Infrastructure (AC: #10)
+  - Create test/e2e/implementation/workflow/ directory
+  - Create realistic story fixtures: simple, complex, API integration, ambiguous
+  - Create mock LLM responses for E2E scenarios (compressed for speed)
+  - Create GitHub API mocks for E2E tests
+  - Configure Vitest for E2E tests with longer timeouts (30s per test)
+  - Create test utilities: story file builders, workflow executors, assertion helpers
+  - Set up E2E test data: sample PRD sections, architecture docs, onboarding docs
+
+- Task 2: Implement Simple Feature Story E2E Test (AC: #1)
+  - Create test/e2e/implementation/workflow/simple-feature-story.test.ts
+  - Create fixture: simple story file (single file change, <50 LOC)
+  - Mock complete workflow: Amelia implementation, tests, reviews, PR creation
+  - Test workflow execution: context → implementation → tests → review → PR → merge
+  - Assert: Code/test files created, PR created, status updated to "done"
+  - Measure execution time: <2 hours (compressed in test)
+
+- Task 3: Implement Complex Multi-File Story E2E Test (AC: #2)
+  - Create test/e2e/implementation/workflow/complex-story.test.ts
+  - Create fixture: complex story (multiple files, database migration, >200 LOC)
+  - Mock LLM responses for complex implementation
+  - Test workflow with multiple file changes
+  - Assert: All files created, migration generated, coverage >80%
+
+- Task 4: Implement External Dependencies E2E Test (AC: #3)
+  - Create test/e2e/implementation/workflow/external-api-story.test.ts
+  - Create fixture: story requiring external API integration
+  - Mock API client implementation and security review
+  - Assert: API client generated, tests use mocks, security passes
+
+- Task 5: Implement Human Escalation E2E Test (AC: #4)
+  - Create test/e2e/implementation/workflow/escalation-scenario.test.ts
+  - Create fixture: story with ambiguous requirements
+  - Mock low confidence or critical issues scenario
+  - Assert: Escalation triggered, worktree preserved, status remains in-progress
+
+- Task 6: Implement Multi-Story Workflow E2E Test (AC: #5)
+  - Create test/e2e/implementation/workflow/dependency-chain.test.ts
+  - Create fixtures: Story A (base), Story B (depends on A)
+  - Test sequential execution with dependency
+  - Assert: Story A completes first, Story B accesses A's code
+
+- Task 7: Implement Parallel Story Execution E2E Test (AC: #6)
+  - Create test/e2e/implementation/workflow/parallel-execution.test.ts
+  - Create fixtures: 3 independent stories
+  - Test parallel workflow execution
+  - Assert: All 3 complete, no cross-contamination, atomic status updates
+
+- Task 8: Implement Review Failure and Fix Cycle E2E Test (AC: #7)
+  - Create test/e2e/implementation/workflow/review-fix-cycle.test.ts
+  - Create fixture: story with intentional code issues
+  - Mock review failure and fix cycle
+  - Assert: Issues identified, Amelia fixes, re-review passes
+
+- Task 9: Implement PR Merge and Cleanup E2E Test (AC: #8)
+  - Create test/e2e/implementation/workflow/pr-lifecycle.test.ts
+  - Mock complete PR lifecycle: creation → CI → merge → cleanup
+  - Assert: PR created, CI passes, auto-merged, worktree cleaned, status updated
+
+- Task 10: Implement Performance Benchmark Test (AC: #9)
+  - Create test/e2e/implementation/workflow/performance-benchmark.test.ts
+  - Measure each workflow step duration with realistic delays
+  - Assert: Total execution <2 hours (actual or proportional)
+  - Log performance metrics for monitoring
+
+- Task 11: Optimize E2E Test Execution Performance (AC: #10)
+  - Measure current E2E test suite execution time
+  - Optimize slow tests: reduce mock delays, compress time simulation
+  - Configure E2E test parallelization in Vitest
+  - Assert: All E2E tests pass in <30 minutes, no flaky tests
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC1: Simple Feature Story E2E Test
+- E2E test for simple feature story (single file change, <50 LOC)
+- Test uses realistic story file with minimal complexity
+- Test validates complete workflow: context → implementation → tests → review → PR → merge
+- Test confirms story artifacts created: code file, test file, PR created
+- Test validates story status transitions: backlog → drafted → ready-for-dev → in-progress → review → done
+- Test execution time: <2 hours total workflow time
+- Test passes with no errors
+- Mock LLM responses for deterministic results
+
+AC2: Complex Multi-File Story E2E Test
+- E2E test for complex story (multiple files, database migration, >200 LOC)
+- Test uses realistic complex story file with multiple acceptance criteria
+- Test validates multiple file creation/modification across different directories
+- Test validates database migration generation and execution
+- Test confirms >80% code coverage achieved
+- Test validates dual-agent review with complex code
+- Test execution time: <2 hours total workflow time
+- Test passes with no errors
+
+AC3: Story with External Dependencies E2E Test
+- E2E test for story with external API integration
+- Test uses story requiring third-party API client usage
+- Test validates API client integration code generated
+- Test validates API mocking in generated tests
+- Test validates error handling for API failures
+- Test confirms security review validates API key handling
+- Test passes with no errors
+
+AC4: Story Requiring Human Escalation E2E Test
+- E2E test for story that triggers human escalation (low confidence scenario)
+- Test uses story with ambiguous requirements or complex business logic
+- Test validates Amelia implementation attempt
+- Test validates Alex review identifies concerns (confidence <0.85 or critical issues)
+- Test confirms escalation triggered with comprehensive context
+- Test validates worktree preserved for human debugging
+- Test validates escalation notification created with story details, error logs, recommendations
+- Test passes with proper escalation flow
+
+AC5: Multi-Story Workflow E2E Test (Dependency Chain)
+- E2E test for multi-story workflow (story A → story B dependency chain)
+- Test uses two stories where Story B depends on Story A
+- Test validates Story A completes first (context → implementation → PR → merge)
+- Test validates Story B waits for Story A completion
+- Test validates Story B can access Story A's implemented code
+- Test validates dependency context loaded correctly for Story B
+- Test confirms both stories complete successfully in sequence
+- Test passes with no errors
+
+AC6: Parallel Story Execution E2E Test
+- E2E test for parallel story execution (3 stories in parallel worktrees)
+- Test uses three independent stories with no file conflicts
+- Test validates worktree isolation: each story in separate directory
+- Test validates all three stories execute concurrently
+- Test validates no cross-contamination between worktrees
+- Test validates all three stories complete successfully
+- Test validates sprint-status.yaml updates are atomic (no corruption)
+- Test execution time: All 3 stories complete in <2 hours (parallel speedup)
+- Test passes with no errors
+
+AC7: Review Failure and Fix Cycle E2E Test
+- E2E test for review failure and fix cycle
+- Test uses story that generates code with intentional issues
+- Test validates Amelia self-review identifies some issues
+- Test validates Alex independent review identifies critical issues
+- Test validates Amelia fix attempt based on Alex feedback
+- Test validates re-review after fixes
+- Test confirms fixed code passes both reviews
+- Test validates PR created after successful re-review
+- Test passes with complete fix cycle
+
+AC8: PR Merge and Cleanup Full Lifecycle E2E Test
+- E2E test for complete PR lifecycle (creation → CI → merge → cleanup)
+- Test validates PR created with correct title, body, labels
+- Test validates CI checks triggered (mocked GitHub Actions)
+- Test validates CI monitoring polls for check status
+- Test validates all checks pass (mocked)
+- Test validates auto-merge executes (squash merge)
+- Test validates remote branch deleted after merge
+- Test validates worktree cleaned up
+- Test validates sprint-status.yaml updated to "done"
+- Test validates dependent stories triggered if ready
+- Test passes with complete lifecycle
+
+AC9: Performance Benchmark Validation
+- Performance benchmark test validates full story execution <2 hours
+- Test uses realistic story with typical complexity
+- Test measures each workflow step duration: context (<5 min), implementation (<60 min), tests (<30 min), review (<15 min), PR (<10 min)
+- Test confirms total execution time <2 hours
+- Test logs performance metrics for monitoring
+- Test identifies performance bottlenecks if any
+- Test passes with performance targets met
+
+AC10: All E2E Tests Pass in <30 Minutes
+- Complete E2E test suite executes in <30 minutes
+- Individual E2E tests complete in <5 minutes each (except performance benchmark)
+- Performance benchmark test allowed up to 10 minutes (validates <2 hour workflow with time compression)
+- Test execution optimized: mock LLM responses, mock GitHub API, fast CI simulation
+- Test results logged with execution time per test
+- All E2E tests pass consistently (no flaky tests)
+- CI integration: E2E tests run in GitHub Actions pipeline
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 5 Tech Spec: Complete technical specification for Story Implementation Automation -->
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification: Story Implementation Automation</title>
+        <section>E2E Story Development Tests (Story 5.9)</section>
+        <snippet>Story 5.9 validates the complete autonomous implementation engine with real-world scenarios. E2E tests ensure the workflow operates reliably end-to-end with diverse story types: simple feature, complex multi-file, external dependencies, escalation, dependency chains, parallel execution, review fix cycles, PR lifecycle. Performance requirement: All E2E tests pass in <30 minutes, validate <2 hour story execution.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Workflows and Sequencing</section>
+        <snippet>Complete story development workflow sequence: Load story → Generate context → Create worktree → Implement (Amelia) → Generate tests → Run tests → Self-review (Amelia) → Independent review (Alex) → Create PR → Monitor CI → Auto-merge → Cleanup → Update status to done. Each step persisted for crash recovery.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>Core type definitions: AmeliaAgent (Developer), AlexAgent (Code Reviewer), StoryContext (<50k tokens), CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport, SecurityReview, QualityAnalysis, TestValidation, ReviewFinding, StoryWorkflowState with agent activity tracking.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Performance Requirements</section>
+        <snippet>Story execution performance targets: Complete story development <2 hours total. Context generation <5 min, code implementation <60 min, test generation <30 min, dual-agent review <15 min, PR creation <10 min. Parallel execution supports up to 4 concurrent stories. LLM cost per story <$2-5 target.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Test Strategy Summary</section>
+        <snippet>E2E testing approach: Real-world story scenarios with actual story files. Test coverage: simple story (single file), complex story (multiple files, database migration), parallel execution (3 stories), failure scenarios (review failure → fix cycle), performance benchmark (<2 hours validation). Mock external APIs (LLM, GitHub) for deterministic results.</snippet>
+      </doc>
+
+      <!-- Architecture Document: System design and patterns -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>System Architecture Overview</section>
+        <snippet>Microkernel pattern with event-driven extensions, optimized for autonomous agent coordination and parallel story development. Core principles: Autonomy First (85%+ decisions independently), Parallel Intelligence (multiple stories in isolated worktrees), State Resilience (persisted execution state), Remote Accessible (REST API + WebSocket).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>Workflow Engine</section>
+        <snippet>Parse and execute BMAD workflow.yaml files with XML instructions. State persistence after each step to sprint-status.yaml. Atomic writes (temp file + rename) to prevent corruption. Error handling: Parse errors fail fast, step failures retry 3x with exponential backoff, then escalate.</snippet>
+      </doc>
+
+      <!-- Story 5-8: Integration Tests - Foundation for E2E tests -->
+      <doc>
+        <path>docs/stories/5-8-integration-tests.md</path>
+        <title>Story 5-8: Integration Tests</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Story 5.8 successfully implemented comprehensive integration tests with exceptional quality (92/92 tests passing in 1.32s). Testing infrastructure ready: test fixtures established (sample story files, GitHub API mocks, LLM mock responses), nock (v14.0.10) confirmed working for HTTP mocking, Vitest configured with parallel execution and code coverage. All patterns from Story 5.8 can be extended for E2E tests.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-8-integration-tests.md</path>
+        <title>Story 5-8: Integration Tests</title>
+        <section>Mock Strategy</section>
+        <snippet>GitHub API mocking with nock works reliably (no real API calls). LLM mock responses via fixtures ensure deterministic results. Real git operations in isolated test directories provide realistic integration. Parallel test execution configured and working. Test utilities available: createTempTestDir, measureExecutionTime, mockAmeliaAgent, mockAlexAgent.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-8-integration-tests.md</path>
+        <title>Story 5-8: Integration Tests</title>
+        <section>E2E Test Infrastructure for Story 5.9</section>
+        <snippet>Extend integration test fixtures for E2E scenarios. Create realistic story fixtures: simple (single file, <50 LOC), complex (multiple files, >200 LOC, migration), API integration, ambiguous (low confidence). Create comprehensive LLM mock responses for complete workflows. Use GitHub API mocks from Story 5.8 (already proven). Performance target: <30 minutes for complete E2E suite.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Test Infrastructure from Story 5-8 -->
+      <artifact>
+        <path>backend/tests/integration/implementation/workflow/fixtures/test-utilities.ts</path>
+        <kind>test-utility</kind>
+        <symbol>createTempTestDir, createMockStoryFile, createMockSprintStatus, measureExecutionTime</symbol>
+        <lines>1-298</lines>
+        <reason>Core test utilities for E2E tests: temp directory creation, mock story file generation, execution time measurement, retry logic, wait utilities. All patterns proven in Story 5-8 integration tests.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/implementation/workflow/fixtures/llm-mock-responses.ts</path>
+        <kind>test-fixture</kind>
+        <symbol>mockAmeliaImplementation, mockAmeliaTests, mockAmeliaSelfReview, mockAlexIndependentReview</symbol>
+        <lines>1-277</lines>
+        <reason>Mock LLM responses for Amelia and Alex agents. Provides deterministic test data: code implementations, test suites, review reports (passing, failing, low confidence). Critical for E2E test scenarios.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/implementation/workflow/fixtures/github-api-mocks.ts</path>
+        <kind>test-mock</kind>
+        <symbol>setupGitHubMocks</symbol>
+        <lines>N/A</lines>
+        <reason>GitHub API mocking infrastructure using nock. Mocks PR creation, CI status checks, auto-merge, branch deletion. Proven reliable in Story 5-8 integration tests.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/integration/implementation/workflow/complete-workflow.test.ts</path>
+        <kind>integration-test</kind>
+        <symbol>Complete Workflow Execution test suite</symbol>
+        <lines>1-324</lines>
+        <reason>Example integration test demonstrating complete workflow: story file → context → implementation → tests → review → PR. Shows state transitions, artifact creation, execution time validation. Template for E2E tests in Story 5.9.</reason>
+      </artifact>
+
+      <!-- Core Implementation Components -->
+      <artifact>
+        <path>backend/src/implementation/types.ts</path>
+        <kind>type-definition</kind>
+        <symbol>AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport</symbol>
+        <lines>N/A</lines>
+        <reason>Core type definitions for Epic 5. Defines contracts for Amelia/Alex agents, story context structure, code implementations, test suites, review reports. Essential for E2E test type safety.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+        <kind>service</kind>
+        <symbol>WorkflowOrchestrator</symbol>
+        <lines>N/A</lines>
+        <reason>Orchestrates complete story development workflow: context generation → worktree creation → Amelia implementation → Alex review → PR creation → CI monitoring → auto-merge. Core component tested in E2E tests.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/context/StoryContextGenerator.ts</path>
+        <kind>service</kind>
+        <symbol>StoryContextGenerator</symbol>
+        <lines>N/A</lines>
+        <reason>Generates comprehensive story context (<50k tokens) from story file, PRD, architecture, onboarding docs, existing code. First step in E2E workflow, validated in context generation E2E test.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/agents/amelia.ts</path>
+        <kind>agent</kind>
+        <symbol>Amelia (Developer Agent)</symbol>
+        <lines>N/A</lines>
+        <reason>Amelia agent implementation: implementStory(), writeTests(), reviewCode(). Invoked in E2E tests via mock responses for deterministic behavior.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/agents/alex.ts</path>
+        <kind>agent</kind>
+        <symbol>Alex (Code Reviewer Agent)</symbol>
+        <lines>N/A</lines>
+        <reason>Alex agent implementation: reviewSecurity(), analyzeQuality(), validateTests(), generateReport(). Independent review validated in E2E tests with mock responses.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/review/DualAgentCodeReviewer.ts</path>
+        <kind>service</kind>
+        <symbol>DualAgentCodeReviewer</symbol>
+        <lines>N/A</lines>
+        <reason>Coordinates dual-agent review: Amelia self-review + Alex independent review. Aggregates findings, makes pass/fail/escalate decision. Critical for review failure E2E tests.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+        <kind>service</kind>
+        <symbol>PRCreationAutomator</symbol>
+        <lines>N/A</lines>
+        <reason>Automates PR lifecycle: creation via @octokit/rest, CI monitoring, auto-merge, branch cleanup. Tested in PR lifecycle E2E test with GitHub API mocks.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/testing/TestGenerationExecutor.ts</path>
+        <kind>service</kind>
+        <symbol>TestGenerationExecutor</symbol>
+        <lines>N/A</lines>
+        <reason>Generates and executes tests: unit tests, integration tests, coverage reporting. Validates >80% coverage target. Tested in E2E workflow with mock test results.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="vitest" version="^1.0.0">Test framework for E2E tests with parallel execution support</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Code coverage reporting for E2E test suite</package>
+        <package name="@vitest/ui" version="^1.0.0">Visual test UI for debugging E2E tests</package>
+        <package name="nock" version="^14.0.10">HTTP mocking for GitHub API in E2E tests (proven in Story 5-8)</package>
+        <package name="@octokit/rest" version="^22.0.1">GitHub API client (mocked in E2E tests)</package>
+        <package name="@anthropic-ai/sdk" version="^0.68.0">Anthropic Claude SDK (mocked via fixtures)</package>
+        <package name="openai" version="^6.2.0">OpenAI API client (mocked via fixtures)</package>
+        <package name="simple-git" version="^3.20.0">Git operations for worktree management (real operations in E2E tests)</package>
+        <package name="typescript" version="^5.3.0">TypeScript compiler for type-safe E2E tests</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - E2E tests must execute in <30 minutes total (individual tests <5 minutes, performance benchmark <10 minutes)
+    - Mock all external APIs: LLM APIs (use fixture responses from Story 5-8), GitHub API (use nock mocks)
+    - Use real file system and git operations in isolated test directories for realistic E2E validation
+    - No real API calls: all LLM and GitHub interactions must be mocked for deterministic, fast tests
+    - E2E tests must validate complete workflow from story file to PR merge and cleanup
+    - Performance benchmark must validate <2 hour story execution (actual or time-compressed)
+    - All E2E tests must pass consistently (no flaky tests, 100% pass rate over multiple runs)
+    - E2E test scenarios must cover: simple feature, complex multi-file, external dependencies, escalation, dependency chain, parallel execution, review fix cycle, PR lifecycle
+    - Test isolation: each E2E test creates isolated worktrees and temp directories, cleaned up after test
+    - Follow AAA pattern: Arrange (setup story, mocks), Act (execute workflow), Assert (validate results)
+    - Extend test utilities from Story 5-8: createTempTestDir, measureExecutionTime, mockAmeliaAgent, mockAlexAgent
+    - Extend mock fixtures from Story 5-8: mockAmeliaImplementation, mockAlexIndependentReview, setupGitHubMocks
+    - Configure Vitest with appropriate timeouts: 30s per test, 10 minutes for performance benchmark
+    - E2E tests organized in test/e2e/implementation/workflow/ directory (separate from unit/integration)
+    - CI integration: E2E tests run in GitHub Actions pipeline on PR (separate from unit/integration tests)
+  </constraints>
+
+  <interfaces>
+    <!-- WorkflowOrchestrator API: Core workflow execution -->
+    <interface>
+      <name>WorkflowOrchestrator.executeStoryWorkflow</name>
+      <kind>async function</kind>
+      <signature>async executeStoryWorkflow(storyId: string): Promise&lt;PRResult&gt;</signature>
+      <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+    </interface>
+
+    <!-- StoryContextGenerator API: Context generation -->
+    <interface>
+      <name>StoryContextGenerator.generateContext</name>
+      <kind>async function</kind>
+      <signature>async generateContext(storyFilePath: string): Promise&lt;StoryContext&gt;</signature>
+      <path>backend/src/implementation/context/StoryContextGenerator.ts</path>
+    </interface>
+
+    <!-- Amelia Agent Methods: Developer actions -->
+    <interface>
+      <name>AmeliaAgent.implementStory</name>
+      <kind>async function</kind>
+      <signature>async implementStory(context: StoryContext): Promise&lt;CodeImplementation&gt;</signature>
+      <path>backend/src/implementation/agents/amelia.ts</path>
+    </interface>
+    <interface>
+      <name>AmeliaAgent.writeTests</name>
+      <kind>async function</kind>
+      <signature>async writeTests(code: CodeImplementation): Promise&lt;TestSuite&gt;</signature>
+      <path>backend/src/implementation/agents/amelia.ts</path>
+    </interface>
+    <interface>
+      <name>AmeliaAgent.reviewCode</name>
+      <kind>async function</kind>
+      <signature>async reviewCode(code: CodeImplementation): Promise&lt;SelfReviewReport&gt;</signature>
+      <path>backend/src/implementation/agents/amelia.ts</path>
+    </interface>
+
+    <!-- Alex Agent Methods: Code reviewer actions -->
+    <interface>
+      <name>AlexAgent.reviewSecurity</name>
+      <kind>async function</kind>
+      <signature>async reviewSecurity(code: CodeImplementation): Promise&lt;SecurityReview&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgent.analyzeQuality</name>
+      <kind>async function</kind>
+      <signature>async analyzeQuality(code: CodeImplementation): Promise&lt;QualityAnalysis&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgent.validateTests</name>
+      <kind>async function</kind>
+      <signature>async validateTests(tests: TestSuite, coverage: CoverageReport): Promise&lt;TestValidation&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgent.generateReport</name>
+      <kind>async function</kind>
+      <signature>async generateReport(reviews: Review[]): Promise&lt;IndependentReviewReport&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+
+    <!-- DualAgentCodeReviewer API: Review coordination -->
+    <interface>
+      <name>DualAgentCodeReviewer.performDualReview</name>
+      <kind>async function</kind>
+      <signature>async performDualReview(code: CodeImplementation, tests: TestSuite, context: StoryContext): Promise&lt;CombinedReviewResult&gt;</signature>
+      <path>backend/src/implementation/review/DualAgentCodeReviewer.ts</path>
+    </interface>
+
+    <!-- PRCreationAutomator API: PR automation -->
+    <interface>
+      <name>PRCreationAutomator.createPR</name>
+      <kind>async function</kind>
+      <signature>async createPR(worktree: Worktree, storyId: string, reviewReport: IndependentReviewReport): Promise&lt;PRResult&gt;</signature>
+      <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+    </interface>
+    <interface>
+      <name>PRCreationAutomator.monitorAndAutoMerge</name>
+      <kind>async function</kind>
+      <signature>async monitorAndAutoMerge(pr: PRResult): Promise&lt;void&gt;</signature>
+      <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+    </interface>
+
+    <!-- Test Utilities API: E2E test helpers -->
+    <interface>
+      <name>createTempTestDir</name>
+      <kind>async function</kind>
+      <signature>async createTempTestDir(prefix?: string): Promise&lt;string&gt;</signature>
+      <path>backend/tests/integration/implementation/workflow/fixtures/test-utilities.ts</path>
+    </interface>
+    <interface>
+      <name>createMockStoryFile</name>
+      <kind>async function</kind>
+      <signature>async createMockStoryFile(tempDir: string, storyId: string, content?: string): Promise&lt;string&gt;</signature>
+      <path>backend/tests/integration/implementation/workflow/fixtures/test-utilities.ts</path>
+    </interface>
+    <interface>
+      <name>measureExecutionTime</name>
+      <kind>async function</kind>
+      <signature>async measureExecutionTime&lt;T&gt;(fn: () => Promise&lt;T&gt;): Promise&lt;{ result: T; duration: number }&gt;</signature>
+      <path>backend/tests/integration/implementation/workflow/fixtures/test-utilities.ts</path>
+    </interface>
+    <interface>
+      <name>setupGitHubMocks</name>
+      <kind>function</kind>
+      <signature>setupGitHubMocks(options: GitHubMockOptions): GitHubMock</signature>
+      <path>backend/tests/integration/implementation/workflow/fixtures/github-api-mocks.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+E2E tests use Vitest test framework (v1.0.0) with parallel execution and code coverage reporting via @vitest/coverage-v8. Tests follow AAA pattern (Arrange-Act-Assert) with clear test descriptions. Mock external APIs using nock (GitHub API) and fixture responses (LLM APIs). Use real file system and git operations in isolated test directories for realistic validation. Test timeouts: 30 seconds per test, 10 minutes for performance benchmark. All E2E tests must be deterministic (no flaky tests) with 100% pass rate. Performance target: complete E2E suite in <30 minutes. Tests organized in test/e2e/implementation/workflow/ directory, separate from unit and integration tests.
+    </standards>
+
+    <locations>
+test/e2e/implementation/workflow/simple-feature-story.test.ts
+test/e2e/implementation/workflow/complex-story.test.ts
+test/e2e/implementation/workflow/external-api-story.test.ts
+test/e2e/implementation/workflow/escalation-scenario.test.ts
+test/e2e/implementation/workflow/dependency-chain.test.ts
+test/e2e/implementation/workflow/parallel-execution.test.ts
+test/e2e/implementation/workflow/review-fix-cycle.test.ts
+test/e2e/implementation/workflow/pr-lifecycle.test.ts
+test/e2e/implementation/workflow/performance-benchmark.test.ts
+test/e2e/implementation/workflow/fixtures/
+    </locations>
+
+    <ideas>
+<!-- AC1: Simple Feature Story E2E Test -->
+- Test complete workflow with simple story (single file, <50 LOC): story file → context → implementation → tests → review → PR → merge
+- Validate story status transitions: drafted → ready-for-dev → in-progress → review → done
+- Assert code file and test file created at expected paths
+- Assert PR created with correct structure
+- Assert worktree cleaned up after merge
+- Measure execution time: validate <2 hours (compressed in test using mock delays)
+
+<!-- AC2: Complex Multi-File Story E2E Test -->
+- Test workflow with complex story (multiple files, database migration, >200 LOC)
+- Validate multiple file creation: src/, db/migrations/, test/
+- Assert database migration file has correct structure
+- Assert tests cover all new files
+- Assert code coverage >80%
+- Assert PR body includes migration details
+
+<!-- AC3: External Dependencies E2E Test -->
+- Test workflow with story requiring external API integration
+- Validate API client code generated with proper error handling
+- Assert tests use API mocks (nock or msw)
+- Assert security review passes (no hardcoded credentials)
+- Assert PR includes API integration details
+
+<!-- AC4: Human Escalation E2E Test -->
+- Test workflow with story triggering escalation (low confidence <0.85 or critical issues)
+- Mock Alex review with critical issues or low confidence
+- Assert escalation triggered with comprehensive context
+- Assert worktree preserved (not cleaned up)
+- Assert story status remains "in-progress" (not "done")
+- Assert escalation notification includes story details, error logs, recommendations
+
+<!-- AC5: Multi-Story Workflow E2E Test -->
+- Test sequential execution of two stories with dependency (Story B depends on Story A)
+- Validate Story A completes first: context → implementation → PR → merge
+- Validate Story B waits for Story A completion
+- Assert Story B context includes Story A dependency context
+- Assert Story B can access Story A's implemented code
+- Assert both stories marked "done" in sprint-status.yaml
+
+<!-- AC6: Parallel Story Execution E2E Test -->
+- Test parallel execution of 3 independent stories (no file conflicts)
+- Validate worktree isolation: each story in separate directory
+- Assert all 3 stories execute concurrently (using Promise.all or similar)
+- Assert no cross-contamination: each story modifies different files
+- Assert sprint-status.yaml updates are atomic (no race conditions)
+- Assert total execution time demonstrates parallel speedup (<2 hours for all 3)
+
+<!-- AC7: Review Failure and Fix Cycle E2E Test -->
+- Test workflow with story generating code with intentional issues
+- Mock Amelia self-review identifies some issues (medium confidence)
+- Mock Alex review identifies critical issues (security vulnerability)
+- Validate Amelia applies fixes based on Alex feedback
+- Assert re-review passes after fixes
+- Assert PR created after successful fix cycle
+
+<!-- AC8: PR Merge and Cleanup E2E Test -->
+- Test complete PR lifecycle: creation → CI → merge → cleanup
+- Assert PR created with correct title, body, labels
+- Mock CI checks: queued → running → passed
+- Assert CI monitoring polls for check status
+- Assert auto-merge executes (squash merge)
+- Assert remote branch deleted
+- Assert worktree cleaned up
+- Assert sprint-status.yaml updated to "done"
+- Assert dependent stories triggered if ready
+
+<!-- AC9: Performance Benchmark Validation -->
+- Measure each workflow step duration with realistic (but compressed) delays
+- Assert context generation <5 minutes (actual or proportional)
+- Assert code implementation <60 minutes (actual or proportional)
+- Assert test generation <30 minutes (actual or proportional)
+- Assert dual-agent review <15 minutes (actual or proportional)
+- Assert PR creation <10 minutes (actual or proportional)
+- Assert total execution time <2 hours (actual or proportional)
+- Log performance metrics for monitoring
+- Identify performance bottlenecks if targets not met
+
+<!-- AC10: All E2E Tests Pass in <30 Minutes -->
+- Configure Vitest for E2E test parallelization
+- Optimize mock delays: compress time simulation without sacrificing realism
+- Use fast mocks: no real LLM calls, no real GitHub API calls
+- Set appropriate timeouts: 30s per test, 10 minutes for performance benchmark
+- Measure full E2E test suite execution time
+- Assert: All E2E tests pass in <30 minutes
+- Assert: No flaky tests (100% pass rate over 10 runs)
+- Configure CI pipeline: run E2E tests in GitHub Actions on PR
+    </ideas>
+  </tests>
+</story-context>
