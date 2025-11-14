@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { escalationService } from '../services/escalation.service.js';
 import {
   EscalationListFiltersSchema,
+  EscalationResponseRequest,
   EscalationResponseRequestSchema
 } from '../types/escalation.types.js';
 import { APIResponse, APIError } from '../types/api.types.js';
@@ -252,7 +253,7 @@ export async function registerEscalationRoutes(server: FastifyInstance): Promise
       try {
         // Validate path parameters and body
         const params = EscalationIdParamsSchema.parse(request.params);
-        const body = EscalationResponseRequestSchema.parse(request.body);
+        const body = EscalationResponseRequestSchema.parse(request.body) as EscalationResponseRequest;
 
         // Respond to escalation
         const result = await escalationService.respondToEscalation(params.id, body);

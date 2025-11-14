@@ -30,7 +30,7 @@ export class EscalationService {
   async listEscalations(filters?: EscalationListFilters): Promise<EscalationDetail[]> {
     try {
       // Convert filters to EscalationQueue format
-      const queueFilters: { status?: string; workflowId?: string } = {};
+      const queueFilters: { status?: 'pending' | 'resolved' | 'cancelled'; workflowId?: string } = {};
 
       if (filters?.status) {
         queueFilters.status = filters.status;

@@ -63,6 +63,8 @@
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "tests/e2e/**/*",
+    "tests/integration/**/fixtures/**/*"
   ]
 }

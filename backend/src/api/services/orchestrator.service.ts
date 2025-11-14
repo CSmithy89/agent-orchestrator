@@ -6,7 +6,6 @@
 import * as path from 'path';
 import { WorkflowEngine } from '../../core/WorkflowEngine.js';
 import { StateManager } from '../../core/StateManager.js';
-import { AgentPool } from '../../core/AgentPool.js';
 import { eventService } from './event.service.js';
 import {
   ProjectOrchestratorStatus,
@@ -51,15 +50,13 @@ class Mutex {
 export class OrchestratorService {
   private workflowEngines: Map<string, WorkflowEngine>;
   private stateManager: StateManager;
-  private agentPool?: AgentPool;
   private projectRoot: string;
   private mutex: Mutex;
 
-  constructor(baseDir: string = process.cwd(), agentPool?: AgentPool) {
+  constructor(baseDir: string = process.cwd()) {
     this.projectRoot = baseDir;
     this.workflowEngines = new Map();
     this.stateManager = new StateManager(baseDir);
-    this.agentPool = agentPool;
     this.mutex = new Mutex();
   }
 
@@ -95,7 +92,7 @@ export class OrchestratorService {
           agentName: activity.agentName,
           action: activity.action,
           status: activity.status,
-          startedAt: activity.timestamp,
+          startedAt: activity.timestamp.toISOString(),
           duration: activity.duration
         }));
 
@@ -205,7 +202,7 @@ export class OrchestratorService {
         // Update state to paused
         state.status = 'paused';
         state.lastUpdate = new Date();
-        await this.stateManager.saveState(projectId, state);
+        await this.stateManager.saveState(state);
 
         // Emit pause event
         eventService.emitEvent(projectId, 'orchestrator.paused', {

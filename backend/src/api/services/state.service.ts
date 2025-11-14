@@ -311,11 +311,11 @@ export class StateService {
     const criteria: string[] = [];
     const acSection = content.match(/## Acceptance Criteria([\s\S]*?)(?=##|$)/);
 
-    if (acSection) {
+    if (acSection && acSection[1]) {
       const lines = acSection[1].split('\n');
       for (const line of lines) {
         const match = line.match(/^\d+\.\s+\[\s*[x ]?\s*\]\s+(.+)$/);
-        if (match) {
+        if (match && match[1]) {
           criteria.push(match[1].trim());
         }
       }
@@ -331,11 +331,11 @@ export class StateService {
     const tasks: string[] = [];
     const tasksSection = content.match(/## Tasks \/ Subtasks([\s\S]*?)(?=##|$)/);
 
-    if (tasksSection) {
+    if (tasksSection && tasksSection[1]) {
       const lines = tasksSection[1].split('\n');
       for (const line of lines) {
         const match = line.match(/^-\s+\[\s*[x ]?\s*\]\s+(.+)$/);
-        if (match) {
+        if (match && match[1]) {
           tasks.push(match[1].trim());
         }
       }
@@ -350,7 +350,7 @@ export class StateService {
   private extractDescription(content: string): string {
     const userStorySection = content.match(/## User Story([\s\S]*?)(?=##|$)/);
 
-    if (userStorySection) {
+    if (userStorySection && userStorySection[1]) {
       return userStorySection[1].trim();
     }
 
@@ -364,11 +364,11 @@ export class StateService {
     const dependencies: string[] = [];
     const depsSection = content.match(/## Dependencies([\s\S]*?)(?=##|$)/);
 
-    if (depsSection) {
+    if (depsSection && depsSection[1]) {
       const lines = depsSection[1].split('\n');
       for (const line of lines) {
         const match = line.match(/^-\s+\*\*Requires:\*\*\s+(.+)$/);
-        if (match) {
+        if (match && match[1]) {
           dependencies.push(match[1].trim());
         }
       }
