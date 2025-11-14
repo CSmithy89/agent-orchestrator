@@ -2,6 +2,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { Dashboard } from '@/pages/Dashboard';
+import { ProjectsListPage } from '@/pages/ProjectsListPage';
+import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
 import { NotFound } from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -13,8 +15,11 @@ function App() {
           <Routes>
             <Route path="/" element={<Dashboard />} />
 
+            {/* Project routes */}
+            <Route path="/projects" element={<ProjectsListPage />} />
+            <Route path="/projects/:id" element={<ProjectDetailPage />} />
+
             {/* Placeholder routes for future stories */}
-            <Route path="/projects" element={<PlaceholderPage title="Projects" />} />
             <Route path="/escalations" element={<PlaceholderPage title="Escalations" />} />
             <Route path="/stories" element={<PlaceholderPage title="Stories" />} />
 
