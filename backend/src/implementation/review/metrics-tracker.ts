@@ -105,9 +105,9 @@ export class MetricsTracker {
   /**
    * Track findings and categorize by severity
    *
-   * @param findings Review findings to track
+   * @param _findings Review findings to track
    */
-  trackFindings(findings: ReviewFinding[]): void {
+  trackFindings(_findings: ReviewFinding[]): void {
     // Findings are tracked when getMetrics() is called
     // This method is a placeholder for future enhancements
   }

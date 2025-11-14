@@ -27,8 +27,8 @@ import { Octokit } from '@octokit/rest';
 import simpleGit, { SimpleGit } from 'simple-git';
 import * as path from 'path';
 import * as fs from 'fs/promises';
-import { WorktreeManager } from '../../../core/WorktreeManager.js';
-import { Worktree } from '../../../types/worktree.types.js';
+import { WorktreeManager } from '../../core/WorktreeManager.js';
+import { Worktree } from '../../types/worktree.types.js';
 import { PRResult } from '../orchestration/workflow-types.js';
 import {
   IndependentReviewReport,
@@ -38,7 +38,7 @@ import {
 import { generatePRBody, PRBodyConfig } from './pr-body-generator.js';
 import { monitorCIStatus, retryFailedChecks, CIMonitorResult } from './ci-monitor.js';
 import { autoMergePR, deleteRemoteBranch, MergeResult } from './auto-merger.js';
-import { triggerDependentStories, updateSprintStatus, DependencyTriggerResult } from './dependency-trigger.js';
+import { triggerDependentStories, updateSprintStatus } from './dependency-trigger.js';
 
 /**
  * PR Creation Automator Configuration
@@ -569,6 +569,9 @@ export class PRCreationAutomator {
 
       if (response.data.length > 0) {
         const pr = response.data[0];
+        if (!pr) {
+          return undefined;
+        }
         return {
           url: pr.html_url,
           number: pr.number,

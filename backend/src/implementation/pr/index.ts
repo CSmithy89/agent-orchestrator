@@ -4,11 +4,15 @@
  * Exports all PR automation components for GitHub PR creation, CI monitoring, and auto-merge.
  */
 
-export { PRCreationAutomator, PRCreationAutomatorConfig } from './PRCreationAutomator.js';
-export { generatePRBody, PRBodyConfig } from './pr-body-generator.js';
+export { PRCreationAutomator } from './PRCreationAutomator.js';
+export type { PRCreationAutomatorConfig } from './PRCreationAutomator.js';
+export { generatePRBody } from './pr-body-generator.js';
+export type { PRBodyConfig } from './pr-body-generator.js';
 export {
   monitorCIStatus,
-  retryFailedChecks,
+  retryFailedChecks
+} from './ci-monitor.js';
+export type {
   CICheck,
   CICheckStatus,
   CICheckConclusion,
@@ -17,13 +21,17 @@ export {
 } from './ci-monitor.js';
 export {
   autoMergePR,
-  deleteRemoteBranch,
+  deleteRemoteBranch
+} from './auto-merger.js';
+export type {
   MergeResult,
   AutoMergeOptions
 } from './auto-merger.js';
 export {
   triggerDependentStories,
-  updateSprintStatus,
+  updateSprintStatus
+} from './dependency-trigger.js';
+export type {
   StoryDependency,
   DependencyTriggerResult
 } from './dependency-trigger.js';

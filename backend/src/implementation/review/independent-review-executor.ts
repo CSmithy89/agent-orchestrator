@@ -49,8 +49,8 @@ export async function executeIndependentReview(
   alexAgent: AlexAgentInfrastructure,
   code: CodeImplementation,
   tests: TestSuite,
-  context: StoryContext,
-  ameliaReview: SelfReviewReport
+  _context: StoryContext,
+  _ameliaReview: SelfReviewReport
 ): Promise<IndependentReviewReport> {
   log('Starting Alex independent review', 'Security, Quality, Tests');
 

@@ -87,7 +87,7 @@ export class TestGenerationExecutor {
   constructor(ameliaAgent: AmeliaAgent, projectRoot: string, logger?: Logger) {
     this.ameliaAgent = ameliaAgent;
     this.projectRoot = projectRoot;
-    this.logger = logger || new Logger('TestGenerationExecutor');
+    this.logger = logger || new Logger({ name: 'TestGenerationExecutor' });
   }
 
   /**
@@ -233,12 +233,12 @@ export class TestGenerationExecutor {
 
       // Enforce 30-minute timeout
       if (metrics.totalDuration > 30 * 60 * 1000) {
-        this.logger.error('Test pipeline exceeded 30-minute timeout', {
-          duration: metrics.totalDuration,
-        });
-        throw new Error(
+        const timeoutError = new Error(
           `Test pipeline timeout: ${metrics.totalDuration}ms exceeds 30 minute limit`
-        );
+        ) as Error & { duration: number };
+        timeoutError.duration = metrics.totalDuration;
+        this.logger.error('Test pipeline exceeded 30-minute timeout', timeoutError);
+        throw timeoutError;
       }
 
       // Return complete TestSuite
@@ -340,7 +340,7 @@ export class TestGenerationExecutor {
    * @param testFiles - Test files from Amelia agent
    * @param config - Test framework configuration
    */
-  private async createTestFiles(testFiles: TestFile[], config: TestFrameworkConfig): Promise<void> {
+  private async createTestFiles(testFiles: TestFile[], _config: TestFrameworkConfig): Promise<void> {
     try {
       for (const testFile of testFiles) {
         const fullPath = path.join(this.projectRoot, testFile.path);
@@ -444,9 +444,9 @@ export class TestGenerationExecutor {
     const skippedMatch = output.match(/(\d+)\s+(?:skipped|pending)/i);
 
     return {
-      passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-      failed: failedMatch ? parseInt(failedMatch[1], 10) : 0,
-      skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
+      passed: passedMatch ? parseInt(passedMatch[1] ?? '0', 10) : 0,
+      failed: failedMatch ? parseInt(failedMatch[1] ?? '0', 10) : 0,
+      skipped: skippedMatch ? parseInt(skippedMatch[1] ?? '0', 10) : 0,
       duration: 0,
       failures: this.extractFailures(output),
     };
@@ -465,9 +465,9 @@ export class TestGenerationExecutor {
     const skippedMatch = output.match(/\bTests\s+(?:\d+\s+(?:passed|failed)\s+\|\s+)?(\d+)\s+skipped/i);
 
     return {
-      passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-      failed: failedMatch ? parseInt(failedMatch[1], 10) : 0,
-      skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
+      passed: passedMatch ? parseInt(passedMatch[1] ?? '0', 10) : 0,
+      failed: failedMatch ? parseInt(failedMatch[1] ?? '0', 10) : 0,
+      skipped: skippedMatch ? parseInt(skippedMatch[1] ?? '0', 10) : 0,
       duration: 0,
       failures: this.extractFailures(output),
     };
@@ -483,9 +483,9 @@ export class TestGenerationExecutor {
     const skippedMatch = output.match(/(\d+)\s+skipped/i);
 
     return {
-      passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-      failed: failedMatch ? parseInt(failedMatch[1], 10) : 0,
-      skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
+      passed: passedMatch ? parseInt(passedMatch[1] ?? '0', 10) : 0,
+      failed: failedMatch ? parseInt(failedMatch[1] ?? '0', 10) : 0,
+      skipped: skippedMatch ? parseInt(skippedMatch[1] ?? '0', 10) : 0,
       duration: 0,
       failures: this.extractFailures(output),
     };
@@ -502,9 +502,9 @@ export class TestGenerationExecutor {
     const skippedMatch = output.match(/(\d+)\s+pending/i);
 
     return {
-      passed: passedMatch ? parseInt(passedMatch[1], 10) : 0,
-      failed: failedMatch ? parseInt(failedMatch[1], 10) : 0,
-      skipped: skippedMatch ? parseInt(skippedMatch[1], 10) : 0,
+      passed: passedMatch ? parseInt(passedMatch[1] ?? '0', 10) : 0,
+      failed: failedMatch ? parseInt(failedMatch[1] ?? '0', 10) : 0,
+      skipped: skippedMatch ? parseInt(skippedMatch[1] ?? '0', 10) : 0,
       duration: 0,
       failures: this.extractFailures(output),
     };
@@ -523,8 +523,8 @@ export class TestGenerationExecutor {
 
     while ((match = failurePattern.exec(output)) !== null) {
       failures.push({
-        test: match[1].trim(),
-        error: match[2].trim(),
+        test: match[1]?.trim() ?? '',
+        error: match[2]?.trim() ?? '',
       });
     }
 
@@ -582,7 +582,7 @@ export class TestGenerationExecutor {
    * Filters coverage to only include new/modified files from implementation
    */
   private async parseCoverageReport(
-    config: TestFrameworkConfig,
+    _config: TestFrameworkConfig,
     output: string,
     implementation: CodeImplementation
   ): Promise<CoverageReport> {
@@ -657,10 +657,10 @@ export class TestGenerationExecutor {
     const statementsMatch = output.match(/(?:Statements|Statement)\s*:\s*(\d+(?:\.\d+)?)/i);
 
     return {
-      lines: linesMatch ? parseFloat(linesMatch[1]) : 0,
-      functions: functionsMatch ? parseFloat(functionsMatch[1]) : 0,
-      branches: branchesMatch ? parseFloat(branchesMatch[1]) : 0,
-      statements: statementsMatch ? parseFloat(statementsMatch[1]) : 0,
+      lines: linesMatch ? parseFloat(linesMatch[1] ?? '0') : 0,
+      functions: functionsMatch ? parseFloat(functionsMatch[1] ?? '0') : 0,
+      branches: branchesMatch ? parseFloat(branchesMatch[1] ?? '0') : 0,
+      statements: statementsMatch ? parseFloat(statementsMatch[1] ?? '0') : 0,
       uncoveredLines: [],
     };
   }
@@ -679,14 +679,14 @@ export class TestGenerationExecutor {
     // Extract just the file paths without the project root for comparison
     const implFilePaths = implementationFiles.map((f) => {
       // Remove project root and normalize
-      const relativePath = f.replace(this.projectRoot, '').replace(/^[\/\\]/, '');
+      const relativePath = f.replace(this.projectRoot, '').replace(/^[/\\]/, '');
       return relativePath.replace(/\\/g, '/').toLowerCase();
     });
 
-    let totalLines = { covered: 0, total: 0 };
-    let totalFunctions = { covered: 0, total: 0 };
-    let totalBranches = { covered: 0, total: 0 };
-    let totalStatements = { covered: 0, total: 0 };
+    const totalLines = { covered: 0, total: 0 };
+    const totalFunctions = { covered: 0, total: 0 };
+    const totalBranches = { covered: 0, total: 0 };
+    const totalStatements = { covered: 0, total: 0 };
 
     // Iterate through coverage JSON and aggregate only implementation files
     for (const [filePath, fileData] of Object.entries(coverageJson)) {
@@ -694,7 +694,7 @@ export class TestGenerationExecutor {
 
       // Normalize the file path for comparison (remove leading slashes, normalize separators)
       const normalizedCoveragePath = filePath
-        .replace(/^[\/\\]/, '')
+        .replace(/^[/\\]/, '')
         .replace(/\\/g, '/')
         .toLowerCase();
 
@@ -772,7 +772,7 @@ export class TestGenerationExecutor {
     // Extract relative paths from implementation files
     const implFilePaths = implementationFiles
       ? implementationFiles.map((f) => {
-          const relativePath = f.replace(this.projectRoot, '').replace(/^[\/\\]/, '');
+          const relativePath = f.replace(this.projectRoot, '').replace(/^[/\\]/, '');
           return relativePath.replace(/\\/g, '/').toLowerCase();
         })
       : [];
@@ -784,7 +784,7 @@ export class TestGenerationExecutor {
       // If implementation files provided, filter to only those files
       if (implementationFiles && implementationFiles.length > 0) {
         const normalizedCoveragePath = filePath
-          .replace(/^[\/\\]/, '')
+          .replace(/^[/\\]/, '')
           .replace(/\\/g, '/')
           .toLowerCase();
 
@@ -951,7 +951,7 @@ Framework: ${testSuite.framework}`;
 
       // Extract commit SHA
       const shaMatch = stdout.match(/\[.+?\s+([a-f0-9]+)\]/);
-      const commitSha = shaMatch ? shaMatch[1] : 'unknown';
+      const commitSha = shaMatch?.[1] ?? 'unknown';
 
       this.logger.info('Test suite committed', {
         commitSha,

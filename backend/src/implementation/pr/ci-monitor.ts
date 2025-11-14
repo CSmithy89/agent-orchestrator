@@ -102,6 +102,7 @@ export async function monitorCIStatus(
   logger(`[CI Monitor] Starting CI monitoring for ${owner}/${repo}@${ref}`);
   logger(`[CI Monitor] Polling interval: ${pollingInterval / 1000}s, Max wait: ${maxWaitTime / 1000}s`);
 
+  // eslint-disable-next-line no-constant-condition
   while (true) {
     iteration++;
     const elapsed = Date.now() - startTime;

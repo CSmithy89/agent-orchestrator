@@ -41,7 +41,7 @@ import {
 export async function executeSelfReview(
   ameliaAgent: AmeliaAgentInfrastructure,
   code: CodeImplementation,
-  tests: TestSuite,
+  _tests: TestSuite,
   context: StoryContext
 ): Promise<SelfReviewReport> {
   log('Starting Amelia self-review', code.files.length);
@@ -91,7 +91,7 @@ export async function executeSelfReview(
  */
 function validateSelfReview(
   review: SelfReviewReport,
-  context: StoryContext
+  _context: StoryContext
 ): void {
   // Validate checklist exists
   if (!review.checklist || review.checklist.length === 0) {

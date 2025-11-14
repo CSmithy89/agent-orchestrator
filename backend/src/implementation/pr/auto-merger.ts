@@ -7,7 +7,6 @@
  */
 
 import { Octokit } from '@octokit/rest';
-import simpleGit, { SimpleGit } from 'simple-git';
 
 /**
  * Merge Result
@@ -175,13 +174,13 @@ export async function autoMergePR(
 /**
  * Delete remote branch after merge
  *
- * @param octokit Octokit client (unused - using git directly)
+ * @param _octokit Octokit client (unused - using git directly)
  * @param git SimpleGit instance
  * @param branchName Branch name to delete
  * @param logger Logger function
  */
 export async function deleteRemoteBranch(
-  octokit: Octokit,
+  _octokit: Octokit,
   git: SimpleGit,
   branchName: string,
   logger: (msg: string) => void = console.log

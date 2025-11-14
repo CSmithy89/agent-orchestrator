@@ -13,10 +13,9 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { TestGenerationExecutor } from '../../../../src/implementation/testing/TestGenerationExecutor.js';
-import { AmeliaAgent, CodeImplementation, StoryContext, TestSuite, TestFile, CoverageReport, TestResults } from '../../../../src/implementation/types.js';
+import { AmeliaAgent, CodeImplementation, StoryContext, TestSuite, TestFile, CoverageReport } from '../../../../src/implementation/types.js';
 import { Logger } from '../../../../src/utils/logger.js';
 import * as fs from 'fs/promises';
-import { exec } from 'child_process';
 
 // Mock dependencies
 vi.mock('fs/promises');

@@ -15,7 +15,6 @@ import {
   TestSuite
 } from '../../../../src/implementation/types.js';
 import * as fs from 'fs/promises';
-import * as path from 'path';
 
 // Mock modules
 vi.mock('fs/promises');
