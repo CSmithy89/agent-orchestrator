@@ -2,10 +2,15 @@ import { Moon, Sun, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useTheme } from '@/hooks/useTheme';
 import { useUIStore } from '@/store/uiStore';
+import { EscalationBadge } from '@/components/escalations/EscalationBadge';
+import { useEscalationWebSocket } from '@/hooks/useEscalationWebSocket';
 
 export function Header() {
   const { theme, setTheme } = useTheme();
   const { toggleSidebar } = useUIStore();
+
+  // Subscribe to real-time escalation updates
+  useEscalationWebSocket();
 
   const toggleTheme = () => {
     if (theme === 'light') {
@@ -37,6 +42,7 @@ export function Header() {
         </div>
 
         <div className="flex flex-1 items-center justify-end space-x-2">
+          <EscalationBadge />
           <Button
             variant="ghost"
             size="icon"

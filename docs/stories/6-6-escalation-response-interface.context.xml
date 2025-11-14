@@ -1,0 +1,266 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6</storyId>
+    <title>Escalation Response Interface</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-6-escalation-response-interface.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user with pending escalations</asA>
+    <iWant>to view escalation details and submit responses</iWant>
+    <soThat>I can unblock workflows quickly</soThat>
+    <tasks>
+      <task id="1" title="Escalation Data Types and API Integration">
+        <subtask id="1.1">Define TypeScript types in src/types/escalation.ts</subtask>
+        <subtask id="1.2">Create API methods in src/api/escalations.ts</subtask>
+        <subtask id="1.3">Create TanStack Query hooks in src/hooks/useEscalations.ts</subtask>
+        <subtask id="1.4">Write unit tests for API methods and hooks</subtask>
+      </task>
+      <task id="2" title="Escalations List Page">
+        <subtask id="2.1">Create EscalationsPage component</subtask>
+        <subtask id="2.2">Create EscalationCard component</subtask>
+        <subtask id="2.3">Add filter toggle for pending vs resolved escalations</subtask>
+        <subtask id="2.4">Write component tests for EscalationsPage</subtask>
+      </task>
+      <task id="3" title="Escalation Detail Modal">
+        <subtask id="3.1">Install textarea component if not already available</subtask>
+        <subtask id="3.2">Create EscalationDetailModal component</subtask>
+        <subtask id="3.3">Integrate useSubmitEscalationResponse mutation</subtask>
+        <subtask id="3.4">Add toast notification on successful submission</subtask>
+        <subtask id="3.5">Optional: Add markdown preview for response</subtask>
+        <subtask id="3.6">Write component tests for EscalationDetailModal</subtask>
+      </task>
+      <task id="4" title="Navigation Badge">
+        <subtask id="4.1">Create EscalationBadge component</subtask>
+        <subtask id="4.2">Modify Header component to include EscalationBadge</subtask>
+        <subtask id="4.3">Write component tests for EscalationBadge</subtask>
+      </task>
+      <task id="5" title="Real-Time WebSocket Updates">
+        <subtask id="5.1">Create useEscalationWebSocket hook</subtask>
+        <subtask id="5.2">Integrate WebSocket into EscalationsPage</subtask>
+        <subtask id="5.3">Integrate WebSocket into Header (via EscalationBadge)</subtask>
+        <subtask id="5.4">Test real-time updates</subtask>
+      </task>
+      <task id="6" title="UI Polish and Testing">
+        <subtask id="6.1">Add visual distinction for resolved escalations</subtask>
+        <subtask id="6.2">Add loading skeletons</subtask>
+        <subtask id="6.3">Add error boundaries</subtask>
+        <subtask id="6.4">Add accessibility improvements</subtask>
+        <subtask id="6.5">Write integration tests for complete flow</subtask>
+        <subtask id="6.6">Run all tests and verify &gt;70% coverage</subtask>
+        <subtask id="6.7">Update README.md with escalation interface documentation</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">Escalations list view at route /escalations</criterion>
+    <criterion id="AC2">Badge showing escalation count in navigation header</criterion>
+    <criterion id="AC3">Escalation detail modal displaying: question with full context, AI's attempted decision and reasoning, AI confidence score (percentage or numeric), input field for response (textarea)</criterion>
+    <criterion id="AC4">Submit response button with loading state</criterion>
+    <criterion id="AC5">Markdown preview for formatted responses (optional enhancement)</criterion>
+    <criterion id="AC6">Confirmation after successful submission (toast notification)</criterion>
+    <criterion id="AC7">Real-time notification of new escalations via WebSocket</criterion>
+    <criterion id="AC8">Mark resolved escalations clearly (visual distinction from pending)</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access &amp; Monitoring</title>
+        <section>Story 6.6: Escalation Response Interface</section>
+        <snippet>UI for viewing escalation details and submitting responses. Integrates with Escalation API (Story 6.3), React foundation (Story 6.4), and WebSocket (Story 6.2) for real-time updates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Decision Engine &amp; Escalation Queue System</title>
+        <section>2.3.1 Decision Engine &amp; 2.3.2 Escalation Queue</section>
+        <snippet>Confidence-based decision engine escalates when confidence &lt; 0.75. Escalation workflow: pause execution → notify user via WebSocket → user responds → resume workflow. Storage in .bmad-escalations/{id}.json.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Remote Access Architecture</title>
+        <section>Client Layer - React PWA Dashboard</section>
+        <snippet>Fastify REST API + WebSocket server for real-time event streaming. Client layer includes React PWA Dashboard with project-level subscriptions and real-time updates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-5-project-management-views-combined.md</path>
+        <title>Previous Story - React Foundation &amp; Patterns</title>
+        <section>Dev Notes - Learnings</section>
+        <snippet>React 18.3.1 + TypeScript 5.5.4, TanStack Query 5.56.2 with retry logic, Zustand 4.5.5, Tailwind CSS 3.4.10, shadcn/ui components. BaseAPI client with JWT token injection, useWebSocket hook with exponential backoff reconnection.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>dashboard/src/api/client.ts</path>
+        <kind>service</kind>
+        <symbol>BaseAPI</symbol>
+        <lines>19-131</lines>
+        <reason>Base API client class with fetch wrapper, authentication (JWT from localStorage), and error handling. Reuse for all API calls.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/api/escalations.ts</path>
+        <kind>service</kind>
+        <symbol>escalationsApi</symbol>
+        <lines>12-35</lines>
+        <reason>Escalation API methods already implemented: getEscalations, getProjectEscalations, getEscalation, respondToEscalation. Reuse these for TanStack Query hooks.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/api/types.ts</path>
+        <kind>types</kind>
+        <symbol>EscalationStatus, EscalationDetail, EscalationResponse</symbol>
+        <lines>85-109</lines>
+        <reason>TypeScript interfaces for escalations already defined: status, type, severity, question, context, aiReasoning, confidenceScore, response.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useWebSocket</symbol>
+        <lines>16-181</lines>
+        <reason>WebSocket hook with automatic reconnection, event subscription system, and exponential backoff. Reuse for real-time escalation updates.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/layout/Header.tsx</path>
+        <kind>component</kind>
+        <symbol>Header</symbol>
+        <lines>6-58</lines>
+        <reason>Main header component where EscalationBadge should be added (Task 4.2). Currently has theme toggle and sidebar menu.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/test-utils/test-utils.tsx</path>
+        <kind>test-utils</kind>
+        <symbol>customRender</symbol>
+        <lines>33-38</lines>
+        <reason>Custom render function with QueryClient and BrowserRouter providers for testing. Use for all component tests.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="react" version="18.3.1" />
+        <package name="react-dom" version="18.3.1" />
+        <package name="react-router-dom" version="6.26.1" />
+        <package name="@tanstack/react-query" version="5.56.2" />
+        <package name="zustand" version="4.5.5" />
+        <package name="tailwindcss" version="3.4.10" />
+        <package name="lucide-react" version="0.294.0" />
+        <package name="@radix-ui/react-dialog" version="1.0.5" />
+        <package name="@radix-ui/react-toast" version="1.1.5" />
+        <package name="@radix-ui/react-tabs" version="1.0.4" />
+        <package name="@radix-ui/react-progress" version="1.1.8" />
+        <package name="vitest" version="1.0.4" dev="true" />
+        <package name="@testing-library/react" version="14.1.2" dev="true" />
+        <package name="@testing-library/user-event" version="14.5.1" dev="true" />
+        <package name="typescript" version="5.5.4" dev="true" />
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="architecture">Use Container/Presenter Pattern - pages fetch data, components display (established in Story 6.5)</constraint>
+    <constraint type="state-management">TanStack Query for server state, Zustand for client state - no mixing</constraint>
+    <constraint type="real-time">WebSocket events trigger TanStack Query cache invalidation for reactive updates</constraint>
+    <constraint type="ui-framework">Use shadcn/ui components exclusively - no custom UI primitives</constraint>
+    <constraint type="styling">Tailwind CSS with mobile-first responsive classes</constraint>
+    <constraint type="loading-states">Use skeleton loaders, not spinners (Story 6.5 pattern)</constraint>
+    <constraint type="testing">Co-locate tests with source files (*.test.tsx), minimum 70% coverage</constraint>
+    <constraint type="file-organization">Feature-based organization: components/escalations/ for all escalation components</constraint>
+    <constraint type="error-handling">Error boundaries with retry functionality for all API failures</constraint>
+    <constraint type="accessibility">ARIA labels, keyboard navigation (Tab, Enter), screen reader compatibility required</constraint>
+    <constraint type="security">XSS protection required if implementing markdown preview - sanitize HTML output</constraint>
+  </constraints>
+  <interfaces>
+    <interface>
+      <name>GET /api/escalations</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/escalations?status=pending|resolved&amp;projectId={id}</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>List all escalations with optional filtering by status or project</description>
+    </interface>
+    <interface>
+      <name>GET /api/escalations/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/escalations/{id}</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>Get escalation details including question, context, AI reasoning, confidence score</description>
+    </interface>
+    <interface>
+      <name>POST /api/escalations/:id/respond</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/escalations/{id}/respond { response: string, decision?: string, notes?: string }</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>Submit response to escalation, resumes workflow execution</description>
+    </interface>
+    <interface>
+      <name>WebSocket escalation.created</name>
+      <kind>WebSocket event</kind>
+      <signature>{ eventType: 'escalation.created', projectId: string, escalationId: string }</signature>
+      <path>backend/src/api/websocket/statusUpdates.ts</path>
+      <description>Real-time event when new escalation is created, triggers notification and query invalidation</description>
+    </interface>
+    <interface>
+      <name>WebSocket escalation.responded</name>
+      <kind>WebSocket event</kind>
+      <signature>{ eventType: 'escalation.responded', projectId: string, escalationId: string }</signature>
+      <path>backend/src/api/websocket/statusUpdates.ts</path>
+      <description>Real-time event when escalation is responded to, triggers query invalidation</description>
+    </interface>
+    <interface>
+      <name>EscalationStatus</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface EscalationStatus { id, projectId, type, severity, title, question, context, aiReasoning, confidenceScore, status, createdAt, respondedAt? }</signature>
+      <path>dashboard/src/api/types.ts</path>
+      <description>Escalation list item with summary information</description>
+    </interface>
+    <interface>
+      <name>EscalationDetail</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface EscalationDetail extends EscalationStatus { agentId, workflowStep, options?, response? }</signature>
+      <path>dashboard/src/api/types.ts</path>
+      <description>Full escalation details for modal display</description>
+    </interface>
+    <interface>
+      <name>useWebSocket hook</name>
+      <kind>React hook</kind>
+      <signature>useWebSocket(url, options) → { connectionStatus, isConnected, events, subscribe, unsubscribe, clearEvents, connect, disconnect }</signature>
+      <path>dashboard/src/hooks/useWebSocket.ts</path>
+      <description>WebSocket hook with automatic reconnection and event subscription system</description>
+    </interface>
+  </interfaces>
+  <tests>
+    <standards>Vitest 1.0.4 + React Testing Library 14.1.2 configured for component testing. Tests co-located with source files (*.test.tsx). Custom render wrapper at test-utils/test-utils.tsx includes QueryClientProvider and BrowserRouter. Mock fetch API for API calls, mock WebSocket API for real-time events. Target: minimum 70% coverage per component. Test patterns: render component, assert content, test user interactions (click, type, submit). Use userEvent for interactions, waitFor for async assertions.</standards>
+    <locations>
+      <location>dashboard/src/pages/*.test.tsx</location>
+      <location>dashboard/src/components/escalations/*.test.tsx</location>
+      <location>dashboard/src/hooks/*.test.ts</location>
+      <location>dashboard/src/api/*.test.ts</location>
+    </locations>
+    <ideas>
+      <idea ac="AC1">EscalationsPage renders escalation list with mock data from API</idea>
+      <idea ac="AC1">EscalationsPage shows loading skeleton while fetching</idea>
+      <idea ac="AC1">EscalationsPage handles API error with error boundary and retry</idea>
+      <idea ac="AC2">EscalationBadge shows correct pending escalation count from query</idea>
+      <idea ac="AC2">EscalationBadge hidden when count is zero</idea>
+      <idea ac="AC2">EscalationBadge click navigates to /escalations route</idea>
+      <idea ac="AC3">EscalationDetailModal displays question, AI decision, reasoning, confidence score</idea>
+      <idea ac="AC3">EscalationDetailModal shows confidence score with color-coded visual indicator</idea>
+      <idea ac="AC4">Submit button shows loading state during API call</idea>
+      <idea ac="AC4">Submit button disabled when response textarea is empty</idea>
+      <idea ac="AC6">Toast notification appears after successful submission</idea>
+      <idea ac="AC6">Modal closes after successful submission</idea>
+      <idea ac="AC7">WebSocket escalation.created event invalidates escalations query</idea>
+      <idea ac="AC7">WebSocket escalation.created event shows toast notification</idea>
+      <idea ac="AC8">Resolved escalations display with grayscale/muted styling</idea>
+      <idea ac="AC8">Resolved escalations show checkmark icon or "Resolved" badge</idea>
+      <idea>useEscalations hook fetches escalations with correct query key</idea>
+      <idea>useEscalations hook filters by status parameter (pending/resolved)</idea>
+      <idea>useSubmitEscalationResponse mutation invalidates queries on success</idea>
+      <idea>useEscalationWebSocket hook subscribes to escalation events</idea>
+      <idea>Integration test: view escalations → click card → open modal → submit response → verify resolved</idea>
+    </ideas>
+  </tests>
+</story-context>

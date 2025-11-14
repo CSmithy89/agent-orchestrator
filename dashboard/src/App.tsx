@@ -4,6 +4,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Dashboard } from '@/pages/Dashboard';
 import { ProjectsListPage } from '@/pages/ProjectsListPage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
+import { EscalationsPage } from '@/pages/EscalationsPage';
 import { NotFound } from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -19,8 +20,10 @@ function App() {
             <Route path="/projects" element={<ProjectsListPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
 
+            {/* Escalations route */}
+            <Route path="/escalations" element={<EscalationsPage />} />
+
             {/* Placeholder routes for future stories */}
-            <Route path="/escalations" element={<PlaceholderPage title="Escalations" />} />
             <Route path="/stories" element={<PlaceholderPage title="Stories" />} />
 
             {/* 404 route */}

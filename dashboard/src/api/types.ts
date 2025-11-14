@@ -89,7 +89,10 @@ export interface EscalationStatus {
   severity: 'low' | 'medium' | 'high' | 'critical';
   title: string;
   description: string;
+  question: string;
   context?: unknown;
+  aiReasoning?: string;
+  confidenceScore: number;
   status: 'pending' | 'responded' | 'resolved';
   createdAt: string;
   respondedAt?: string;
@@ -98,6 +101,7 @@ export interface EscalationStatus {
 export interface EscalationDetail extends EscalationStatus {
   agentId: string;
   workflowStep: string;
+  attemptedDecision?: string;
   options?: string[];
   response?: EscalationResponse;
 }
