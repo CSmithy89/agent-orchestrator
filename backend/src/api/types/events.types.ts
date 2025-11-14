@@ -19,6 +19,7 @@ export interface Event {
 export type EventType =
   | 'project.created'
   | 'project.updated'
+  | 'project.deleted'
   | 'project.phase.changed'
   | 'story.status.changed'
   | 'escalation.created'
@@ -47,6 +48,13 @@ export interface ProjectUpdatedEventData {
   status?: string;
   phase?: string;
   updatedFields: string[];
+}
+
+/**
+ * Project deleted event data
+ */
+export interface ProjectDeletedEventData {
+  id: string;
 }
 
 /**

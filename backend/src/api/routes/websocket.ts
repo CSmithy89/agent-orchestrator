@@ -29,6 +29,7 @@ interface ExtendedWebSocket extends WebSocket {
   userId?: string;
   subscriptions: Set<string>;
   isAlive: boolean;
+  eventHandlers?: Map<string, EventHandler>;
 }
 
 /**
@@ -224,10 +225,10 @@ export class WebSocketHandler {
     };
 
     // Store handler reference on client for cleanup
-    if (!(client as any).eventHandlers) {
-      (client as any).eventHandlers = new Map<string, EventHandler>();
+    if (!client.eventHandlers) {
+      client.eventHandlers = new Map<string, EventHandler>();
     }
-    (client as any).eventHandlers.set(projectId, handler);
+    client.eventHandlers.set(projectId, handler);
 
     // Subscribe to events
     eventService.subscribe(projectId, handler);
@@ -250,11 +251,10 @@ export class WebSocketHandler {
     client.subscriptions.delete(projectId);
 
     // Get and remove event handler
-    const eventHandlers = (client as any).eventHandlers as Map<string, EventHandler> | undefined;
-    const handler = eventHandlers?.get(projectId);
+    const handler = client.eventHandlers?.get(projectId);
     if (handler) {
       eventService.unsubscribe(projectId, handler);
-      eventHandlers!.delete(projectId);
+      client.eventHandlers!.delete(projectId);
     }
 
     console.log(`Client ${client.id} unsubscribed from project ${projectId}`);
@@ -274,12 +274,11 @@ export class WebSocketHandler {
     console.log(`WebSocket client disconnected: ${client.id}`);
 
     // Unsubscribe from all projects
-    const eventHandlers = (client as any).eventHandlers as Map<string, EventHandler> | undefined;
-    if (eventHandlers) {
-      for (const [projectId, handler] of eventHandlers.entries()) {
+    if (client.eventHandlers) {
+      for (const [projectId, handler] of client.eventHandlers.entries()) {
         eventService.unsubscribe(projectId, handler);
       }
-      eventHandlers.clear();
+      client.eventHandlers.clear();
     }
 
     // Remove client

@@ -24,6 +24,7 @@ export interface Project {
   name: string;
   status: ProjectStatus;
   phase: ProjectPhase;
+  config?: Record<string, unknown>;
   createdAt: string;
   updatedAt: string;
 }

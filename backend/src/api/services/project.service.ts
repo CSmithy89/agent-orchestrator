@@ -115,6 +115,14 @@ export class ProjectService {
   async listProjects(options: PaginationOptions): Promise<Project[]> {
     const { limit = 20, offset = 0 } = options;
 
+    // Validate pagination parameters
+    if (limit <= 0 || limit > 100) {
+      throw new Error('Limit must be between 1 and 100');
+    }
+    if (offset < 0) {
+      throw new Error('Offset must be non-negative');
+    }
+
     try {
       // Read all project directories
       await fs.mkdir(this.projectsDir, { recursive: true });
@@ -122,6 +130,9 @@ export class ProjectService {
       const projectDirs = entries.filter(entry => entry.isDirectory()).map(entry => entry.name);
 
       // Load projects
+      // NOTE: Currently loads all projects into memory before pagination
+      // For large repositories with hundreds of projects, consider implementing
+      // lazy-loading or streaming in future optimization
       const projects: Project[] = [];
       for (const projectId of projectDirs) {
         const project = await this.loadProject(projectId);
@@ -162,6 +173,7 @@ export class ProjectService {
       name: input.name.trim(),
       status: 'active',
       phase: 'analysis',
+      config: input.config,
       createdAt: now,
       updatedAt: now
     };
@@ -236,9 +248,9 @@ export class ProjectService {
     // Emit events
     eventService.emitEvent(project.id, 'project.updated', {
       id: project.id,
-      name: input.name,
-      status: input.status,
-      phase: input.phase,
+      name: project.name,
+      status: project.status,
+      phase: project.phase,
       updatedFields
     });
 
@@ -271,6 +283,11 @@ export class ProjectService {
     // Delete project directory
     const projectDir = path.join(this.projectsDir, id);
     await fs.rm(projectDir, { recursive: true, force: true });
+
+    // Emit event
+    eventService.emitEvent(id, 'project.deleted', {
+      id
+    });
 
     // Remove from cache
     this.projectsCache.delete(id);
