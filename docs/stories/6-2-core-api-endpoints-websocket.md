@@ -1,9 +1,10 @@
 # Story 6.2: Core API Endpoints & WebSocket
 
 **Epic:** 6 - Remote Access & Monitoring
-**Status:** in-progress
+**Status:** ready-for-dev
 **Assigned to:** Dev Agent
 **Story Points:** 8
+**Context Reference:** docs/stories/6-2-core-api-endpoints-websocket.context.xml
 
 ## User Story
 

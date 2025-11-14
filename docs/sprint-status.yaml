@@ -115,7 +115,7 @@ development_status:
   # Epic 6: Remote Access & Monitoring (Restructured for Parallel Development)
   epic-6: contexted  # Tech spec: docs/epics/epic-6-tech-spec.md (pending)
   6-1-api-infrastructure-type-system: done
-  6-2-core-api-endpoints-websocket: backlog
+  6-2-core-api-endpoints-websocket: ready-for-dev
   6-3-extended-api-endpoints: backlog
   6-4-react-dashboard-foundation-api-integration: backlog
   6-5-project-management-views-combined: backlog
