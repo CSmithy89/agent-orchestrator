@@ -1,0 +1,622 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-8</storyId>
+    <title>Integration Tests</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-8-integration-tests.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Story Implementation System</asA>
+    <iWant>comprehensive integration tests that validate the complete story development workflow and component interactions</iWant>
+    <soThat>the autonomous implementation engine operates reliably with >80% code coverage and validated error recovery paths</soThat>
+    <tasks>
+- Task 1: Create Integration Test Infrastructure (AC: #8, #9, #10)
+  - Create test/integration/implementation/workflow/ directory
+  - Install nock or msw for HTTP API mocking
+  - Create test fixtures: sample story files, PRD sections, architecture docs
+  - Create GitHub API mock responses
+  - Configure Vitest for integration tests with longer timeouts
+  - Set up code coverage collection: @vitest/coverage-v8
+  - Create test utilities: mock builders, assertion helpers
+  - Set up parallel test execution configuration
+
+- Task 2: Implement Complete Workflow Execution Test (AC: #1)
+  - Create test/integration/implementation/workflow/complete-workflow.test.ts
+  - Test all workflow steps from story file to PR creation
+  - Validate state transitions at each major step
+  - Assert story artifacts created correctly
+  - Measure test execution time: <5 minutes
+
+- Task 3: Implement Agent Interaction Tests (AC: #2)
+  - Create test/integration/implementation/workflow/agent-interactions.test.ts
+  - Test Amelia agent initialization and methods
+  - Test Alex agent initialization with different LLM
+  - Test Amelia → Alex handoff and review coordination
+  - Mock LLM API responses for both agents
+
+- Task 4: Implement Context Generation Pipeline Test (AC: #3)
+  - Create test/integration/implementation/workflow/context-generation.test.ts
+  - Test story file parsing and section extraction
+  - Test PRD and architecture section extraction
+  - Test token optimization (<50k tokens)
+  - Test context caching
+
+- Task 5: Implement PR Automation Test with Mock GitHub API (AC: #4, #8)
+  - Create test/integration/implementation/workflow/pr-automation.test.ts
+  - Set up nock mocks for GitHub API endpoints
+  - Test PR creation, CI monitoring, auto-merge
+  - Verify GitHub API request payloads
+
+- Task 6: Implement Error Recovery Scenario Tests (AC: #5)
+  - Create test/integration/implementation/workflow/error-recovery.test.ts
+  - Test failed tests recovery, failed review escalation
+  - Test CI failure with retry, transient LLM API error
+  - Test merge conflict escalation, missing context documents
+
+- Task 7: Implement State Management Tests (AC: #6)
+  - Create test/integration/implementation/workflow/state-management.test.ts
+  - Test worktree lifecycle and isolation
+  - Test sprint-status.yaml updates (atomic writes)
+  - Test state checkpointing and recovery
+  - Test parallel execution: 3 stories simultaneously
+
+- Task 8: Implement Escalation Trigger Tests (AC: #7)
+  - Create test/integration/implementation/workflow/escalation-triggers.test.ts
+  - Test low confidence escalation (<0.85)
+  - Test critical issues escalation (security vulnerabilities)
+  - Test persistent failures escalation (max retries exceeded)
+
+- Task 9: Measure and Report Code Coverage (AC: #9)
+  - Configure Vitest coverage: lines, branches, functions, statements
+  - Run integration tests with coverage
+  - Validate >80% line coverage, >80% branch coverage, >90% function coverage
+  - Document coverage exclusions
+
+- Task 10: Optimize Test Execution Performance (AC: #10)
+  - Measure current test suite execution time
+  - Optimize slow tests (>2 minutes)
+  - Configure test parallelization in Vitest
+  - Validate: All tests pass in <10 minutes
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC1: Complete Workflow Execution Tested
+- Integration test for end-to-end workflow: story file → context generation → implementation → tests → review → PR creation
+- Test validates all workflow steps execute in correct sequence
+- Test verifies state transitions at each major step (backlog → drafted → ready-for-dev → in-progress → review → done)
+- Test confirms story artifacts created: code files, test files, PR description, sprint-status updates
+- Test uses realistic mock data for story file, PRD, architecture, tech spec
+- Test executes in <5 minutes (fast feedback loop)
+- Test passes with no errors
+- Test coverage: >80% of workflow orchestration code
+
+AC2: Agent Interaction Tests
+- Integration test for Amelia agent initialization and method invocation
+- Integration test for Alex agent initialization with different LLM configuration
+- Test Amelia → Alex handoff: code implementation passed to independent reviewer
+- Test context passing: StoryContext correctly provided to both agents
+- Test review coordination: self-review + independent review → aggregated decision
+- Test agent error handling: LLM API failures, timeout scenarios
+- Test agent state tracking: idle → implementing → testing → reviewing → completed
+- All agent interaction tests pass with proper mocking of LLM APIs
+
+AC3: Context Generation Pipeline Tested
+- Integration test for StoryContextGenerator.generateContext()
+- Test story file parsing: YAML frontmatter + markdown body
+- Test PRD section extraction: relevant sections identified (<10k tokens)
+- Test architecture section extraction: technical constraints identified (<15k tokens)
+- Test onboarding docs loading: coding standards, patterns loaded (<10k tokens)
+- Test existing code loading: files from story.technicalNotes.affectedFiles (<15k tokens)
+- Test dependency context loading: prerequisite story context assembled
+- Test token optimization: total context <50k tokens validated
+- Test context caching: repeated calls use cached results
+- Test validates all required sections present in Story Context XML
+
+AC4: PR Automation Tested with Mock GitHub API
+- Integration test for PRCreationAutomator.createPR()
+- Mock GitHub API responses using nock or msw
+- Test PR creation: title, body, labels, reviewers correctly set
+- Test CI monitoring: poll GitHub Checks API, wait for completion
+- Test auto-merge: PR merged after CI passes (mocked)
+- Test remote branch deletion after successful merge
+- Test worktree cleanup invocation
+- Test sprint-status.yaml update: "review" → "done"
+- Test dependent story triggering after merge
+- All PR automation tests pass with mocked GitHub API
+
+AC5: Error Recovery Scenarios Tested
+- Integration test for failed test scenario: tests fail → Amelia fixes → re-run → pass
+- Integration test for failed review scenario: Alex review fails → escalation triggered
+- Integration test for CI failure scenario: checks fail → retry logic → escalation after max retries
+- Integration test for transient error recovery: LLM API timeout → retry with exponential backoff
+- Integration test for merge conflict scenario: PR merge fails → escalation with error details
+- Integration test for context generation failure: missing PRD/architecture → clear error message
+- Test error logging: all failures logged with correlation IDs and error details
+- Test state preservation: workflow state persists after crash/failure
+- Test resume capability: workflow resumes from last checkpoint after recovery
+- All error recovery tests validate proper escalation and state management
+
+AC6: State Management Tested
+- Integration test for worktree lifecycle: create → develop → cleanup
+- Test worktree isolation: multiple parallel stories in separate worktrees
+- Test agent state transitions: status updates tracked correctly
+- Test sprint-status.yaml updates: atomic file updates, concurrent access handling
+- Test state checkpointing: workflow state saved after each major step
+- Test state recovery: load state from checkpoint and resume
+- Test state consistency: no partial updates, rollback on failure
+- Test concurrent story execution: 3 stories in parallel without conflicts
+- All state management tests pass with proper isolation and consistency
+
+AC7: Escalation Triggers Tested
+- Integration test for low confidence escalation: review confidence <0.85 → escalate
+- Integration test for critical issues escalation: security vulnerabilities → escalate
+- Integration test for persistent failures escalation: max retries exceeded → escalate
+- Test escalation creates notification or issue (mocked)
+- Test escalation includes comprehensive context: story details, error logs, recommendations
+- Test escalation preserves worktree for human debugging
+- Test escalation logs all relevant information with correlation IDs
+- All escalation trigger tests validate proper escalation logic
+
+AC8: GitHub API Mocked for PR Operations
+- GitHub API mocked using nock or msw library
+- Mock responses for: pulls.create, issues.addLabels, pulls.requestReviewers, checks.listForRef, pulls.merge
+- Mock realistic response data with proper TypeScript types
+- Mock error scenarios: API failures, rate limits, network errors
+- Mock CI check statuses: queued, in_progress, completed with various conclusions
+- Mock validates request payloads (title, body, labels, reviewers)
+- Mock implementation allows test customization (pass/fail scenarios)
+- All tests use mocked GitHub API (no real API calls)
+
+AC9: >80% Code Coverage for Workflow Code
+- Code coverage measured using Vitest coverage tools (@vitest/coverage-v8)
+- Coverage includes all workflow components: orchestrator, context generator, PR automation
+- Line coverage: >80% for new workflow code
+- Branch coverage: >80% for decision paths
+- Function coverage: >90% for public methods
+- Coverage report generated and saved to coverage/
+- Uncovered code identified and justified (dead code, defensive checks, etc.)
+- Coverage metrics tracked over time for regression detection
+
+AC10: All Integration Tests Pass in <10 Minutes
+- Complete integration test suite executes in <10 minutes
+- Individual integration tests complete in <2 minutes each
+- Test execution parallelized where possible
+- Slow tests identified and optimized (mocking instead of real operations)
+- Test timeouts configured appropriately (no infinite waits)
+- Test results logged with execution time per test
+- All tests pass consistently (no flaky tests)
+- CI integration: tests run in GitHub Actions pipeline
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5: Story Implementation Automation - Technical Specification</title>
+        <section>Integration Tests (Story 5.8)</section>
+        <snippet>Story 5.8 validates the complete autonomous implementation engine built in Stories 5.1-5.7. Integration tests ensure workflow components interact correctly and handle errors gracefully. Tests cover: workflow execution, agent interactions, context generation, PR automation, error recovery, state management, escalation triggers. Target: >80% code coverage for all workflow code.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5: Story Implementation Automation - Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>Core TypeScript interfaces defined in src/implementation/types.ts including AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, CoverageReport, SelfReviewReport, IndependentReviewReport. All interfaces used throughout the workflow for type safety.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5: Story Implementation Automation - Technical Specification</title>
+        <section>Test Strategy Summary</section>
+        <snippet>Integration testing approach: Mock external APIs (GitHub, LLM), use real file system and git operations in isolated test directories. AAA pattern (Arrange, Act, Assert), test isolation with no shared state. Performance targets: individual tests <2 minutes, full suite <10 minutes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Agent Orchestrator - System Architecture</title>
+        <section>System Architecture Overview</section>
+        <snippet>Microkernel pattern with event-driven extensions, optimized for autonomous agent coordination and parallel story development. Core components: WorkflowEngine, AgentPool, StateManager, WorktreeManager, LLMFactory, TemplateProcessor.</snippet>
+      </doc>
+      <doc>
+        <path>backend/vitest.config.ts</path>
+        <title>Vitest Configuration</title>
+        <section>Test and Coverage Configuration</section>
+        <snippet>Vitest configured with v8 coverage provider, reporters (text, html, json), 75% coverage thresholds. Test patterns: tests/**/*.test.ts, tests/**/*.spec.ts. Parallel execution with forks pool, isolation enabled for integration tests. Default timeout: 5000ms for unit tests, configurable per-test for integration.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-1-core-agent-infrastructure.md</path>
+        <title>Story 5.1: Core Agent Infrastructure</title>
+        <section>Overview</section>
+        <snippet>Implements Amelia (Developer) and Alex (Code Reviewer) agents with distinct personas and LLM configurations. Amelia handles code implementation, test generation, debugging. Alex handles security review, quality analysis, test validation. Different LLMs ensure diverse perspectives.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-2-story-context-generator.md</path>
+        <title>Story 5.2: Story Context Generator</title>
+        <section>Overview</section>
+        <snippet>StoryContextGenerator assembles complete story context from story file, PRD, architecture, onboarding docs, existing code. Token-optimized to <50k tokens. Parses YAML frontmatter, extracts relevant sections, loads dependency context.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-3-workflow-orchestration-state-management.md</path>
+        <title>Story 5.3: Workflow Orchestration &amp; State Management</title>
+        <section>Overview</section>
+        <snippet>WorkflowOrchestrator executes complete story workflow: context generation → worktree creation → implementation → tests → review → PR creation. Manages state transitions, error handling, retry logic. Integrates with WorktreeManager for isolated development.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-4-code-implementation-pipeline.md</path>
+        <title>Story 5.4: Code Implementation Pipeline</title>
+        <section>Overview</section>
+        <snippet>CodeImplementationPipeline coordinates Amelia agent to implement story according to acceptance criteria. Validates implementation against architecture constraints. Creates/modifies code files, generates commit messages, maps acceptance criteria to implementation.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-5-test-generation-execution.md</path>
+        <title>Story 5.5: Test Generation &amp; Execution</title>
+        <section>Overview</section>
+        <snippet>TestGenerationExecutor generates comprehensive tests using Amelia agent. Executes tests, validates >80% coverage, fixes failing tests with retry logic. Supports Vitest, Jest, Mocha frameworks.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-6-dual-agent-code-review.md</path>
+        <title>Story 5.6: Dual-Agent Code Review</title>
+        <section>Overview</section>
+        <snippet>DualAgentCodeReviewer coordinates Amelia self-review and Alex independent review. Aggregates findings, makes pass/fail decisions based on confidence (>0.85) and critical issues. Triggers escalation for low confidence or security vulnerabilities.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-7-pr-creation-automation.md</path>
+        <title>Story 5.7: PR Creation &amp; Automation</title>
+        <section>Overview</section>
+        <snippet>PRCreationAutomator creates GitHub PRs with @octokit/rest, monitors CI via GitHub Checks API (polling every 30 seconds), auto-merges after checks pass, deletes remote branch, cleans up worktree. Supports manual review mode, handles CI failures with retry (max 2 retries, then escalation).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <file>
+        <path>backend/src/implementation/types.ts</path>
+        <kind>interface</kind>
+        <symbol>AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, CoverageReport</symbol>
+        <lines>1-400</lines>
+        <reason>Core TypeScript interfaces for all workflow components. Defines contracts for Amelia/Alex agents, story context structure, code implementation format, test suite structure. Essential for integration tests to validate type contracts.</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/context/StoryContextGenerator.ts</path>
+        <kind>service</kind>
+        <symbol>StoryContextGenerator</symbol>
+        <lines>1-500</lines>
+        <reason>Story context generation service to be tested. Parses story files, extracts PRD/architecture sections, loads dependencies, optimizes tokens. AC3 tests this component.</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+        <kind>service</kind>
+        <symbol>WorkflowOrchestrator</symbol>
+        <lines>1-600</lines>
+        <reason>Main workflow orchestrator to be tested. Executes complete story workflow, manages state transitions, handles errors. AC1 tests this component end-to-end.</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/agents/amelia.ts</path>
+        <kind>agent</kind>
+        <symbol>AmeliaAgent</symbol>
+        <lines>1-300</lines>
+        <reason>Amelia agent implementation to be tested. Implements story, writes tests, reviews code. AC2 tests agent initialization and methods.</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/agents/alex.ts</path>
+        <kind>agent</kind>
+        <symbol>AlexAgent</symbol>
+        <lines>1-300</lines>
+        <reason>Alex agent implementation to be tested. Reviews security, analyzes quality, validates tests. AC2 tests agent initialization with different LLM.</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/pipeline/CodeImplementationPipeline.ts</path>
+        <kind>service</kind>
+        <symbol>CodeImplementationPipeline</symbol>
+        <lines>1-400</lines>
+        <reason>Code implementation pipeline to be tested. Coordinates Amelia to implement code. Part of complete workflow test (AC1).</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/testing/TestGenerationExecutor.ts</path>
+        <kind>service</kind>
+        <symbol>TestGenerationExecutor</symbol>
+        <lines>1-500</lines>
+        <reason>Test generation service to be tested. Generates tests, executes them, validates coverage. Part of complete workflow test (AC1).</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/review/DualAgentCodeReviewer.ts</path>
+        <kind>service</kind>
+        <symbol>DualAgentCodeReviewer</symbol>
+        <lines>1-400</lines>
+        <reason>Dual-agent review coordinator to be tested. Coordinates Amelia self-review and Alex independent review. AC2 tests review coordination.</reason>
+      </file>
+      <file>
+        <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+        <kind>service</kind>
+        <symbol>PRCreationAutomator</symbol>
+        <lines>1-600</lines>
+        <reason>PR creation and automation service to be tested. Creates PRs, monitors CI, auto-merges. AC4 tests PR automation with mocked GitHub API.</reason>
+      </file>
+      <file>
+        <path>backend/src/core/WorktreeManager.ts</path>
+        <kind>service</kind>
+        <symbol>WorktreeManager</symbol>
+        <lines>1-400</lines>
+        <reason>Worktree management service. Creates, removes worktrees for isolated development. AC6 tests worktree lifecycle and isolation.</reason>
+      </file>
+      <file>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>service</kind>
+        <symbol>StateManager</symbol>
+        <lines>1-300</lines>
+        <reason>State persistence service. Saves/loads workflow state, manages checkpoints. AC6 tests state management and recovery.</reason>
+      </file>
+      <file>
+        <path>backend/tests/unit/implementation/testing/TestGenerationExecutor.test.ts</path>
+        <kind>test</kind>
+        <symbol>TestGenerationExecutor unit tests</symbol>
+        <lines>1-300</lines>
+        <reason>Example unit test file showing AAA pattern, mocking strategy, assertion patterns. Reference for integration test structure.</reason>
+      </file>
+      <file>
+        <path>backend/tests/integration/implementation/story-context-generation.test.ts</path>
+        <kind>test</kind>
+        <symbol>Story context generation integration test</symbol>
+        <lines>1-400</lines>
+        <reason>Existing integration test for context generation. Reference for integration test patterns, mocking, fixtures.</reason>
+      </file>
+      <file>
+        <path>backend/tests/integration/implementation/workflow-orchestration.test.ts</path>
+        <kind>test</kind>
+        <symbol>Workflow orchestration integration test</symbol>
+        <lines>1-600</lines>
+        <reason>Existing integration test for workflow orchestration. Reference for end-to-end workflow testing patterns.</reason>
+      </file>
+    </code>
+    <dependencies>
+      <node>
+        <vitest>^1.0.0</vitest>
+        <@vitest/coverage-v8>^1.0.0</@vitest/coverage-v8>
+        <@vitest/ui>^1.0.0</@vitest/ui>
+        <@octokit/rest>^22.0.1</@octokit/rest>
+        <@anthropic-ai/claude-agent-sdk>^0.1.30</@anthropic-ai/claude-agent-sdk>
+        <@anthropic-ai/sdk>^0.68.0</@anthropic-ai/sdk>
+        <openai>^6.2.0</openai>
+        <simple-git>^3.20.0</simple-git>
+        <typescript>^5.3.0</typescript>
+        <tsx>^4.0.0</tsx>
+        <ajv>^8.17.1</ajv>
+        <js-yaml>^4.1.0</js-yaml>
+        <gray-matter>^4.0.3</gray-matter>
+        <uuid>^13.0.0</uuid>
+        <nock>To be installed for HTTP API mocking</nock>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Mock External APIs: Use nock or msw to mock all GitHub API calls (no real API requests). Use fixture responses for Amelia and Alex LLM calls (deterministic, no API costs).</constraint>
+    <constraint>Real Operations Where Feasible: Use real file system operations in temporary test directories. Use real git operations in isolated test repositories for realistic integration testing.</constraint>
+    <constraint>Test Isolation: Each integration test creates isolated worktrees and temporary directories. Clean up after test completion. No shared state between tests.</constraint>
+    <constraint>Performance Optimization: Target <10 minutes for complete integration test suite. Individual tests <2 minutes each. Parallelize tests where possible. Use shorter timeouts and polling intervals in tests.</constraint>
+    <constraint>Coverage Target: >80% line coverage for workflow orchestration code. >80% branch coverage for decision paths. >90% function coverage for public methods.</constraint>
+    <constraint>AAA Pattern: All tests follow Arrange-Act-Assert pattern. Clear test structure with setup, execution, validation sections.</constraint>
+    <constraint>No Flaky Tests: Tests must pass consistently with 100% pass rate over multiple runs. Use proper mocking, avoid timing dependencies.</constraint>
+    <constraint>Test Frameworks: Use Vitest for unit and integration tests. Use @vitest/coverage-v8 for code coverage. Use nock or msw for HTTP API mocking.</constraint>
+    <constraint>Error Scenario Testing: Comprehensive error recovery tests for all failure modes: test failures, review failures, CI failures, LLM timeouts, merge conflicts, missing documents.</constraint>
+    <constraint>GitHub API Mocking: Mock all GitHub API endpoints using nock. Validate request payloads. Support pass/fail scenarios for CI checks.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>AmeliaAgent</name>
+      <kind>TypeScript interface extending Agent</kind>
+      <signature>
+interface AmeliaAgent extends Agent {
+  name: 'amelia';
+  role: 'Developer';
+  expertise: ['code-implementation', 'test-generation', 'debugging', 'refactoring', 'documentation'];
+  llm: { model: string; provider: string; temperature: number };
+  implementStory(context: StoryContext): Promise&lt;CodeImplementation&gt;;
+  writeTests(code: CodeImplementation): Promise&lt;TestSuite&gt;;
+  fixTests(failureContext: TestFailureContext): Promise&lt;TestSuite&gt;;
+  reviewCode(code: CodeImplementation): Promise&lt;SelfReviewReport&gt;;
+}
+      </signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgent</name>
+      <kind>TypeScript interface extending Agent</kind>
+      <signature>
+interface AlexAgent extends Agent {
+  name: 'alex';
+  role: 'Code Reviewer';
+  expertise: ['security-review', 'code-quality-analysis', 'test-coverage-validation', 'architecture-compliance', 'performance-analysis'];
+  llm: { model: string; provider: string; temperature: number };
+  reviewSecurity(code: CodeImplementation): Promise&lt;SecurityReview&gt;;
+  analyzeQuality(code: CodeImplementation): Promise&lt;QualityAnalysis&gt;;
+  validateTests(tests: TestSuite, coverage: CoverageReport): Promise&lt;TestValidation&gt;;
+  generateReport(reviews: Review[]): Promise&lt;IndependentReviewReport&gt;;
+}
+      </signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+    <interface>
+      <name>StoryContext</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface StoryContext {
+  story: {
+    id: string;
+    title: string;
+    description: string;
+    acceptanceCriteria: string[];
+    technicalNotes: TechnicalNotes;
+    dependencies: string[];
+  };
+  prdContext: string;
+  architectureContext: string;
+  onboardingDocs: string;
+  existingCode: ExistingCodeFile[];
+  dependencyContext?: string;
+  totalTokens: number;
+}
+      </signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+    <interface>
+      <name>CodeImplementation</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface CodeImplementation {
+  files: CodeFile[];
+  commitMessage: string;
+  implementationNotes: string;
+  acceptanceCriteriaMapping: AcceptanceCriteriaMapping[];
+}
+      </signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+    <interface>
+      <name>TestSuite</name>
+      <kind>TypeScript interface</kind>
+      <signature>
+interface TestSuite {
+  files: TestFile[];
+  framework: string;
+  testCount: number;
+  coverage: CoverageReport;
+  results: TestResults;
+}
+      </signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+    <interface>
+      <name>WorkflowOrchestrator.executeStoryWorkflow()</name>
+      <kind>Service method</kind>
+      <signature>
+async executeStoryWorkflow(storyId: string): Promise&lt;WorkflowResult&gt; {
+  // 1. Load story file and generate context
+  // 2. Create worktree for isolated development
+  // 3. Amelia implements code
+  // 4. Amelia generates tests
+  // 5. Run tests and validate coverage
+  // 6. Amelia self-review
+  // 7. Alex independent review
+  // 8. Create PR with PRCreationAutomator
+  // 9. Monitor CI and auto-merge
+  // 10. Cleanup worktree and update sprint-status
+}
+      </signature>
+      <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+    </interface>
+    <interface>
+      <name>StoryContextGenerator.generateContext()</name>
+      <kind>Service method</kind>
+      <signature>
+async generateContext(storyId: string): Promise&lt;StoryContext&gt; {
+  // Parse story file (YAML frontmatter + markdown)
+  // Extract PRD sections (relevant to story keywords)
+  // Extract architecture sections (technical constraints)
+  // Load onboarding docs (coding standards, patterns)
+  // Load existing code (files from technicalNotes.affectedFiles)
+  // Load dependency context (prerequisite stories)
+  // Optimize tokens (<50k total)
+  // Generate context XML
+}
+      </signature>
+      <path>backend/src/implementation/context/StoryContextGenerator.ts</path>
+    </interface>
+    <interface>
+      <name>PRCreationAutomator.createPR()</name>
+      <kind>Service method</kind>
+      <signature>
+async createPR(options: PRCreationOptions): Promise&lt;PRResult&gt; {
+  // Create GitHub PR using @octokit/rest
+  // Add labels and request reviewers
+  // Monitor CI status via GitHub Checks API
+  // Auto-merge after checks pass (if enabled)
+  // Delete remote branch
+  // Cleanup worktree
+  // Update sprint-status.yaml
+  // Trigger dependent stories
+}
+      </signature>
+      <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+    </interface>
+    <interface>
+      <name>GitHub REST API - pulls.create</name>
+      <kind>REST API endpoint</kind>
+      <signature>
+POST /repos/{owner}/{repo}/pulls
+Body: {
+  title: string;
+  body: string;
+  head: string;
+  base: string;
+}
+Response: {
+  number: number;
+  html_url: string;
+  state: 'open';
+}
+      </signature>
+      <path>@octokit/rest - GitHub API</path>
+    </interface>
+    <interface>
+      <name>GitHub REST API - checks.listForRef</name>
+      <kind>REST API endpoint</kind>
+      <signature>
+GET /repos/{owner}/{repo}/commits/{ref}/check-runs
+Response: {
+  check_runs: Array&lt;{
+    name: string;
+    status: 'queued' | 'in_progress' | 'completed';
+    conclusion: 'success' | 'failure' | 'cancelled' | null;
+  }&gt;;
+}
+      </signature>
+      <path>@octokit/rest - GitHub API</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+All tests follow the AAA (Arrange-Act-Assert) pattern with clear separation of setup, execution, and validation. Use Vitest as the test framework with v8 coverage provider. Mock external dependencies (GitHub API with nock, LLM APIs with fixture responses). Use real file system and git operations in isolated temporary directories for integration tests. Target >80% line coverage, >80% branch coverage, >90% function coverage. Tests must be deterministic and pass consistently (no flaky tests). Individual integration tests complete in <2 minutes, full suite in <10 minutes. Tests run in parallel where possible using Vitest's forks pool with isolation enabled.
+    </standards>
+    <locations>
+- backend/tests/integration/implementation/workflow/ - New integration test directory for story 5-8
+- backend/tests/unit/implementation/ - Existing unit tests for reference
+- backend/tests/integration/implementation/ - Existing integration tests for reference
+- backend/tests/setup.ts - Global test setup file
+- backend/vitest.config.ts - Vitest configuration
+    </locations>
+    <ideas>
+AC1 Test Ideas:
+- complete-workflow.test.ts: Create realistic story file fixture, mock PRD and architecture docs, mock LLM responses for Amelia/Alex, mock GitHub API with nock, execute full workflow from StoryContextGenerator.generateContext() through PRCreationAutomator.createPR(), assert all state transitions (drafted → ready-for-dev → in-progress → review → done), assert story artifacts created (code files, test files, PR), measure execution time <5 minutes
+
+AC2 Test Ideas:
+- agent-interactions.test.ts: Test Amelia initialization with project config (verify LLM provider/model loaded), test Alex initialization with different LLM (verify different model than Amelia), mock LLM API responses for implementStory(), writeTests(), reviewCode(), mock Alex API responses for reviewSecurity(), analyzeQuality(), validateTests(), test context passing (StoryContext provided to both agents), test handoff (code + tests passed from Amelia to Alex), test review coordination (aggregated decision from both reviews), test error handling (LLM timeout → retry → success)
+
+AC3 Test Ideas:
+- context-generation.test.ts: Create test fixtures (story file with YAML frontmatter + markdown, PRD with multiple sections, architecture doc, onboarding docs, existing code files), test story parsing (extract epicId, storyId, title, status, acceptanceCriteria, tasks, technicalNotes), test PRD extraction (keywords from story → relevant PRD sections, token count <10k), test architecture extraction (technical notes → relevant architecture sections, token count <15k), test context caching (second call returns cached result), test context XML generation (all required sections present, valid XML format)
+
+AC4 Test Ideas:
+- pr-automation.test.ts: Set up nock mocks for GitHub API (pulls.create, issues.addLabels, pulls.requestReviewers, checks.listForRef, pulls.merge), test PR creation (verify request payload with title, body, labels, reviewers), test CI monitoring (poll checks API with mocked responses: queued → in_progress → completed/success), test auto-merge (merge called after all checks pass), test remote branch deletion (git push --delete called), test worktree cleanup (WorktreeManager.removeWorktree() invoked), test sprint-status update (status changed from "review" to "done"), test dependent story triggering (ready stories identified)
+
+AC5 Test Ideas:
+- error-recovery.test.ts: Test failed tests recovery (mock test failure → Amelia fixTests() called → re-run → success), test failed review escalation (mock Alex critical issues → escalation triggered with worktree preserved), test CI failure retry (mock checks failure → retry 2 times → escalation after max retries), test transient LLM error (mock API timeout → exponential backoff → success on retry), test merge conflict (mock PR merge error → escalation with error details), test missing context docs (mock missing PRD file → clear error message, workflow halted)
+
+AC6 Test Ideas:
+- state-management.test.ts: Test worktree creation (isolated directory created with git worktree add), test worktree isolation (3 parallel stories in separate worktrees, no cross-contamination), test agent state transitions (idle → implementing → testing → reviewing → completed, logged correctly), test sprint-status atomic updates (temp file + rename pattern, concurrent access handled), test state checkpointing (workflow state saved after each major step), test state recovery (load checkpoint, resume workflow from saved state), test state rollback (restore previous state on failure), test parallel execution (3 stories simultaneously without conflicts)
+
+AC7 Test Ideas:
+- escalation-triggers.test.ts: Test low confidence escalation (mock review confidence 0.82 → escalation notification created), test critical issues escalation (mock security vulnerabilities in Alex review → escalation with vulnerability details), test persistent failures escalation (mock max retries exceeded for test failures → escalation with all retry logs), test escalation context (verify story details, error logs, recommendations included), test worktree preservation (worktree not cleaned up after escalation for debugging)
+
+AC8 Test Ideas:
+- Use nock library to mock all GitHub API endpoints, create mock responses matching @octokit/rest TypeScript types, validate request payloads (title, body, labels, reviewers), support multiple CI check scenarios (all pass, some fail, timeout), allow test customization (configure mocks per test case)
+
+AC9 Test Ideas:
+- Configure Vitest coverage with v8 provider, run tests with --coverage flag, generate reports (text, html, json), parse coverage results, assert line coverage >80%, assert branch coverage >80%, assert function coverage >90%, identify uncovered code, document exclusions
+
+AC10 Test Ideas:
+- Measure test suite execution time, identify slow tests (>2 minutes), optimize with better mocking, configure parallel execution in vitest.config.ts, validate all tests pass in <10 minutes, integrate with CI pipeline (GitHub Actions)
+    </ideas>
+  </tests>
+</story-context>
