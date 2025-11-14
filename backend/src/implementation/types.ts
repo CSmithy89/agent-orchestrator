@@ -448,3 +448,52 @@ export interface ReviewFinding {
  * Generic review type for Alex's generateReport()
  */
 export type Review = SecurityReview | QualityAnalysis | TestValidation;
+
+/**
+ * Combined Review Result - Output of DualAgentCodeReviewer.performDualReview()
+ * Aggregates Amelia's self-review and Alex's independent review into final decision
+ */
+export interface CombinedReviewResult {
+  /** Amelia's self-review report */
+  ameliaReview: SelfReviewReport;
+  /** Alex's independent review report */
+  alexReview: IndependentReviewReport;
+  /** Combined quality score (0.0-1.0) */
+  combinedScore: number;
+  /** Combined confidence score (0.0-1.0) */
+  combinedConfidence: number;
+  /** Final decision */
+  decision: 'pass' | 'fail' | 'escalate';
+  /** Rationale for decision */
+  decisionRationale: string;
+  /** All findings from both reviews */
+  findings: ReviewFinding[];
+  /** Recommendations for improvement */
+  recommendations: string[];
+  /** Review execution metrics */
+  metrics: ReviewMetrics;
+}
+
+/**
+ * Review Metrics - Performance tracking for dual-agent review
+ */
+export interface ReviewMetrics {
+  /** Total review duration in milliseconds */
+  totalTime: number;
+  /** Amelia self-review duration in milliseconds */
+  ameliaTime: number;
+  /** Alex independent review duration in milliseconds */
+  alexTime: number;
+  /** Decision logic duration in milliseconds */
+  decisionTime: number;
+  /** Findings count by severity */
+  findingsCount: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    info: number;
+  };
+  /** Number of review iterations (fix cycles) */
+  reviewIterations: number;
+}

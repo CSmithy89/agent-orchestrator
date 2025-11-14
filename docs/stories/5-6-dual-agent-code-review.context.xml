@@ -1,0 +1,507 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>6</storyId>
+    <title>Dual-Agent Code Review</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-6-dual-agent-code-review.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Story Implementation System</asA>
+    <iWant>a DualAgentCodeReviewer that coordinates Amelia's self-review with Alex's independent review to make pass/fail decisions</iWant>
+    <soThat>stories are autonomously reviewed with comprehensive quality, security, and test validation before PR creation</soThat>
+    <tasks>
+      - Task 1: Create DualAgentCodeReviewer Class (AC: #1, #10)
+        - Create src/implementation/review/DualAgentCodeReviewer.ts
+        - Implement constructor with dependency injection (Amelia agent, Alex agent, FileSystemUtils)
+        - Implement performDualReview(code, tests, context) method
+        - Add logging infrastructure and error handling
+
+      - Task 2: Implement Amelia Self-Review (AC: #2)
+        - Create executeSelfReview() private method
+        - Invoke Amelia.reviewCode(implementation)
+        - Parse response and identify critical issues
+        - Auto-fix critical issues with Amelia.implementFixes()
+
+      - Task 3: Implement Alex Independent Review (AC: #3)
+        - Create executeIndependentReview() private method
+        - Verify Alex uses different LLM than Amelia
+        - Invoke Alex methods: reviewSecurity(), analyzeQuality(), validateTests()
+        - Aggregate findings into IndependentReviewReport
+
+      - Task 4: Implement Security Review (Alex) (AC: #4)
+        - Create performSecurityReview() private method
+        - Check OWASP Top 10 vulnerabilities
+        - Calculate security score (0-100)
+        - Identify critical/high severity issues
+
+      - Task 5: Implement Quality Analysis (Alex) (AC: #5)
+        - Create performQualityAnalysis() private method
+        - Calculate complexity metrics and maintainability index
+        - Detect code smells and duplication
+        - Identify naming convention violations
+
+      - Task 6: Implement Test Validation (Alex) (AC: #6)
+        - Create performTestValidation() private method
+        - Check coverage >80% for lines, functions, branches, statements
+        - Assess test quality (edge cases, error handling, integration tests)
+        - Identify missing tests
+
+      - Task 7: Implement Review Report Generation (AC: #7)
+        - Create generateReviewReport() private method
+        - Aggregate findings from both agents
+        - Categorize by severity and category
+        - Format for PR description
+
+      - Task 8: Implement Decision Logic (AC: #8)
+        - Create makeDecision() private method
+        - Evaluate confidence threshold (>0.85)
+        - Count critical/high severity issues
+        - Return pass/fail/escalate decision
+
+      - Task 9: Implement Review Metrics Tracking (AC: #9)
+        - Track execution times and findings counts
+        - Track pass/fail rates and confidence scores
+        - Log metrics at INFO level
+
+      - Task 10: Implement WorkflowOrchestrator Integration (AC: #10)
+        - Accept CodeImplementation, TestSuite, StoryContext inputs
+        - Return CombinedReviewResult
+        - Handle errors compatible with orchestrator retry logic
+
+      - Task 11: Write Unit Tests (AC: #11)
+        - Create test/unit/implementation/review/DualAgentCodeReviewer.test.ts
+        - Test dual review coordination with mocks
+        - Test decision logic with various scenarios
+        - Achieve >80% coverage
+
+      - Task 12: Write Integration Tests (AC: #12)
+        - Create test/integration/implementation/review/dual-agent-review.test.ts
+        - Test complete pipeline with real agent methods
+        - Test security, quality, and coverage scenarios
+        - Complete in <5 minutes
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    AC1: DualAgentCodeReviewer Class Implemented
+      - DualAgentCodeReviewer class with performDualReview() method
+      - Implements Epic 5 type definitions (CombinedReviewResult)
+      - Constructor accepts Amelia, Alex, FileSystemUtils dependencies
+      - Orchestrates dual-review pipeline: Amelia self-review → Alex review → decision
+      - Proper error handling and INFO-level logging
+      - Exported for use in WorkflowOrchestrator
+
+    AC2: Amelia Self-Review Implemented
+      - Invokes Amelia.reviewCode(implementation)
+      - Validates checklist: standards, ACs met, coverage, error handling
+      - Detects code smells: long functions (>50 LOC), duplication (>5%), poor naming
+      - Checks acceptance criteria mapping
+      - Calculates confidence score (0.0-1.0)
+      - Identifies critical issues: missing error handling, security vulnerabilities, failing tests
+      - Auto-fixes critical issues before Alex review
+
+    AC3: Alex Independent Review Implemented
+      - Alex uses different LLM than Amelia
+      - Provided complete context: story, code, self-review, tests, standards
+      - Independent review (no shared state)
+      - Generates IndependentReviewReport with pass/fail decision
+      - Includes security, quality, and test validation
+      - Calculates confidence score (0.0-1.0)
+
+    AC4: Security Review (Alex) Implemented
+      - Static analysis on all code files
+      - OWASP Top 10 detection: SQL injection, XSS, CSRF, deserialization, auth issues
+      - Vulnerability severity: critical, high, medium, low
+      - Security score (0-100) based on count and severity
+      - Reports critical/high issues with file:line locations
+      - Provides remediation recommendations
+      - Passes if no critical/high issues
+
+    AC5: Quality Analysis (Alex) Implemented
+      - Cyclomatic complexity for functions/methods
+      - Maintainability index (0-100) using Halstead metrics
+      - Code smell detection: long methods, deep nesting, god classes, feature envy
+      - Duplication percentage measurement
+      - Naming convention violations: camelCase vars/funcs, PascalCase classes/types
+      - Quality score (0-100)
+
+    AC6: Test Validation (Alex) Implemented
+      - Coverage adequacy: >80% lines, functions, branches, statements
+      - Test quality: edge cases, error handling, integration tests
+      - Identifies missing tests: uncovered functions, branches, scenarios
+      - Test validation score (0-100)
+      - Passes if coverage >80% and quality adequate
+
+    AC7: Review Report Generated
+      - Structured report with findings from both agents
+      - Categorized by severity: critical, high, medium, low, info
+      - Categorized by category: security, quality, testing, architecture
+      - Overall score (0-1) aggregating security, quality, test scores
+      - Confidence score (0-1) combining Amelia and Alex scores
+      - Pass/fail/escalate decision with rationale
+      - Formatted for PR description
+
+    AC8: Decision Logic Implemented
+      - Both pass + confidence >0.85 → "pass" (proceed to PR)
+      - Either fails OR confidence <0.85 → "escalate" (human review)
+      - Fixable issues → "fail" with instructions for Amelia
+      - Evaluates: critical issues, high severity issues, confidence, coverage
+      - Configurable threshold (default 0.85)
+      - Decision rationale logged
+      - Escalation details provided
+
+    AC9: Review Metrics Tracked
+      - Execution time: total, Amelia time, Alex time, decision time
+      - Findings count by severity: critical, high, medium, low, info
+      - Pass/fail rate: passes, fails, escalations
+      - Confidence scores: Amelia, Alex, combined
+      - Review iterations: fix cycles count
+      - Metrics logged at INFO level
+      - Metrics included in CombinedReviewResult
+
+    AC10: Integration with Story 5.3 Orchestrator
+      - Invoked by WorkflowOrchestrator.executeDualReview()
+      - Input: CodeImplementation + TestSuite + StoryContext
+      - Output: CombinedReviewResult with decision and findings
+      - Error handling integrates with orchestrator retry logic
+      - State updates communicated to orchestrator
+      - Loose coupling (no direct orchestrator dependencies)
+
+    AC11: Unit Tests for DualAgentCodeReviewer
+      - Unit tests for DualAgentCodeReviewer class
+      - Test dual review coordination with mock agents
+      - Test error handling for each phase
+      - Test decision logic with various scenarios
+      - Test critical issue auto-fix
+      - Test security, quality, test validation independently
+      - Test report generation and formatting
+      - >80% code coverage
+
+    AC12: Integration Tests
+      - Integration tests for complete dual-review pipeline
+      - Mock code with realistic good and problematic code
+      - Test happy path: both pass → proceed to PR
+      - Test error scenarios: security, quality, low coverage, critical issues
+      - Test with real Amelia and Alex agent methods
+      - Test fix cycle: critical issues → Amelia fixes → re-review
+      - Test escalation scenarios: low confidence, persistent failures
+      - All tests pass in <5 minutes
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 5 Technical Specification -->
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5: Story Implementation Automation</title>
+        <section>Data Models and Contracts</section>
+        <snippet>Defines all TypeScript interfaces for Epic 5: AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport, SecurityReview, QualityAnalysis, TestValidation, ReviewFinding, and StoryWorkflowState. These are the core contracts that DualAgentCodeReviewer must implement.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5: Story Implementation Automation</title>
+        <section>Detailed Design - DualAgentCodeReviewer</section>
+        <snippet>DualAgentCodeReviewer coordinates Amelia's self-review with Alex's independent review. Complete pipeline: Amelia self-review → fix critical issues → Alex independent review (security, quality, tests) → aggregate findings → make decision. Integration: WorkflowOrchestrator.executeDualReview() calls DualAgentCodeReviewer.performDualReview().</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5: Story Implementation Automation</title>
+        <section>APIs and Interfaces</section>
+        <snippet>DualAgentCodeReviewer.performDualReview() API defined with inputs (CodeImplementation, TestSuite, StoryContext) and output (CombinedReviewResult). Amelia methods: reviewCode(), implementFixes(). Alex methods: reviewSecurity(), analyzeQuality(), validateTests(), generateReport().</snippet>
+      </doc>
+
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Microkernel Architecture</section>
+        <snippet>The orchestrator follows a microkernel pattern with workflow plugins. Epic 5 extends the core kernel with story implementation workflows. Components use dependency injection for testability. Event-driven layer enables real-time monitoring. All components integrate with Epic 1 core services: AgentPool, StateManager, WorktreeManager, Logger.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Agent Pool</section>
+        <snippet>Agent Pool manages AI agent lifecycle, LLM assignment, and resource limits. Agents are created with personas loaded from bmad/bmm/agents/*.md files. Different LLMs assigned per agent for diverse perspectives (e.g., Amelia on GPT-4o, Alex on Claude Sonnet 4.5).</snippet>
+      </doc>
+
+      <!-- Previous Story Context -->
+      <doc>
+        <path>docs/stories/5-1-core-agent-infrastructure.md</path>
+        <title>Story 5.1: Core Agent Infrastructure</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Defines Amelia and Alex agent methods: Amelia implements implementStory(), writeTests(), reviewCode(). Alex implements reviewSecurity(), analyzeQuality(), validateTests(), generateReport(). Both agents use AgentPool for lifecycle management and have different LLMs for diverse perspectives.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-5-test-generation-execution.md</path>
+        <title>Story 5.5: Test Generation Execution</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>Story 5.5 successfully implemented TestGenerationExecutor with 100% test pass rate (26/26 tests). Key patterns: sequential pipeline execution, Amelia agent integration, dual coverage parsing (JSON preferred, text fallback), structured failure context for test fixing, comprehensive error handling, 30-minute timeout with bottleneck detection.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Type Definitions -->
+      <artifact>
+        <path>backend/src/implementation/types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>All Epic 5 Interfaces</symbol>
+        <lines>1-451</lines>
+        <reason>Complete type definitions for AmeliaAgent, AlexAgent, StoryContext, CodeImplementation, TestSuite, SelfReviewReport, IndependentReviewReport, SecurityReview, QualityAnalysis, TestValidation, ReviewFinding, CombinedReviewResult. These are the core contracts DualAgentCodeReviewer must implement.</reason>
+      </artifact>
+
+      <!-- Amelia Agent Infrastructure -->
+      <artifact>
+        <path>backend/src/implementation/agents/amelia.ts</path>
+        <kind>service</kind>
+        <symbol>AmeliaAgentInfrastructure</symbol>
+        <lines>1-100</lines>
+        <reason>Amelia agent infrastructure provides reviewCode() method for self-review. DualAgentCodeReviewer invokes this method to get SelfReviewReport. Also provides implementFixes() for critical issue auto-fix.</reason>
+      </artifact>
+
+      <!-- Alex Agent Infrastructure -->
+      <artifact>
+        <path>backend/src/implementation/agents/alex.ts</path>
+        <kind>service</kind>
+        <symbol>AlexAgentInfrastructure</symbol>
+        <lines>1-100</lines>
+        <reason>Alex agent infrastructure provides reviewSecurity(), analyzeQuality(), validateTests(), and generateReport() methods. DualAgentCodeReviewer invokes these methods for independent code review.</reason>
+      </artifact>
+
+      <!-- Workflow Orchestrator -->
+      <artifact>
+        <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+        <kind>orchestrator</kind>
+        <symbol>WorkflowOrchestrator</symbol>
+        <lines>1-150</lines>
+        <reason>WorkflowOrchestrator coordinates the complete story development pipeline. At step 10, it will invoke DualAgentCodeReviewer.performDualReview() to review code and tests. DualAgentCodeReviewer must return CombinedReviewResult for orchestrator to proceed to PR creation.</reason>
+      </artifact>
+
+      <!-- Test Generation Executor (Story 5.5) -->
+      <artifact>
+        <path>backend/src/implementation/testing/TestGenerationExecutor.ts</path>
+        <kind>service</kind>
+        <symbol>TestGenerationExecutor</symbol>
+        <lines>1-100</lines>
+        <reason>Story 5.5 implementation provides TestSuite with coverage report. DualAgentCodeReviewer receives this as input to validate test coverage and quality. Provides reference for similar pipeline architecture.</reason>
+      </artifact>
+
+      <!-- Workflow Types -->
+      <artifact>
+        <path>backend/src/implementation/orchestration/workflow-types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>StoryWorkflowState, PRResult, WorkflowOrchestratorConfig</symbol>
+        <lines>1-100</lines>
+        <reason>Defines workflow types including StoryWorkflowState, PRResult, EscalationContext, and PerformanceMetrics. DualAgentCodeReviewer must integrate with these types for orchestrator communication.</reason>
+      </artifact>
+
+      <!-- Amelia Prompts -->
+      <artifact>
+        <path>backend/src/implementation/prompts/amelia-prompts.ts</path>
+        <kind>prompts</kind>
+        <symbol>ameliaSelfReviewPrompt</symbol>
+        <lines>1-50</lines>
+        <reason>Defines prompt structure for Amelia's self-review. DualAgentCodeReviewer can reference these prompts to understand expected review format and checklist items.</reason>
+      </artifact>
+
+      <!-- Alex Prompts -->
+      <artifact>
+        <path>backend/src/implementation/prompts/alex-prompts.ts</path>
+        <kind>prompts</kind>
+        <symbol>alexSecurityPrompt, alexQualityPrompt, alexTestValidationPrompt</symbol>
+        <lines>1-50</lines>
+        <reason>Defines prompt structures for Alex's security review, quality analysis, and test validation. DualAgentCodeReviewer invokes these prompts through Alex agent methods.</reason>
+      </artifact>
+
+      <!-- Epic 1 Logger -->
+      <artifact>
+        <path>backend/src/utils/logger.ts</path>
+        <kind>utility</kind>
+        <symbol>logger</symbol>
+        <lines>1-50</lines>
+        <reason>Epic 1 structured logging utility. DualAgentCodeReviewer must use this for INFO-level logging of review phases, metrics, and decisions.</reason>
+      </artifact>
+
+      <!-- Epic 1 Agent Pool -->
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>service</kind>
+        <symbol>AgentPool</symbol>
+        <lines>1-100</lines>
+        <reason>Epic 1 agent lifecycle manager. Amelia and Alex agents are created through AgentPool with different LLM assignments for diverse perspectives.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <dependencies>
+          <anthropic-sdk>^0.68.0</anthropic-sdk>
+          <octokit-rest>^22.0.1</octokit-rest>
+          <openai>^6.2.0</openai>
+          <simple-git>^3.20.0</simple-git>
+          <js-yaml>^4.1.0</js-yaml>
+          <uuid>^13.0.0</uuid>
+        </dependencies>
+        <devDependencies>
+          <vitest>^1.0.0</vitest>
+          <vitest-coverage-v8>^1.0.0</vitest-coverage-v8>
+          <typescript>^5.3.0</typescript>
+          <tsx>^4.0.0</tsx>
+        </devDependencies>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    - DualAgentCodeReviewer must use different LLMs for Amelia and Alex to ensure diverse perspectives (per Epic 5 tech spec)
+    - Complete dual-review pipeline must finish in <15 minutes for typical story (per tech spec line 686)
+    - Confidence threshold for pass/fail decision is 0.85 (configurable via environment variable REVIEW_CONFIDENCE_THRESHOLD)
+    - Security review must detect OWASP Top 10 vulnerabilities (SQL injection, XSS, CSRF, insecure deserialization, auth issues)
+    - Test coverage must be >80% for lines, functions, branches, and statements (per Epic 5 standards)
+    - Critical issues must be auto-fixed by Amelia before Alex review (avoid wasting review time on obvious blockers)
+    - All code must follow TypeScript strict mode (no 'any' types, explicit return types)
+    - Use Epic 1 components via dependency injection (Logger, FileSystemUtils, AgentPool)
+    - All errors must integrate with WorkflowOrchestrator retry logic (3 attempts with exponential backoff)
+    - Review metrics must be logged at INFO level for performance monitoring
+    - Decision rationale must be logged with specific reasons for pass/fail/escalate
+    - File structure follows Epic 5 pattern: backend/src/implementation/review/ for code, backend/tests/unit/implementation/review/ for unit tests, backend/tests/integration/implementation/review/ for integration tests
+    - All tests must use Vitest framework with AAA pattern (Arrange, Act, Assert)
+    - Unit tests must mock all external dependencies (Epic 1 services, Amelia/Alex agents)
+    - Integration tests must use real agent methods with mock LLM responses
+    - All public methods must have JSDoc comments with parameter descriptions and return types
+    - Review report must be formatted for GitHub PR description (Markdown with sections)
+  </constraints>
+
+  <interfaces>
+    <!-- DualAgentCodeReviewer API -->
+    <interface>
+      <name>DualAgentCodeReviewer.performDualReview</name>
+      <kind>method</kind>
+      <signature>async performDualReview(code: CodeImplementation, tests: TestSuite, context: StoryContext): Promise&lt;CombinedReviewResult&gt;</signature>
+      <path>backend/src/implementation/review/DualAgentCodeReviewer.ts</path>
+    </interface>
+
+    <!-- Amelia Agent Methods -->
+    <interface>
+      <name>AmeliaAgentInfrastructure.reviewCode</name>
+      <kind>method</kind>
+      <signature>async reviewCode(code: CodeImplementation): Promise&lt;SelfReviewReport&gt;</signature>
+      <path>backend/src/implementation/agents/amelia.ts</path>
+    </interface>
+    <interface>
+      <name>AmeliaAgentInfrastructure.implementFixes</name>
+      <kind>method</kind>
+      <signature>async implementFixes(criticalIssues: string[]): Promise&lt;CodeImplementation&gt;</signature>
+      <path>backend/src/implementation/agents/amelia.ts</path>
+    </interface>
+
+    <!-- Alex Agent Methods -->
+    <interface>
+      <name>AlexAgentInfrastructure.reviewSecurity</name>
+      <kind>method</kind>
+      <signature>async reviewSecurity(code: CodeImplementation): Promise&lt;SecurityReview&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgentInfrastructure.analyzeQuality</name>
+      <kind>method</kind>
+      <signature>async analyzeQuality(code: CodeImplementation): Promise&lt;QualityAnalysis&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgentInfrastructure.validateTests</name>
+      <kind>method</kind>
+      <signature>async validateTests(tests: TestSuite, coverage: CoverageReport): Promise&lt;TestValidation&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+    <interface>
+      <name>AlexAgentInfrastructure.generateReport</name>
+      <kind>method</kind>
+      <signature>async generateReport(reviews: Review[]): Promise&lt;IndependentReviewReport&gt;</signature>
+      <path>backend/src/implementation/agents/alex.ts</path>
+    </interface>
+
+    <!-- WorkflowOrchestrator Integration -->
+    <interface>
+      <name>WorkflowOrchestrator.executeDualReview</name>
+      <kind>method</kind>
+      <signature>async executeDualReview(code: CodeImplementation, tests: TestSuite, context: StoryContext): Promise&lt;CombinedReviewResult&gt;</signature>
+      <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+    </interface>
+
+    <!-- Type Definitions -->
+    <interface>
+      <name>CombinedReviewResult</name>
+      <kind>interface</kind>
+      <signature>interface CombinedReviewResult { ameliaReview: SelfReviewReport; alexReview: IndependentReviewReport; combinedScore: number; combinedConfidence: number; decision: 'pass' | 'fail' | 'escalate'; decisionRationale: string; findings: ReviewFinding[]; recommendations: string[]; metrics: ReviewMetrics; }</signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+    <interface>
+      <name>ReviewMetrics</name>
+      <kind>interface</kind>
+      <signature>interface ReviewMetrics { totalTime: number; ameliaTime: number; alexTime: number; decisionTime: number; findingsCount: { critical: number; high: number; medium: number; low: number; info: number }; reviewIterations: number; }</signature>
+      <path>backend/src/implementation/types.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      All tests use Vitest framework with AAA pattern (Arrange, Act, Assert). Unit tests mock all external dependencies including Epic 1 services (Logger, FileSystemUtils, AgentPool) and agent responses. Integration tests use real agent methods with mock LLM responses. Tests must cover happy path, error scenarios, edge cases, and integration points. Target >80% code coverage. All tests must complete in <5 minutes for integration tests, <1 second for unit tests.
+    </standards>
+
+    <locations>
+      - Unit tests: backend/tests/unit/implementation/review/
+      - Integration tests: backend/tests/integration/implementation/review/
+      - Test patterns: backend/tests/unit/implementation/testing/TestGenerationExecutor.test.ts (reference for similar pipeline testing)
+      - Mock patterns: backend/tests/unit/implementation/agents/amelia.test.ts and alex.test.ts (reference for agent mocking)
+    </locations>
+
+    <ideas>
+      <!-- Unit Test Ideas mapped to ACs -->
+      - AC1: Test DualAgentCodeReviewer constructor with all dependencies
+      - AC1: Test performDualReview() orchestrates complete pipeline
+      - AC1: Test error handling for each review phase
+      - AC2: Test executeSelfReview() invokes Amelia.reviewCode()
+      - AC2: Test critical issue detection and auto-fix cycle
+      - AC2: Test self-review confidence score calculation
+      - AC3: Test executeIndependentReview() invokes all Alex methods
+      - AC3: Test Alex uses different LLM than Amelia
+      - AC3: Test independent review aggregation
+      - AC4: Test performSecurityReview() detects vulnerabilities
+      - AC4: Test OWASP Top 10 detection (SQL injection, XSS, etc.)
+      - AC4: Test security score calculation (0-100)
+      - AC5: Test performQualityAnalysis() calculates complexity
+      - AC5: Test code smell detection (long methods, duplication, etc.)
+      - AC5: Test maintainability index calculation
+      - AC6: Test performTestValidation() checks coverage >80%
+      - AC6: Test test quality assessment (edge cases, error handling)
+      - AC6: Test missing test identification
+      - AC7: Test generateReviewReport() aggregates findings
+      - AC7: Test findings categorization by severity and category
+      - AC7: Test report formatting for PR description
+      - AC8: Test makeDecision() with both pass scenario (confidence >0.85)
+      - AC8: Test makeDecision() with escalate scenario (confidence <0.85)
+      - AC8: Test makeDecision() with fail scenario (fixable issues)
+      - AC8: Test decision threshold configuration
+      - AC9: Test metrics tracking for all phases
+      - AC9: Test findings count by severity
+      - AC9: Test confidence score tracking
+      - AC10: Test integration with WorkflowOrchestrator
+      - AC10: Test error handling compatible with retry logic
+      - AC10: Test CombinedReviewResult return format
+
+      <!-- Integration Test Ideas -->
+      - AC12: Test complete dual-review pipeline with real agents
+      - AC12: Test happy path: both reviews pass → decision = "pass"
+      - AC12: Test security issue detection with injected vulnerability
+      - AC12: Test quality issue detection with injected code smell
+      - AC12: Test low coverage scenario: <80% coverage → escalate
+      - AC12: Test critical issue fix cycle: critical issues → Amelia fixes → re-review
+      - AC12: Test escalation scenario: low confidence → decision = "escalate"
+      - AC12: Test performance: complete pipeline <15 minutes
+    </ideas>
+  </tests>
+</story-context>
