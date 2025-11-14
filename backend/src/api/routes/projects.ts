@@ -6,7 +6,7 @@
 import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { projectService } from '../services/project.service.js';
-import { ProjectSchema, ProjectStatusSchema, ProjectPhaseSchema } from '../schemas/api.schemas.js';
+import { ProjectStatusSchema, ProjectPhaseSchema } from '../schemas/api.schemas.js';
 import { APIResponse, APIError } from '../types/api.types.js';
 
 /**

@@ -16,7 +16,7 @@ async function verifyJWT(token: string, secret: string): Promise<{ userId?: stri
     // Use dynamic import for jwt to avoid vitest issues
     const { default: jwt } = await import('jsonwebtoken');
     return jwt.verify(token, secret) as { userId?: string };
-  } catch (error) {
+  } catch (_error) {
     throw new Error('Invalid or expired token');
   }
 }
@@ -128,7 +128,7 @@ export class WebSocketHandler {
       }
 
       this.setupAuthenticatedConnection(ws, authResult.userId);
-    }).catch(error => {
+    }).catch(_error => {
       const errorMsg: ErrorMessage = {
         error: 'Authentication failed',
         message: 'Internal error during authentication'

@@ -47,9 +47,20 @@ export class ProjectService {
   }
 
   /**
+   * Validate projectId to prevent path traversal attacks
+   */
+  private validateProjectId(projectId: string): void {
+    // Match UUID format: 8-4-4-4-12 hex digits
+    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(projectId)) {
+      throw new Error('Invalid project id');
+    }
+  }
+
+  /**
    * Get project file path
    */
   private getProjectPath(projectId: string): string {
+    this.validateProjectId(projectId);
     return path.join(this.projectsDir, projectId, 'project.json');
   }
 
@@ -57,6 +68,7 @@ export class ProjectService {
    * Ensure project directory exists
    */
   private async ensureProjectDir(projectId: string): Promise<void> {
+    this.validateProjectId(projectId);
     const dir = path.join(this.projectsDir, projectId);
     await fs.mkdir(dir, { recursive: true });
   }
@@ -247,6 +259,9 @@ export class ProjectService {
    * @param id Project identifier
    */
   async deleteProject(id: string): Promise<void> {
+    // Validate projectId first
+    this.validateProjectId(id);
+
     // Load existing project to verify it exists
     const project = await this.loadProject(id);
     if (!project) {

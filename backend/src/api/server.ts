@@ -33,7 +33,11 @@ export async function createServer(config: ServerConfig = {}): Promise<FastifyIn
   const {
     port = Number(process.env.API_PORT) || 3000,
     host = process.env.API_HOST || '0.0.0.0',
-    jwtSecret = process.env.JWT_SECRET || 'development-secret-change-in-production',
+    jwtSecret = config.jwtSecret ??
+      process.env.JWT_SECRET ??
+      (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+        ? 'development-secret-only'
+        : (() => { throw new Error('JWT_SECRET is required in production'); })()),
     corsOrigins = process.env.CORS_ORIGINS?.split(',') || ['http://localhost:3000']
   } = config;
 
@@ -111,12 +115,12 @@ export async function createServer(config: ServerConfig = {}): Promise<FastifyIn
   }));
 
   // Health endpoints
-  server.get('/health', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/health', async (_request: FastifyRequest, reply: FastifyReply) => {
     const { statusCode, body } = await healthCheckHandler();
     reply.code(statusCode).send(body);
   });
 
-  server.get('/health/ready', async (request: FastifyRequest, reply: FastifyReply) => {
+  server.get('/health/ready', async (_request: FastifyRequest, reply: FastifyReply) => {
     const { statusCode, body } = await healthCheckHandler();
     reply.code(statusCode).send({ ...body, ready: statusCode === 200 });
   });
@@ -152,7 +156,11 @@ export async function startServer(config?: ServerConfig): Promise<FastifyInstanc
   const server = await createServer(config);
   const port = config?.port || Number(process.env.API_PORT) || 3000;
   const host = config?.host || process.env.API_HOST || '0.0.0.0';
-  const jwtSecret = config?.jwtSecret || process.env.JWT_SECRET || 'development-secret-change-in-production';
+  const jwtSecret = config?.jwtSecret ??
+    process.env.JWT_SECRET ??
+    (process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'test'
+      ? 'development-secret-only'
+      : (() => { throw new Error('JWT_SECRET is required in production'); })());
 
   await server.listen({ port, host });
   console.log(`Server listening on ${host}:${port}`);

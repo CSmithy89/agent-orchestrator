@@ -9,7 +9,6 @@ import { FastifyInstance } from 'fastify';
 import { startServer } from '../../src/api/server.js';
 import { getWebSocketHandler } from '../../src/api/server.js';
 import { eventService } from '../../src/api/services/event.service.js';
-import { Event } from '../../src/api/types/events.types.js';
 
 describe('WebSocket Handler', () => {
   let server: FastifyInstance;
