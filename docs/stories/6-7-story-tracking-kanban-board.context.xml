@@ -1,0 +1,333 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6.7</storyId>
+    <title>Story Tracking Kanban Board</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-7-story-tracking-kanban-board.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user monitoring implementation progress</asA>
+    <iWant>a Kanban board showing story status</iWant>
+    <soThat>I can visualize development progress</soThat>
+    <tasks>
+### Task 1: Story Data Types and API Integration (AC 1, 3)
+- [ ] 1.1: Define TypeScript types in `src/types/story.ts`
+- [ ] 1.2: Create API methods in `src/api/stories.ts`
+- [ ] 1.3: Create TanStack Query hooks in `src/hooks/useProjectStories.ts`
+- [ ] 1.4: Write unit tests for API methods and hooks
+
+### Task 2: Kanban Board Layout (AC 1, 2)
+- [ ] 2.1: Create KanbanBoardPage component
+- [ ] 2.2: Create KanbanColumn component
+- [ ] 2.3: Add Kanban board link to ProjectDetailPage
+- [ ] 2.4: Write component tests for KanbanBoardPage
+
+### Task 3: Story Cards (AC 3, 7, 9)
+- [ ] 3.1: Create StoryCard component
+- [ ] 3.2: Implement epic color-coding system
+- [ ] 3.3: Add dependency visualization
+- [ ] 3.4: Write component tests for StoryCard
+
+### Task 4: Drag-and-Drop Functionality (AC 4)
+- [ ] 4.1: Install @dnd-kit packages
+- [ ] 4.2: Implement DndContext in KanbanBoard
+- [ ] 4.3: Make StoryCard draggable
+- [ ] 4.4: Make KanbanColumn droppable
+- [ ] 4.5: Integrate mutation on drop
+- [ ] 4.6: Test drag-and-drop functionality
+
+### Task 5: Filters and Search (AC 5)
+- [ ] 5.1: Create StoryFilters component
+- [ ] 5.2: Implement filter logic
+- [ ] 5.3: Persist filter state in URL query params (optional)
+- [ ] 5.4: Write component tests for StoryFilters
+
+### Task 6: Story Detail Modal (AC 6)
+- [ ] 6.1: Create StoryDetailModal component
+- [ ] 6.2: Integrate modal with StoryCard click
+- [ ] 6.3: Write component tests for StoryDetailModal
+
+### Task 7: Real-Time WebSocket Updates (AC 8)
+- [ ] 7.1: Create useStoryWebSocket hook
+- [ ] 7.2: Integrate WebSocket into KanbanBoardPage
+- [ ] 7.3: Test real-time updates
+
+### Task 8: UI Polish and Testing
+- [ ] 8.1: Add loading skeletons
+- [ ] 8.2: Add error boundaries
+- [ ] 8.3: Add accessibility improvements
+- [ ] 8.4: Responsive design
+- [ ] 8.5: Write integration tests for complete flow
+- [ ] 8.6: Run all tests and verify >70% coverage
+</tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. Kanban board view at route `/projects/:id/stories`
+2. Columns: Ready, In Progress, Code Review, Merged
+3. Story cards showing: ID, title, epic, status, PR link (if exists)
+4. Drag-and-drop to update status (if manual mode enabled)
+5. Filter by epic or search by title
+6. Click card for story details
+7. Show story dependencies visually
+8. Real-time updates as stories progress via WebSocket
+9. Color-coding by epic for visual organization
+</acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- Epic 6 Documentation -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access &amp; Monitoring</title>
+        <section>Story 6.7: Story Tracking Kanban Board</section>
+        <snippet>Goal: Enable users to monitor and guide orchestrator execution via web dashboard. Story 6.7 delivers a Kanban board visualization with drag-and-drop status updates, epic filtering, and real-time WebSocket updates. Columns: Ready, In Progress, Code Review, Merged.</snippet>
+      </doc>
+
+      <!-- Architecture Documentation -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Overview</title>
+        <section>Client Layer &amp; API Gateway</section>
+        <snippet>React PWA Dashboard communicates via HTTPS/WSS with Fastify REST API Server. WebSocket server provides real-time event streaming with project-level subscriptions for story.status.changed events.</snippet>
+      </doc>
+
+      <!-- PRD Documentation -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document</title>
+        <section>Remote Access &amp; Monitoring</section>
+        <snippet>FR-DASH-003: Story progress visualization with Kanban board showing stories across lifecycle stages. Real-time updates via WebSocket ensure accurate status visualization.</snippet>
+      </doc>
+
+      <!-- Previous Story Dev Notes -->
+      <doc>
+        <path>docs/stories/6-6-escalation-response-interface.md</path>
+        <title>Story 6.6 Dev Notes</title>
+        <section>Learnings from Previous Story</section>
+        <snippet>React 18.3.1 + TypeScript 5.5.4 with Vite 5.4.3 foundation complete. TanStack Query 5.56.2, Zustand 4.5.5, Tailwind CSS 3.4.10, shadcn/ui (11+ components). BaseAPI class, WebSocket hook, MainLayout available. Design patterns: Container/Presenter, TanStack Query cache invalidation on WebSocket events, skeleton loading states, error boundaries.</snippet>
+      </doc>
+
+      <!-- Story 6.5 Context -->
+      <doc>
+        <path>docs/stories/6-5-project-management-views-combined.md</path>
+        <title>Story 6.5: Project Management Views</title>
+        <section>Technical Implementation</section>
+        <snippet>ProjectDetailPage at /projects/:id provides phase progress, active agents, event timeline. This story adds Kanban board tab/link to ProjectDetailPage navigation. Pattern: Container/Presenter with TanStack Query for data fetching.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- API Client Layer -->
+      <artifact>
+        <path>dashboard/src/api/client.ts</path>
+        <kind>api-client</kind>
+        <symbol>BaseAPI</symbol>
+        <lines>1-150</lines>
+        <reason>BaseAPI class provides authenticated fetch wrapper with JWT token injection, error handling, and standard response handling. Reuse for new stories API endpoints.</reason>
+      </artifact>
+
+      <!-- API Type Definitions -->
+      <artifact>
+        <path>dashboard/src/api/types.ts</path>
+        <kind>types</kind>
+        <symbol>StoryStatus, StoryDetail, WebSocketEvent</symbol>
+        <lines>49-73, 144-155</lines>
+        <reason>Existing story and WebSocket event types. Extend StoryStatus interface to include epic details, prUrl, dependencies fields needed for Kanban cards.</reason>
+      </artifact>
+
+      <!-- WebSocket Hook -->
+      <artifact>
+        <path>dashboard/src/hooks/useWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useWebSocket</symbol>
+        <lines>1-150</lines>
+        <reason>WebSocket hook with exponential backoff reconnection and event subscription system. Use as base for useStoryWebSocket hook to listen for story.status.changed events.</reason>
+      </artifact>
+
+      <!-- Project Hooks -->
+      <artifact>
+        <path>dashboard/src/hooks/useProjects.ts</path>
+        <kind>hook</kind>
+        <symbol>useProject, useProjectWorkflowStatus</symbol>
+        <lines>1-100</lines>
+        <reason>TanStack Query hooks for project data fetching. Reference pattern for creating useProjectStories hook with similar cache configuration (1min stale time, 30s refetch).</reason>
+      </artifact>
+
+      <!-- Project Detail Page -->
+      <artifact>
+        <path>dashboard/src/pages/ProjectDetailPage.tsx</path>
+        <kind>page</kind>
+        <symbol>ProjectDetailPage</symbol>
+        <lines>1-212</lines>
+        <reason>Project detail view page. Modify to add "Stories" tab/button that navigates to /projects/:id/stories Kanban board route. Current structure shows phase progress, active agents, event timeline.</reason>
+      </artifact>
+
+      <!-- Layout Components -->
+      <artifact>
+        <path>dashboard/src/components/layout/MainLayout.tsx</path>
+        <kind>component</kind>
+        <symbol>MainLayout</symbol>
+        <lines>1-50</lines>
+        <reason>Main layout wrapper with Header and Sidebar. All pages use this layout for consistent navigation and structure.</reason>
+      </artifact>
+
+      <!-- UI Components -->
+      <artifact>
+        <path>dashboard/src/components/ui/</path>
+        <kind>component-library</kind>
+        <symbol>shadcn/ui components</symbol>
+        <lines>all</lines>
+        <reason>shadcn/ui component library with 14+ components installed: button, card, dialog, badge, input, select, tabs, toast, skeleton, progress, label, dropdown-menu, textarea. All required components available for Kanban board UI.</reason>
+      </artifact>
+
+      <!-- Existing Components for Reference -->
+      <artifact>
+        <path>dashboard/src/components/projects/ProjectCard.tsx</path>
+        <kind>component</kind>
+        <symbol>ProjectCard</symbol>
+        <lines>1-100</lines>
+        <reason>Reference for card component structure with badges, status indicators, and click handlers. Similar pattern for StoryCard component.</reason>
+      </artifact>
+
+      <artifact>
+        <path>dashboard/src/components/projects/ProjectFilters.tsx</path>
+        <kind>component</kind>
+        <symbol>ProjectFilters</symbol>
+        <lines>1-100</lines>
+        <reason>Reference for filter component structure with select dropdowns and search input. Similar pattern for StoryFilters component with epic filter and title search.</reason>
+      </artifact>
+
+      <!-- Test Utilities -->
+      <artifact>
+        <path>dashboard/src/test-utils/test-utils.tsx</path>
+        <kind>test-utility</kind>
+        <symbol>renderWithProviders</symbol>
+        <lines>1-50</lines>
+        <reason>Test utilities with TanStack Query and React Router providers. Use for all component tests to ensure proper test environment setup.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <node>
+        <package name="react" version="^18.3.1" />
+        <package name="react-dom" version="^18.3.1" />
+        <package name="react-router-dom" version="^6.26.1" />
+        <package name="@tanstack/react-query" version="^5.56.2" />
+        <package name="zustand" version="^4.5.5" />
+        <package name="tailwindcss" version="^3.4.10" />
+        <package name="typescript" version="^5.5.4" />
+        <package name="vite" version="^5.4.3" />
+        <package name="vitest" version="^1.0.4" />
+        <package name="@testing-library/react" version="^14.1.2" />
+        <package name="@testing-library/jest-dom" version="^6.1.5" />
+        <package name="@testing-library/user-event" version="^14.5.1" />
+        <package name="@radix-ui/react-dialog" version="^1.0.5" />
+        <package name="@radix-ui/react-select" version="^2.0.0" />
+        <package name="@radix-ui/react-tabs" version="^1.0.4" />
+        <package name="lucide-react" version="^0.294.0" />
+        <note>NEW PACKAGES NEEDED: @dnd-kit/core and @dnd-kit/sortable for drag-and-drop functionality (AC 4)</note>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use Container/Presenter pattern: pages fetch data with TanStack Query, components display UI</constraint>
+    <constraint>All API calls must use BaseAPI class from dashboard/src/api/client.ts with JWT authentication</constraint>
+    <constraint>TypeScript strict mode enabled - all components must be fully typed</constraint>
+    <constraint>Use Tailwind CSS for styling - no CSS modules or styled-components</constraint>
+    <constraint>Use shadcn/ui components from dashboard/src/components/ui/ - all required components already installed</constraint>
+    <constraint>WebSocket events must trigger TanStack Query cache invalidation for reactive UI updates</constraint>
+    <constraint>Use skeleton loading states (not spinners) during data fetching</constraint>
+    <constraint>All components must have error boundaries with retry functionality</constraint>
+    <constraint>Responsive design required: mobile (stack vertically or horizontal scroll), tablet (2 columns), desktop (4 columns)</constraint>
+    <constraint>Co-locate tests with source files (*.test.tsx) - minimum 70% coverage per component</constraint>
+    <constraint>Use Vitest + React Testing Library - mock fetch API, WebSocket API, React Router</constraint>
+    <constraint>Follow established naming conventions: pages in PascalCase (KanbanBoardPage), components in PascalCase (StoryCard), hooks in camelCase (useProjectStories)</constraint>
+    <constraint>Drag-and-drop is optional manual mode - can be skipped if time-constrained, but required for AC 4</constraint>
+    <constraint>Epic color-coding must be consistent across dashboard - define color mapping in component or theme</constraint>
+    <constraint>Real-time updates (AC 8) are critical - WebSocket integration is mandatory</constraint>
+    <constraint>Accessibility: ARIA labels for columns/cards/filters, keyboard navigation (Tab, Enter), screen reader support</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/projects/:id/stories</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/stories -&gt; Story[]</signature>
+      <path>API server endpoint (Story 6.3)</path>
+      <note>Returns list of all stories for a project with status, epic, dependencies, PR link</note>
+    </interface>
+
+    <interface>
+      <name>PATCH /api/projects/:id/stories/:storyId/status</name>
+      <kind>REST endpoint</kind>
+      <signature>PATCH /api/projects/:id/stories/:storyId/status { status: string } -&gt; void</signature>
+      <path>API server endpoint (Story 6.3)</path>
+      <note>Updates story status when user drags card to different column (manual mode only)</note>
+    </interface>
+
+    <interface>
+      <name>WebSocket /ws/status-updates</name>
+      <kind>WebSocket</kind>
+      <signature>WebSocket connection with story.status.changed events { projectId, eventType, data: { storyId, status }, timestamp }</signature>
+      <path>WebSocket server (Story 6.2)</path>
+      <note>Real-time story status updates - invalidate TanStack Query cache on events</note>
+    </interface>
+
+    <interface>
+      <name>Story</name>
+      <kind>TypeScript interface</kind>
+      <signature>interface Story { id: string; projectId: string; epicNumber: number; storyNumber: number; title: string; status: string; prUrl?: string; dependencies?: string[]; epic: { number: number; title: string; color: string; } }</signature>
+      <path>dashboard/src/api/stories.ts (NEW)</path>
+      <note>Story interface with epic details, dependencies, PR link for Kanban card display</note>
+    </interface>
+
+    <interface>
+      <name>useProjectStories</name>
+      <kind>TanStack Query hook</kind>
+      <signature>function useProjectStories(projectId: string) -&gt; { data: Story[], isLoading, error, refetch }</signature>
+      <path>dashboard/src/hooks/useProjectStories.ts (NEW)</path>
+      <note>TanStack Query hook for fetching stories. Config: queryKey: ['project-stories', projectId], staleTime: 1min, refetchInterval: 30s</note>
+    </interface>
+
+    <interface>
+      <name>useUpdateStoryStatus</name>
+      <kind>TanStack Query mutation</kind>
+      <signature>function useUpdateStoryStatus(projectId: string) -&gt; { mutate: (storyId, status) =&gt; Promise&lt;void&gt; }</signature>
+      <path>dashboard/src/hooks/useProjectStories.ts (NEW)</path>
+      <note>Mutation for updating story status via drag-and-drop. Invalidates project-stories query on success.</note>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>Vitest 1.0.4 + React Testing Library 14.1.2 for all testing. Co-locate tests with source files (*.test.tsx). Use renderWithProviders from test-utils for TanStack Query and React Router setup. Mock fetch API with MSW or vi.mock, mock WebSocket API, mock React Router navigation. Test patterns: render component, assert rendered content, simulate user interactions (click, drag, type), verify state changes and API calls. Minimum 70% code coverage per component. Integration tests for complete user flows (view board → filter → click card → view details).</standards>
+
+    <locations>
+      <location>dashboard/src/components/kanban/*.test.tsx - Component tests</location>
+      <location>dashboard/src/hooks/*.test.tsx - Hook tests</location>
+      <location>dashboard/src/pages/*.test.tsx - Page integration tests</location>
+    </locations>
+
+    <ideas>
+      <test id="AC-1">KanbanBoardPage renders at route /projects/:id/stories with proper layout and columns</test>
+      <test id="AC-2">KanbanBoard displays 4 columns (Ready, In Progress, Code Review, Merged) with correct story counts</test>
+      <test id="AC-3">StoryCard displays story ID, title, epic badge, status badge, PR link icon (if exists), dependency indicator</test>
+      <test id="AC-4">Drag-and-drop: dragging StoryCard to different column calls updateStoryStatus mutation with new status</test>
+      <test id="AC-5">StoryFilters: epic dropdown filters stories by selected epic, search input filters by title (case-insensitive)</test>
+      <test id="AC-6">Clicking StoryCard opens StoryDetailModal with full story information</test>
+      <test id="AC-7">StoryCard shows dependency indicator (icon/badge) when story has dependencies</test>
+      <test id="AC-8">WebSocket story.status.changed event invalidates TanStack Query cache and UI updates reactively</test>
+      <test id="AC-9">StoryCard applies epic color-coding to border or badge (Epic 1: Blue, Epic 2: Green, etc.)</test>
+      <test id="integration">Complete flow: navigate to board → filter by epic → search by title → drag card → click card → modal opens</test>
+      <test id="responsive">Board layout adapts: mobile (vertical stack or horizontal scroll), tablet (2 columns), desktop (4 columns)</test>
+      <test id="accessibility">Keyboard navigation works (Tab through cards, Enter to open modal), ARIA labels present, screen reader compatible</test>
+      <test id="error-handling">Error boundary catches API errors, displays error message with retry button</test>
+      <test id="loading">Skeleton loading states display while stories fetch, skeleton cards in columns</test>
+    </ideas>
+  </tests>
+</story-context>
