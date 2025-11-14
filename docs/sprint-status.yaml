@@ -108,7 +108,7 @@ development_status:
   5-5-test-generation-execution: done  # Re-review APPROVED: All fixes complete, 26/26 tests passing
   5-6-dual-agent-code-review: done  # APPROVED: Complete dual-agent review system, 25/25 tests passing, production-ready
   5-7-pr-creation-automation: done  # APPROVED: Complete PR automation with CI monitoring and auto-merge, 18/18 unit tests passing
-  5-8-integration-tests: ready-for-dev
+  5-8-integration-tests: review
   5-9-e2e-story-development-tests: backlog
   epic-5-retrospective: optional
 
