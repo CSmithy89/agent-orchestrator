@@ -13,6 +13,9 @@ import swaggerUI from '@fastify/swagger-ui';
 import { v4 as uuidv4 } from 'uuid';
 import { healthCheckHandler } from './health.js';
 import { registerProjectRoutes } from './routes/projects.js';
+import { registerOrchestratorRoutes } from './routes/orchestrators.js';
+import { registerStateRoutes } from './routes/state.js';
+import { registerEscalationRoutes } from './routes/escalations.js';
 import { WebSocketHandler } from './routes/websocket.js';
 
 export interface ServerConfig {
@@ -136,8 +139,11 @@ export async function createServer(config: ServerConfig = {}): Promise<FastifyIn
     timestamp: new Date().toISOString()
   }));
 
-  // Register project routes
+  // Register routes
   await registerProjectRoutes(server);
+  await registerOrchestratorRoutes(server);
+  await registerStateRoutes(server);
+  await registerEscalationRoutes(server);
 
   // Graceful shutdown
   const signals = ['SIGINT', 'SIGTERM'];

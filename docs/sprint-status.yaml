@@ -116,11 +116,11 @@ development_status:
   epic-6: contexted  # Tech spec: docs/epics/epic-6-tech-spec.md (pending)
   6-1-api-infrastructure-type-system: done
   6-2-core-api-endpoints-websocket: done
-  6-3-extended-api-endpoints: backlog
-  6-4-react-dashboard-foundation-api-integration: backlog
-  6-5-project-management-views-combined: backlog
-  6-6-escalation-response-interface: backlog
-  6-7-story-tracking-kanban-board: backlog
+  6-3-extended-api-endpoints: done
+  6-4-react-dashboard-foundation-api-integration: done
+  6-5-project-management-views-combined: done
+  6-6-escalation-response-interface: done
+  6-7-story-tracking-kanban-board: in-progress
   6-8-dependency-graph-visualization-component: backlog
   6-9-api-integration-tests: backlog
   6-10-dashboard-e2e-tests: backlog

@@ -1,0 +1,634 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>6.4</storyId>
+    <title>React Dashboard Foundation &amp; API Integration</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-4-react-dashboard-foundation-api-integration.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>user monitoring orchestrator</asA>
+    <iWant>a web dashboard with API integration and real-time updates</iWant>
+    <soThat>I can track progress visually</soThat>
+    <tasks>
+### Task 1: Project Scaffolding &amp; Configuration (AC 1)
+- 1.1: Create React app with Vite + TypeScript template
+- 1.2: Configure Vite build settings
+- 1.3: Setup ESLint + Prettier for code quality
+- 1.4: Create .env.example with VITE_API_URL, VITE_WS_URL
+
+### Task 2: State Management &amp; Data Fetching (AC 2-3)
+- 2.1: Install and configure TanStack Query
+- 2.2: Install and configure Zustand
+- 2.3: Create custom hooks for state access
+
+### Task 3: Styling &amp; UI Component Library (AC 4-7)
+- 3.1: Install and configure Tailwind CSS
+- 3.2: Install shadcn/ui CLI and initialize
+- 3.3: Add shadcn/ui components (Button, Card, Dialog, Dropdown, Input, Label, Select, Tabs, Toast)
+- 3.4: Install tweakcn CLI tool
+- 3.5: Document theme customization in README.md
+
+### Task 4: API Client Layer (AC 8)
+- 4.1: Create BaseAPI class in src/api/client.ts
+- 4.2: Create TypeScript types for API responses
+- 4.3: Create API endpoint modules
+- 4.4: Write unit tests for API client
+
+### Task 5: WebSocket Integration (AC 9)
+- 5.1: Create useWebSocket hook in src/hooks/useWebSocket.ts
+- 5.2: Implement reconnection logic with exponential backoff
+- 5.3: Create WebSocketProvider for app-level connection
+- 5.4: Write unit tests for useWebSocket hook
+
+### Task 6: Layout Components (AC 10-12)
+- 6.1: Create Header component
+- 6.2: Create Sidebar component
+- 6.3: Create MainLayout component
+- 6.4: Implement responsive design breakpoints
+- 6.5: Create useTheme hook for dark/light mode
+
+### Task 7: Error Handling &amp; Loading States (AC 13)
+- 7.1: Create ErrorBoundary component
+- 7.2: Create LoadingSkeleton components
+- 7.3: Create Toast notification system
+
+### Task 8: Routing &amp; Pages (Prerequisites for AC 14)
+- 8.1: Install React Router
+- 8.2: Create App.tsx with routes
+- 8.3: Create Dashboard.tsx placeholder page
+
+### Task 9: Production Deploy Configuration (AC 14)
+- 9.1: Create Nginx configuration file
+- 9.2: Create production build script
+- 9.3: Document deployment process in README.md
+
+### Task 10: Testing &amp; Documentation
+- 10.1: Write unit tests for API client (15+ tests)
+- 10.2: Write unit tests for hooks (12+ tests)
+- 10.3: Write integration tests for layout components (10+ tests)
+- 10.4: Run all tests and verify &gt;70% coverage
+- 10.5: Create comprehensive README.md
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+### React Application Foundation (AC 1-5)
+1. Create React app with TypeScript and Vite build system
+2. Configure TanStack Query for server state management and caching
+3. Configure Zustand for client-side global state management
+4. Configure Tailwind CSS with custom theme (dark mode support)
+5. Setup shadcn/ui component library with Radix UI primitives (Button, Card, Dialog, Dropdown, Input, Label, Select, Tabs, Toast)
+
+### Theme Customization Infrastructure (AC 6-7)
+6. Install tweakcn CLI tool (`npm install -D tweakcn`) for component customization
+7. Document theme customization workflow in dashboard README (how to modify colors, spacing, typography via tweakcn)
+
+### API Client Layer (AC 8-9)
+8. API client layer using fetch API with authentication token injection
+   - BaseAPI class with methods: get(), post(), patch(), delete()
+   - Automatic JWT token attachment from localStorage
+   - Error handling with standard APIError format
+   - Request/response TypeScript types matching backend API
+9. WebSocket hook for real-time updates (useWebSocket)
+   - Connect to /ws/status-updates endpoint
+   - Automatic reconnection with exponential backoff
+   - Event subscription by event type
+   - Connection status indicator
+
+### Layout &amp; UI Foundation (AC 10-12)
+10. Layout: header (logo, project selector, user menu), sidebar navigation (Projects, Stories, Escalations, Dependencies), main content area
+11. Responsive design support (mobile &lt;768px, tablet 768-1024px, desktop &gt;1024px)
+    - Mobile: Collapsible sidebar, stacked layout
+    - Tablet: Persistent sidebar, responsive grid
+    - Desktop: Full layout with all features
+12. Dark/light mode toggle with system preference detection and localStorage persistence
+
+### Error Handling &amp; Deploy (AC 13-14)
+13. Loading states (skeleton screens) and error handling (error boundaries, toast notifications)
+14. Deploy configuration for production (Nginx static serving with API proxy, environment variables for API URL)
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <!-- PRD - Epic 6 Remote Access Requirements -->
+      <doc>
+        <path>docs/PRD.md</path>
+        <title>Product Requirements Document - Epic 6 Remote Access &amp; Monitoring</title>
+        <section>Functional Requirements: Remote Access API (FR-API-101 to FR-API-105), Web Dashboard (FR-DASH-001 to FR-DASH-005)</section>
+        <snippet>Epic 6 defines REST API (Fastify), WebSocket for real-time updates, and web dashboard (React) requirements. JWT authentication, project management endpoints, orchestrator control, escalation management. Non-functional requirements: API response times &lt;200ms for reads, &lt;500ms for writes, WebSocket latency &lt;100ms, dashboard page load &lt;2 seconds.</snippet>
+      </doc>
+
+      <!-- Epic 6 Details from Epics Document -->
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access &amp; Monitoring - Restructured for Parallel Development</title>
+        <section>Story 6.4: React Dashboard Foundation &amp; API Integration</section>
+        <snippet>Creates React app with TypeScript and Vite. Configures TanStack Query for server state, Zustand for client state, Tailwind CSS with shadcn/ui component library. API client layer using fetch with auth tokens. WebSocket hook for real-time updates. Layout with responsive design and dark/light mode. Deploy configuration for Nginx static serving. Prerequisites: Stories 6.1, 6.2, 6.3 (API infrastructure) complete.</snippet>
+      </doc>
+
+      <!-- Previous Story Context for API Understanding -->
+      <doc>
+        <path>docs/stories/6-1-api-infrastructure-type-system.md</path>
+        <title>Story 6.1: API Infrastructure &amp; Type System (DONE)</title>
+        <section>Shared TypeScript Types, API Foundation</section>
+        <snippet>Established Fastify server with JWT authentication, CORS, rate limiting, OpenAPI documentation. Defined TypeScript interfaces: Project, ProjectStatus, OrchestratorStatus, WorkflowStatus, StoryStatus, EscalationStatus, APIResponse&lt;T&gt;, APIError. Zod schemas for validation. All API endpoints require JWT Bearer token authentication.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/stories/6-2-core-api-endpoints-websocket.md</path>
+        <title>Story 6.2: Core API Endpoints &amp; WebSocket (DONE)</title>
+        <section>Project Management Endpoints, WebSocket Real-Time Updates</section>
+        <snippet>Implemented Project CRUD endpoints (GET/POST/PATCH/DELETE /api/projects). WebSocket server at /ws/status-updates with authenticated connections. Events: project.phase.changed, story.status.changed, escalation.created, agent.started/completed, pr.created/merged, workflow.error. Event payload: {projectId, eventType, data, timestamp}.</snippet>
+      </doc>
+
+      <doc>
+        <path>docs/stories/6-3-extended-api-endpoints.md</path>
+        <title>Story 6.3: Extended API Endpoints (DONE)</title>
+        <section>Orchestrator Control, State Query, Escalation APIs</section>
+        <snippet>Orchestrator control endpoints: GET/POST /api/orchestrators/:projectId/status|start|pause|resume. State query endpoints: GET /api/projects/:id/workflow-status|sprint-status|stories|stories/:storyId. Escalation endpoints: GET /api/escalations, GET /api/escalations/:id, POST /api/escalations/:id/respond. All endpoints authenticated with JWT, emit WebSocket events on state changes.</snippet>
+      </doc>
+
+      <!-- Architecture Design Patterns -->
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture - Technology Stack</title>
+        <section>Frontend Technology Stack (Planned)</section>
+        <snippet>React 18 with TypeScript for UI framework. Vite for build tooling. TanStack Query for server state management (caching, background refetching). Zustand for lightweight client state (UI state, auth state). Tailwind CSS for styling. shadcn/ui for accessible component library (Radix UI primitives). React Router for navigation.</snippet>
+      </doc>
+    </docs>
+
+    <code>
+      <!-- Existing Backend API Infrastructure -->
+      <artifact>
+        <path>backend/src/api/server.ts</path>
+        <kind>server</kind>
+        <symbol>createServer</symbol>
+        <lines>1-150</lines>
+        <reason>Fastify server setup with middleware (CORS, helmet, JWT, rate-limit), OpenAPI documentation, WebSocket integration. Frontend must match JWT authentication pattern and API base URL configuration (default: http://localhost:3000).</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/api/types/api.types.ts</path>
+        <kind>types</kind>
+        <symbol>APIResponse, APIError, Project, WorkflowStatus, StoryStatus, EscalationStatus, OrchestratorStatus</symbol>
+        <lines>1-74</lines>
+        <reason>Core TypeScript type definitions that frontend API client must mirror exactly. APIResponse&lt;T&gt; wraps all successful responses. APIError defines error response structure. Project, WorkflowStatus, StoryStatus, EscalationStatus define entity types used across API endpoints.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/api/routes/projects.ts</path>
+        <kind>route</kind>
+        <symbol>registerProjectRoutes</symbol>
+        <lines>1-100</lines>
+        <reason>Project management endpoints implementation. Frontend src/api/projects.ts should create corresponding client methods that match these endpoint signatures and response types.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/api/routes/orchestrators.ts</path>
+        <kind>route</kind>
+        <symbol>registerOrchestratorRoutes</symbol>
+        <lines>1-100</lines>
+        <reason>Orchestrator control endpoints (start, pause, resume, status). Frontend needs client methods for remote orchestrator control.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/api/routes/state.ts</path>
+        <kind>route</kind>
+        <symbol>registerStateRoutes</symbol>
+        <lines>1-100</lines>
+        <reason>State query endpoints (workflow-status, sprint-status, stories). Frontend needs client methods to fetch and display project state.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/api/routes/escalations.ts</path>
+        <kind>route</kind>
+        <symbol>registerEscalationRoutes</symbol>
+        <lines>1-100</lines>
+        <reason>Escalation management endpoints. Frontend needs client methods for listing escalations and submitting responses.</reason>
+      </artifact>
+
+      <artifact>
+        <path>backend/src/api/routes/websocket.ts</path>
+        <kind>websocket</kind>
+        <symbol>WebSocketHandler</symbol>
+        <lines>1-200</lines>
+        <reason>WebSocket server implementation at /ws/status-updates. Frontend useWebSocket hook must connect to this endpoint, authenticate with JWT token, handle event subscriptions, and implement reconnection logic matching backend's expectations.</reason>
+      </artifact>
+
+      <!-- No Frontend Code Exists Yet -->
+      <artifact>
+        <path>frontend/</path>
+        <kind>directory</kind>
+        <symbol>N/A</symbol>
+        <lines>N/A</lines>
+        <reason>Frontend directory does not exist yet. This story will create the entire React application structure from scratch using Vite + TypeScript template.</reason>
+      </artifact>
+    </code>
+
+    <dependencies>
+      <!-- Backend Dependencies (Reference for API Integration) -->
+      <backend>
+        <fastify>^4.25.0</fastify>
+        <@fastify/cors>^9.0.0</@fastify/cors>
+        <@fastify/jwt>^7.2.0</@fastify/jwt>
+        <@fastify/swagger>^8.13.0</@fastify/swagger>
+        <ws>^8.18.3</ws>
+        <zod>^3.22.0</zod>
+      </backend>
+
+      <!-- Frontend Dependencies (To Be Installed) -->
+      <frontend>
+        <!-- Core Framework -->
+        <react>18.3.1</react>
+        <react-dom>18.3.1</react-dom>
+        <react-router-dom>6.26.1</react-router-dom>
+        <typescript>5.5.4</typescript>
+        <vite>5.4.3</vite>
+        <@vitejs/plugin-react>4.3.1</@vitejs/plugin-react>
+
+        <!-- State Management -->
+        <@tanstack/react-query>5.56.2</@tanstack/react-query>
+        <zustand>4.5.5</zustand>
+
+        <!-- Styling &amp; UI -->
+        <tailwindcss>3.4.10</tailwindcss>
+        <class-variance-authority>0.7.0</class-variance-authority>
+        <clsx>2.1.1</clsx>
+        <tailwind-merge>2.5.2</tailwind-merge>
+
+        <!-- Radix UI Primitives (for shadcn/ui) -->
+        <@radix-ui/react-dialog>Latest</@radix-ui/react-dialog>
+        <@radix-ui/react-dropdown-menu>Latest</@radix-ui/react-dropdown-menu>
+        <@radix-ui/react-label>Latest</@radix-ui/react-label>
+        <@radix-ui/react-select>Latest</@radix-ui/react-select>
+        <@radix-ui/react-tabs>Latest</@radix-ui/react-tabs>
+        <@radix-ui/react-toast>Latest</@radix-ui/react-toast>
+
+        <!-- Dev Dependencies -->
+        <tweakcn>Latest (CLI tool for component customization)</tweakcn>
+        <@types/react>18.3.5</@types/react>
+        <@types/react-dom>18.3.0</@types/react-dom>
+        <vitest>1.0.0+</vitest>
+        <@testing-library/react>Latest</@testing-library/react>
+        <@testing-library/jest-dom>Latest</@testing-library/jest-dom>
+      </frontend>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+## Development Constraints
+
+### API Integration Requirements
+- **Authentication:** All API requests MUST include JWT Bearer token from localStorage
+- **Base URL:** Use environment variable VITE_API_URL (default: http://localhost:3000)
+- **Error Handling:** Match backend APIError format: {error, message, details?, requestId?}
+- **TypeScript Types:** Frontend types must exactly match backend types in backend/src/api/types/api.types.ts
+- **CORS:** Backend configured to allow http://localhost:5173 (Vite dev server) and http://localhost:3000
+
+### WebSocket Integration Requirements
+- **Endpoint:** /ws/status-updates
+- **Authentication:** Send JWT token on connection (query param or upgrade header)
+- **Event Format:** {projectId: string, eventType: string, data: unknown, timestamp: string}
+- **Event Types:** project.phase.changed, story.status.changed, escalation.created, escalation.responded, agent.started, agent.completed, pr.created, pr.merged, workflow.error
+- **Reconnection:** Implement exponential backoff (1s, 2s, 4s, 8s, 16s max)
+- **Connection Status:** Display indicator in UI (green dot when connected)
+
+### Framework &amp; Library Constraints
+- **React Version:** 18.3.1 (with concurrent features)
+- **TypeScript:** Strict mode enabled, no implicit any
+- **Vite:** Code splitting, lazy loading, environment variables (VITE_ prefix)
+- **TanStack Query:** QueryClient with 5-minute stale time, retry logic for failed requests
+- **Zustand:** Separate stores for auth state (authStore.ts) and UI state (uiStore.ts)
+- **Tailwind CSS:** Custom theme with dark mode support (class strategy), purge enabled for production
+- **shadcn/ui:** Components installed via CLI (`npx shadcn@latest add [component]`), customizable via tweakcn
+
+### File Structure Requirements
+- **API Layer:** frontend/src/api/ (client.ts, projects.ts, stories.ts, escalations.ts, types.ts)
+- **Components:** frontend/src/components/ui/ (shadcn/ui), frontend/src/components/layout/ (Header, Sidebar, MainLayout)
+- **Hooks:** frontend/src/hooks/ (useWebSocket.ts, useAuth.ts, useTheme.ts)
+- **Store:** frontend/src/store/ (authStore.ts, uiStore.ts)
+- **Pages:** frontend/src/pages/ (Dashboard.tsx, NotFound.tsx)
+- **Tests:** Co-located with source files (*.test.tsx)
+
+### Testing Requirements
+- **Framework:** Vitest (Vite-native, fast)
+- **Component Testing:** React Testing Library (user-centric)
+- **Coverage Target:** Minimum 70% for this story
+- **Test Types:** Unit tests for API client (15+), hooks (12+), integration tests for layout (10+)
+- **Mocking:** Mock fetch API for API client tests, mock WebSocket API for useWebSocket tests
+
+### Performance Requirements
+- **Initial Load:** &lt;2 seconds to interactive
+- **API Response:** Display loading states for requests &gt;500ms
+- **WebSocket Latency:** Update UI within 1 second of event
+- **Responsive:** Support mobile (&lt;768px), tablet (768-1024px), desktop (&gt;1024px)
+
+### Security Requirements
+- **JWT Storage:** localStorage (XSS risk mitigation via Content-Security-Policy headers required on backend)
+- **Input Sanitization:** Sanitize user input before API requests
+- **CORS:** Only allow configured origins on backend
+- **No Secrets:** No API keys or secrets in frontend code or .env committed to repo
+
+### Deployment Requirements
+- **Build Output:** frontend/dist/ (static files)
+- **Nginx Config:** Serve static files, proxy /api to backend (http://localhost:3000), proxy /ws with upgrade headers
+- **Environment Variables:** VITE_API_URL, VITE_WS_URL configured per environment
+- **Production Optimizations:** Minification, gzip, code splitting, lazy loading
+
+### Compatibility with Future Stories
+- **Story 6.5 (Project Views):** Layout must include routing structure for /projects and /projects/:id
+- **Story 6.6 (Escalation Interface):** Layout must include /escalations route and badge for escalation count
+- **Story 6.7 (Kanban Board):** Layout must support /projects/:id/stories route
+- **Story 6.8 (Dependency Graph):** Layout must support graph view integration in project detail tabs
+  </constraints>
+
+  <interfaces>
+## API Interfaces
+
+### Project Management API
+```typescript
+// GET /api/projects
+interface GetProjectsResponse {
+  success: boolean;
+  data: Project[];
+  timestamp: string;
+}
+
+// GET /api/projects/:id
+interface GetProjectResponse {
+  success: boolean;
+  data: Project;
+  timestamp: string;
+}
+
+// POST /api/projects
+interface CreateProjectRequest {
+  name: string;
+  repository: string;
+  config: ProjectConfig;
+}
+
+// Project entity type
+interface Project {
+  id: string;
+  name: string;
+  status: 'active' | 'paused' | 'completed' | 'error';
+  phase: 'analysis' | 'planning' | 'solutioning' | 'implementation' | 'review';
+  createdAt: string;
+  updatedAt: string;
+}
+```
+
+### Orchestrator Control API
+```typescript
+// GET /api/orchestrators/:projectId/status
+interface OrchestratorStatusResponse {
+  success: boolean;
+  data: {
+    running: boolean;
+    activeProjects: number;
+    activeWorkflows: number;
+    health: 'healthy' | 'degraded' | 'unhealthy';
+    uptime: number;
+  };
+  timestamp: string;
+}
+
+// POST /api/orchestrators/:projectId/start
+interface StartOrchestratorRequest {
+  workflowPath?: string;
+}
+```
+
+### State Query API
+```typescript
+// GET /api/projects/:id/workflow-status
+interface WorkflowStatusResponse {
+  success: boolean;
+  data: WorkflowStatus;
+  timestamp: string;
+}
+
+// GET /api/projects/:id/stories
+interface StoriesResponse {
+  success: boolean;
+  data: StoryStatus[];
+  timestamp: string;
+}
+```
+
+### Escalation Management API
+```typescript
+// GET /api/escalations
+interface GetEscalationsResponse {
+  success: boolean;
+  data: EscalationStatus[];
+  timestamp: string;
+}
+
+// POST /api/escalations/:id/respond
+interface RespondToEscalationRequest {
+  response: string;
+  decision?: string;
+}
+```
+
+### WebSocket Events API
+```typescript
+// WebSocket connection at /ws/status-updates
+interface WebSocketEvent {
+  projectId: string;
+  eventType: 'project.phase.changed' | 'story.status.changed' | 'escalation.created' |
+             'escalation.responded' | 'agent.started' | 'agent.completed' |
+             'pr.created' | 'pr.merged' | 'workflow.error';
+  data: unknown; // Event-specific payload
+  timestamp: string;
+}
+
+// Connection authentication
+// Send JWT token as query parameter: ws://localhost:3000/ws/status-updates?token=JWT_TOKEN
+// Or in upgrade request header: Authorization: Bearer JWT_TOKEN
+```
+
+### Frontend API Client Interface
+```typescript
+// BaseAPI class structure
+class BaseAPI {
+  private baseUrl: string;
+
+  constructor(baseUrl?: string);
+
+  async get&lt;T&gt;(endpoint: string): Promise&lt;T&gt;;
+  async post&lt;T&gt;(endpoint: string, data: unknown): Promise&lt;T&gt;;
+  async patch&lt;T&gt;(endpoint: string, data: unknown): Promise&lt;T&gt;;
+  async delete&lt;T&gt;(endpoint: string): Promise&lt;T&gt;;
+
+  private getAuthToken(): string | null;
+  private handleError(error: unknown): never;
+}
+
+// Example usage in projects.ts
+export const projectsApi = {
+  getProjects: () =&gt; baseApi.get&lt;GetProjectsResponse&gt;('/api/projects'),
+  getProject: (id: string) =&gt; baseApi.get&lt;GetProjectResponse&gt;(`/api/projects/${id}`),
+  createProject: (data: CreateProjectRequest) =&gt; baseApi.post&lt;GetProjectResponse&gt;('/api/projects', data),
+  // ...
+};
+```
+
+### Frontend WebSocket Hook Interface
+```typescript
+// useWebSocket hook structure
+interface UseWebSocketReturn {
+  isConnected: boolean;
+  events: WebSocketEvent[];
+  subscribe: (eventType: string, callback: (event: WebSocketEvent) =&gt; void) =&gt; () =&gt; void;
+  unsubscribe: (eventType: string) =&gt; void;
+  connectionStatus: 'connecting' | 'connected' | 'disconnected' | 'error';
+}
+
+function useWebSocket(url: string): UseWebSocketReturn;
+
+// Example usage
+const { isConnected, events, subscribe } = useWebSocket('ws://localhost:3000/ws/status-updates');
+
+useEffect(() =&gt; {
+  const unsubscribe = subscribe('story.status.changed', (event) =&gt; {
+    console.log('Story status changed:', event.data);
+    // Update UI accordingly
+  });
+
+  return unsubscribe;
+}, [subscribe]);
+```
+  </interfaces>
+
+  <tests>
+    <standards>
+**Testing Framework:** Vitest (Vite-native, fast unit testing) + React Testing Library (component testing)
+
+**Coverage Target:** Minimum 70% code coverage for this story
+
+**Test Organization:** Co-locate tests with source files (e.g., `src/api/client.test.ts` next to `src/api/client.ts`)
+
+**Test Categories:**
+1. **Unit Tests:** Test individual functions, hooks, and utilities in isolation with mocked dependencies
+2. **Integration Tests:** Test component integration with API client, state management, and routing
+3. **E2E Tests:** Deferred to Story 6.10 (Dashboard E2E Tests)
+
+**Mocking Strategy:**
+- Mock `fetch` API for API client tests (using Vitest's `vi.mock`)
+- Mock `WebSocket` API for useWebSocket hook tests
+- Mock Zustand stores for component tests
+- Mock TanStack Query for component tests that depend on server state
+
+**Test Execution:**
+- Run via `npm test` (Vitest in run mode)
+- Watch mode via `npm run test:watch`
+- Coverage report via `npm run test:coverage`
+- CI/CD integration required (run tests on PR)
+
+**Test Quality Standards:**
+- Clear test descriptions (Given-When-Then or Arrange-Act-Assert pattern)
+- Test user-visible behavior, not implementation details
+- Avoid brittle tests (use accessible queries: getByRole, getByLabelText, not getByTestId)
+- Fast execution (&lt;5 seconds for full suite)
+    </standards>
+
+    <locations>
+**Test File Locations:**
+- `frontend/src/api/client.test.ts` - API client unit tests
+- `frontend/src/api/projects.test.ts` - Projects API endpoint tests
+- `frontend/src/hooks/useWebSocket.test.ts` - WebSocket hook unit tests
+- `frontend/src/hooks/useAuth.test.ts` - Auth hook unit tests
+- `frontend/src/hooks/useTheme.test.ts` - Theme hook unit tests
+- `frontend/src/components/layout/Header.test.tsx` - Header component integration tests
+- `frontend/src/components/layout/Sidebar.test.tsx` - Sidebar component integration tests
+- `frontend/src/components/layout/MainLayout.test.tsx` - MainLayout integration tests
+- `frontend/src/components/ErrorBoundary.test.tsx` - Error boundary tests
+- `frontend/vitest.config.ts` - Vitest configuration
+- `frontend/src/test-utils/` - Test utilities and setup files
+    </locations>
+
+    <ideas>
+### AC 1: React App Creation
+**Test Ideas:**
+- Verify Vite dev server starts successfully
+- Verify TypeScript compilation with strict mode
+- Verify ESLint configuration enforces code quality rules
+- Verify Prettier formats code consistently
+
+### AC 2-3: State Management Configuration
+**Test Ideas:**
+- TanStack Query: Verify QueryClient configuration (stale time, retry logic, cache time)
+- TanStack Query: Test query hooks handle loading, success, and error states
+- Zustand: Verify authStore stores/retrieves JWT token
+- Zustand: Verify authStore login/logout actions update state correctly
+- Zustand: Verify uiStore manages sidebar open/closed state
+- Zustand: Verify uiStore manages theme (light/dark) state
+
+### AC 4-5: Tailwind CSS &amp; shadcn/ui
+**Test Ideas:**
+- Verify Tailwind CSS classes apply correctly
+- Verify dark mode classes toggle based on theme state
+- Verify shadcn/ui Button component renders with variants
+- Verify shadcn/ui Dialog component opens/closes correctly
+- Verify shadcn/ui Toast component displays notifications
+
+### AC 8: API Client Layer
+**Test Ideas:**
+- BaseAPI.get(): Successful request returns data
+- BaseAPI.get(): Failed request throws APIError with details
+- BaseAPI.post(): Sends data correctly and returns response
+- BaseAPI: JWT token from localStorage attached to Authorization header
+- BaseAPI: Handles 401 Unauthorized by clearing token and redirecting to login
+- BaseAPI: Handles 500 Server Error by showing error message
+- projectsApi.getProjects(): Returns list of projects
+- escalationsApi.respondToEscalation(): Sends response and updates escalation status
+
+### AC 9: WebSocket Integration
+**Test Ideas:**
+- useWebSocket: Connects to WebSocket server successfully
+- useWebSocket: Attaches JWT token on connection
+- useWebSocket: Receives events and adds to event stream
+- useWebSocket: Handles disconnection and attempts reconnection
+- useWebSocket: Exponential backoff delays: 1s, 2s, 4s, 8s, 16s
+- useWebSocket: Resets backoff on successful reconnection
+- useWebSocket: Subscription filters events by event type
+- useWebSocket: Unsubscribe removes event listener
+
+### AC 10-12: Layout Components
+**Test Ideas:**
+- Header: Renders logo and navigation items
+- Header: User menu opens on click
+- Header: Dark/light mode toggle switches theme
+- Sidebar: Renders navigation links (Projects, Stories, Escalations, Dependencies)
+- Sidebar: Active route highlighted correctly
+- Sidebar: Collapses on mobile viewport
+- MainLayout: Renders Header, Sidebar, and main content area
+- MainLayout: Responsive grid layout adjusts on breakpoints
+- useTheme: Detects system preference on mount
+- useTheme: Persists theme to localStorage
+- useTheme: Applies theme class to &lt;html&gt; element
+
+### AC 13: Error Handling &amp; Loading States
+**Test Ideas:**
+- ErrorBoundary: Catches React errors and displays fallback UI
+- ErrorBoundary: Retry button re-renders component
+- LoadingSkeleton: Displays skeleton UI during loading
+- Toast: Success toast displays with green background
+- Toast: Error toast displays with red background and dismisses after timeout
+
+### AC 14: Deploy Configuration
+**Test Ideas:**
+- Verify Nginx config proxies /api requests to backend
+- Verify Nginx config proxies /ws with upgrade headers
+- Verify production build creates optimized bundle
+- Verify environment variables load correctly in production
+    </ideas>
+  </tests>
+</story-context>
