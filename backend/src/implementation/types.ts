@@ -36,6 +36,9 @@ export interface AmeliaAgent extends Agent {
   /** Generate comprehensive tests for implemented code */
   writeTests(code: CodeImplementation): Promise<TestSuite>;
 
+  /** Fix failing tests based on test failure context */
+  fixTests(failureContext: TestFailureContext): Promise<TestSuite>;
+
   /** Perform self-review of implemented code */
   reviewCode(code: CodeImplementation): Promise<SelfReviewReport>;
 }
@@ -239,6 +242,21 @@ export interface TestFailure {
   test: string;
   /** Error message */
   error: string;
+}
+
+/**
+ * Test failure context for fixing tests
+ * Provides Amelia with complete context to fix failing tests
+ */
+export interface TestFailureContext {
+  /** Original code implementation being tested */
+  implementation: CodeImplementation;
+  /** Current test files that are failing */
+  testFiles: TestFile[];
+  /** Test execution results with failure details */
+  testResults: TestResults;
+  /** Test framework being used */
+  framework: string;
 }
 
 /**
