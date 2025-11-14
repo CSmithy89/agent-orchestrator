@@ -22,8 +22,12 @@ export type EventType =
   | 'project.phase.changed'
   | 'story.status.changed'
   | 'escalation.created'
+  | 'escalation.responded'
   | 'agent.started'
   | 'agent.completed'
+  | 'orchestrator.started'
+  | 'orchestrator.paused'
+  | 'orchestrator.resumed'
   | 'pr.created'
   | 'pr.merged'
   | 'workflow.error';
@@ -141,4 +145,37 @@ export interface SubscriptionMessage {
 export interface ErrorMessage {
   error: string;
   message: string;
+}
+
+/**
+ * Orchestrator started event data
+ */
+export interface OrchestratorStartedEventData {
+  workflowName: string;
+  workflowPath: string;
+}
+
+/**
+ * Orchestrator paused event data
+ */
+export interface OrchestratorPausedEventData {
+  workflowName: string;
+  currentStep: string;
+}
+
+/**
+ * Orchestrator resumed event data
+ */
+export interface OrchestratorResumedEventData {
+  workflowName: string;
+  currentStep: string;
+}
+
+/**
+ * Escalation responded event data
+ */
+export interface EscalationRespondedEventData {
+  id: string;
+  response: unknown;
+  resolvedAt: string;
 }
