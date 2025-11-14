@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<story-context id="6-2-core-api-endpoints-websocket" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>2</storyId>
+    <title>Core API Endpoints &amp; WebSocket</title>
+    <status>ready-for-dev</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-2-core-api-endpoints-websocket.md</sourceStoryPath>
+    <storyPoints>8</storyPoints>
+  </metadata>
+
+  <story>
+    <asA>dashboard developer</asA>
+    <iWant>project management API endpoints and WebSocket support</iWant>
+    <soThat>the UI can manage projects and receive real-time updates</soThat>
+    <tasks>
+      <task id="1">Implement project service layer with StateManager integration</task>
+      <task id="2">Create project CRUD route handlers (GET, POST, PATCH, DELETE /api/projects/*)</task>
+      <task id="3">Implement WebSocket server with JWT authentication</task>
+      <task id="4">Create event publishing service for real-time updates</task>
+      <task id="5">Write comprehensive tests (unit, integration, WebSocket)</task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="AC1">GET /api/projects - List all projects with pagination</criterion>
+    <criterion id="AC2">POST /api/projects - Create new project with validation</criterion>
+    <criterion id="AC3">GET /api/projects/:id - Get project details (metadata, phase, status, lastUpdate)</criterion>
+    <criterion id="AC4">PATCH /api/projects/:id - Update project metadata</criterion>
+    <criterion id="AC5">DELETE /api/projects/:id - Delete project with proper cleanup</criterion>
+    <criterion id="AC6">Error handling: Return proper HTTP status and error messages for not found/invalid requests</criterion>
+    <criterion id="AC7">Pagination: Support limit/offset query params, default 20 items per page</criterion>
+    <criterion id="AC8">WebSocket endpoint /ws/status-updates with JWT authentication</criterion>
+    <criterion id="AC9">Emit event types: project.created, project.updated, project.phase.changed, story.status.changed, escalation.created, agent.started, agent.completed, pr.created, pr.merged, workflow.error</criterion>
+    <criterion id="AC10">Event payload: {projectId, eventType, data, timestamp}</criterion>
+    <criterion id="AC11">WebSocket: Support per-project subscriptions</criterion>
+    <criterion id="AC12">WebSocket: Handle reconnection scenarios</criterion>
+    <criterion id="AC13">All endpoints require JWT authentication</criterion>
+    <criterion id="AC14">Test coverage: >80% for project endpoints and WebSocket handlers</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <artifact>
+        <path>docs/architecture.md</path>
+        <title>System Architecture Document</title>
+        <section>API Gateway Layer, REST API patterns, WebSocket integration</section>
+        <snippet>Fastify REST API server with CORS, helmet security headers, rate limiting. WebSocket server using ws library with project-level subscriptions and event publishing via internal event bus.</snippet>
+      </artifact>
+      <artifact>
+        <path>docs/stories/6-1-api-infrastructure-type-system.md</path>
+        <title>Story 6.1: API Infrastructure Foundation</title>
+        <section>API Foundation, TypeScript Types, Testing patterns</section>
+        <snippet>Story 6.1 establishes Fastify server with middleware, JWT auth, error handling, and comprehensive TypeScript types (Project, ProjectStatus, WorkflowStatus, StoryStatus, EscalationStatus). All foundational infrastructure for 6.2 endpoints.</snippet>
+      </artifact>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/api/server.ts</path>
+        <kind>server-config</kind>
+        <symbol>createServer, startServer</symbol>
+        <lines>1-150</lines>
+        <reason>Fastify server setup with middleware (CORS, helmet, JWT, rate limiting, swagger). This is the base that project endpoints will register with via server.get/post/patch/delete routes.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/types/api.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>Project, ProjectStatus, ProjectPhase, APIResponse, APIError, WorkflowStatus, StoryStatus, EscalationStatus</symbol>
+        <lines>1-74</lines>
+        <reason>Core TypeScript interfaces for all API responses. Project endpoints must return these types; WebSocket events use these in data payloads.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/schemas/api.schemas.ts</path>
+        <kind>validation-schemas</kind>
+        <symbol>ProjectSchema, ProjectStatusSchema, ProjectPhaseSchema, APIResponseSchema, APIErrorSchema</symbol>
+        <lines>1-77</lines>
+        <reason>Zod validation schemas for runtime request/response validation. Project CRUD endpoints must validate requests against these schemas before processing.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/StateManager.ts</path>
+        <kind>service</kind>
+        <symbol>StateManager, loadState, saveState, getProjectPhase, getStoryStatus</symbol>
+        <lines>45-497</lines>
+        <reason>State persistence service for projects. Project service should use StateManager to load/save project state, manage atomic writes, and query project phases for real-time events.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/health.ts</path>
+        <kind>route-handler</kind>
+        <symbol>healthCheckHandler</symbol>
+        <reason>Example of a simple Fastify route handler. Pattern to follow for project CRUD endpoints: FastifyRequest, FastifyReply, async handler, response structure.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/api/server.test.ts</path>
+        <kind>test</kind>
+        <symbol>API Server tests</symbol>
+        <lines>1-100</lines>
+        <reason>Integration test pattern for Fastify server using server.inject() for HTTP testing. Model for testing project endpoints (GET, POST, PATCH, DELETE).</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/AgentPool.ts</path>
+        <kind>service</kind>
+        <symbol>AgentPool</symbol>
+        <reason>Reference for real-time event emission patterns. Project events (agent.started, agent.completed) should follow similar patterns.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="fastify" version="^4.25.0">Core HTTP server - use for project endpoints</package>
+        <package name="@fastify/cors" version="^9.0.0">CORS support (already configured in server.ts)</package>
+        <package name="@fastify/helmet" version="^11.1.0">Security headers (already configured in server.ts)</package>
+        <package name="@fastify/jwt" version="^7.2.0">JWT authentication (already configured in server.ts)</package>
+        <package name="@fastify/rate-limit" version="^9.1.0">Rate limiting (already configured in server.ts)</package>
+        <package name="@fastify/swagger" version="^8.13.0">OpenAPI documentation (already configured in server.ts)</package>
+        <package name="ws" version="^8.14.0">WebSocket server library - REQUIRED for /ws/status-updates endpoint</package>
+        <package name="zod" version="^3.22.0">Schema validation (already configured for API types)</package>
+        <package name="uuid" version="^9.0.0">UUID generation for connection IDs</package>
+      </node>
+      <devNode>
+        <package name="@types/ws" version="^8.5.0">TypeScript types for ws library</package>
+        <package name="vitest" version="*">Test framework (already in project)</package>
+        <package name="supertest" version="^6.3.0">HTTP testing utility for endpoints</package>
+      </devNode>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>All project endpoints must authenticate with JWT tokens (use Fastify's request.user from @fastify/jwt)</constraint>
+    <constraint>Project CRUD operations must use StateManager for persistence (atomic writes, recovery capability)</constraint>
+    <constraint>WebSocket authentication: Validate JWT token during connection upgrade handshake</constraint>
+    <constraint>Event payloads must include projectId (for per-project filtering on client), eventType (string), data (any), timestamp (ISO string)</constraint>
+    <constraint>Pagination: Use limit (default 20, max 100) and offset query parameters</constraint>
+    <constraint>Project validation: Validate config on creation, return 400 with detailed error if invalid</constraint>
+    <constraint>Error responses: Use standard format {error: string, message: string, details?: unknown, requestId?: string}</constraint>
+    <constraint>WebSocket connections must implement ping-pong heartbeat for connection health (ws library supports native ping/pong)</constraint>
+    <constraint>All code must follow existing project structure: services in backend/src/api/services/, routes in backend/src/api/routes/, types in backend/src/api/types/</constraint>
+    <constraint>Testing: Use Vitest for unit tests, supertest for HTTP integration tests, ws client library for WebSocket tests</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>Project CRUD REST Endpoints</name>
+      <kind>REST API</kind>
+      <signature>
+        GET /api/projects?limit=20&amp;offset=0 → {success: true, data: Project[], timestamp: string}
+        POST /api/projects → {success: true, data: Project, timestamp: string}
+        GET /api/projects/:id → {success: true, data: Project, timestamp: string}
+        PATCH /api/projects/:id → {success: true, data: Project, timestamp: string}
+        DELETE /api/projects/:id → {success: true, data: {}, timestamp: string}
+      </signature>
+      <path>backend/src/api/routes/projects.ts</path>
+    </interface>
+    <interface>
+      <name>Project Service Interface</name>
+      <kind>TypeScript Class Interface</kind>
+      <signature>
+        class ProjectService {
+          listProjects(limit: number, offset: number): Promise&lt;Project[]&gt;
+          createProject(data: any): Promise&lt;Project&gt;
+          getProject(id: string): Promise&lt;Project | null&gt;
+          updateProject(id: string, data: Partial&lt;Project&gt;): Promise&lt;Project&gt;
+          deleteProject(id: string): Promise&lt;void&gt;
+        }
+      </signature>
+      <path>backend/src/api/services/project.service.ts</path>
+    </interface>
+    <interface>
+      <name>Event Service Interface</name>
+      <kind>TypeScript Class Interface</kind>
+      <signature>
+        class EventService {
+          emit(event: Event): void
+          subscribe(projectId: string, handler: (event: Event) =&gt; void): void
+          unsubscribe(projectId: string, handler: Function): void
+        }
+
+        interface Event {
+          projectId: string
+          eventType: string
+          data: unknown
+          timestamp: string
+        }
+      </signature>
+      <path>backend/src/api/services/event.service.ts</path>
+    </interface>
+    <interface>
+      <name>WebSocket Handler Interface</name>
+      <kind>WebSocket Protocol</kind>
+      <signature>
+        Server: ws://localhost:3000/ws/status-updates
+        Auth: Header "Authorization: Bearer {jwt_token}"
+        Subscribe: {action: "subscribe", projectId: "xxx"}
+        Unsubscribe: {action: "unsubscribe", projectId: "xxx"}
+        Event Message: {projectId: string, eventType: string, data: any, timestamp: string}
+      </signature>
+      <path>backend/src/api/routes/websocket.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Test framework: Vitest with TypeScript. For HTTP endpoints use server.inject() pattern from Fastify testing API (see backend/tests/api/server.test.ts for examples). For WebSocket testing, use ws client library to create connections, send/receive messages, and validate events. Follow existing test structure: unit tests for services (mocking StateManager), integration tests for full endpoint+service flow, e2e tests for client scenarios. Coverage target: >80% for project endpoints and WebSocket handlers. Test files located in backend/tests/api/ and backend/tests/integration/.
+    </standards>
+    <locations>
+      backend/tests/api/projects.test.ts - Project CRUD endpoint tests
+      backend/tests/api/websocket.test.ts - WebSocket connection and event tests
+      backend/tests/integration/api/ - Full integration tests combining endpoints with services
+    </locations>
+    <ideas>
+      AC1 (GET /api/projects): Unit test pagination limits (20 default, 100 max), offset behavior, empty list, integration test with real StateManager
+      AC2 (POST /api/projects): Unit test validation (required fields), invalid config rejection, unique ID generation, integration test state persistence
+      AC3 (GET /api/projects/:id): Test valid ID return, 404 on missing ID, authorization (JWT required)
+      AC4 (PATCH /api/projects/:id): Test partial updates, invalid field rejection, concurrency (multiple PATCH same project)
+      AC5 (DELETE /api/projects/:id): Test successful deletion, 404 on missing ID, cascading cleanup
+      AC6 (Error handling): Test 400 for validation errors, 404 for missing, 401 for missing JWT, response format validation
+      AC8-12 (WebSocket): Test connection with/without JWT (should fail if missing), subscription to projectId, event emission, reconnection handling, ping-pong heartbeat
+      All: Mock StateManager to isolate service tests, use server.inject() for endpoint testing, use ws client for WebSocket testing
+    </ideas>
+  </tests>
+
+  <epic-context>
+    <epicNumber>6</epicNumber>
+    <epicTitle>Remote Access &amp; Monitoring</epicTitle>
+    <epicPhase>Implementation - Phase 4</epicPhase>
+    <epicDependency>Requires: Epic 1 (Foundation &amp; Core Engine), Story 6.1 (API Infrastructure)</epicDependency>
+    <epicBlocks>Stories 6.3-6.10 (extended endpoints, dashboard, visualization)</epicBlocks>
+    <epicGoal>Enable remote monitoring and control of Agent Orchestrator via REST API and WebSocket real-time events. Allow dashboard to manage projects, view workflow status, escalations, and receive live updates on agent activity and workflow progress.</epicGoal>
+    <relatedStories>
+      <story id="6-1">API Infrastructure &amp; Type System - Establishes Fastify server, middleware, auth, types (COMPLETED)</story>
+      <story id="6-3">Extended API Endpoints - Escalations, workflows, agents (will build on 6-2)</story>
+      <story id="6-4">React Dashboard Foundation - UI integration with API (will build on 6-2)</story>
+    </relatedStories>
+  </epic-context>
+
+  <development-notes>
+    <stateManagerIntegration>
+      Story 6.2 builds projects context. Projects are stored as part of the StateManager's project structure (backend/src/core/StateManager.ts). When implementing ProjectService, use StateManager.loadState(projectId) to get current project state and StateManager.saveState() to persist changes. See lines 324-393 (loadState method) and 294-317 (saveState method) for atomic write patterns.
+    </stateManagerIntegration>
+    <eventDrivenArchitecture>
+      WebSocket real-time updates follow an event-driven pattern. When project state changes (via PATCH /api/projects/:id), the project service should emit events via EventService to notify all WebSocket clients subscribed to that projectId. Reference: StateManager at lines 313-316 shows auto-commit pattern that triggers non-blocking state change notifications.
+    </eventDrivenArchitecture>
+    <authenticationPattern>
+      All endpoints use @fastify/jwt middleware registered in server.ts (line 58). Extract user info from request.user after JWT validation. For WebSocket, manually validate JWT during connection upgrade (check Authorization header before accepting connection). Reference: server.ts lines 58-60 for JWT setup.
+    </authenticationPattern>
+    <validationStrategy>
+      Use Zod schemas for request validation. ProjectSchema (api.schemas.ts) validates project objects. Create additional schemas for POST/PATCH request bodies (e.g., CreateProjectSchema requiring name and config, UpdateProjectSchema with optional fields). Use FastifyInstance's onRequest hook or route-level validation decorators.
+    </validationStrategy>
+    <testingApproach>
+      Pattern from backend/tests/api/server.test.ts: Use server.inject({method, url, payload}) for HTTP testing without starting the server. For WebSocket: Use ws library to create client connections, send subscription messages, listen for events, validate payloads. Mock StateManager in unit tests, use temporary file system in integration tests.
+    </testingApproach>
+  </development-notes>
+
+  <technical-decisions>
+    <decision id="ws-library">
+      Use `ws` library for WebSocket server (not Socket.io). Rationale: ws is lightweight, zero-dependency WebSocket implementation. Server.ts uses Fastify without Socket.io plugin, so native ws integration is simpler. Downside: No auto-reconnection on client (but acceptable - client handles reconnection).
+    </decision>
+    <decision id="event-bus">
+      Implement simple EventService with Map&lt;projectId, handlers[]&gt; instead of message queue. Rationale: Single-machine deployment (Phase 1), async event emission non-blocking. Can evolve to pub/sub (Redis) in future if distributed system needed.
+    </decision>
+    <decision id="jwt-auth-ws">
+      Validate JWT during WebSocket upgrade handshake, not per-message. Rationale: JWT already proven in REST API, upgrade handshake is the right time to authenticate. Once authenticated, connection is trusted (broadcast to client handles reconnection).
+    </decision>
+    <decision id="per-project-subscriptions">
+      WebSocket clients must explicitly subscribe to projectId (not auto-subscribe to "current" project). Rationale: Dashboard shows multiple projects; user should control which projects they monitor. Subscription message format: {action: "subscribe", projectId: "xxx"}
+    </decision>
+  </technical-decisions>
+
+</story-context>
