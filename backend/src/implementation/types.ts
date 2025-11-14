@@ -36,6 +36,9 @@ export interface AmeliaAgent extends Agent {
   /** Generate comprehensive tests for implemented code */
   writeTests(code: CodeImplementation): Promise<TestSuite>;
 
+  /** Fix failing tests based on test failure context */
+  fixTests(failureContext: TestFailureContext): Promise<TestSuite>;
+
   /** Perform self-review of implemented code */
   reviewCode(code: CodeImplementation): Promise<SelfReviewReport>;
 }
@@ -242,6 +245,21 @@ export interface TestFailure {
 }
 
 /**
+ * Test failure context for fixing tests
+ * Provides Amelia with complete context to fix failing tests
+ */
+export interface TestFailureContext {
+  /** Original code implementation being tested */
+  implementation: CodeImplementation;
+  /** Current test files that are failing */
+  testFiles: TestFile[];
+  /** Test execution results with failure details */
+  testResults: TestResults;
+  /** Test framework being used */
+  framework: string;
+}
+
+/**
  * Self Review Report - Result of Amelia's reviewCode()
  */
 export interface SelfReviewReport {
@@ -430,3 +448,52 @@ export interface ReviewFinding {
  * Generic review type for Alex's generateReport()
  */
 export type Review = SecurityReview | QualityAnalysis | TestValidation;
+
+/**
+ * Combined Review Result - Output of DualAgentCodeReviewer.performDualReview()
+ * Aggregates Amelia's self-review and Alex's independent review into final decision
+ */
+export interface CombinedReviewResult {
+  /** Amelia's self-review report */
+  ameliaReview: SelfReviewReport;
+  /** Alex's independent review report */
+  alexReview: IndependentReviewReport;
+  /** Combined quality score (0.0-1.0) */
+  combinedScore: number;
+  /** Combined confidence score (0.0-1.0) */
+  combinedConfidence: number;
+  /** Final decision */
+  decision: 'pass' | 'fail' | 'escalate';
+  /** Rationale for decision */
+  decisionRationale: string;
+  /** All findings from both reviews */
+  findings: ReviewFinding[];
+  /** Recommendations for improvement */
+  recommendations: string[];
+  /** Review execution metrics */
+  metrics: ReviewMetrics;
+}
+
+/**
+ * Review Metrics - Performance tracking for dual-agent review
+ */
+export interface ReviewMetrics {
+  /** Total review duration in milliseconds */
+  totalTime: number;
+  /** Amelia self-review duration in milliseconds */
+  ameliaTime: number;
+  /** Alex independent review duration in milliseconds */
+  alexTime: number;
+  /** Decision logic duration in milliseconds */
+  decisionTime: number;
+  /** Findings count by severity */
+  findingsCount: {
+    critical: number;
+    high: number;
+    medium: number;
+    low: number;
+    info: number;
+  };
+  /** Number of review iterations (fix cycles) */
+  reviewIterations: number;
+}
