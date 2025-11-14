@@ -4,7 +4,7 @@
 id: 5-8-integration-tests
 title: Integration Tests
 epic: epic-5
-status: drafted
+status: done
 priority: high
 estimate: 2
 dependencies:
