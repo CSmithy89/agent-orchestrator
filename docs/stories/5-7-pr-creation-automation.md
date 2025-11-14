@@ -4,7 +4,7 @@
 id: 5-7-pr-creation-automation
 title: PR Creation Automation
 epic: epic-5
-status: ready-for-dev
+status: done
 priority: high
 estimate: 2
 dependencies:
