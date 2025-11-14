@@ -15,7 +15,6 @@ import {
   mockWorktreeManagerE2E,
   mockPRAutomator,
   executeE2EWorkflow,
-  assertPerformanceMetrics,
 } from './fixtures/e2e-test-utilities';
 import { simpleFeatureStory } from './fixtures/story-fixtures';
 import { simpleStoryContext, simpleStoryImplementation, simpleStoryTests, simpleStorySelfReview, simpleStoryAlexReview } from './fixtures/e2e-llm-responses';

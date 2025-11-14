@@ -87,6 +87,13 @@ ${(context.acceptanceCriteria || []).map((ac: string) => `    ${ac}`).join('\n')
 }
 
 /**
+ * Escape regex metacharacters to prevent ReDoS attacks
+ */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Update story status in sprint-status.yaml
  */
 export async function updateStoryStatus(
@@ -95,11 +102,12 @@ export async function updateStoryStatus(
   status: string
 ): Promise<void> {
   let content = await fs.readFile(sprintStatusPath, 'utf-8');
+  const escapedStoryId = escapeRegExp(storyId);
 
   if (content.includes(`${storyId}:`)) {
     // Update existing
     content = content.replace(
-      new RegExp(`${storyId}:.*`),
+      new RegExp(`${escapedStoryId}:.*`),
       `${storyId}: ${status}`
     );
   } else {
@@ -118,7 +126,8 @@ export async function readStoryStatus(
   storyId: string
 ): Promise<string | null> {
   const content = await fs.readFile(sprintStatusPath, 'utf-8');
-  const match = content.match(new RegExp(`${storyId}:\\s*(\\S+)`));
+  const escapedStoryId = escapeRegExp(storyId);
+  const match = content.match(new RegExp(`${escapedStoryId}:\\s*(\\S+)`));
   return match ? match[1] : null;
 }
 
@@ -200,8 +209,8 @@ export function mockAlexAgentE2E(responses: {
   return {
     name: 'alex',
     role: 'Code Reviewer',
-    reviewSecurity: vi.fn().mockResolvedValue(responses.independentReview.security),
-    analyzeQuality: vi.fn().mockResolvedValue(responses.independentReview.quality),
+    reviewSecurity: vi.fn().mockResolvedValue(responses.independentReview.securityReview),
+    analyzeQuality: vi.fn().mockResolvedValue(responses.independentReview.qualityAnalysis),
     validateTests: vi.fn().mockResolvedValue(responses.independentReview.testValidation),
     generateReport: vi.fn().mockImplementation(() => {
       reviewCallCount++;
@@ -393,7 +402,8 @@ export async function executeE2EWorkflow(options: {
   // Step 7: Check if escalation needed
   const needsEscalation =
     alexReviewStep.result.confidence < 0.85 ||
-    alexReviewStep.result.criticalIssues.length > 0;
+    alexReviewStep.result.decision === 'escalate' ||
+    alexReviewStep.result.findings.some((f: any) => f.severity === 'critical');
 
   if (needsEscalation) {
     return {

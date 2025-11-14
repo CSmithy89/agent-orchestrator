@@ -8,6 +8,15 @@
 
     // Module Resolution
     "moduleResolution": "bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["./src/*"],
+      "@config/*": ["./src/config/*"],
+      "@core/*": ["./src/core/*"],
+      "@providers/*": ["./src/providers/*"],
+      "@types/*": ["./src/types/*"],
+      "@tests/*": ["./tests/*"]
+    },
     "resolveJsonModule": true,
     "allowImportingTsExtensions": false,
 

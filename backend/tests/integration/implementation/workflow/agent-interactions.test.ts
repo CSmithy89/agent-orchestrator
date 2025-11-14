@@ -9,7 +9,7 @@
  * - Error handling for LLM API failures
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import {
   mockAmeliaImplementation,
   mockAmeliaTests,
@@ -22,10 +22,6 @@ import {
 import { mockAmeliaAgent, mockAlexAgent, retryWithBackoff } from './fixtures/test-utilities';
 import type {
   StoryContext,
-  CodeImplementation,
-  TestSuite,
-  SelfReviewReport,
-  IndependentReviewReport,
 } from '@/implementation/types';
 
 describe('Agent Interactions (Story 5-8 AC2)', () => {
@@ -394,18 +390,19 @@ describe('Agent Interactions (Story 5-8 AC2)', () => {
         generateReport: mockAlexIndependentReview,
       });
 
-      // Act: Pass context to Amelia
+      // Act: Pass context to both agents
       await amelia.implementStory(mockStoryContext);
-
-      // Act: Alex also receives context (for architectural compliance checks)
-      // In real implementation, Alex would receive context too
-      const alexContext = mockStoryContext;
+      await alex.generateReport([
+        mockAlexSecurityReview,
+        mockAlexQualityAnalysis,
+        mockAlexTestValidation,
+      ]);
 
       // Assert: Context passed to both agents
       expect(amelia.implementStory).toHaveBeenCalledWith(mockStoryContext);
-      expect(alexContext).toBe(mockStoryContext);
-      expect(alexContext.story.id).toBe('99-1-sample-test-story');
-      expect(alexContext.totalTokens).toBeLessThan(50000);
+      expect(alex.generateReport).toHaveBeenCalled();
+      expect(mockStoryContext.story.id).toBe('99-1-sample-test-story');
+      expect(mockStoryContext.totalTokens).toBeLessThan(50000);
     });
 
     it('should validate context includes all required sections', async () => {

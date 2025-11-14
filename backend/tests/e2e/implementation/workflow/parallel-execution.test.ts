@@ -9,7 +9,6 @@ import {
   createStoryFile,
   createContextFile,
   updateStoryStatus,
-  readStoryStatus,
   mockStoryContextGenerator,
   mockAmeliaAgentE2E,
   mockAlexAgentE2E,
