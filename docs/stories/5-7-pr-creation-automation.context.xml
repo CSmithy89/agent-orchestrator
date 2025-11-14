@@ -1,0 +1,472 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>5</epicId>
+    <storyId>5-7</storyId>
+    <title>PR Creation Automation</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/5-7-pr-creation-automation.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>Story Implementation System</asA>
+    <iWant>a PRCreationAutomator that creates GitHub pull requests, monitors CI status, and auto-merges on success</iWant>
+    <soThat>stories are autonomously completed from implementation through merge with comprehensive PR documentation and automated quality gates</soThat>
+    <tasks>
+- Task 1: Create PRCreationAutomator Class (AC: #1, #17)
+- Task 2: Integrate @octokit/rest GitHub API (AC: #2)
+- Task 3: Implement Branch Push to Remote (AC: #3)
+- Task 4: Implement PR Creation (AC: #4, #5, #6)
+- Task 5: Implement PR Body Generation (AC: #4)
+- Task 6: Implement Label Application (AC: #5)
+- Task 7: Implement Reviewer Request (AC: #6)
+- Task 8: Implement PR Creation Error Handling (AC: #7)
+- Task 9: Implement CI Status Monitoring (AC: #8, #9)
+- Task 10: Implement Auto-Merge (AC: #10)
+- Task 11: Implement Remote Branch Deletion (AC: #11)
+- Task 12: Implement Worktree Cleanup (AC: #12)
+- Task 13: Implement Sprint-Status Update (AC: #13)
+- Task 14: Implement Dependent Story Triggering (AC: #14)
+- Task 15: Implement CI Failure Retry Logic (AC: #15)
+- Task 16: Implement Manual Review Mode (AC: #16)
+- Task 17: Implement WorkflowOrchestrator Integration (AC: #17)
+- Task 18: Write Unit Tests (AC: #18)
+- Task 19: Write Integration Tests (AC: #19)
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+AC1: PRCreationAutomator Class Implemented
+- PRCreationAutomator class with createPR(worktree, storyId, reviewReport) method
+- Epic 5 type definitions per tech spec (PRResult interface)
+- Dependency injection: GitHub API client, config, logger, file system utilities
+- Complete PR creation and monitoring pipeline
+- Error handling with clear messages
+- INFO level logging for major PR phases
+- Exports class for WorkflowOrchestrator
+
+AC2: @octokit/rest Integrated for GitHub API Access
+- @octokit/rest package installed and imported
+- Octokit client initialized with GitHub PAT from environment
+- Repository owner/name from project config
+- API authentication validated
+- Rate limit checking before operations
+- Retry logic with exponential backoff
+- Proper TypeScript types for API calls
+
+AC3: Worktree Branch Pushed to Remote
+- Identify worktree branch (story/XXX-title format)
+- Git remote configured and validated
+- Push branch: git push origin {branch-name}
+- Avoid force push (safety check)
+- Validate push success
+- Handle errors: auth, network, conflicts
+- Log push operation details
+
+AC4: PR Created with Comprehensive Description
+- PR title: "Story {story-id}: {story-title}"
+- PR body includes: story overview, acceptance criteria, implementation notes, test summary, review report, story file link, agent signature
+- Created via octokit.pulls.create()
+- Base branch: 'main' or configured default
+- Head branch: worktree branch
+- Draft PR option supported
+- PR URL captured and returned
+
+AC5: Labels Applied Based on Epic/Story Type
+- Epic label: "epic-{epic-num}"
+- Story type label: "story", "feature", "bug-fix", "enhancement"
+- Priority label: "priority-high/medium/low"
+- Agent label: "ai-generated"
+- Review label: "reviewed"
+- Create labels if missing
+- Apply via octokit.issues.addLabels()
+- Non-blocking error handling
+
+AC6: Configured Reviewers Requested (If Any)
+- Load reviewer config from project config
+- Request human reviewers: octokit.pulls.requestReviewers()
+- Request team reviewers
+- Handle errors gracefully
+- Skip if auto-merge enabled (optional)
+- Log reviewer request
+- CODEOWNERS file integration support
+
+AC7: PR Creation Errors Handled Gracefully with Escalation
+- Catch and log failures with context
+- Specific error handling: branch missing, PR exists, auth failure, network errors, rate limits, validation errors
+- Escalation creates issue/notification
+- Preserve worktree on failure
+- Save error details to file
+- Clear user guidance
+
+AC8: CI Status Monitored via GitHub Checks API
+- Poll GitHub Checks API: octokit.checks.listForRef()
+- 30 second polling interval
+- Track statuses: queued, in_progress, completed
+- Track conclusions: success, failure, neutral, cancelled, timed_out, action_required
+- Wait for all required checks
+- INFO level status updates
+- Log check names and results
+- Support multiple CI providers
+
+AC9: All Checks Waited for Completion (Max 30 Minutes Timeout)
+- Max wait: 30 minutes (1800 seconds)
+- Continue polling until complete or timeout
+- Track and log timeout counter
+- Timeout: log warning and escalate
+- Handle partial check completion
+- Log summary every 5 minutes
+- User notification if >15 minutes
+- Graceful shutdown on timeout
+
+AC10: Auto-Merge on CI Pass (If Enabled)
+- Load auto-merge config from project
+- If enabled AND all checks pass: merge via octokit.pulls.merge()
+- Squash merge (single commit per story)
+- Merge commit message from PR title + body summary
+- Validate merge success
+- Capture merge SHA
+- If disabled: log PR URL and exit
+- Detect and escalate merge conflicts
+- Validate branch protection rules
+
+AC11: Remote Branch Deleted After Merge
+- Delete remote branch: git push origin --delete {branch-name}
+- Validate deletion success
+- Non-blocking error logging
+- Preserve local worktree for cleanup by WorktreeManager
+- Skip if merge failed or auto-merge disabled
+- Configurable branch deletion
+- Never delete protected branches
+
+AC12: Worktree Cleaned Up After Merge
+- Trigger cleanup after successful merge
+- Invoke WorktreeManager.removeWorktree(worktreePath)
+- Validate cleanup success
+- Non-blocking error logging
+- Skip if merge failed (preserve for debugging)
+- Remove temporary files
+- Release git locks
+
+AC13: Sprint-Status.yaml Updated (Story Status: Done)
+- Load sprint-status.yaml file
+- Update story status: "review" → "done"
+- Add status update timestamp
+- Save with formatting preservation
+- Non-blocking error handling
+- Atomic file update (write to .tmp, rename)
+- Handle concurrent update conflicts
+- Validate: status change only on successful merge
+
+AC14: Dependent Stories Triggered If Ready
+- Identify dependent stories from sprint-status.yaml
+- Check if all prerequisites are "done"
+- Trigger dependent story workflow if ready
+- Log dependent story triggering
+- Non-blocking error logging
+- Support parallel dependent story execution
+- Dependency graph traversal
+- Detect circular dependencies
+
+AC15: CI Failure Handling with Retry (2 Attempts)
+- Detect CI failure: required check with conclusion "failure"
+- Retry logic: up to 2 additional CI runs
+- Re-run failed checks via GitHub API
+- 5 minute delay between retries
+- Log each retry attempt
+- If all retries fail: escalate with CI logs
+- Fetch and save CI logs: octokit.actions.downloadWorkflowRunLogs()
+- Escalation includes: PR URL, failed checks, CI logs, recommended actions
+
+AC16: Manual Review Mode Supported (No Auto-Merge)
+- Manual review mode if auto-merge config is false
+- Create PR with labels and reviewers
+- Skip CI monitoring (human will merge)
+- Log PR URL with instructions
+- Update sprint-status to "review"
+- Preserve worktree
+- Log manual mode explicitly
+- Support reviewer assignment
+- Support draft PR creation
+
+AC17: Integration with Story 5.3 Orchestrator
+- Invoked by WorkflowOrchestrator.createAndMergePR()
+- Input: Worktree, StoryId, ReviewReport
+- Output: PRResult object with URL, number, merge status
+- Error handling integrates with orchestrator retry logic
+- State updates communicated to orchestrator
+- No direct orchestrator dependencies (loose coupling)
+
+AC18: Unit Tests for PRCreationAutomator
+- Unit tests for PRCreationAutomator class
+- Mock GitHub API (@octokit/rest)
+- Test error handling for each step
+- Test label application
+- Test reviewer request
+- Test CI monitoring
+- Test auto-merge logic
+- Test manual review mode
+- >80% code coverage for PR automation module
+
+AC19: Integration Tests with Mock GitHub API
+- Integration tests for complete PR pipeline
+- Mock GitHub API responses
+- Test happy path: push → create → CI pass → merge → cleanup
+- Test error scenarios: failures, retries, conflicts
+- Test retry logic
+- Test timeout scenarios
+- Test manual review mode
+- All tests pass in <5 minutes
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification: Story Implementation Automation</title>
+        <section>PRCreationAutomator API</section>
+        <snippet>PRCreationAutomator orchestrates: branch push → PR creation → CI monitoring → auto-merge → cleanup. Integration point: WorkflowOrchestrator.createAndMergePR() calls PRCreationAutomator.createPR(). PRResult interface defines: url, number, title, body, baseBranch, headBranch, state, autoMergeEnabled.</snippet>
+      </doc>
+      <doc>
+        <path>docs/epics/epic-5-tech-spec.md</path>
+        <title>Epic 5 Technical Specification</title>
+        <section>Data Models and Contracts</section>
+        <snippet>PRResult interface (lines 176-200): Contains url, number, title, body, baseBranch, headBranch, state ('open'|'merged'|'closed'), autoMergeEnabled boolean. Used by Story 5.7 to return PR creation results to orchestrator.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Microkernel Architecture</section>
+        <snippet>Workflow plugins are self-contained: includes workflow.yaml, instructions.md, template.md. Story implementation workflows extend the microkernel pattern. Component interactions use dependency injection for loose coupling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/testing-guide.md</path>
+        <title>Testing Guide</title>
+        <section>Test Types and Structure</section>
+        <snippet>Unit tests: isolated with mocked dependencies, <10ms execution. Integration tests: real or near-real dependencies, 100ms-5s execution. Tests use Vitest framework. >80% code coverage required. Shared utilities in tests/utils/.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-6-dual-agent-code-review.md</path>
+        <title>Story 5.6: Dual-Agent Code Review</title>
+        <section>Dev Notes - Learnings from Previous Story</section>
+        <snippet>Story 5.6 successfully implemented DualAgentCodeReviewer with 100% test pass rate (25/25). Key patterns: modular design with separate executors, dependency injection, comprehensive error handling, structured logging at INFO level, TypeScript strict mode (no 'any' types). CombinedReviewResult interface provides review findings and decision.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/5-3-workflow-orchestration-state-management.md</path>
+        <title>Story 5.3: Workflow Orchestration &amp; State Management</title>
+        <section>Architecture Alignment</section>
+        <snippet>WorkflowOrchestrator coordinates complete story pipeline: context generation → worktree → implementation → tests → review → PR → CI monitoring → cleanup. Step 8 invokes PRCreationAutomator. Retry logic: 3 attempts with exponential backoff for transient failures.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/implementation/orchestration/workflow-types.ts</path>
+        <kind>interface</kind>
+        <symbol>PRResult</symbol>
+        <lines>176-200</lines>
+        <reason>Defines the PRResult interface that PRCreationAutomator must return. Contains url, number, title, body, baseBranch, headBranch, state, autoMergeEnabled fields required for PR creation.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/types.ts</path>
+        <kind>interface</kind>
+        <symbol>IndependentReviewReport, CombinedReviewResult</symbol>
+        <lines>318-475</lines>
+        <reason>Review report interfaces from Story 5.6 that provide input to PRCreationAutomator. IndependentReviewReport contains security review, quality analysis, test validation, and decision. CombinedReviewResult aggregates both agent reviews.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/core/WorktreeManager.ts</path>
+        <kind>class</kind>
+        <symbol>WorktreeManager</symbol>
+        <lines>1-100</lines>
+        <reason>WorktreeManager manages git worktrees for isolated story development. PRCreationAutomator needs to push worktree branches and cleanup worktrees after merge. Uses simple-git for git operations.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/review/DualAgentCodeReviewer.ts</path>
+        <kind>class</kind>
+        <symbol>DualAgentCodeReviewer</symbol>
+        <lines>all</lines>
+        <reason>Example of modular design pattern from Story 5.6. Shows proper dependency injection, error handling, logging patterns, and TypeScript best practices to follow for PRCreationAutomator implementation.</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/implementation/orchestration/WorkflowOrchestrator.ts</path>
+        <kind>class</kind>
+        <symbol>WorkflowOrchestrator</symbol>
+        <lines>all</lines>
+        <reason>WorkflowOrchestrator is the integration point that will invoke PRCreationAutomator.createPR(). Shows how workflow steps are coordinated and state is managed. PRCreationAutomator must integrate with this orchestrator.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package>@octokit/rest</package>
+        <version>^22.0.1</version>
+        <purpose>GitHub API client for PR creation, labeling, CI monitoring, and merge operations</purpose>
+      </node>
+      <node>
+        <package>simple-git</package>
+        <version>^3.20.0</version>
+        <purpose>Git operations for pushing branches and deleting remote branches</purpose>
+      </node>
+      <node>
+        <package>js-yaml</package>
+        <version>^4.1.0</version>
+        <purpose>YAML parsing for sprint-status.yaml updates and project configuration</purpose>
+      </node>
+      <node>
+        <package>vitest</package>
+        <version>^1.0.0</version>
+        <purpose>Test framework for unit and integration tests</purpose>
+      </node>
+      <node>
+        <package>typescript</package>
+        <version>^5.3.0</version>
+        <purpose>TypeScript compiler for strict type checking</purpose>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+1. **Architecture Pattern**: Follow microkernel architecture from Epic 1. PRCreationAutomator is a workflow plugin component that integrates with core kernel (WorkflowOrchestrator, WorktreeManager, StateManager).
+
+2. **Modular Design**: Use modular architecture with separate files for distinct concerns (PR body generation, CI monitoring, auto-merge, dependency triggering) as demonstrated in Story 5.6 DualAgentCodeReviewer.
+
+3. **Dependency Injection**: All external dependencies (GitHub API client, config, logger, file system utilities, WorktreeManager) must be injected via constructor. No direct instantiation of dependencies.
+
+4. **TypeScript Strict Mode**: Use strict TypeScript typing with no 'any' types. All GitHub API responses must use proper Octokit types.
+
+5. **Error Handling**: Comprehensive error handling with clear error messages. Specific handlers for: branch missing, PR exists, auth failures, network errors, rate limits, validation errors. Retry logic with exponential backoff for transient failures.
+
+6. **Logging**: Structured logging at INFO level for all major phases (push, create, monitor, merge, cleanup). Include context: branch name, PR URL, CI status, merge SHA.
+
+7. **Performance**: PR creation and merge pipeline must complete in <10 minutes for typical story (per tech spec). Log warnings if phases take >5 minutes (bottleneck detection).
+
+8. **GitHub API Integration**: Use @octokit/rest for all GitHub operations. Initialize with PAT from environment variable GITHUB_TOKEN. Load repository owner/name from .bmad/project-config.yaml. Implement rate limit checking.
+
+9. **CI Monitoring**: Poll GitHub Checks API every 30 seconds. Max wait: 30 minutes. Track statuses and conclusions. Support multiple CI providers (GitHub Actions, CircleCI, Travis CI, Jenkins).
+
+10. **Auto-Merge**: Squash merge method for clean history (single commit per story). Only merge if auto-merge enabled AND all CI checks pass. Handle merge conflicts with escalation.
+
+11. **Sprint Status Management**: Update sprint-status.yaml with atomic file operations (write to .tmp, rename on success). Handle concurrent update conflicts. Status change only on successful merge.
+
+12. **Testing Standards**: >80% code coverage required. Unit tests with mocked @octokit/rest. Integration tests with mock GitHub API responses. Follow testing-guide.md patterns.
+
+13. **File Locations**: Implementation at backend/src/implementation/pr/. Tests at backend/tests/unit/implementation/pr/ and backend/tests/integration/implementation/pr/.
+
+14. **Epic 1 Integration**: Use FileSystemUtils from Epic 1 for file operations. Use Logger from Epic 1 for structured logging. Use WorktreeManager from Epic 1 for worktree lifecycle.
+
+15. **Loose Coupling**: No direct dependencies on WorkflowOrchestrator. PRCreationAutomator is invoked by orchestrator but doesn't know about orchestrator internals.
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>PRCreationAutomator.createPR()</name>
+      <kind>method signature</kind>
+      <signature>async createPR(worktree: Worktree, storyId: string, reviewReport: IndependentReviewReport): Promise&lt;PRResult&gt;</signature>
+      <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+    </interface>
+    <interface>
+      <name>PRCreationAutomator.monitorAndAutoMerge()</name>
+      <kind>method signature</kind>
+      <signature>async monitorAndAutoMerge(pr: PRResult): Promise&lt;void&gt;</signature>
+      <path>backend/src/implementation/pr/PRCreationAutomator.ts</path>
+    </interface>
+    <interface>
+      <name>octokit.pulls.create()</name>
+      <kind>GitHub REST API endpoint</kind>
+      <signature>octokit.pulls.create({ owner, repo, title, body, head, base })</signature>
+      <path>@octokit/rest</path>
+    </interface>
+    <interface>
+      <name>octokit.checks.listForRef()</name>
+      <kind>GitHub REST API endpoint</kind>
+      <signature>octokit.checks.listForRef({ owner, repo, ref })</signature>
+      <path>@octokit/rest</path>
+    </interface>
+    <interface>
+      <name>octokit.pulls.merge()</name>
+      <kind>GitHub REST API endpoint</kind>
+      <signature>octokit.pulls.merge({ owner, repo, pull_number, merge_method: 'squash' })</signature>
+      <path>@octokit/rest</path>
+    </interface>
+    <interface>
+      <name>octokit.issues.addLabels()</name>
+      <kind>GitHub REST API endpoint</kind>
+      <signature>octokit.issues.addLabels({ owner, repo, issue_number, labels: string[] })</signature>
+      <path>@octokit/rest</path>
+    </interface>
+    <interface>
+      <name>octokit.pulls.requestReviewers()</name>
+      <kind>GitHub REST API endpoint</kind>
+      <signature>octokit.pulls.requestReviewers({ owner, repo, pull_number, reviewers: string[], team_reviewers: string[] })</signature>
+      <path>@octokit/rest</path>
+    </interface>
+    <interface>
+      <name>WorktreeManager.removeWorktree()</name>
+      <kind>method signature</kind>
+      <signature>async removeWorktree(worktreePath: string): Promise&lt;void&gt;</signature>
+      <path>backend/src/core/WorktreeManager.ts</path>
+    </interface>
+    <interface>
+      <name>PRResult</name>
+      <kind>interface</kind>
+      <signature>interface PRResult { url: string; number: number; title: string; body: string; baseBranch: string; headBranch: string; state: 'open' | 'merged' | 'closed'; autoMergeEnabled: boolean; }</signature>
+      <path>backend/src/implementation/orchestration/workflow-types.ts</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+All tests must follow testing-guide.md standards:
+- Unit tests: Isolated with mocked dependencies, <10ms execution, no external dependencies
+- Integration tests: Real or near-real dependencies, 100ms-5s execution, cleanup required
+- Test framework: Vitest with TypeScript support
+- Coverage requirement: >80% for all new code (lines, functions, branches, statements)
+- Shared utilities: Use tests/utils/ for common helpers (API keys, mock agents, git setup, fixtures)
+- Mock GitHub API: Use mocked @octokit/rest for unit tests, mock HTTP responses for integration tests
+- AAA pattern: Arrange, Act, Assert for all test cases
+- Error scenarios: Test all error paths (auth failures, network errors, rate limits, CI failures, merge conflicts)
+- Edge cases: Test timeout scenarios, retry logic, concurrent updates, circular dependencies
+    </standards>
+    <locations>
+- backend/tests/unit/implementation/pr/PRCreationAutomator.test.ts
+- backend/tests/unit/implementation/pr/pr-body-generator.test.ts
+- backend/tests/unit/implementation/pr/ci-monitor.test.ts
+- backend/tests/unit/implementation/pr/auto-merger.test.ts
+- backend/tests/integration/implementation/pr/pr-creation.test.ts
+    </locations>
+    <ideas>
+Unit Test Ideas:
+- Test PRCreationAutomator constructor with dependency injection
+- Test createPR() with mocked Octokit client (happy path)
+- Test PR body generation with various story types (feature, bug-fix, enhancement)
+- Test label application with existing/missing labels
+- Test reviewer request with configured reviewers (individual + teams)
+- Test CI monitoring with various check statuses (queued, in_progress, completed)
+- Test CI monitoring with various conclusions (success, failure, neutral, cancelled, timed_out)
+- Test auto-merge logic with CI pass scenario
+- Test auto-merge logic with CI fail scenario
+- Test retry logic for CI failures (up to 2 retries)
+- Test timeout scenarios (30 minute max wait)
+- Test manual review mode (no auto-merge)
+- Test error handling for each phase: push failure, PR already exists, auth failure, network error, rate limit, merge conflict
+- Test sprint-status.yaml update with atomic file operations
+- Test dependent story triggering when prerequisites complete
+- Test circular dependency detection
+
+Integration Test Ideas (mapped to Acceptance Criteria):
+- AC1-4,17: Test complete happy path: push → create PR → labels → reviewers → monitor CI → merge → cleanup
+- AC7: Test error scenario: branch doesn't exist remotely (retry push)
+- AC7: Test error scenario: PR already exists (update existing PR)
+- AC7: Test error scenario: authentication failure (escalate with clear message)
+- AC7: Test error scenario: network errors (retry with exponential backoff, max 3 attempts)
+- AC7: Test error scenario: rate limit exceeded (wait and retry)
+- AC15: Test CI failure with retry logic (2 additional CI runs, 5 minute delay between retries)
+- AC9: Test timeout scenario (CI takes >30 minutes, log warning and escalate)
+- AC16: Test manual review mode workflow (create PR, skip CI monitoring, preserve worktree)
+- AC13: Test sprint-status.yaml concurrent update conflicts (atomic update with retry)
+- AC14: Test dependent story triggering (identify ready dependent stories, trigger workflows)
+- AC14: Test circular dependency detection (error if circular dependencies found)
+- AC10: Test merge conflict scenario (detect and escalate, cannot auto-merge)
+    </ideas>
+  </tests>
+</story-context>
