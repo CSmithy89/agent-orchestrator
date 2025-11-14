@@ -1,7 +1,7 @@
 # Story 6.1: API Infrastructure & Type System
 
 **Epic:** 6 - Remote Access & Monitoring
-**Status:** in-progress
+**Status:** done
 **Assigned to:** Dev Agent
 **Story Points:** 5
 
