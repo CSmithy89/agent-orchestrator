@@ -86,7 +86,7 @@ export function EventTimeline({ events, maxHeight = '400px' }: EventTimelineProp
           const Icon = eventIcons[event.eventType] || Circle;
           const color = eventColors[event.eventType] || 'text-gray-500';
           const isExpanded = expandedEvents.has(event.id);
-          const hasDetails = event.data && Object.keys(event.data).length > 0;
+          const hasDetails = (event.data !== undefined && event.data !== null) && Object.keys(event.data).length > 0;
 
           return (
             <div key={event.id} className="relative flex gap-3 pb-4">

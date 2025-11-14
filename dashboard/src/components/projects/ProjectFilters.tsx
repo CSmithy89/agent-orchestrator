@@ -3,7 +3,6 @@ import { Input } from '../ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Button } from '../ui/button';
 import { Search, ArrowUpDown } from 'lucide-react';
-import type { Project } from '../../api/types';
 
 interface ProjectFiltersProps {
   onFilterChange: (filters: ProjectFilterState) => void;

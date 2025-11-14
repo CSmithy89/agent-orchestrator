@@ -6,7 +6,6 @@ import { ProjectsGrid } from '../components/projects/ProjectsGrid';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
 import { useProjects } from '../hooks/useProjects';
 import { useProjectWebSocket } from '../hooks/useProjectWebSocket';
-import type { Project } from '../api/types';
 
 export function ProjectsListPage() {
   const { data: projects, isLoading, error } = useProjects();

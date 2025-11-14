@@ -35,9 +35,9 @@ describe('useProjectWebSocket', () => {
   it('should connect to WebSocket with project ID', () => {
     vi.mocked(useWebSocket).mockReturnValue({
       events: [],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     renderHook(() => useProjectWebSocket('proj-1'), {
@@ -52,9 +52,9 @@ describe('useProjectWebSocket', () => {
   it('should connect to WebSocket without project ID filter', () => {
     vi.mocked(useWebSocket).mockReturnValue({
       events: [],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     renderHook(() => useProjectWebSocket(), {
@@ -84,9 +84,9 @@ describe('useProjectWebSocket', () => {
 
     vi.mocked(useWebSocket).mockReturnValue({
       events: [],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     rerender();
@@ -94,9 +94,9 @@ describe('useProjectWebSocket', () => {
     // Second render with event
     vi.mocked(useWebSocket).mockReturnValue({
       events: [mockEvent],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     rerender();
@@ -115,9 +115,9 @@ describe('useProjectWebSocket', () => {
 
     vi.mocked(useWebSocket).mockReturnValue({
       events: [mockEvent],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     renderHook(() => useProjectWebSocket('proj-1'), {
@@ -130,17 +130,17 @@ describe('useProjectWebSocket', () => {
   it('should return connection status', () => {
     vi.mocked(useWebSocket).mockReturnValue({
       events: [],
-      connected: false,
-      error: new Error('Connection failed'),
-      send: vi.fn(),
+      connectionStatus: 'disconnected' as const, isConnected: false,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+
     });
 
     const { result } = renderHook(() => useProjectWebSocket('proj-1'), {
       wrapper: createWrapper(),
     });
 
-    expect(result.current.connected).toBe(false);
-    expect(result.current.error).toBeDefined();
+    expect(result.current.isConnected).toBe(false);
+    expect(result.current.connectionStatus).toBe('disconnected');
     expect(result.current.events).toEqual([]);
   });
 
@@ -154,9 +154,9 @@ describe('useProjectWebSocket', () => {
 
     vi.mocked(useWebSocket).mockReturnValue({
       events: [mockEvent],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     renderHook(() => useProjectWebSocket('proj-1'), {
@@ -176,9 +176,9 @@ describe('useProjectWebSocket', () => {
 
     vi.mocked(useWebSocket).mockReturnValue({
       events: [mockEvent],
-      connected: true,
-      error: null,
-      send: vi.fn(),
+      connectionStatus: 'connected' as const, isConnected: true,
+      subscribe: vi.fn(), unsubscribe: vi.fn(), clearEvents: vi.fn(), connect: vi.fn(), disconnect: vi.fn(),
+      
     });
 
     renderHook(() => useProjectWebSocket('proj-1'), {

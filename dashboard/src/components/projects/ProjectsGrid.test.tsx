@@ -41,7 +41,6 @@ describe('ProjectsGrid', () => {
   it('should show loading skeletons when loading', () => {
     render(<ProjectsGrid projects={[]} loading />);
 
-    const skeletons = document.querySelectorAll('[data-testid="skeleton"]');
     // Note: Skeleton component should have data-testid="skeleton" or we check by className
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });

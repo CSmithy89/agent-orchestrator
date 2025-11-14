@@ -1,7 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useWebSocket } from './useWebSocket';
-import type { WebSocketEvent } from '../api/types';
 
 /**
  * Hook for project-specific WebSocket updates
@@ -15,7 +14,7 @@ export function useProjectWebSocket(projectId?: string) {
     ? `${import.meta.env.VITE_WS_URL || 'ws://localhost:3001'}/ws/status-updates?projectId=${projectId}`
     : `${import.meta.env.VITE_WS_URL || 'ws://localhost:3001'}/ws/status-updates`;
 
-  const { events, connected, error } = useWebSocket<WebSocketEvent>(wsUrl);
+  const { events, connectionStatus, isConnected } = useWebSocket(wsUrl);
 
   useEffect(() => {
     if (events.length === 0) return;
@@ -74,7 +73,7 @@ export function useProjectWebSocket(projectId?: string) {
 
   return {
     events,
-    connected,
-    error,
+    connectionStatus,
+    isConnected,
   };
 }

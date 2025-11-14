@@ -49,7 +49,7 @@ export function useUpdateStoryStatus(projectId: string) {
       return { previousStories };
     },
 
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // If mutation fails, use the context returned from onMutate to roll back
       if (context?.previousStories) {
         queryClient.setQueryData(['project-stories', projectId], context.previousStories);

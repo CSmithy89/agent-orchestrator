@@ -40,6 +40,7 @@ describe('ProjectsListPage', () => {
       data: mockProjects,
       isLoading: false,
       error: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
@@ -54,6 +55,7 @@ describe('ProjectsListPage', () => {
       data: mockProjects,
       isLoading: false,
       error: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
@@ -69,6 +71,7 @@ describe('ProjectsListPage', () => {
       data: undefined,
       isLoading: true,
       error: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
@@ -81,6 +84,7 @@ describe('ProjectsListPage', () => {
       data: undefined,
       isLoading: false,
       error: new Error('Failed to fetch projects'),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
@@ -95,6 +99,7 @@ describe('ProjectsListPage', () => {
       data: mockProjects,
       isLoading: false,
       error: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
@@ -113,6 +118,7 @@ describe('ProjectsListPage', () => {
       data: mockProjects,
       isLoading: false,
       error: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
@@ -135,6 +141,7 @@ describe('ProjectsListPage', () => {
       data: mockProjects,
       isLoading: false,
       error: null,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
     render(<ProjectsListPage />);
