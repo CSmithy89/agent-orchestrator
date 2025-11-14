@@ -12,12 +12,21 @@ import swagger from '@fastify/swagger';
 import swaggerUI from '@fastify/swagger-ui';
 import { v4 as uuidv4 } from 'uuid';
 import { healthCheckHandler } from './health.js';
+import { registerProjectRoutes } from './routes/projects.js';
+import { WebSocketHandler } from './routes/websocket.js';
 
 export interface ServerConfig {
   port?: number;
   host?: string;
   jwtSecret?: string;
   corsOrigins?: string[];
+}
+
+// Store WebSocket handler globally for access
+let wsHandler: WebSocketHandler | null = null;
+
+export function getWebSocketHandler(): WebSocketHandler | null {
+  return wsHandler;
 }
 
 export async function createServer(config: ServerConfig = {}): Promise<FastifyInstance> {
@@ -123,6 +132,9 @@ export async function createServer(config: ServerConfig = {}): Promise<FastifyIn
     timestamp: new Date().toISOString()
   }));
 
+  // Register project routes
+  await registerProjectRoutes(server);
+
   // Graceful shutdown
   const signals = ['SIGINT', 'SIGTERM'];
   signals.forEach(signal => {
@@ -140,10 +152,17 @@ export async function startServer(config?: ServerConfig): Promise<FastifyInstanc
   const server = await createServer(config);
   const port = config?.port || Number(process.env.API_PORT) || 3000;
   const host = config?.host || process.env.API_HOST || '0.0.0.0';
+  const jwtSecret = config?.jwtSecret || process.env.JWT_SECRET || 'development-secret-change-in-production';
 
   await server.listen({ port, host });
   console.log(`Server listening on ${host}:${port}`);
   console.log(`API Documentation available at http://${host}:${port}/docs`);
+
+  // Initialize WebSocket server
+  wsHandler = new WebSocketHandler(server.server, {
+    jwtSecret,
+    pingInterval: 30000
+  });
 
   return server;
 }
