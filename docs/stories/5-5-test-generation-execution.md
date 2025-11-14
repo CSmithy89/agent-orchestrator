@@ -614,6 +614,66 @@ All files created follow TypeScript strict mode, use ES modules, and include com
 
 ---
 
+## Retry Attempt 1 - Changes Made
+
+**Date:** 2025-11-14
+**Developer:** AI Agent (Claude Sonnet 4.5)
+
+### Changes to Address Review Feedback
+
+#### Issue 1: AC9 - Automatic Test Fixing Incomplete (MEDIUM Severity)
+**Location:** `backend/src/implementation/testing/TestGenerationExecutor.ts:823-890`
+**Status:** ✅ FIXED
+
+**Changes Made:**
+1. Added `fixTests(failureContext: TestFailureContext): Promise<TestSuite>` method to AmeliaAgent interface in `backend/src/implementation/types.ts`
+2. Added `TestFailureContext` interface to provide structured failure context to Amelia agent
+3. Replaced TODO placeholder in `fixFailingTests()` method with actual Amelia agent invocation:
+   - Builds structured `TestFailureContext` with implementation, test files, test results, and framework
+   - Invokes `ameliaAgent.fixTests(failureContext)` to get fixed test suite
+   - Applies fixed test files to worktree
+   - Re-executes tests after applying fixes
+   - Tracks current test files across retry attempts
+   - Provides detailed logging of fix attempts and results
+4. Updated method signature to accept `implementation` and `framework` parameters
+5. Removed unused `buildFailureContext()` helper method (replaced by structured interface)
+
+**Evidence of Fix:**
+- Lines 846-851: Structured TestFailureContext built with all necessary context
+- Line 854: Actual Amelia agent invocation via `ameliaAgent.fixTests(failureContext)`
+- Lines 856-863: Fixed tests applied to worktree and re-executed
+- Lines 868-879: Comprehensive success/failure logging
+
+#### Issue 2: AC8 - Coverage Calculation Scope (MEDIUM Severity)
+**Location:** `backend/src/implementation/testing/TestGenerationExecutor.ts:578-666`
+**Status:** ✅ IMPROVED
+
+**Analysis:**
+The main coverage path (JSON-based) was already correctly filtering to new code only via `filterCoverageToNewCode()` method (lines 669-754). The issue was in the fallback path when coverage JSON is unavailable.
+
+**Changes Made:**
+1. Updated fallback path (line 611-618) to log explicit warning about inability to filter from text output
+2. Updated `parseCoverageFromOutput()` method (lines 634-666) to:
+   - Accept `implementationFiles` parameter for consistency
+   - Add comprehensive documentation explaining the limitation
+   - Log clear warning that text output cannot be filtered to new code only
+   - Indicate coverage reflects entire codebase when JSON is unavailable
+3. Added guidance to ensure coverage tool generates JSON output for accurate metrics
+
+**Why Text Output Cannot Be Filtered:**
+Coverage text output (e.g., "Lines: 85%") provides only aggregate percentages for the entire codebase without file-level detail. Filtering requires file-by-file coverage data, which is only available in JSON format (coverage-summary.json).
+
+**Evidence of Improvement:**
+- Lines 613-617: Clear warning logged when falling back to text parsing
+- Lines 647-651: Additional warning with implementation file count
+- Lines 637-640: Documentation explaining the limitation
+- Primary path (lines 593-610) still correctly filters via `filterCoverageToNewCode()`
+
+**Recommendation:**
+Projects using this system should ensure their coverage tool is configured to generate JSON output (e.g., Vitest with `@vitest/coverage-v8`, Jest with `--coverage`, etc.) to get accurate new-code-only coverage metrics per AC8 specification.
+
+---
+
 ## Senior Developer Review (AI)
 
 **Reviewer:** Chris

@@ -15,7 +15,7 @@
  * Output: TestSuite with test files, results, and coverage report
  */
 
-import { AmeliaAgent, CodeImplementation, StoryContext, TestSuite, TestFile, CoverageReport, TestResults, TestFailure } from '../types.js';
+import { AmeliaAgent, CodeImplementation, StoryContext, TestSuite, TestFile, CoverageReport, TestResults, TestFailure, TestFailureContext } from '../types.js';
 import { Logger } from '../../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
@@ -194,7 +194,13 @@ export class TestGenerationExecutor {
           failedCount: testResults.failed,
         });
         const fixStart = Date.now();
-        testResults = await this.fixFailingTests(testResults, testSuite.files, frameworkConfig);
+        testResults = await this.fixFailingTests(
+          testResults,
+          testSuite.files,
+          frameworkConfig,
+          implementation,
+          testSuite.framework
+        );
         metrics.fixingDuration = Date.now() - fixStart;
 
         if (metrics.fixingDuration > 10 * 60 * 1000) {
@@ -604,8 +610,12 @@ export class TestGenerationExecutor {
         };
       } catch {
         // Fall back to parsing from output
-        this.logger.warn('Could not read coverage JSON, falling back to output parsing');
-        return this.parseCoverageFromOutput(output);
+        this.logger.warn(
+          'Could not read coverage JSON, falling back to output parsing. ' +
+          'Note: Fallback coverage is for entire codebase, not filtered to new code only. ' +
+          'Ensure coverage tool generates JSON output for accurate new-code-only metrics.'
+        );
+        return this.parseCoverageFromOutput(output, implementationFiles);
       }
     } catch (error) {
       this.logger.error('Failed to parse coverage report', error as Error);
@@ -623,8 +633,23 @@ export class TestGenerationExecutor {
 
   /**
    * Parse coverage from test runner output
+   *
+   * IMPORTANT: This fallback method parses text output which typically only provides
+   * overall coverage percentages for the entire codebase. It cannot filter to new code only
+   * because text output lacks file-level detail. For accurate new-code-only coverage,
+   * ensure the coverage tool generates JSON output (coverage-summary.json).
+   *
+   * @param output - Coverage output text
+   * @param implementationFiles - Implementation files (unused in text parsing, kept for consistency)
+   * @returns Coverage report (WARNING: not filtered to new code only)
    */
-  private parseCoverageFromOutput(output: string): CoverageReport {
+  private parseCoverageFromOutput(output: string, implementationFiles: string[]): CoverageReport {
+    // Log warning about inability to filter from text output
+    this.logger.warn(
+      'Parsing coverage from text output - cannot filter to new code only. ' +
+      `Coverage percentages reflect entire codebase, not just ${implementationFiles.length} implementation files.`
+    );
+
     // Try to extract coverage percentages from output
     const linesMatch = output.match(/(?:Lines|Line)\s*:\s*(\d+(?:\.\d+)?)/i);
     const functionsMatch = output.match(/(?:Functions|Function)\s*:\s*(\d+(?:\.\d+)?)/i);
@@ -810,15 +835,20 @@ export class TestGenerationExecutor {
    * @param testResults - Current test results with failures
    * @param testFiles - Test files that may need fixing
    * @param config - Test framework configuration
+   * @param implementation - Original code implementation
+   * @param framework - Test framework name
    * @returns Updated test results after fixes
    */
   private async fixFailingTests(
     testResults: TestResults,
     testFiles: TestFile[],
-    config: TestFrameworkConfig
+    config: TestFrameworkConfig,
+    implementation: CodeImplementation,
+    framework: string
   ): Promise<TestResults> {
     const maxAttempts = 3;
     let currentResults = testResults;
+    let currentTestFiles = testFiles;
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       this.logger.info(`Fix attempt ${attempt}/${maxAttempts}`, {
@@ -832,15 +862,24 @@ export class TestGenerationExecutor {
         });
 
         // Prepare failure context for Amelia
-        const failureContext = this.buildFailureContext(currentResults, testFiles);
+        const failureContext: TestFailureContext = {
+          implementation,
+          testFiles: currentTestFiles,
+          testResults: currentResults,
+          framework,
+        };
 
-        // Note: Since AmeliaAgent doesn't have an explicit fixTests method,
-        // we would invoke the agent with the failure context to regenerate fixed tests.
-        // For production, this would call: ameliaAgent.fixTests(failureContext)
-        // For now, we'll log the attempt and continue with retry logic
-        this.logger.warn('Amelia test fixing invocation prepared', {
-          failureContext: failureContext.substring(0, 200) + '...',
+        // Invoke Amelia agent to fix failing tests
+        const fixedTestSuite = await this.ameliaAgent.fixTests(failureContext);
+
+        this.logger.info('Amelia agent fixed tests', {
+          fixedTestCount: fixedTestSuite.testCount,
+          fixedFilesCount: fixedTestSuite.files.length,
         });
+
+        // Apply fixed test files to worktree
+        await this.createTestFiles(fixedTestSuite.files, config);
+        currentTestFiles = fixedTestSuite.files;
 
         // Re-execute tests after fixes
         currentResults = await this.executeTests(config);
@@ -851,12 +890,17 @@ export class TestGenerationExecutor {
             passed: currentResults.passed,
           });
           break;
+        } else {
+          this.logger.warn('Some tests still failing after fix attempt', {
+            attempt,
+            failed: currentResults.failed,
+          });
         }
       } catch (error) {
         this.logger.error(`Fix attempt ${attempt} failed`, error as Error);
 
         if (attempt === maxAttempts) {
-          throw new Error(`Failed to fix tests after ${maxAttempts} attempts`);
+          throw new Error(`Failed to fix tests after ${maxAttempts} attempts: ${(error as Error).message}`);
         }
       }
     }
@@ -919,36 +963,6 @@ Framework: ${testSuite.framework}`;
       this.logger.error('Failed to commit test suite', error as Error);
       throw new Error(`Test suite commit failed: ${(error as Error).message}`);
     }
-  }
-
-  /**
-   * Build failure context for Amelia agent to fix tests
-   *
-   * @param testResults - Test results with failures
-   * @param testFiles - Test files
-   * @returns Failure context string
-   */
-  private buildFailureContext(testResults: TestResults, testFiles: TestFile[]): string {
-    const failures = testResults.failures || [];
-
-    let context = `Test Failures Summary:\n`;
-    context += `Total Failed: ${testResults.failed}\n`;
-    context += `Total Passed: ${testResults.passed}\n\n`;
-
-    context += `Failed Tests:\n`;
-    for (const failure of failures) {
-      context += `\nTest: ${failure.test}\n`;
-      context += `Error: ${failure.error}\n`;
-      context += `---\n`;
-    }
-
-    context += `\nTest Files:\n`;
-    for (const testFile of testFiles) {
-      context += `\nFile: ${testFile.path}\n`;
-      context += `Content Preview: ${testFile.content.substring(0, 500)}...\n`;
-    }
-
-    return context;
   }
 
   /**
