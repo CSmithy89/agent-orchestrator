@@ -5,7 +5,7 @@
  * Uses nock to mock all GitHub API endpoints
  */
 
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, afterEach } from 'vitest';
 import { setupGitHubMocks, cleanupGitHubMocks } from './fixtures/github-api-mocks';
 
 describe('PR Automation (Story 5-8 AC4 & AC8)', () => {
@@ -183,7 +183,7 @@ describe('PR Automation (Story 5-8 AC4 & AC8)', () => {
   describe('Dependent Story Triggering', () => {
     it('should identify ready stories after current story completes', async () => {
       // Arrange
-      const currentStory = '99-1-sample-test-story';
+      const _currentStory = '99-1-sample-test-story';
       const allStories = [
         { id: '99-1-sample-test-story', status: 'done', dependencies: [] },
         { id: '99-2-dependent-story', status: 'drafted', dependencies: ['99-1-sample-test-story'] },

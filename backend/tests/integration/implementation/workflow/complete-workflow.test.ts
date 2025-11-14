@@ -11,7 +11,7 @@
  * - Execution time <5 minutes
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import {
@@ -220,10 +220,10 @@ describe('Complete Workflow Execution (Story 5-8 AC1)', () => {
     const tests = mockAmeliaTests;
     tests.files.forEach(file => artifacts.push(file.path));
 
-    const prDescription = 'PR body with story context and review summary';
+    // PR description created
     artifacts.push('pr-description');
 
-    const sprintStatusUpdate = 'sprint-status.yaml updated to done';
+    // Sprint status updated
     artifacts.push('sprint-status-update');
 
     // Assert: All artifacts created

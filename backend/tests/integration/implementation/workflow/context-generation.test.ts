@@ -280,7 +280,7 @@ export abstract class BaseFeature {
 
   it('should load existing code from affectedFiles (<15k tokens)', async () => {
     // Arrange: Affected files from story technical notes
-    const affectedFiles = [
+    const _affectedFiles = [
       'src/features/test-feature.ts',
       'tests/unit/features/test-feature.test.ts',
     ];
@@ -387,7 +387,7 @@ Prerequisite feature implemented.
 
   it('should generate valid Story Context XML with all required sections', async () => {
     // Arrange: Load all context components
-    const storyContent = await fs.readFile(storyFile, 'utf-8');
+    const _storyContent = await fs.readFile(storyFile, 'utf-8');
     const prdContent = await fs.readFile(prdFile, 'utf-8');
     const architectureContent = await fs.readFile(architectureFile, 'utf-8');
 

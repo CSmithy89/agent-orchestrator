@@ -87,7 +87,7 @@ describe('State Management (Story 5-8 AC6)', () => {
 
       // Assert: Files are isolated
       const contents = await Promise.all(
-        worktreePaths.map(async (wPath, i) => {
+        worktreePaths.map(async (wPath) => {
           return await fs.readFile(path.join(wPath, 'file.ts'), 'utf-8');
         })
       );

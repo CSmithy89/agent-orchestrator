@@ -16,7 +16,6 @@ import {
   mockAmeliaTestFix,
   mockAmeliaTests,
   mockAlexReviewWithCriticalIssues,
-  mockAlexReviewLowConfidence,
 } from './fixtures/llm-mock-responses';
 import { retryWithBackoff } from './fixtures/test-utilities';
 
