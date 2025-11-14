@@ -288,7 +288,7 @@ export class OrchestratorService {
    * @param workflowPath Workflow file path
    * @returns Progress percentage (0-100)
    */
-  private calculateProgress(currentStep: number, workflowPath: string): number {
+  private calculateProgress(currentStep: number, _workflowPath: string): number {
     // Simple progress calculation based on step number
     // In a real implementation, this would parse the workflow to get total steps
     // For now, estimate based on typical workflow size

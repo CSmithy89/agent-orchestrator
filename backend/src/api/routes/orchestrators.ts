@@ -7,9 +7,7 @@ import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 import { z } from 'zod';
 import { orchestratorService } from '../services/orchestrator.service.js';
 import {
-  ProjectOrchestratorStatusSchema,
-  StartWorkflowRequestSchema,
-  WorkflowControlResponseSchema
+  StartWorkflowRequestSchema
 } from '../types/orchestrator.types.js';
 import { APIResponse, APIError } from '../types/api.types.js';
 

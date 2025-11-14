@@ -3,7 +3,7 @@
  * Wraps EscalationQueue with REST API functionality and WebSocket events
  */
 
-import { EscalationQueue, Escalation } from '../../core/services/escalation-queue.js';
+import { EscalationQueue } from '../../core/services/escalation-queue.js';
 import { eventService } from './event.service.js';
 import {
   EscalationDetail,
@@ -171,7 +171,7 @@ export class EscalationService {
    * @returns Project identifier (currently a placeholder UUID)
    * @todo Implement workflow-to-project mapping infrastructure (Epic backlog item)
    */
-  private extractProjectIdFromWorkflow(workflowId: string): string {
+  private extractProjectIdFromWorkflow(_workflowId: string): string {
     // TODO: Implement actual workflow-to-project mapping
     // Placeholder UUID returned until mapping infrastructure is built
     return '00000000-0000-0000-0000-000000000000';

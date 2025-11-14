@@ -3,7 +3,7 @@
  * Integration tests for orchestrator control endpoints
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { createServer } from '../../src/api/server.js';
 import { orchestratorService } from '../../src/api/services/orchestrator.service.js';

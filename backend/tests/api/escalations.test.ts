@@ -7,7 +7,6 @@ import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import { FastifyInstance } from 'fastify';
 import { createServer } from '../../src/api/server.js';
-import { escalationService } from '../../src/api/services/escalation.service.js';
 import { eventService } from '../../src/api/services/event.service.js';
 
 describe('Escalation Routes', () => {
