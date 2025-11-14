@@ -16,7 +16,10 @@ jobs:
   setup:
     name: Setup Dependencies
     runs-on: ubuntu-latest
-    timeout-minutes: 3
+    timeout-minutes: 5
+    strategy:
+      matrix:
+        workspace: [backend, dashboard]
 
     steps:
       - name: Checkout code
@@ -27,20 +30,20 @@ jobs:
         with:
           node-version: '20.x'
           cache: 'npm'
-          cache-dependency-path: package-lock.json
+          cache-dependency-path: '${{ matrix.workspace }}/package-lock.json'
 
-      - name: Cache node_modules
+      - name: Cache ${{ matrix.workspace }} node_modules
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          path: ${{ matrix.workspace }}/node_modules
+          key: ${{ matrix.workspace }}-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', matrix.workspace)) }}
           restore-keys: |
-            node-modules-${{ runner.os }}-
+            ${{ matrix.workspace }}-node-modules-${{ runner.os }}-
 
-      - name: Install dependencies
+      - name: Install ${{ matrix.workspace }} dependencies
         if: steps.cache-node-modules.outputs.cache-hit != 'true'
-        run: cd backend && npm ci
+        run: cd ${{ matrix.workspace }} && npm ci
 
   # Tests disabled in CI due to memory constraints (695 tests require >4GB heap)
   # Run tests locally with: cd backend && npm test
@@ -51,6 +54,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: setup
     timeout-minutes: 5
+    strategy:
+      matrix:
+        workspace: [backend, dashboard]
 
     steps:
       - name: Checkout code
@@ -61,20 +67,23 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Restore node_modules cache
+      - name: Restore ${{ matrix.workspace }} node_modules cache
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          path: ${{ matrix.workspace }}/node_modules
+          key: ${{ matrix.workspace }}-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', matrix.workspace)) }}
 
-      - name: Run ESLint
-        run: cd backend && npm run lint
+      - name: Run ${{ matrix.workspace }} ESLint
+        run: cd ${{ matrix.workspace }} && npm run lint
 
   type-check:
     name: Type Check
     runs-on: ubuntu-latest
     needs: setup
     timeout-minutes: 5
+    strategy:
+      matrix:
+        workspace: [backend, dashboard]
 
     steps:
       - name: Checkout code
@@ -85,20 +94,23 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Restore node_modules cache
+      - name: Restore ${{ matrix.workspace }} node_modules cache
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          path: ${{ matrix.workspace }}/node_modules
+          key: ${{ matrix.workspace }}-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', matrix.workspace)) }}
 
-      - name: Run TypeScript type check
-        run: cd backend && npm run type-check
+      - name: Run ${{ matrix.workspace }} TypeScript type check
+        run: cd ${{ matrix.workspace }} && npx tsc --noEmit
 
   build:
     name: Build Verification
     runs-on: ubuntu-latest
     needs: [lint, type-check]
     timeout-minutes: 5
+    strategy:
+      matrix:
+        workspace: [backend, dashboard]
 
     steps:
       - name: Checkout code
@@ -109,25 +121,19 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Restore node_modules cache
+      - name: Restore ${{ matrix.workspace }} node_modules cache
         uses: actions/cache@v4
         with:
-          path: node_modules
-          key: node-modules-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          path: ${{ matrix.workspace }}/node_modules
+          key: ${{ matrix.workspace }}-node-modules-${{ runner.os }}-${{ hashFiles(format('{0}/package-lock.json', matrix.workspace)) }}
 
-      - name: Build backend
-        run: cd backend && npm run build
+      - name: Build ${{ matrix.workspace }}
+        run: cd ${{ matrix.workspace }} && npm run build
 
-      - name: Verify dist output
+      - name: Verify ${{ matrix.workspace }} dist output
         run: |
-          if [ ! -d "backend/dist" ]; then
-            echo "Error: backend/dist directory not created"
+          if [ ! -d "${{ matrix.workspace }}/dist" ]; then
+            echo "Error: ${{ matrix.workspace }}/dist directory not created"
             exit 1
           fi
-          echo "✓ Backend build successful - dist/ directory created"
-
-      # Frontend build placeholder - will be activated in Epic 6
-      - name: Frontend build status
-        run: |
-          echo "Note: Frontend build will be activated in Epic 6"
-          echo "Current focus: Backend build verification only"
+          echo "✓ ${{ matrix.workspace }} build successful - dist/ directory created"
