@@ -87,7 +87,7 @@ export class TestGenerationExecutor {
   constructor(ameliaAgent: AmeliaAgent, projectRoot: string, logger?: Logger) {
     this.ameliaAgent = ameliaAgent;
     this.projectRoot = projectRoot;
-    this.logger = logger || new Logger({ name: 'TestGenerationExecutor' });
+    this.logger = logger || new Logger();
   }
 
   /**

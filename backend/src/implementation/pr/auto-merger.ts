@@ -7,6 +7,7 @@
  */
 
 import { Octokit } from '@octokit/rest';
+import { SimpleGit } from 'simple-git';
 
 /**
  * Merge Result
