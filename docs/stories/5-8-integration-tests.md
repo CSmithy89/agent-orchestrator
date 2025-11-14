@@ -545,7 +545,7 @@ Story 5.7 successfully implemented complete PR creation automation with exceptio
 
 ### Context Reference
 
-<!-- Path(s) to story context XML will be added here by context workflow -->
+- docs/stories/5-8-integration-tests.context.xml
 
 ### Agent Model Used
 
