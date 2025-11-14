@@ -209,5 +209,5 @@ function groupFindingsBySeverity(findings: Array<{ severity: string; title: stri
  * Get relative path from project root
  */
 function getRelativePath(projectRoot: string, filePath: string): string {
-  return path.relative(projectRoot, filePath);
+  return path.relative(projectRoot, filePath).replace(/\\/g, '/');
 }

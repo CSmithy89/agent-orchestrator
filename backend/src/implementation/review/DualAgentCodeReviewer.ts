@@ -79,8 +79,14 @@ export class DualAgentCodeReviewer {
   ) {
     this.ameliaAgent = ameliaAgent;
     this.alexAgent = alexAgent;
-    this.confidenceThreshold = options?.confidenceThreshold ??
-      parseFloat(process.env.REVIEW_CONFIDENCE_THRESHOLD ?? '0.85');
+    if (options?.confidenceThreshold !== undefined) {
+      this.confidenceThreshold = options.confidenceThreshold;
+    } else {
+      const raw = process.env.REVIEW_CONFIDENCE_THRESHOLD;
+      const parsed = raw !== undefined ? Number(raw) : 0.85;
+      this.confidenceThreshold =
+        Number.isFinite(parsed) && parsed > 0 && parsed <= 1 ? parsed : 0.85;
+    }
   }
 
   /**
@@ -161,7 +167,7 @@ export class DualAgentCodeReviewer {
       const recommendations = this.aggregateRecommendations(ameliaReview, alexReview);
 
       metrics.endTotal();
-      metrics.trackFindings(findings);
+      // Findings are currently only used for severity counts in getMetrics
 
       const result: CombinedReviewResult = {
         ameliaReview,
@@ -172,7 +178,7 @@ export class DualAgentCodeReviewer {
         decisionRationale: decision.rationale,
         findings,
         recommendations,
-        metrics: metrics.getMetrics()
+        metrics: metrics.getMetrics(findings)
       };
 
       this.logMetrics(result.metrics);

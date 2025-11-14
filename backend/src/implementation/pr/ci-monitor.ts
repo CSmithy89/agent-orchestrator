@@ -102,23 +102,9 @@ export async function monitorCIStatus(
   logger(`[CI Monitor] Starting CI monitoring for ${owner}/${repo}@${ref}`);
   logger(`[CI Monitor] Polling interval: ${pollingInterval / 1000}s, Max wait: ${maxWaitTime / 1000}s`);
 
-  // eslint-disable-next-line no-constant-condition
-  while (true) {
+  while (Date.now() - startTime <= maxWaitTime) {
     iteration++;
     const elapsed = Date.now() - startTime;
-
-    // Check timeout
-    if (elapsed > maxWaitTime) {
-      logger(`[CI Monitor] Timeout reached after ${elapsed / 1000}s`);
-      const checks = await fetchChecks(octokit, owner, repo, ref);
-      return {
-        passed: false,
-        failedChecks: checks.filter(c => c.conclusion === 'failure'),
-        allChecks: checks,
-        duration: elapsed,
-        timedOut: true
-      };
-    }
 
     // Fetch current check status
     const checks = await fetchChecks(octokit, owner, repo, ref);
@@ -165,6 +151,18 @@ export async function monitorCIStatus(
     // Wait before next poll
     await sleep(pollingInterval);
   }
+
+  // Timeout path
+  const elapsed = Date.now() - startTime;
+  logger(`[CI Monitor] Timeout reached after ${elapsed / 1000}s`);
+  const checks = await fetchChecks(octokit, owner, repo, ref);
+  return {
+    passed: false,
+    failedChecks: checks.filter(c => c.conclusion === 'failure'),
+    allChecks: checks,
+    duration: elapsed,
+    timedOut: true
+  };
 }
 
 /**

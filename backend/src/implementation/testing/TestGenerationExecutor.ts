@@ -16,7 +16,7 @@
  */
 
 import { AmeliaAgent, CodeImplementation, StoryContext, TestSuite, TestFile, CoverageReport, TestResults, TestFailure, TestFailureContext } from '../types.js';
-import { Logger } from '../../utils/logger.js';
+import { Logger, getLogger } from '../../utils/logger.js';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 import { exec } from 'child_process';
@@ -87,7 +87,7 @@ export class TestGenerationExecutor {
   constructor(ameliaAgent: AmeliaAgent, projectRoot: string, logger?: Logger) {
     this.ameliaAgent = ameliaAgent;
     this.projectRoot = projectRoot;
-    this.logger = logger || new Logger();
+    this.logger = logger || getLogger();
   }
 
   /**
@@ -380,9 +380,9 @@ export class TestGenerationExecutor {
    * @returns Test execution results
    */
   private async executeTests(config: TestFrameworkConfig): Promise<TestResults> {
-    try {
-      const startTime = Date.now();
+    const startTime = Date.now();
 
+    try {
       // Execute test command with timeout
       const { stdout, stderr } = await execAsync(config.testCommand, {
         cwd: this.projectRoot,
@@ -404,7 +404,7 @@ export class TestGenerationExecutor {
       // Handle test failures (non-zero exit code)
       if (error.stdout || error.stderr) {
         const results = this.parseTestResults(error.stdout || '', error.stderr || '', config.framework);
-        results.duration = Date.now();
+        results.duration = Date.now() - startTime;
         return results;
       }
 
@@ -679,7 +679,7 @@ export class TestGenerationExecutor {
     // Extract just the file paths without the project root for comparison
     const implFilePaths = implementationFiles.map((f) => {
       // Remove project root and normalize
-      const relativePath = f.replace(this.projectRoot, '').replace(/^[/\\]/, '');
+      const relativePath = f.replace(this.projectRoot, '').replace(/^[\\/]/, '');
       return relativePath.replace(/\\/g, '/').toLowerCase();
     });
 
@@ -694,7 +694,7 @@ export class TestGenerationExecutor {
 
       // Normalize the file path for comparison (remove leading slashes, normalize separators)
       const normalizedCoveragePath = filePath
-        .replace(/^[/\\]/, '')
+        .replace(/^[\\/]/, '')
         .replace(/\\/g, '/')
         .toLowerCase();
 
@@ -772,7 +772,7 @@ export class TestGenerationExecutor {
     // Extract relative paths from implementation files
     const implFilePaths = implementationFiles
       ? implementationFiles.map((f) => {
-          const relativePath = f.replace(this.projectRoot, '').replace(/^[/\\]/, '');
+          const relativePath = f.replace(this.projectRoot, '').replace(/^[\\/]/, '');
           return relativePath.replace(/\\/g, '/').toLowerCase();
         })
       : [];
@@ -784,7 +784,7 @@ export class TestGenerationExecutor {
       // If implementation files provided, filter to only those files
       if (implementationFiles && implementationFiles.length > 0) {
         const normalizedCoveragePath = filePath
-          .replace(/^[/\\]/, '')
+          .replace(/^[\\/]/, '')
           .replace(/\\/g, '/')
           .toLowerCase();
 

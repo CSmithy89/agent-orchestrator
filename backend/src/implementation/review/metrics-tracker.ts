@@ -108,8 +108,8 @@ export class MetricsTracker {
    * @param _findings Review findings to track
    */
   trackFindings(_findings: ReviewFinding[]): void {
-    // Findings are tracked when getMetrics() is called
-    // This method is a placeholder for future enhancements
+    // Findings are tracked when getMetrics() is called.
+    // This method is a placeholder for future enhancements.
   }
 
   /**
