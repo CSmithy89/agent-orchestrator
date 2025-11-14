@@ -116,7 +116,7 @@ development_status:
   epic-6: contexted  # Tech spec: docs/epics/epic-6-tech-spec.md (pending)
   6-1-api-infrastructure-type-system: done
   6-2-core-api-endpoints-websocket: done
-  6-3-extended-api-endpoints: review
+  6-3-extended-api-endpoints: done
   6-4-react-dashboard-foundation-api-integration: backlog
   6-5-project-management-views-combined: backlog
   6-6-escalation-response-interface: backlog
