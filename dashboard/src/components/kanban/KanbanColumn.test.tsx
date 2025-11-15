@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { KanbanColumn } from './KanbanColumn';
 import type { Story } from '../../types/story';
 import { DndContext } from '@dnd-kit/core';

@@ -129,9 +129,9 @@ describe('Project Routes', () => {
 
     it('should apply offset query parameter', async () => {
       // Create projects in sequence
-      const proj1 = await projectService.createProject({ name: 'Project 1' });
-      const proj2 = await projectService.createProject({ name: 'Project 2' });
-      const proj3 = await projectService.createProject({ name: 'Project 3' });
+      const _proj1 = await projectService.createProject({ name: 'Project 1' });
+      const _proj2 = await projectService.createProject({ name: 'Project 2' });
+      const _proj3 = await projectService.createProject({ name: 'Project 3' });
 
       const response = await server.inject({
         method: 'GET',

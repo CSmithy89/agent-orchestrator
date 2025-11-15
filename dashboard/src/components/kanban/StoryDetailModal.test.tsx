@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import { StoryDetailModal } from './StoryDetailModal';
 import type { Story } from '../../types/story';
 
@@ -108,7 +107,6 @@ describe('StoryDetailModal', () => {
 
   it('calls onClose when dialog is closed', async () => {
     const onClose = vi.fn();
-    const user = userEvent.setup();
 
     render(<StoryDetailModal story={mockStory} isOpen={true} onClose={onClose} />);
 
