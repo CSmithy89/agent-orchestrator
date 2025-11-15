@@ -1,6 +1,6 @@
 # BMI Workflows
 
-BMI provides 10 production-ready workflows for deployment, release, and performance management. All workflows follow BMAD Method v6 conventions and are battle-tested for reliability.
+BMI provides 12 production-ready workflows for deployment, release, and performance management. All workflows follow BMAD Method v6 conventions and are battle-tested for reliability.
 
 ---
 
@@ -8,7 +8,7 @@ BMI provides 10 production-ready workflows for deployment, release, and performa
 
 | Category | Workflows | Primary Agent |
 |----------|-----------|---------------|
-| **Deployment** | deploy, rollback, container-build, monitoring-setup, incident-response | Diana |
+| **Deployment** | deploy, rollback, container-build, database-migration, infrastructure-provision, monitoring-setup, incident-response | Diana |
 | **Release** | release, changelog-generation, hotfix | Rita |
 | **Performance** | performance-profiling, load-testing | Phoenix |
 
@@ -125,6 +125,91 @@ bmad-cli invoke bmi/container-build \
 ```
 
 **See:** [5-deployment/container-build/](5-deployment/container-build/)
+
+---
+
+### database-migration
+
+**Purpose:** Execute database migrations with automatic backups and rollback
+**Agent:** Diana (DevOps Engineer)
+**Duration:** 5-20 minutes
+**Migration Tools:** 10+ (Prisma, Drizzle, TypeORM, Sequelize, Django, Rails, Flyway, Liquibase, etc.)
+
+**Capabilities:**
+- Auto-detect migration tool (Prisma, Drizzle, Knex, TypeORM, Sequelize, Django, Rails, Alembic, Flyway, Liquibase)
+- Automatic database backup before migration
+- Dry-run mode (plan only, don't execute)
+- Auto-rollback on failure
+- Schema diff before/after
+- Support for PostgreSQL, MySQL, SQLite, SQL Server, MongoDB, CockroachDB
+
+**Inputs:**
+- `target_environment` - Environment for migrations (dev/staging/production)
+- `database_connection` - Database connection string or reference
+- `migration_tool_override` - Override auto-detected tool (optional)
+- `dry_run` - Show pending migrations without executing (default: false)
+- `skip_backup` - Skip database backup (dangerous, not recommended)
+- `rollback_on_failure` - Auto-rollback on failure (default: true)
+
+**Outputs:**
+- `migration_log` - Complete migration execution log
+- `backup_location` - Database backup file location
+- `migration_plan` - List of pending migrations executed
+- `schema_diff` - Before/after schema comparison
+- `rollback_script` - Generated rollback script
+
+**Usage:**
+```bash
+bmad-cli invoke bmi/database-migration \
+  --target-environment production \
+  --database-connection "postgresql://..." \
+  --dry-run false
+```
+
+**See:** [5-deployment/database-migration/](5-deployment/database-migration/)
+
+---
+
+### infrastructure-provision
+
+**Purpose:** Provision cloud infrastructure using Infrastructure as Code (IaC)
+**Agent:** Diana (DevOps Engineer)
+**Duration:** 10-30 minutes
+**IaC Tools:** 7+ (Terraform, Pulumi, AWS CDK, CloudFormation, GCP DM, ARM, Bicep)
+
+**Capabilities:**
+- Auto-detect IaC tool (Terraform, Pulumi, AWS CDK, CloudFormation, GCP Deployment Manager, Azure ARM/Bicep)
+- Cost estimation before provisioning
+- Security validation (detect insecure configurations)
+- State backup before changes
+- Dry-run mode (plan only)
+- Resource inventory tracking
+- Support for AWS, GCP, Azure, DigitalOcean
+
+**Inputs:**
+- `target_environment` - Environment to provision (dev/staging/production)
+- `cloud_provider` - Cloud provider (aws/gcp/azure/digitalocean)
+- `iac_tool_override` - Override auto-detected tool (optional)
+- `dry_run` - Plan only, don't apply changes (default: false)
+- `auto_approve` - Auto-approve without confirmation (dangerous)
+- `cost_budget_limit` - Abort if estimated cost exceeds this USD amount
+
+**Outputs:**
+- `provision_log` - Complete provision log
+- `infrastructure_plan` - Detailed plan of changes (create/update/destroy)
+- `cost_estimate` - Estimated monthly infrastructure cost
+- `state_backup` - Backup of infrastructure state
+- `resource_inventory` - Inventory of provisioned resources
+
+**Usage:**
+```bash
+bmad-cli invoke bmi/infrastructure-provision \
+  --target-environment staging \
+  --cloud-provider aws \
+  --dry-run true
+```
+
+**See:** [5-deployment/infrastructure-provision/](5-deployment/infrastructure-provision/)
 
 ---
 
@@ -416,11 +501,61 @@ Every BMI workflow follows the same structure:
 
 ```
 workflow-name/
-├── workflow.yaml       # Workflow configuration
-├── instructions.md     # Step-by-step execution instructions
-├── checklist.md        # Quality checklist
-└── README.md           # Workflow documentation (optional)
+├── workflow.yaml       # Workflow configuration (REQUIRED)
+├── instructions.md     # Step-by-step execution instructions (REQUIRED)
+├── checklist.md        # Quality checklist (REQUIRED)
+├── template.md         # Output template (OPTIONAL)
+└── README.md           # Workflow documentation (OPTIONAL)
 ```
+
+### Required vs. Optional Files
+
+**Required Files (3):**
+- `workflow.yaml` - Workflow configuration and metadata
+- `instructions.md` - Execution logic that agents follow
+- `checklist.md` - Quality gates and verification steps
+
+**Optional Files (2):**
+- `template.md` - Output document templates (used when workflow generates artifacts)
+- `README.md` - Additional documentation for workflow maintainers
+
+### When to Use template.md
+
+The `template.md` file is **optional** and only needed when a workflow generates a document artifact as output. Most workflows don't need it.
+
+**Use template.md when:**
+- ✅ Workflow generates a document (e.g., changelog, release notes, incident report)
+- ✅ Output has consistent structure across invocations
+- ✅ Output needs to be saved to a file
+- ✅ Output format benefits from a template (markdown, YAML, JSON)
+
+**Don't use template.md when:**
+- ❌ Workflow only performs operations (deploy, rollback, build)
+- ❌ Output is just status/metrics (use checklist.md verification instead)
+- ❌ Output format varies significantly per invocation
+- ❌ Workflow is purely interactive
+
+**Examples:**
+
+| Workflow | Uses template.md? | Why? |
+|----------|-------------------|------|
+| deploy | ❌ No | Performs deployment, outputs status (not a document) |
+| rollback | ❌ No | Performs rollback, outputs metrics (not a document) |
+| release | ✅ Yes | Generates release notes document |
+| changelog-generation | ✅ Yes | Generates CHANGELOG.md file |
+| incident-response | ✅ Yes | Generates incident report document |
+| monitoring-setup | ❌ No | Configures monitoring, outputs URLs (not a document) |
+
+**Alternative to template.md:**
+
+For most workflows, `checklist.md` serves a similar purpose:
+- Documents expected workflow outputs
+- Provides verification steps
+- Ensures quality gates are met
+
+Only use template.md when you need an actual file template that gets filled in with workflow outputs.
+
+---
 
 ### workflow.yaml
 

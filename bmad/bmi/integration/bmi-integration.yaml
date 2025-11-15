@@ -142,3 +142,367 @@ notifications:
   status_page:
     enabled: false
     url: ""
+
+# ============================================================================
+# USAGE EXAMPLES
+# ============================================================================
+# This section provides concrete examples of how to use BMI integration hooks
+# from within BMM workflows.
+
+usage_examples:
+
+  # Example 1: Deploy after story completion
+  example_1_post_story_deploy:
+    scenario: "After completing a user story, deploy it to dev environment"
+    bmm_workflow: "bmm:dev-story"
+    bmi_hook: "post_story_completion"
+
+    when_to_use: "After story is marked DONE and merged to main branch"
+
+    invocation:
+      command: "bmad-cli invoke bmi/deploy --version {story_version} --environment dev"
+      from_workflow: |
+        <!-- Add to end of bmm:dev-story instructions.md -->
+        <step n="final" goal="Optional: Deploy to dev environment">
+          <action>Ask user if they want to deploy the completed story to dev</action>
+          <action>If yes, invoke: bmad-cli invoke bmi/deploy --version {story_version} --environment dev</action>
+          <action>Monitor deployment status and report URL to user</action>
+        </step>
+
+    example_output: |
+      ✅ Story STORY-123 completed
+      🚀 Deploying to dev environment...
+      📦 Version: 1.2.3-story-123
+      🌐 Deployed to: https://dev.myapp.com
+      ✅ Smoke tests passed
+
+  # Example 2: Deploy epic to staging after completion
+  example_2_epic_staging_deploy:
+    scenario: "After epic completion, deploy all epic stories to staging"
+    bmm_workflow: "bmm:orchestrate-epic"
+    bmi_hook: "post_epic_completion"
+
+    when_to_use: "After all epic stories are DONE and retrospective is complete"
+
+    invocation:
+      command: "bmad-cli invoke bmi/deploy --version {epic_version} --environment staging --deployment-strategy rolling"
+      from_workflow: |
+        <!-- Add to end of bmm:orchestrate-epic instructions.md -->
+        <step n="final" goal="Deploy epic to staging">
+          <action>Calculate epic version from epic metadata</action>
+          <action>Invoke: bmad-cli invoke bmi/deploy --version {epic_version} --environment staging</action>
+          <action>Run smoke tests on staging: bmad-cli invoke bmi/smoke-testing --environment staging</action>
+          <action>Update epic status to DEPLOYED-STAGING</action>
+        </step>
+
+    example_output: |
+      ✅ Epic EPIC-5 completed (10 stories)
+      🚀 Deploying to staging...
+      📦 Version: 2.0.0-epic-5
+      🔄 Strategy: Rolling deployment
+      🧪 Running smoke tests...
+      ✅ All smoke tests passed
+      🌐 Deployed to: https://staging.myapp.com
+
+  # Example 3: Pre-release quality gates
+  example_3_pre_release_gates:
+    scenario: "Before production release, run quality gates (load testing, performance profiling)"
+    bmm_workflow: "bmm:prd or manual release initiation"
+    bmi_hook: "pre_release"
+
+    when_to_use: "Before deploying to production, ensure quality standards met"
+
+    invocation:
+      sequential_commands:
+        - "bmad-cli invoke bmi/load-testing --environment staging --duration 300"
+        - "bmad-cli invoke bmi/performance-profiling --environment staging"
+        - "bmad-cli invoke bmi/container-build --tag production --version {release_version}"
+
+      from_workflow: |
+        <!-- Add to bmm release workflow or invoke manually -->
+        <step n="pre-release" goal="Run quality gates before release">
+          <action>Inform user: "Running pre-release quality gates..."</action>
+          <action>Invoke load testing: bmad-cli invoke bmi/load-testing --environment staging --duration 300</action>
+          <halt-if>Load tests fail - do not proceed to release</halt-if>
+          <action>Invoke performance profiling: bmad-cli invoke bmi/performance-profiling --environment staging</action>
+          <halt-if>Performance degradation detected</halt-if>
+          <action>Build production containers: bmad-cli invoke bmi/container-build --tag production</action>
+          <action>Display results summary to user</action>
+        </step>
+
+    example_output: |
+      🔍 Running pre-release quality gates...
+
+      ⏱️  Load Testing (5 minutes)...
+      ✅ Throughput: 1000 req/s (target: 800 req/s)
+      ✅ Latency p95: 120ms (target: < 200ms)
+      ✅ Error rate: 0.01% (target: < 1%)
+
+      📊 Performance Profiling...
+      ✅ Memory usage: 512MB (baseline: 500MB) - 2.4% increase ✓
+      ✅ CPU usage: 45% (baseline: 43%) - acceptable
+      ⚠️  Database queries: 12ms avg (baseline: 10ms) - slight increase
+
+      🏗️  Building production containers...
+      ✅ Built: myapp:2.1.0-production
+      ✅ Pushed to registry
+
+      ✅ All quality gates passed - ready for release
+
+  # Example 4: Production release workflow
+  example_4_production_release:
+    scenario: "Create semantic version release and deploy to production"
+    bmm_workflow: "Manual or scheduled release"
+    bmi_hook: "release"
+
+    when_to_use: "When ready to create official release and deploy to production"
+
+    invocation:
+      sequential_commands:
+        - "bmad-cli invoke bmi/release --version-bump minor --changelog-from-commits"
+        - "bmad-cli invoke bmi/deploy --version {new_release_version} --environment production --deployment-strategy blue-green"
+
+      from_workflow: |
+        <step n="1" goal="Create release">
+          <action>Ask user for version bump type (major/minor/patch)</action>
+          <action>Invoke: bmad-cli invoke bmi/release --version-bump {type} --changelog-from-commits</action>
+          <action>Review generated changelog with user</action>
+          <action>Ask user to approve release</action>
+        </step>
+
+        <step n="2" goal="Deploy to production">
+          <action>Invoke: bmad-cli invoke bmi/deploy --version {new_version} --environment production --deployment-strategy blue-green</action>
+          <action>Monitor deployment progress</action>
+          <action>Run production smoke tests</action>
+          <action>Display deployment URL and release notes</action>
+        </step>
+
+    example_output: |
+      📦 Creating Release v2.1.0...
+
+      📝 Changelog generated from 47 commits:
+
+      ## Features
+      - Add user profile customization (STORY-123)
+      - Implement dark mode (STORY-124)
+
+      ## Bug Fixes
+      - Fix login redirect loop (STORY-125)
+
+      ✅ Release v2.1.0 created
+      🏷️  Git tag: v2.1.0
+
+      🚀 Deploying to production (Blue-Green)...
+      🔵 Blue environment: Current production (v2.0.0)
+      🟢 Green environment: Deploying v2.1.0...
+      ✅ Green deployment successful
+      🧪 Running smoke tests on green...
+      ✅ Smoke tests passed
+      🔄 Switching traffic to green...
+      ✅ 100% traffic on v2.1.0
+
+      🌐 Production: https://myapp.com
+      📊 Monitoring: https://monitoring.myapp.com/v2.1.0
+
+  # Example 5: Incident response and rollback
+  example_5_incident_response:
+    scenario: "Production incident detected - respond and rollback if needed"
+    bmm_workflow: "N/A - Emergency response"
+    bmi_hook: "incident_response"
+
+    when_to_use: "Production error rate spike, service degradation, or user-reported critical bug"
+
+    invocation:
+      command: "bmad-cli invoke bmi/incident-response --severity P1 --runbook high_error_rate"
+      alternative: "bmad-cli invoke bmi/rollback --rollback-target previous --environment production"
+
+      from_workflow: |
+        <!-- Manual invocation during incident -->
+        <step n="1" goal="Assess incident">
+          <action>Invoke: bmad-cli invoke bmi/incident-response --severity {P0|P1|P2} --runbook {runbook_name}</action>
+          <action>Follow runbook guidance to diagnose issue</action>
+        </step>
+
+        <step n="2" goal="Decide on rollback">
+          <action>If issue cannot be resolved quickly, invoke rollback:</action>
+          <action>bmad-cli invoke bmi/rollback --rollback-target previous --environment production</action>
+          <action>Monitor rollback progress and error rates</action>
+        </step>
+
+        <step n="3" goal="Post-incident">
+          <action>Once stable, create hotfix story if needed</action>
+          <action>Update incident status</action>
+          <action>Schedule postmortem</action>
+        </step>
+
+    example_output: |
+      🚨 INCIDENT RESPONSE INITIATED
+      Severity: P1 (High)
+      Runbook: high_error_rate.md
+
+      📊 Current Metrics:
+      - Error rate: 15.3% (threshold: 1%)
+      - Latency p95: 3500ms (baseline: 120ms)
+      - Affected users: ~2,400
+
+      🔍 Running diagnostics...
+      ❌ Database connection pool exhausted
+      ❌ Memory leak detected in v2.1.0
+
+      ⚠️  Recommendation: ROLLBACK to v2.0.0
+
+      🔄 Rolling back to v2.0.0...
+      ⏪ Switching traffic to blue environment (v2.0.0)
+      ✅ Rollback complete (45 seconds)
+
+      📊 Post-rollback Metrics:
+      - Error rate: 0.2% ✅
+      - Latency p95: 125ms ✅
+      - Service restored
+
+      📋 Next Steps:
+      1. Create hotfix story for memory leak
+      2. Update incident status file
+      3. Schedule postmortem
+
+  # Example 6: Database migration during deployment
+  example_6_database_migration:
+    scenario: "Run database migrations before deploying new version"
+    bmm_workflow: "bmm:dev-story or deployment workflow"
+    bmi_hook: "Part of deploy workflow"
+
+    when_to_use: "Story includes database schema changes"
+
+    invocation:
+      sequential_commands:
+        - "bmad-cli invoke bmi/database-migration --target-environment staging --dry-run true"
+        - "bmad-cli invoke bmi/database-migration --target-environment staging"
+        - "bmad-cli invoke bmi/deploy --version {version} --environment staging"
+
+      from_workflow: |
+        <step n="pre-deploy" goal="Run database migrations">
+          <action>Check if story includes database changes</action>
+          <action>If yes, invoke dry-run: bmad-cli invoke bmi/database-migration --target-environment staging --dry-run true</action>
+          <action>Review migration plan with user</action>
+          <action>Execute migration: bmad-cli invoke bmi/database-migration --target-environment staging</action>
+          <halt-if>Migration fails - rollback and stop deployment</halt-if>
+          <action>Proceed with deployment</action>
+        </step>
+
+    example_output: |
+      🗄️  Database Migration (Dry Run)
+      Tool detected: Prisma
+      Target: staging database
+
+      📋 Pending Migrations:
+      - 20250115_add_user_preferences_table
+      - 20250115_add_dark_mode_column
+
+      🔍 Migration Plan:
+      CREATE TABLE user_preferences (...)
+      ALTER TABLE users ADD COLUMN dark_mode BOOLEAN DEFAULT false
+
+      ⚠️  Backup will be created automatically
+
+      ✅ Dry run successful - safe to execute
+
+      🗄️  Executing Database Migration...
+      💾 Creating backup: staging_backup_20250115_143022
+      ✅ Backup complete (2.3 GB)
+
+      🔄 Running migrations...
+      ✅ Migration 1/2: add_user_preferences_table (0.8s)
+      ✅ Migration 2/2: add_dark_mode_column (0.3s)
+
+      ✅ All migrations successful
+      📊 Schema version: 20250115_add_dark_mode_column
+
+  # Example 7: Infrastructure provisioning for new service
+  example_7_infrastructure_provision:
+    scenario: "Provision cloud infrastructure for new microservice"
+    bmm_workflow: "bmm:architecture or pre-deployment"
+    bmi_hook: "Part of deploy workflow for new services"
+
+    when_to_use: "Epic introduces new microservice or infrastructure component"
+
+    invocation:
+      command: "bmad-cli invoke bmi/infrastructure-provision --iac-tool terraform --config-path ./infrastructure/staging"
+
+      from_workflow: |
+        <step n="infrastructure" goal="Provision cloud infrastructure">
+          <action>Detect IaC tool (Terraform/Pulumi/CDK)</action>
+          <action>Invoke plan: bmad-cli invoke bmi/infrastructure-provision --iac-tool terraform --config-path ./infra --plan-only true</action>
+          <action>Review infrastructure changes with user</action>
+          <action>Apply: bmad-cli invoke bmi/infrastructure-provision --iac-tool terraform --config-path ./infra</action>
+          <action>Capture outputs (URLs, endpoints, credentials)</action>
+        </step>
+
+    example_output: |
+      ☁️  Infrastructure Provisioning
+      Tool: Terraform v1.6.0
+      Environment: staging
+      Provider: AWS
+
+      📋 Terraform Plan:
+      + aws_ecs_cluster.api_cluster
+      + aws_ecs_service.api_service
+      + aws_lb.api_load_balancer
+      + aws_rds_instance.postgres
+
+      Resources: 4 to add, 0 to change, 0 to destroy
+
+      ✅ Plan looks good - proceeding...
+
+      🔨 Applying infrastructure changes...
+      ✅ Created: ECS Cluster (api-staging)
+      ✅ Created: RDS Instance (postgres-staging)
+      ✅ Created: Load Balancer (api-lb-staging)
+      ✅ Created: ECS Service (api-service-staging)
+
+      📤 Outputs:
+      - load_balancer_url: https://api-lb-staging-12345.us-east-1.elb.amazonaws.com
+      - database_endpoint: postgres-staging.abc123.us-east-1.rds.amazonaws.com:5432
+      - cluster_name: api-staging
+
+      ✅ Infrastructure provisioned successfully
+
+# ============================================================================
+# INTEGRATION HOOK REFERENCE
+# ============================================================================
+# Quick reference for when to use each hook
+
+hook_reference:
+  post_story_completion:
+    when: "Story marked DONE, code merged to main"
+    typical_workflow: "bmi/deploy --environment dev"
+    auto_trigger: false
+
+  post_epic_completion:
+    when: "All epic stories DONE, retrospective complete"
+    typical_workflows:
+      - "bmi/deploy --environment staging"
+      - "bmi/smoke-testing --environment staging"
+      - "bmi/monitoring-setup"
+    auto_trigger: false
+
+  pre_release:
+    when: "Before creating production release"
+    typical_workflows:
+      - "bmi/load-testing --environment staging"
+      - "bmi/performance-profiling --environment staging"
+      - "bmi/container-build --tag production"
+    auto_trigger: true
+
+  release:
+    when: "Ready to create official release and deploy to production"
+    typical_workflows:
+      - "bmi/release --version-bump {type}"
+      - "bmi/deploy --environment production --deployment-strategy blue-green"
+    auto_trigger: false
+
+  incident_response:
+    when: "Production incident detected (error spike, service down)"
+    typical_workflows:
+      - "bmi/incident-response --severity {P0|P1|P2} --runbook {name}"
+      - "bmi/rollback --rollback-target previous --environment production"
+    auto_trigger: true  # For P0/P1 incidents

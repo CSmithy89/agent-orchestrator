@@ -4,6 +4,144 @@ BMI tasks are reusable, composable operations that can be invoked by workflows o
 
 ---
 
+## Task Composition Philosophy
+
+### What Are BMI Tasks?
+
+BMI tasks are **composable documentation patterns** that define reusable operations for deployment and release workflows. Unlike executable scripts, tasks are:
+
+1. **Specifications, not implementations** - Task .md files document the contract (inputs, outputs, behavior) but don't contain executable code
+2. **Implementation-agnostic** - The same task can be implemented differently across platforms (e.g., smoke tests might use different tools per platform)
+3. **Composable building blocks** - Tasks are designed to be combined within workflows to create complex deployment pipelines
+4. **Agent-interpretable** - AI agents (Diana, Rita, Phoenix) read task documentation and implement the logic within workflow context
+
+### How Tasks Work
+
+```
+Task Definition (.md file)
+    ↓
+  Specifies: Inputs, Outputs, Behavior
+    ↓
+Implementation (by agent or script)
+    ↓
+  Invoked: From workflow or standalone
+    ↓
+Returns: Documented outputs
+```
+
+### Task vs. Workflow vs. Platform Script
+
+| Aspect | Task | Workflow | Platform Script |
+|--------|------|----------|-----------------|
+| **What** | Reusable operation specification | End-to-end process orchestration | Platform-specific executable |
+| **File Type** | Markdown (.md) | YAML + Markdown | Bash script (.sh) |
+| **Execution** | Implemented by agent/workflow | Orchestrates multiple tasks | Direct bash execution |
+| **Example** | `detect-platform.md` | `deploy` workflow | `vercel.sh` |
+| **Reusability** | Used by multiple workflows | May call multiple tasks | Called by deploy workflow |
+
+### Composability Example
+
+A deployment workflow composes multiple tasks:
+
+```
+deploy workflow
+├── Task: detect-platform
+│   └── Returns: platform=vercel, confidence=high
+├── Task: calculate-version
+│   └── Returns: next_version=1.2.3
+├── Platform Script: vercel.sh
+│   └── Implements: deploy() function
+├── Task: run-smoke-tests
+│   └── Returns: test_results=all_passed
+└── Task: update-deployment-status
+    └── Updates: deployment-status.yaml
+```
+
+Each task is self-contained, testable, and reusable across workflows.
+
+### When to Create a Task
+
+Create a new BMI task when:
+
+- ✅ Operation is used by **2+ workflows** (promotes reusability)
+- ✅ Operation has **clear inputs/outputs** (well-defined contract)
+- ✅ Operation is **platform-agnostic** or has multiple implementations
+- ✅ Operation can be **tested independently** of workflows
+- ✅ Operation represents a **single responsibility** (one thing well)
+
+Don't create a task when:
+
+- ❌ Operation is **workflow-specific** (put logic in workflow instructions.md)
+- ❌ Operation is **platform-specific** (belongs in platform script like vercel.sh)
+- ❌ Operation has **no clear reuse case** (YAGNI - You Aren't Gonna Need It)
+- ❌ Operation is too **simple** (e.g., "echo version" - just use inline action)
+
+### Task Implementation Freedom
+
+The task .md file documents **WHAT** the task does, not **HOW** it's implemented. This allows:
+
+**Example: `run-smoke-tests` task**
+
+**Node.js project implementation:**
+```bash
+# Agent might implement using Jest
+npm run test:smoke
+```
+
+**Python project implementation:**
+```bash
+# Agent might implement using pytest
+pytest tests/smoke/
+```
+
+**Custom implementation:**
+```bash
+# Agent might implement using curl
+curl -f https://app.com/health || exit 1
+```
+
+All three implementations satisfy the `run-smoke-tests` task contract (inputs: target_url, outputs: test_results).
+
+### Task Documentation Best Practices
+
+When documenting tasks:
+
+1. **Specify contract clearly** - Define all inputs, outputs, and side effects
+2. **Provide usage examples** - Show how task is invoked from workflows and standalone
+3. **Document error conditions** - What can go wrong and how to handle it
+4. **Include implementation guidance** - Pseudocode or reference implementations
+5. **List dependent workflows** - Which workflows use this task
+6. **Version compatibility** - Note if task behavior changes across versions
+
+**Example task structure:**
+```markdown
+# Task: task-name
+
+**Purpose:** One-line description
+
+**Used By:** workflow-1, workflow-2
+
+## Inputs
+- `input1` - Description (required)
+- `input2` - Description (optional, default: value)
+
+## Outputs
+- `output1` - Description
+- `output2` - Description
+
+## Implementation Guidance
+Pseudocode or reference implementation
+
+## Error Handling
+- Error condition 1 → Resolution
+- Error condition 2 → Resolution
+
+## Usage Examples
+From workflow and standalone
+```
+
+---
+
 ## Task Overview
 
 | Task | Category | Purpose | Used By |
