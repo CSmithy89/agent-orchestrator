@@ -139,6 +139,46 @@ export async function createServer(config: ServerConfig = {}): Promise<FastifyIn
     timestamp: new Date().toISOString()
   }));
 
+  // Global error handler to ensure all errors include requestId
+  server.setErrorHandler((error, request, reply) => {
+    // Log error
+    request.log.error(error);
+
+    // Determine status code
+    let statusCode = error.statusCode || 500;
+
+    // Handle validation errors from Fastify
+    if (error.validation) {
+      statusCode = 400;
+    }
+
+    // Determine error name based on status code for standard HTTP errors
+    let errorName: string;
+    if (statusCode === 400) {
+      errorName = 'Bad Request';
+    } else if (statusCode === 401) {
+      errorName = 'Unauthorized';
+    } else if (statusCode === 403) {
+      errorName = 'Forbidden';
+    } else if (statusCode === 404) {
+      errorName = 'Not Found';
+    } else if (statusCode === 429) {
+      errorName = 'Too Many Requests';
+    } else if (statusCode === 500) {
+      errorName = 'Internal Server Error';
+    } else {
+      // Use error.name for non-standard status codes
+      errorName = error.name || 'Error';
+    }
+
+    // Send error response with requestId
+    reply.code(statusCode).send({
+      error: errorName,
+      message: error.message,
+      requestId: request.id
+    });
+  });
+
   // Register routes
   await registerProjectRoutes(server);
   await registerOrchestratorRoutes(server);

@@ -12,10 +12,9 @@
 import { beforeAll, afterAll, afterEach } from 'vitest';
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import { config as loadDotenv } from 'dotenv';
 
-// Load environment variables from .env file (for API keys in integration tests)
-loadDotenv({ path: path.join(process.cwd(), '.env') });
+// Note: Environment variables are set via CI/CD pipeline or manually for local testing
+// We don't load .env here to avoid module resolution issues with Vitest
 
 // Global test timeout for long-running integration tests
 const INTEGRATION_TEST_TIMEOUT = 30000;
@@ -26,6 +25,9 @@ const INTEGRATION_TEST_TIMEOUT = 30000;
 beforeAll(() => {
   // Ensure we're in test mode
   process.env.NODE_ENV = 'test';
+
+  // Set mock API keys for health checks
+  process.env.ANTHROPIC_API_KEY = 'test-anthropic-key';
 
   // Disable color output in CI for cleaner logs
   if (process.env.CI) {
