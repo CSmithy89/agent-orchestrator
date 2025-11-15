@@ -78,16 +78,18 @@ export default defineConfig({
   // Run local dev server before starting tests
   webServer: [
     {
-      command: 'cd backend && npm run dev',
+      command: 'npm run dev --workspace=backend',
       url: 'http://localhost:3000/health',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
+      cwd: '.',
     },
     {
-      command: 'cd dashboard && npm run dev',
+      command: 'npm run dev --workspace=dashboard',
       url: 'http://localhost:5173',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
+      cwd: '.',
     },
   ],
 });
