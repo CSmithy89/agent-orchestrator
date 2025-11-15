@@ -1,0 +1,382 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>8</storyId>
+    <title>Dependency Graph Visualization Component</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-14</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-8-dependency-graph-visualization-component.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a user planning sprint work</asA>
+    <iWant>to see story dependencies in an interactive visual graph</iWant>
+    <soThat>I can understand relationships and identify blockers at a glance</soThat>
+    <tasks>
+### Task 1: Dependency Graph Data Types and API Integration (AC 2)
+- [ ] 1.1: Define TypeScript types in `src/types/dependency-graph.ts` (DependencyNode, DependencyEdge, DependencyGraph interfaces)
+- [ ] 1.2: Create API methods in `src/api/dependencies.ts` (getDependencyGraph())
+- [ ] 1.3: Create TanStack Query hooks in `src/hooks/useDependencyGraph.ts` (useDependencyGraph)
+- [ ] 1.4: Write unit tests for API methods and hooks
+
+### Task 2: D3.js Graph Visualization (AC 1, 3, 4)
+- [ ] 2.1: Install D3.js and TypeScript types (`npm install d3 @types/d3`)
+- [ ] 2.2: Create DependencyGraph component (SVG container with D3 rendering, hierarchical layout, node/edge rendering)
+- [ ] 2.3: Implement node rendering (circular nodes, size based on complexity, story ID labels, worktree badges, status-based colors with animated pulsing)
+- [ ] 2.4: Implement edge rendering (solid/dashed lines, red/gray colors, thicker edges for critical path)
+- [ ] 2.5: Write component tests for DependencyGraph
+
+### Task 3: Graph Interactions (AC 5)
+- [ ] 3.1: Implement pan/zoom (D3 zoom behavior, mouse drag, scroll wheel, touch gestures)
+- [ ] 3.2: Implement node click (click handler to open story detail slide-over, integration with StoryDetailModal)
+- [ ] 3.3: Implement hover tooltip (show story title and status, position near cursor)
+- [ ] 3.4: Implement edge click (show dependency details tooltip)
+- [ ] 3.5: Implement double-click reset (reset zoom to fit entire graph)
+- [ ] 3.6: Test all interactions
+
+### Task 4: Graph Controls and Filters (AC 8, 11)
+- [ ] 4.1: Create GraphControls component (zoom in/out, reset, export PNG/SVG, copy link buttons)
+- [ ] 4.2: Implement export functionality (PNG via html-to-image, SVG via D3, copy link)
+- [ ] 4.3: Create GraphFilters component (filter by epic, status, blocking; clear filters)
+- [ ] 4.4: Implement filter logic (apply filters to graph data)
+- [ ] 4.5: Write component tests for controls and filters
+
+### Task 5: Real-Time WebSocket Updates (AC 6)
+- [ ] 5.1: Create useDependencyWebSocket hook (subscribe to story.status.changed, dependency.changed events, invalidate TanStack Query cache)
+- [ ] 5.2: Integrate WebSocket into DependencyGraphPage
+- [ ] 5.3: Implement smooth transitions (D3 transitions for node color changes, graph rebuild)
+- [ ] 5.4: Test real-time updates
+
+### Task 6: Responsive Design and Mobile Fallback (AC 7)
+- [ ] 6.1: Implement responsive graph layout (desktop: full, tablet: simplified, mobile: list view)
+- [ ] 6.2: Create DependencyListView component (list of stories with expandable dependencies)
+- [ ] 6.3: Add view toggle (toggle between graph/list view, persist in localStorage)
+- [ ] 6.4: Test responsive behavior
+
+### Task 7: Accessibility and Performance (AC 9, 10)
+- [ ] 7.1: Add accessibility improvements (ARIA labels, keyboard navigation, screen reader text, focus indicators)
+- [ ] 7.2: Implement performance optimizations (virtualization for >100 stories, debounce zoom/pan, memoize calculations, lazy load modal)
+- [ ] 7.3: Add loading skeletons
+- [ ] 7.4: Add error boundaries
+- [ ] 7.5: Test accessibility and performance
+
+### Task 8: Integration with Project Detail View (AC 11)
+- [ ] 8.1: Create DependencyGraphPage component (page layout with graph, controls, filters)
+- [ ] 8.2: Add Dependencies tab to ProjectDetailPage
+- [ ] 8.3: Create GraphLegend component (legend for node colors, edge types, critical path)
+- [ ] 8.4: Write integration tests
+- [ ] 8.5: Run all tests and verify >70% coverage
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+1. [x] Implement DependencyGraph React component using D3.js
+2. [x] Fetch dependency graph data from GET /api/projects/:id/dependency-graph
+3. [x] Render interactive SVG visualization:
+   - **Nodes**: Circular, color-coded by status (Pending: Gray, In-Progress: Blue with pulsing, Review: Amber, Merged: Green, Blocked: Red)
+   - **Node Size**: Based on story complexity (small: 32px, medium: 48px, large: 64px)
+   - **Node Labels**: Story ID centered inside circle
+   - **Worktree Indicator**: Orange badge if worktree active
+   - **Edges**: Lines connecting dependent stories (solid: hard, dashed: soft, red: blocking, gray: non-blocking)
+4. [x] Layout algorithm: Hierarchical (dependencies flow top-to-bottom, critical path highlighted)
+5. [x] Interactions: Pan/Zoom, Click Node (open story detail), Hover Node (show tooltip), Click Edge (show dependency details), Double-Click Background (reset zoom)
+6. [x] Real-time updates via WebSocket (smooth transitions for status changes and dependency updates)
+7. [x] Responsive behavior: Desktop (full graph), Tablet (simplified graph), Mobile (list view fallback)
+8. [x] Export functionality: PNG, SVG, copy shareable link
+9. [x] Accessibility: ARIA labels, keyboard navigation, screen reader support
+10. [x] Performance: Render <2s for 100 stories, smooth 60 FPS animations, virtualization for >100 stories
+11. [x] Integration with Project Detail view: Dependencies tab, graph/list view toggle, filter controls
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access &amp; Monitoring</title>
+        <section>Story 6.8: Dependency Graph Visualization Component</section>
+        <snippet>Enable users to see story dependencies in an interactive visual graph showing relationships and blockers. Integrates with Project Detail View (Story 6.5) and uses dependency data from Epic 4 Story 4.5. Provides real-time updates via WebSocket, pan/zoom interactions, and export functionality (PNG, SVG).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>System Architecture</title>
+        <section>Client Layer - React PWA Dashboard</section>
+        <snippet>React 18 + TypeScript + Vite build system with TanStack Query for server state management, Zustand for client state, Tailwind CSS for styling, shadcn/ui component library, and WebSocket for real-time updates. Microkernel + Event-Driven architecture pattern with REST API + WebSocket for remote access.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-4-react-dashboard-foundation-api-integration.md</path>
+        <title>Story 6.4: React Dashboard Foundation &amp; API Integration</title>
+        <section>Technical Implementation</section>
+        <snippet>Established React foundation with TypeScript, Vite, TanStack Query, Zustand, Tailwind CSS, shadcn/ui components. BaseAPI class with fetch wrapper and JWT authentication. WebSocket hook (useWebSocket) with automatic reconnection and event subscription. Layout components (Header, Sidebar, MainLayout) with responsive design and dark mode support.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-7-story-tracking-kanban-board.md</path>
+        <title>Story 6.7: Story Tracking Kanban Board</title>
+        <section>Technical Implementation</section>
+        <snippet>Kanban board with drag-and-drop using @dnd-kit. TanStack Query for story data with 1min stale time and 30s refetch interval. WebSocket subscriptions for real-time story.status.changed events. StoryDetailModal component for viewing detailed story information. Pattern: Container/Presenter with API client integration and optimistic updates.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/4-5-dependency-detection-graph-generation-combined.md</path>
+        <title>Story 4.5: Dependency Detection &amp; Graph Generation</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Generates dependency graph with nodes (id, title, status, epic, complexity) and edges (from/to/type/blocking). Uses Kahn's algorithm for critical path, identifies bottlenecks (stories blocking ≥3 others), detects parallel groups. Outputs to docs/dependency-graph.json with metadata (totalStories, parallelizable count, bottleneck list, critical path length).</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>dashboard/src/api/client.ts</path>
+        <kind>service</kind>
+        <symbol>BaseAPI</symbol>
+        <lines>19-131</lines>
+        <reason>BaseAPI class provides standardized API client with JWT authentication, error handling, and methods for GET/POST/PATCH/DELETE. Should be used for dependency graph API endpoint.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useWebSocket</symbol>
+        <lines>16-181</lines>
+        <reason>WebSocket hook with automatic reconnection, event subscription, and exponential backoff. Use for subscribing to story.status.changed and dependency.changed events for real-time graph updates.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/kanban/StoryDetailModal.tsx</path>
+        <kind>component</kind>
+        <symbol>StoryDetailModal</symbol>
+        <lines>1-150</lines>
+        <reason>Existing modal component for displaying story details. Reuse this component when users click graph nodes to view story information (AC 5).</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useProjectStories.ts</path>
+        <kind>hook</kind>
+        <symbol>useProjectStories</symbol>
+        <lines>1-150</lines>
+        <reason>TanStack Query hook for fetching project stories with 1min stale time and 30s refetch. Use similar pattern for useDependencyGraph hook with automatic cache invalidation on WebSocket events.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useStoryWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useStoryWebSocket</symbol>
+        <lines>1-100</lines>
+        <reason>WebSocket subscription hook for story status updates. Use similar pattern for useDependencyWebSocket to subscribe to story.status.changed and dependency.changed events.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/lib/utils.ts</path>
+        <kind>utility</kind>
+        <symbol>cn, formatDate</symbol>
+        <lines>1-58</lines>
+        <reason>Utility functions for class name merging (cn) and date formatting. Use cn() for conditional Tailwind classes in graph components.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/types/story.ts</path>
+        <kind>types</kind>
+        <symbol>Story, Epic, StoryTask</symbol>
+        <lines>1-37</lines>
+        <reason>Existing TypeScript types for stories. Extend or reference these types when defining DependencyNode interface (stories become graph nodes).</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/api/types.ts</path>
+        <kind>types</kind>
+        <symbol>WebSocketEvent, WebSocketEventType</symbol>
+        <lines>146-165</lines>
+        <reason>WebSocket event types including story.status.changed. Reference these types when implementing real-time graph updates via WebSocket subscriptions.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/kanban/KanbanBoard.tsx</path>
+        <kind>component</kind>
+        <symbol>KanbanBoard</symbol>
+        <lines>1-300</lines>
+        <reason>Example of complex visualization component with filters, real-time updates, and state management. Use similar patterns for DependencyGraph component structure.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/ui/</path>
+        <kind>directory</kind>
+        <symbol>shadcn/ui components</symbol>
+        <lines>all</lines>
+        <reason>shadcn/ui components already installed: Button, Card, Badge, Dialog, Input, Label, Select, Tabs, Toast, Skeleton, Progress. Use these for GraphControls, GraphFilters, and GraphLegend components.</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <npm>
+        <package name="react" version="^18.3.1" reason="Core React library" />
+        <package name="react-dom" version="^18.3.1" reason="React DOM rendering" />
+        <package name="typescript" version="^5.5.4" reason="TypeScript language support" />
+        <package name="vite" version="^5.4.3" reason="Build tool and dev server" />
+        <package name="@tanstack/react-query" version="^5.56.2" reason="Server state management and caching" />
+        <package name="zustand" version="^4.5.5" reason="Client state management" />
+        <package name="tailwindcss" version="^3.4.10" reason="Utility-first CSS framework" />
+        <package name="lucide-react" version="^0.294.0" reason="Icon library for UI components" />
+        <package name="@radix-ui/react-dialog" version="^1.0.5" reason="Dialog/modal primitives" />
+        <package name="@radix-ui/react-tabs" version="^1.0.4" reason="Tabs for Dependencies tab" />
+        <package name="@radix-ui/react-select" version="^2.0.0" reason="Select for filter dropdowns" />
+        <package name="@dnd-kit/core" version="^6.3.1" reason="Drag-and-drop (not needed for graph, but available)" />
+        <package name="vitest" version="^1.0.4" reason="Test framework" />
+        <package name="@testing-library/react" version="^14.1.2" reason="React component testing utilities" />
+        <package name="NEW: d3" version="latest" reason="D3.js for graph visualization - REQUIRED" />
+        <package name="NEW: @types/d3" version="latest" reason="TypeScript types for D3.js - REQUIRED" />
+        <package name="NEW: html-to-image" version="latest" reason="Export graph as PNG image - REQUIRED" />
+      </npm>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint>Use React 18.3.1 + TypeScript 5.5.4 with strict mode enabled</constraint>
+    <constraint>Use TanStack Query for server state (dependency graph data) with 1min stale time and 30s refetch interval</constraint>
+    <constraint>Use WebSocket for real-time updates (story.status.changed, dependency.changed events)</constraint>
+    <constraint>Use D3.js for graph visualization with hierarchical layout algorithm (Kahn's algorithm)</constraint>
+    <constraint>Follow established patterns from Story 6.7 (Kanban board): Container/Presenter pattern, TanStack Query cache invalidation on WebSocket events, optimistic updates where applicable</constraint>
+    <constraint>Reuse existing components: StoryDetailModal for story details, shadcn/ui components for controls/filters/legend</constraint>
+    <constraint>Use Tailwind CSS for styling with dark mode support (existing theme configuration)</constraint>
+    <constraint>All paths must be project-relative (use @/ alias for src/)</constraint>
+    <constraint>File naming: PascalCase for components (DependencyGraph.tsx), camelCase for hooks (useDependencyGraph.ts), lowercase for types (dependency-graph.ts)</constraint>
+    <constraint>Co-locate tests with source files (*.test.tsx)</constraint>
+    <constraint>Target >70% test coverage per component</constraint>
+    <constraint>Smooth D3 transitions (500ms) for visual changes to avoid jarring updates</constraint>
+    <constraint>Performance: Render graph in &lt;2 seconds for 100 stories, 60 FPS animations, virtualization for &gt;100 stories</constraint>
+    <constraint>Accessibility: ARIA labels, keyboard navigation (Tab through nodes, Enter to open), screen reader support</constraint>
+    <constraint>Responsive design: Desktop (full graph), Tablet (simplified graph with touch gestures), Mobile (list view fallback)</constraint>
+    <constraint>Export functionality: PNG via html-to-image library, SVG via D3 native serialization, copy shareable link to clipboard</constraint>
+    <constraint>Integration point: Add Dependencies tab to ProjectDetailPage (Story 6.5) alongside Kanban, Chat, Details tabs</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/projects/:id/dependency-graph</name>
+      <kind>REST endpoint</kind>
+      <signature>
+        Response: DependencyGraph {
+          nodes: DependencyNode[] {
+            id: string,
+            storyId: string,
+            epicNumber: number,
+            storyNumber: number,
+            title: string,
+            status: 'pending' | 'in-progress' | 'review' | 'merged' | 'blocked',
+            complexity: 'small' | 'medium' | 'large',
+            hasWorktree: boolean
+          },
+          edges: DependencyEdge[] {
+            source: string (Story ID),
+            target: string (Story ID),
+            type: 'hard' | 'soft',
+            isBlocking: boolean
+          },
+          criticalPath: string[] (Story IDs on critical path)
+        }
+      </signature>
+      <path>dashboard/src/api/dependencies.ts</path>
+    </interface>
+    <interface>
+      <name>useDependencyGraph</name>
+      <kind>TanStack Query hook</kind>
+      <signature>
+        useDependencyGraph(projectId: string) => {
+          data: DependencyGraph | undefined,
+          isLoading: boolean,
+          error: Error | null,
+          refetch: () => void
+        }
+      </signature>
+      <path>dashboard/src/hooks/useDependencyGraph.ts</path>
+    </interface>
+    <interface>
+      <name>useDependencyWebSocket</name>
+      <kind>WebSocket subscription hook</kind>
+      <signature>
+        useDependencyWebSocket(projectId: string) => {
+          events: WebSocketEvent[]
+        }
+        // Auto-invalidates TanStack Query cache on story.status.changed and dependency.changed events
+      </signature>
+      <path>dashboard/src/hooks/useDependencyWebSocket.ts</path>
+    </interface>
+    <interface>
+      <name>DependencyGraph component</name>
+      <kind>React component</kind>
+      <signature>
+        DependencyGraph({
+          graph: DependencyGraph,
+          onNodeClick: (node: DependencyNode) => void,
+          filters?: { epic?: number, status?: string[], blocking?: boolean }
+        }) => JSX.Element
+      </signature>
+      <path>dashboard/src/components/graph/DependencyGraph.tsx</path>
+    </interface>
+    <interface>
+      <name>WebSocket events</name>
+      <kind>WebSocket event types</kind>
+      <signature>
+        story.status.changed: { projectId, storyId, oldStatus, newStatus, timestamp }
+        dependency.changed: { projectId, action: 'added' | 'removed', edge: DependencyEdge, timestamp }
+      </signature>
+      <path>dashboard/src/api/types.ts</path>
+    </interface>
+    <interface>
+      <name>D3.js zoom behavior</name>
+      <kind>D3.js API</kind>
+      <signature>
+        d3.zoom()
+          .scaleExtent([0.1, 4])
+          .on('zoom', (event) => { g.attr('transform', event.transform); })
+        // Apply to SVG element with svg.call(zoom)
+      </signature>
+      <path>dashboard/src/components/graph/DependencyGraph.tsx</path>
+    </interface>
+    <interface>
+      <name>D3.js hierarchical layout</name>
+      <kind>D3.js API</kind>
+      <signature>
+        d3.stratify()
+          .id((d) => d.id)
+          .parentId((d) => findParentId(d))
+        // Then: d3.tree().size([width, height])(root)
+      </signature>
+      <path>dashboard/src/components/graph/DependencyGraph.tsx</path>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+Testing framework: Vitest 1.0.4 + React Testing Library 14.1.2 with jsdom environment. Co-locate tests with source files (*.test.tsx). Use established patterns from Story 6.7: render component, assert content, test interactions, mock API responses and WebSocket events. Coverage target: &gt;70% per component. Test types: unit tests (components, hooks), integration tests (graph rendering with real data), accessibility tests (ARIA, keyboard navigation). Mock D3.js interactions by testing data transformations and component rendering rather than D3 internals.
+    </standards>
+    <locations>
+      <location>dashboard/src/components/graph/*.test.tsx</location>
+      <location>dashboard/src/hooks/*.test.tsx</location>
+      <location>dashboard/src/pages/*.test.tsx</location>
+    </locations>
+    <ideas>
+      <idea ac="1,3,4">Test DependencyGraph component renders SVG with correct nodes and edges for given graph data</idea>
+      <idea ac="3">Test node colors match status (pending=gray, in-progress=blue, review=amber, merged=green, blocked=red)</idea>
+      <idea ac="3">Test node sizes match complexity (small=32px, medium=48px, large=64px radius)</idea>
+      <idea ac="3">Test node labels display story ID in format "epicNumber.storyNumber"</idea>
+      <idea ac="3">Test worktree indicator badge appears when hasWorktree=true</idea>
+      <idea ac="3">Test edge types render correctly (solid line for hard, dashed for soft dependencies)</idea>
+      <idea ac="3">Test edge colors (red for blocking, gray for non-blocking)</idea>
+      <idea ac="4">Test hierarchical layout places stories with no dependencies at top</idea>
+      <idea ac="4">Test critical path edges render with thicker stroke width</idea>
+      <idea ac="5">Test pan/zoom functionality (D3 zoom behavior applied to SVG)</idea>
+      <idea ac="5">Test click node calls onNodeClick callback with correct node data</idea>
+      <idea ac="5">Test hover node shows tooltip with story title and status</idea>
+      <idea ac="5">Test double-click background resets zoom to fit</idea>
+      <idea ac="6">Test WebSocket events (story.status.changed) trigger graph updates</idea>
+      <idea ac="6">Test WebSocket events (dependency.changed) trigger graph rebuild</idea>
+      <idea ac="6">Test smooth D3 transitions (500ms duration) for visual changes</idea>
+      <idea ac="7">Test responsive behavior: desktop shows full graph, mobile shows list view</idea>
+      <idea ac="8">Test export functionality: PNG download works via html-to-image</idea>
+      <idea ac="8">Test export functionality: SVG download works via D3 serialization</idea>
+      <idea ac="8">Test copy shareable link to clipboard</idea>
+      <idea ac="9">Test ARIA label on graph container</idea>
+      <idea ac="9">Test keyboard navigation: Tab through nodes, Enter opens story detail</idea>
+      <idea ac="9">Test screen reader accessibility (text alternative listing dependencies)</idea>
+      <idea ac="10">Test performance: graph renders in &lt;2s for 100 stories (use performance.now())</idea>
+      <idea ac="10">Test virtualization activates for graphs &gt;100 stories</idea>
+      <idea ac="11">Test GraphFilters component: filter by epic updates displayed nodes</idea>
+      <idea ac="11">Test GraphFilters component: filter by status updates displayed nodes</idea>
+      <idea ac="11">Test GraphFilters component: filter by blocking updates displayed edges</idea>
+      <idea ac="11">Test DependencyGraphPage integrates with ProjectDetailPage (Dependencies tab)</idea>
+      <idea ac="11">Test view toggle switches between graph and list view</idea>
+      <idea ac="2">Test useDependencyGraph hook fetches data from correct API endpoint</idea>
+      <idea ac="2">Test useDependencyGraph hook caches data with 1min stale time</idea>
+      <idea ac="2">Test useDependencyWebSocket hook subscribes to correct event types</idea>
+      <idea ac="2">Test useDependencyWebSocket hook invalidates query cache on events</idea>
+    </ideas>
+  </tests>
+</story-context>
