@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Loader2, Kanban } from 'lucide-react';
+import { ArrowLeft, Loader2, Kanban, Network } from 'lucide-react';
 import { Button } from '../components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../components/ui/card';
 import { Badge } from '../components/ui/badge';
@@ -153,6 +153,10 @@ export function ProjectDetailPage() {
           <Button variant="outline" onClick={() => navigate(`/projects/${id}/stories`)}>
             <Kanban className="h-4 w-4 mr-2" />
             View Stories
+          </Button>
+          <Button variant="outline" onClick={() => navigate(`/projects/${id}/dependencies`)}>
+            <Network className="h-4 w-4 mr-2" />
+            View Dependencies
           </Button>
           <QuickActions project={project} onStatusChange={() => refetch()} />
         </div>
