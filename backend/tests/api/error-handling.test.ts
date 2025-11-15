@@ -133,11 +133,14 @@ describe('API Error Handling & Security', () => {
     });
 
     it('should return 401 with expired token', async () => {
-      // Create a token that expired 1 hour ago
+      // Create a token that expires in 1ms
       const expiredToken = server.jwt.sign(
         { userId: 'test-user' },
-        { expiresIn: '-1h' }
+        { expiresIn: '1ms' }
       );
+
+      // Wait 10ms for token to expire
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       const response = await server.inject({
         method: 'GET',
