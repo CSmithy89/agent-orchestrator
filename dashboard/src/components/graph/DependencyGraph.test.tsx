@@ -34,14 +34,16 @@ vi.mock('d3', () => {
   return {
     select: vi.fn(() => chainable),
     zoom: vi.fn(() => ({
-      scaleExtent: vi.fn(() => ({
-        on: vi.fn(() => ({})),
-      })),
+      scaleExtent: vi.fn(function(this: any) { return this; }),
+      on: vi.fn(function(this: any) { return this; }),
+      transform: vi.fn(function(this: any) { return this; }), // Used for zoom.transform()
     })),
     forceSimulation: vi.fn(() => ({
       force: vi.fn(function(this: any) { return this; }),
       on: vi.fn(function(this: any) { return this; }),
       stop: vi.fn(function(this: any) { return this; }),
+      alphaTarget: vi.fn(function(this: any) { return this; }), // Used for simulation.alphaTarget()
+      restart: vi.fn(function(this: any) { return this; }), // Used for simulation.restart()
     })),
     forceLink: vi.fn(() => ({
       id: vi.fn(function(this: any) { return this; }),
