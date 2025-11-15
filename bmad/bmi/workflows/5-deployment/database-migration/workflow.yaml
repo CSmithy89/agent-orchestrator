@@ -1,0 +1,84 @@
+# Database Migration - Database Schema Migration Workflow
+name: "database-migration"
+description: "Execute database migrations with automatic backups, validation, and rollback capability"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Deployment configuration from BMI config
+auto_run_migrations: "{config_source}:deployment.auto_run_migrations"
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/database-migration"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/database-migration-log-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - target_environment: "Environment for migrations (dev/staging/production)"
+  - database_connection: "Database connection string or reference"
+
+optional_inputs:
+  - migration_tool_override: "Override auto-detected migration tool"
+  - dry_run: "Show pending migrations without executing (default: false)"
+  - skip_backup: "Skip database backup (dangerous, not recommended)"
+  - migration_timeout: "Timeout for migration execution in seconds (default: 300)"
+  - rollback_on_failure: "Auto-rollback on migration failure (default: true)"
+
+output_artifacts:
+  - migration_log: "Complete migration execution log with timestamps"
+  - backup_location: "Database backup file location and metadata"
+  - migration_plan: "List of pending migrations to be executed"
+  - schema_diff: "Before/after schema comparison"
+  - rollback_script: "Generated rollback script for manual reversal"
+
+halt_conditions:
+  - "Migration tool not detected and no override provided"
+  - "Database connection unavailable or credentials invalid"
+  - "Backup creation fails (unless skip_backup=true)"
+  - "Migration validation fails (syntax errors, conflicts)"
+  - "Migration execution fails and rollback_on_failure=false"
+  - "Production migrations without explicit approval"
+  - "Destructive migrations (data loss) without confirmation"
+
+execution_modes:
+  - plan_only: "Show pending migrations without executing (dry-run)"
+  - execute: "Execute migrations with automatic backup (default)"
+  - rollback: "Rollback last migration batch"
+
+standalone: true
+
+integration_points:
+  - deployment_workflow: "Automatically invoked during deployment (step 5)"
+  - rollback_workflow: "Can rollback migrations during deployment rollback"
+  - infrastructure_provision: "Provisions database before migrations"
+
+migration_tools_supported:
+  - prisma: "Prisma Migrate (TypeScript/JavaScript)"
+  - drizzle: "Drizzle Kit (TypeScript/JavaScript)"
+  - knex: "Knex.js (JavaScript/TypeScript)"
+  - typeorm: "TypeORM (TypeScript/JavaScript)"
+  - sequelize: "Sequelize CLI (JavaScript/TypeScript)"
+  - django: "Django Migrations (Python)"
+  - rails: "Rails Active Record (Ruby)"
+  - alembic: "Alembic (Python/SQLAlchemy)"
+  - flyway: "Flyway (Java)"
+  - liquibase: "Liquibase (Java/XML/SQL)"
+
+database_types_supported:
+  - postgresql: "PostgreSQL"
+  - mysql: "MySQL/MariaDB"
+  - sqlite: "SQLite"
+  - sqlserver: "Microsoft SQL Server"
+  - mongodb: "MongoDB (schema migrations)"
+  - cockroachdb: "CockroachDB"

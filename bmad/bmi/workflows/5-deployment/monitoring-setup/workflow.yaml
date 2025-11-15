@@ -1,0 +1,84 @@
+# Monitoring Setup - Application and Infrastructure Monitoring Configuration Workflow
+name: "monitoring-setup"
+description: "Configure monitoring, alerting, and dashboards for application and infrastructure observability"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Monitoring configuration from BMI config
+monitoring_platform: "{config_source}:monitoring.platform"
+setup_on_first_deploy: "{config_source}:monitoring.setup_on_first_deploy"
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/monitoring-setup"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/monitoring-setup-log-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - target_environment: "Environment to configure monitoring for (dev/staging/production)"
+  - application_name: "Application name for monitoring identification"
+
+optional_inputs:
+  - monitoring_platform_override: "Override auto-detected monitoring platform"
+  - metrics_collection_interval: "Metrics collection interval in seconds (default: 60)"
+  - log_retention_days: "Log retention period in days (default: 30 for dev/staging, 90 for production)"
+  - alert_notification_channels: "Alert notification channels (slack/email/pagerduty/webhook)"
+  - enable_apm: "Enable Application Performance Monitoring (default: true)"
+  - enable_distributed_tracing: "Enable distributed tracing (default: true for microservices)"
+
+output_artifacts:
+  - monitoring_config: "Monitoring configuration files and manifests"
+  - dashboard_definitions: "Dashboard definitions for key metrics"
+  - alert_rules: "Alert rule definitions with thresholds"
+  - monitoring_endpoints: "Monitoring platform URLs and access instructions"
+  - integration_instructions: "Application integration guide for metrics/logs"
+
+halt_conditions:
+  - "Monitoring platform not detected and no override provided"
+  - "Cloud provider credentials not available"
+  - "Monitoring platform setup fails"
+  - "Alert channel configuration fails (critical alerts)"
+
+execution_modes:
+  - configure: "Configure monitoring for existing application (default)"
+  - update: "Update existing monitoring configuration"
+  - validate: "Validate monitoring is working correctly"
+
+standalone: true
+
+integration_points:
+  - deployment_workflow: "Configure monitoring after first deployment"
+  - infrastructure_provision: "Provisions monitoring infrastructure (APM, logging)"
+  - incident_response: "Alerts trigger incident response workflow"
+
+monitoring_platforms_supported:
+  - cloudwatch: "AWS CloudWatch (metrics, logs, alarms)"
+  - stackdriver: "Google Cloud Monitoring (Stackdriver)"
+  - azure_monitor: "Azure Monitor (Application Insights, Log Analytics)"
+  - datadog: "Datadog (APM, metrics, logs, traces)"
+  - newrelic: "New Relic (APM, infrastructure, logs)"
+  - prometheus: "Prometheus + Grafana (metrics, dashboards)"
+  - elastic_stack: "Elastic Stack (ELK - Elasticsearch, Logstash, Kibana)"
+  - sentry: "Sentry (error tracking)"
+  - honeycomb: "Honeycomb (observability)"
+  - lightstep: "Lightstep (distributed tracing)"
+
+monitoring_categories:
+  - application_metrics: "Application-level metrics (requests, errors, latency)"
+  - infrastructure_metrics: "Infrastructure metrics (CPU, memory, disk, network)"
+  - logs: "Application and system logs"
+  - traces: "Distributed tracing for request flows"
+  - errors: "Error tracking and reporting"
+  - uptime: "Uptime monitoring and health checks"
+  - custom_metrics: "Business and custom application metrics"

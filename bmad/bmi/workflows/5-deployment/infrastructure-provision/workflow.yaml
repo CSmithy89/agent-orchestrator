@@ -1,0 +1,73 @@
+# Infrastructure Provision - Cloud Infrastructure Provisioning Workflow
+name: "infrastructure-provision"
+description: "Provision cloud infrastructure using Infrastructure as Code (IaC) tools with cost estimation and security validation"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Deployment configuration from BMI config
+default_platform: "{config_source}:deployment.default_platform"
+secrets_provider: "{config_source}:deployment.secrets_provider"
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/infrastructure-provision"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/infrastructure-provision-log-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - target_environment: "Environment to provision (dev/staging/production)"
+  - cloud_provider: "Cloud provider (aws/gcp/azure/digitalocean)"
+
+optional_inputs:
+  - iac_tool_override: "Override auto-detected IaC tool (terraform/pulumi/cdk/cloudformation)"
+  - dry_run: "Plan only, do not apply changes (recommended for first run)"
+  - auto_approve: "Auto-approve changes without confirmation (dangerous, use with caution)"
+  - cost_budget_limit: "Abort if estimated monthly cost exceeds this USD amount"
+
+output_artifacts:
+  - provision_log: "Complete infrastructure provision log with timestamps"
+  - infrastructure_plan: "Detailed plan of infrastructure changes (resources to create/update/destroy)"
+  - cost_estimate: "Estimated monthly cost of infrastructure"
+  - state_backup: "Backup of infrastructure state before changes"
+  - resource_inventory: "Inventory of provisioned resources with IDs and metadata"
+
+halt_conditions:
+  - "IaC tool not detected and no override provided"
+  - "Cloud provider credentials not available"
+  - "Infrastructure plan shows destructive changes without confirmation"
+  - "Estimated cost exceeds budget limit"
+  - "State lock conflict (another provision in progress)"
+  - "Plan validation fails (syntax errors, missing variables)"
+  - "Security scan detects critical issues"
+
+execution_modes:
+  - plan_only: "Generate infrastructure plan without applying (dry-run)"
+  - interactive: "Step-by-step provision with user confirmation at each stage"
+  - automated: "Fully automated provision (requires auto_approve flag)"
+
+standalone: true
+
+integration_points:
+  - deployment_workflow: "Provisions infrastructure before first deployment"
+  - monitoring_setup: "Provisions monitoring infrastructure (APM, logging, alerting)"
+  - database_migration: "Provisions database infrastructure before migrations"
+
+iac_tools_supported:
+  - terraform: "HashiCorp Terraform (HCL)"
+  - pulumi: "Pulumi (TypeScript/Python/Go/.NET)"
+  - aws_cdk: "AWS CDK (TypeScript/Python/Java/.NET)"
+  - cloudformation: "AWS CloudFormation (YAML/JSON)"
+  - gcp_deployment_manager: "GCP Deployment Manager (YAML/Jinja2/Python)"
+  - azure_arm: "Azure Resource Manager Templates (JSON)"
+  - azure_bicep: "Azure Bicep (declarative syntax)"

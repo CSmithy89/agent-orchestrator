@@ -1,0 +1,91 @@
+services:
+  # Web Service
+  - type: web
+    name: my-web-app
+    env: node
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    numInstances: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-postgres-db
+          property: connectionString
+    autoDeploy: true
+    domains:
+      - my-app.com
+      - www.my-app.com
+
+  # Background Worker
+  - type: worker
+    name: my-worker
+    env: node
+    region: oregon
+    plan: starter
+    branch: main
+    buildCommand: npm install
+    startCommand: npm run worker
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: my-postgres-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: my-redis
+          type: redis
+          property: connectionString
+
+  # Static Site
+  - type: static-site
+    name: my-static-site
+    buildCommand: npm run build
+    staticPublishPath: ./dist
+    pullRequestPreviewsEnabled: true
+    headers:
+      - path: /*
+        name: X-Frame-Options
+        value: DENY
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+
+databases:
+  # PostgreSQL
+  - name: my-postgres-db
+    databaseName: myapp
+    user: myapp_user
+    region: oregon
+    plan: starter
+    ipAllowList: []
+
+  # Redis
+  - name: my-redis
+    region: oregon
+    plan: starter
+    maxmemoryPolicy: noeviction
+    ipAllowList: []
+
+# Cron Jobs
+cronjobs:
+  - name: daily-backup
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    command: npm run backup
+
+  - name: cleanup-old-logs
+    schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM
+    command: npm run cleanup-logs

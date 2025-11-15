@@ -1,0 +1,86 @@
+# Deployment Status Tracking
+# This file tracks all deployments across environments
+# Updated automatically by BMI deploy workflow
+
+metadata:
+  version: "1.0.0"
+  last_updated: null
+  managed_by: "BMI deploy workflow"
+
+# Current deployments per environment
+current_deployments:
+  dev:
+    version: null
+    deployed_at: null
+    deployed_by: null
+    deployment_strategy: null
+    status: null  # deployed, failed, rolling-back
+
+  staging:
+    version: null
+    deployed_at: null
+    deployed_by: null
+    deployment_strategy: null
+    status: null
+
+  production:
+    version: null
+    deployed_at: null
+    deployed_by: null
+    deployment_strategy: null
+    status: null
+
+# Deployment history (last 10 deployments per environment)
+deployment_history:
+  dev: []
+  # Example entry:
+  # - version: "story-AUTH-123"
+  #   deployed_at: "2025-11-15T10:30:00Z"
+  #   deployed_by: "diana"
+  #   deployment_strategy: "rolling"
+  #   status: "deployed"
+  #   smoke_tests: "passed"
+  #   rollback: false
+
+  staging: []
+  production: []
+
+# Epic deployments (tracking epic-level deployments)
+epic_deployments: []
+# Example entry:
+# - epic_id: "EPIC-001-user-auth"
+#   version: "epic-user-auth-v1"
+#   environment: "staging"
+#   status: "deployed"
+#   deployed_at: "2025-11-15T14:00:00Z"
+#   stories_included: ["AUTH-123", "AUTH-124", "AUTH-125"]
+#   validation:
+#     load_testing: "passed"
+#     monitoring: "configured"
+#     smoke_tests: "passed"
+#   ready_for_production: true
+
+# Rollback history
+rollback_history: []
+# Example entry:
+# - rollback_id: "ROLLBACK-001"
+#   environment: "production"
+#   from_version: "1.2.3"
+#   to_version: "1.2.2"
+#   rollback_reason: "High error rate detected"
+#   executed_at: "2025-11-15T11:00:00Z"
+#   rollback_strategy: "blue-green-instant"
+#   success: true
+#   incident_id: "INC-20251115-001"
+
+# Deployment metrics
+deployment_metrics:
+  total_deployments: 0
+  successful_deployments: 0
+  failed_deployments: 0
+  rollbacks: 0
+  average_deployment_time: null  # in seconds
+  deployment_frequency:  # DORA metric
+    per_day: 0
+    per_week: 0
+    per_month: 0

@@ -1,0 +1,225 @@
+# Fastfile for iOS Deployment
+# Documentation: https://docs.fastlane.tools
+
+default_platform(:ios)
+
+platform :ios do
+  # Pre-flight checks
+  before_all do
+    ensure_git_status_clean
+    ensure_git_branch(
+      branch: ENV["RELEASE_BRANCH"] || "main"
+    )
+  end
+
+  # Bump build number
+  desc "Increment build number"
+  lane :bump_build do
+    increment_build_number(
+      xcodeproj: "MyApp.xcodeproj"
+    )
+  end
+
+  # Bump version number
+  desc "Increment version number"
+  lane :bump_version do |options|
+    if options[:version]
+      increment_version_number(
+        version_number: options[:version],
+        xcodeproj: "MyApp.xcodeproj"
+      )
+    else
+      increment_version_number(
+        bump_type: options[:bump_type] || "patch",
+        xcodeproj: "MyApp.xcodeproj"
+      )
+    end
+  end
+
+  # Match (code signing)
+  desc "Sync code signing certificates and profiles"
+  lane :sync_signing do |options|
+    match(
+      type: options[:type] || "appstore",
+      readonly: true,
+      app_identifier: "com.mycompany.myapp"
+    )
+  end
+
+  # Development lane
+  desc "Build and distribute to development team (Ad-hoc)"
+  lane :adhoc do
+    bump_build
+
+    sync_signing(type: "adhoc")
+
+    build_app(
+      scheme: "MyApp",
+      export_method: "ad-hoc",
+      export_options: {
+        provisioningProfiles: {
+          "com.mycompany.myapp" => "match AdHoc com.mycompany.myapp"
+        }
+      }
+    )
+
+    # Upload to Firebase App Distribution (optional)
+    # firebase_app_distribution(
+    #   app: "1:123456789:ios:abcdef",
+    #   groups: "internal-testers",
+    #   release_notes: "Bug fixes and improvements"
+    # )
+
+    slack(
+      message: "Ad-hoc build uploaded successfully! 📱",
+      success: true
+    )
+  end
+
+  # TestFlight lane
+  desc "Deploy to TestFlight for beta testing"
+  lane :beta do
+    bump_build
+
+    # Sync certificates
+    sync_signing(type: "appstore")
+
+    # Build
+    build_app(
+      scheme: "MyApp",
+      export_method: "app-store",
+      export_options: {
+        provisioningProfiles: {
+          "com.mycompany.myapp" => "match AppStore com.mycompany.myapp"
+        }
+      }
+    )
+
+    # Upload to TestFlight
+    upload_to_testflight(
+      skip_waiting_for_build_processing: true,
+      distribute_external: true,
+      groups: ["Beta Testers"],
+      changelog: last_git_commit[:message],
+      notify_external_testers: true
+    )
+
+    slack(
+      message: "TestFlight build uploaded successfully! 🚀",
+      success: true
+    )
+  end
+
+  # App Store release
+  desc "Deploy to App Store"
+  lane :release do
+    # Ensure version is set
+    version = get_version_number(xcodeproj: "MyApp.xcodeproj")
+
+    UI.message("🚀 Releasing version #{version} to App Store")
+
+    bump_build
+
+    # Sync certificates
+    sync_signing(type: "appstore")
+
+    # Build
+    build_app(
+      scheme: "MyApp",
+      export_method: "app-store"
+    )
+
+    # Upload to App Store Connect
+    upload_to_app_store(
+      submit_for_review: false,  # Manual submission
+      automatic_release: false,
+      force: true,
+      precheck_include_in_app_purchases: false,
+      submission_information: {
+        add_id_info_limits_tracking: true,
+        add_id_info_serves_ads: false,
+        add_id_info_tracks_action: false,
+        add_id_info_tracks_install: false,
+        add_id_info_uses_idfa: false,
+        content_rights_has_rights: true,
+        content_rights_contains_third_party_content: false,
+        export_compliance_platform: 'ios',
+        export_compliance_compliance_required: false,
+        export_compliance_encryption_updated: false,
+        export_compliance_app_type: nil,
+        export_compliance_uses_encryption: false,
+        export_compliance_is_exempt: false,
+        export_compliance_contains_third_party_cryptography: false,
+        export_compliance_contains_proprietary_cryptography: false
+      }
+    )
+
+    # Create git tag
+    add_git_tag(
+      tag: "ios-v#{version}",
+      message: "Release version #{version} to App Store"
+    )
+
+    # Push tag
+    push_to_git_remote(
+      tags: true
+    )
+
+    slack(
+      message: "App Store build uploaded successfully! Version #{version} ready for review 📲",
+      success: true
+    )
+  end
+
+  # Screenshot generation
+  desc "Generate screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      scheme: "MyAppUITests",
+      output_directory: "./fastlane/screenshots",
+      clear_previous_screenshots: true,
+      devices: [
+        "iPhone 15 Pro Max",
+        "iPhone 15 Pro",
+        "iPhone SE (3rd generation)",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ],
+      languages: ["en-US"]
+    )
+
+    frame_screenshots(
+      white: true,
+      path: "./fastlane/screenshots"
+    )
+  end
+
+  # Metadata management
+  desc "Upload metadata to App Store Connect"
+  lane :upload_metadata do
+    upload_to_app_store(
+      skip_binary_upload: true,
+      skip_screenshots: false,
+      force: true
+    )
+  end
+
+  # Error handling
+  error do |lane, exception, options|
+    slack(
+      message: "Error in lane #{lane}: #{exception.message}",
+      success: false
+    )
+  end
+
+  # Post actions
+  after_all do |lane|
+    # Commit build number bump
+    if lane == :beta || lane == :release
+      git_commit(
+        path: ["MyApp.xcodeproj/project.pbxproj"],
+        message: "Bump build number [skip ci]"
+      )
+      push_to_git_remote
+    end
+  end
+end

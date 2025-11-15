@@ -1,0 +1,68 @@
+# Rollback - Deployment Rollback Workflow
+name: "rollback"
+description: "Rollback application deployment to previous stable version with database migration reversal and verification"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Deployment configuration from BMI config
+default_platform: "{config_source}:deployment.default_platform"
+secrets_provider: "{config_source}:deployment.secrets_provider"
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/rollback"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/rollback-log-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - target_environment: "Environment to rollback (dev/staging/production)"
+  - rollback_reason: "Reason for rollback (deployment failure, critical bug, performance issue)"
+
+optional_inputs:
+  - target_version: "Specific version to rollback to (defaults to previous deployment)"
+  - skip_database_rollback: "Skip database rollback (use with caution)"
+  - force_rollback: "Force rollback without confirmation (emergency use only)"
+
+output_artifacts:
+  - rollback_log: "Complete rollback log with timestamps and status"
+  - deployment_status_update: "Updated deployment-status.yaml with rollback entry"
+  - incident_report: "Incident report documenting rollback reason and resolution"
+  - rollback_verification: "Post-rollback verification results"
+
+halt_conditions:
+  - "Target environment not specified or invalid"
+  - "No previous deployment found to rollback to"
+  - "Platform detection fails"
+  - "Database rollback fails (unless skip_database_rollback=true)"
+  - "Post-rollback verification fails"
+  - "User cancels rollback (in interactive mode)"
+
+execution_modes:
+  - automated: "Fully automated rollback (triggered by deployment failures)"
+  - interactive: "Step-by-step rollback with user confirmation"
+  - emergency: "Fast-track rollback with minimal confirmations (production incidents)"
+
+standalone: true
+
+integration_points:
+  - deployment_workflow: "Can be triggered automatically on deployment failure"
+  - incident_response: "Invoked during incident response workflow"
+  - hotfix_workflow: "May trigger rollback before hotfix deployment"
+  - monitoring_setup: "Alerts can trigger automatic rollback"
+
+rollback_strategy:
+  - blue_green: "Switch traffic back to previous (green) deployment"
+  - canary: "Stop canary rollout and revert to stable version"
+  - recreate: "Replace current deployment with previous version"
+  - rolling: "Rolling update back to previous version"

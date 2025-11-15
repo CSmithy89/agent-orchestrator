@@ -1,0 +1,287 @@
+# Fastfile for Android Deployment
+# Documentation: https://docs.fastlane.tools
+
+default_platform(:android)
+
+platform :android do
+  # Pre-flight checks
+  before_all do
+    ensure_git_status_clean
+    ensure_git_branch(
+      branch: ENV["RELEASE_BRANCH"] || "main"
+    )
+  end
+
+  # Build APK
+  desc "Build debug APK"
+  lane :build_debug do
+    gradle(
+      task: "clean assembleDebug"
+    )
+  end
+
+  # Build release APK
+  desc "Build release APK"
+  lane :build_apk do
+    gradle(
+      task: "clean assembleRelease"
+    )
+  end
+
+  # Build AAB (Android App Bundle)
+  desc "Build release AAB"
+  lane :build_aab do
+    gradle(
+      task: "clean bundleRelease"
+    )
+  end
+
+  # Deploy to Internal Testing
+  desc "Deploy to Play Console Internal Testing track"
+  lane :internal do
+    # Build AAB
+    build_aab
+
+    # Upload to Play Console
+    upload_to_play_store(
+      track: 'internal',
+      release_status: 'completed',
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json',
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    slack(
+      message: "Internal test build uploaded to Play Console! 📱",
+      success: true
+    )
+  end
+
+  # Deploy to Beta Testing
+  desc "Deploy to Play Console Beta track"
+  lane :beta do
+    # Build AAB
+    build_aab
+
+    # Get version info
+    version_name = google_play_track_version_codes(
+      track: "beta",
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json'
+    )
+
+    # Upload to Play Console
+    upload_to_play_store(
+      track: 'beta',
+      release_status: 'completed',
+      rollout: '0.1',  # Start with 10% rollout
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json',
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      version_name: version_name
+    )
+
+    slack(
+      message: "Beta build uploaded to Play Console with 10% rollout! 🚀",
+      success: true
+    )
+  end
+
+  # Promote beta to production
+  desc "Promote beta to production with gradual rollout"
+  lane :promote_to_production do
+    # Promote from beta to production
+    upload_to_play_store(
+      track: 'beta',
+      track_promote_to: 'production',
+      rollout: '0.2',  # Start with 20% rollout
+      skip_upload_changelogs: false,
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json'
+    )
+
+    slack(
+      message: "Beta promoted to production with 20% rollout! 🎉",
+      success: true
+    )
+  end
+
+  # Deploy to Production
+  desc "Deploy to Play Console Production track"
+  lane :production do
+    # Build AAB
+    build_aab
+
+    # Upload to Play Console
+    upload_to_play_store(
+      track: 'production',
+      release_status: 'completed',
+      rollout: '0.2',  # Start with 20% rollout
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json',
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false
+    )
+
+    # Create git tag
+    version = get_version_name
+    add_git_tag(
+      tag: "android-v#{version}",
+      message: "Release version #{version} to Play Store"
+    )
+
+    # Push tag
+    push_to_git_remote(
+      tags: true
+    )
+
+    slack(
+      message: "Production build uploaded to Play Console with 20% rollout! Version #{version} 📲",
+      success: true
+    )
+  end
+
+  # Increase rollout percentage
+  desc "Increase production rollout percentage"
+  lane :increase_rollout do |options|
+    rollout_percentage = options[:percentage] || 0.5  # Default 50%
+
+    upload_to_play_store(
+      track: 'production',
+      rollout: rollout_percentage,
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json'
+    )
+
+    percentage_display = (rollout_percentage * 100).to_i
+    slack(
+      message: "Production rollout increased to #{percentage_display}%! 📈",
+      success: true
+    )
+  end
+
+  # Complete rollout
+  desc "Complete production rollout to 100%"
+  lane :complete_rollout do
+    upload_to_play_store(
+      track: 'production',
+      rollout: '1.0',  # 100%
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true,
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json'
+    )
+
+    slack(
+      message: "Production rollout completed to 100%! 🎯",
+      success: true
+    )
+  end
+
+  # Screenshot generation
+  desc "Generate screenshots for Play Store"
+  lane :screenshots do
+    screengrab(
+      locales: ['en-US'],
+      clear_previous_screenshots: true,
+      app_package_name: 'com.mycompany.myapp',
+      use_timestamp_suffix: false
+    )
+  end
+
+  # Upload metadata
+  desc "Upload metadata to Play Console"
+  lane :upload_metadata do
+    upload_to_play_store(
+      skip_upload_apk: true,
+      skip_upload_aab: true,
+      skip_upload_metadata: false,
+      skip_upload_images: false,
+      skip_upload_screenshots: false,
+      json_key: ENV['GOOGLE_PLAY_JSON_KEY_PATH'] || './google-play-key.json'
+    )
+  end
+
+  # Run tests
+  desc "Run unit tests"
+  lane :test do
+    gradle(
+      task: "test"
+    )
+  end
+
+  # Run instrumented tests
+  desc "Run instrumented tests"
+  lane :instrumented_test do
+    gradle(
+      task: "connectedAndroidTest"
+    )
+  end
+
+  # Lint
+  desc "Run lint checks"
+  lane :lint do
+    gradle(
+      task: "lint"
+    )
+  end
+
+  # Helper lane to get version name
+  private_lane :get_version_name do
+    # Read version from build.gradle
+    version = File.read("../app/build.gradle").match(/versionName "(.*)"/)[1]
+    version
+  end
+
+  # Helper lane to bump version
+  desc "Bump version in build.gradle"
+  lane :bump_version do |options|
+    version = options[:version]
+
+    # Update versionName in build.gradle
+    gradle_file = File.read("../app/build.gradle")
+    new_gradle = gradle_file.gsub(
+      /versionName ".*"/,
+      "versionName \"#{version}\""
+    )
+    File.write("../app/build.gradle", new_gradle)
+
+    # Auto-increment versionCode
+    gradle_file = File.read("../app/build.gradle")
+    current_code = gradle_file.match(/versionCode (\d+)/)[1].to_i
+    new_code = current_code + 1
+    new_gradle = gradle_file.gsub(
+      /versionCode \d+/,
+      "versionCode #{new_code}"
+    )
+    File.write("../app/build.gradle", new_gradle)
+
+    UI.success("Version bumped to #{version} (code: #{new_code})")
+  end
+
+  # Error handling
+  error do |lane, exception, options|
+    slack(
+      message: "Error in lane #{lane}: #{exception.message}",
+      success: false
+    )
+  end
+
+  # Post actions
+  after_all do |lane|
+    # Commit version bump
+    if lane == :beta || lane == :production
+      git_commit(
+        path: ["app/build.gradle"],
+        message: "Bump version [skip ci]"
+      )
+      push_to_git_remote
+    end
+  end
+end

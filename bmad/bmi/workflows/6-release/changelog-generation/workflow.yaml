@@ -1,0 +1,135 @@
+# Changelog Generation - Automated Changelog Generation Workflow
+name: "changelog-generation"
+description: "Generate changelog from git commits, PRs, and conventional commits with multiple format support"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/6-release/changelog-generation"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/changelog-{version}-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - version: "Version for this changelog entry (e.g., 1.2.3)"
+  - since_tag: "Starting tag/commit to generate changelog from (e.g., v1.2.2 or commit SHA)"
+
+optional_inputs:
+  - format: "Changelog format (keep-a-changelog, conventional-commits, github-releases, custom)"
+  - include_prs: "Include pull request information (default: true, requires GitHub/GitLab)"
+  - include_authors: "Include commit authors in changelog (default: false)"
+  - include_commit_links: "Include links to commits (default: true)"
+  - group_by: "Group changes by (type, scope, author, date)"
+  - custom_template: "Path to custom changelog template (if format = custom)"
+  - exclude_types: "Commit types to exclude (e.g., chore, test, docs)"
+  - breaking_changes_section: "Include breaking changes section (default: true)"
+
+output_artifacts:
+  - changelog_entry: "Generated changelog entry for specified version"
+  - updated_changelog: "Updated CHANGELOG.md file"
+  - commit_summary: "Summary of commits included in changelog"
+  - breaking_changes: "List of breaking changes (if any)"
+
+halt_conditions:
+  - "since_tag does not exist in git history"
+  - "No commits found between since_tag and HEAD"
+  - "CHANGELOG.md file not found and create_if_missing = false"
+  - "Custom template not found (if format = custom)"
+
+execution_modes:
+  - interactive: "Step-by-step changelog generation with preview and editing (default)"
+  - automated: "Fully automated changelog generation (CI/CD triggered)"
+  - preview_only: "Generate changelog preview without updating CHANGELOG.md"
+
+standalone: true
+
+integration_points:
+  - release_workflow: "Invoked during release process to generate changelog"
+  - hotfix_workflow: "Can generate changelog for hotfix releases"
+
+changelog_formats:
+  - keep_a_changelog:
+      description: "Keep a Changelog format (https://keepachangelog.com)"
+      sections: ["Added", "Changed", "Deprecated", "Removed", "Fixed", "Security"]
+      example: |
+        ## [1.2.3] - 2025-11-15
+
+        ### Added
+        - New feature X
+
+        ### Fixed
+        - Bug fix Y
+  - conventional_commits:
+      description: "Conventional Commits based changelog"
+      commit_types:
+        - feat: "Features"
+        - fix: "Bug Fixes"
+        - docs: "Documentation"
+        - style: "Styles"
+        - refactor: "Code Refactoring"
+        - perf: "Performance Improvements"
+        - test: "Tests"
+        - build: "Builds"
+        - ci: "Continuous Integration"
+        - chore: "Chores"
+      breaking_indicator: "BREAKING CHANGE"
+  - github_releases:
+      description: "GitHub Releases format"
+      sections: ["What's Changed", "New Contributors", "Full Changelog"]
+      auto_generate_links: true
+  - custom:
+      description: "Custom template-based changelog"
+      template_variables: ["version", "date", "commits", "prs", "authors"]
+
+conventional_commit_types:
+  - feat: "New features"
+  - fix: "Bug fixes"
+  - docs: "Documentation changes"
+  - style: "Code style changes (formatting, etc.)"
+  - refactor: "Code refactoring"
+  - perf: "Performance improvements"
+  - test: "Test changes"
+  - build: "Build system changes"
+  - ci: "CI/CD changes"
+  - chore: "Other changes (dependencies, etc.)"
+  - revert: "Reverted changes"
+
+commit_parsing:
+  - conventional_format: "type(scope): subject"
+  - breaking_change_indicators: ["BREAKING CHANGE:", "BREAKING-CHANGE:", "!:"]
+  - footer_parsing: true
+  - multi_line_support: true
+
+pr_integration:
+  - github_prs: "Fetch PR information via GitHub API (gh cli)"
+  - gitlab_mrs: "Fetch MR information via GitLab API (glab cli)"
+  - pr_metadata: ["title", "number", "author", "labels", "milestone"]
+
+grouping_options:
+  - by_type: "Group by commit type (feat, fix, etc.)"
+  - by_scope: "Group by commit scope (api, ui, db, etc.)"
+  - by_author: "Group by commit author"
+  - by_date: "Chronological order"
+
+formatting_options:
+  - bullet_style: "Bullet point style (-, *, •)"
+  - commit_links: "Include links to commits on hosting platform"
+  - pr_links: "Include links to pull requests"
+  - author_credits: "Include @author credits"
+  - emoji_support: "Support emoji prefixes (✨ feat, 🐛 fix, etc.)"
+
+breaking_changes_detection:
+  - footer_keyword: "BREAKING CHANGE:"
+  - exclamation_mark: "feat!: or fix!:"
+  - manual_detection: "Manual review required"

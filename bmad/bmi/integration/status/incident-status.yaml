@@ -1,0 +1,109 @@
+# Incident Status Tracking
+# This file tracks all production incidents
+# Updated automatically by BMI incident-response workflow
+
+metadata:
+  version: "1.0.0"
+  last_updated: null
+  managed_by: "BMI incident-response workflow"
+
+# Active incidents
+active_incidents: []
+# Example entry:
+# - incident_id: "INC-20251115-001"
+#   severity: "P0"  # P0, P1, P2, P3, P4
+#   description: "API returning 500 errors"
+#   status: "investigating"  # detected, investigating, mitigating, resolved
+#   affected_service: "api"
+#   environment: "production"
+#   customer_impact: "All customers unable to checkout"
+#   created_at: "2025-11-15T09:00:00Z"
+#   responders: ["diana", "on-call-engineer"]
+#   incident_commander: "diana"
+#   war_room: "#incident-001"
+
+# Resolved incidents (last 30 days)
+resolved_incidents: []
+# Example entry:
+# - incident_id: "INC-20251115-001"
+#   severity: "P0"
+#   description: "API returning 500 errors"
+#   status: "resolved"
+#   affected_service: "api"
+#   environment: "production"
+#   customer_impact: "All customers unable to checkout"
+#   created_at: "2025-11-15T09:00:00Z"
+#   resolved_at: "2025-11-15T09:45:00Z"
+#   mttr: "45 minutes"  # Mean Time To Recovery
+#   detection_time: "5 minutes"
+#   response_time: "5 minutes"
+#   mitigation_time: "15 minutes"
+#   resolution_time: "20 minutes"
+#   resolution:
+#     type: "hotfix"  # rollback, hotfix, configuration, infrastructure
+#     hotfix_version: "1.2.4"
+#     deployed_at: "2025-11-15T09:40:00Z"
+#   root_cause: "Null pointer exception in payment validation"
+#   runbook_used: "high_error_rate"
+#   responders: ["diana", "on-call-engineer"]
+#   incident_commander: "diana"
+#   post_incident_review:
+#     scheduled: true
+#     scheduled_for: "2025-11-17T10:00:00Z"
+#     completed: false
+#     action_items: []
+
+# Incident metrics
+incident_metrics:
+  total_incidents: 0
+  incidents_by_severity:
+    p0: 0
+    p1: 0
+    p2: 0
+    p3: 0
+    p4: 0
+  average_mttr:  # Mean Time To Recovery (DORA metric)
+    p0: null
+    p1: null
+    p2: null
+    overall: null
+  incident_frequency:
+    per_week: 0
+    per_month: 0
+  resolution_types:
+    rollback: 0
+    hotfix: 0
+    configuration: 0
+    infrastructure: 0
+  sla_compliance:
+    p0_response_sla: null  # % incidents responded to within SLA (5 min)
+    p1_response_sla: null  # % incidents responded to within SLA (15 min)
+  repeat_incidents: 0  # Incidents with same root cause
+
+# Post-Incident Reviews (PIR)
+post_incident_reviews: []
+# Example entry:
+# - incident_id: "INC-20251115-001"
+#   pir_date: "2025-11-17T10:00:00Z"
+#   facilitator: "engineering-lead"
+#   attendees: ["diana", "on-call-engineer", "team-lead"]
+#   what_went_well:
+#     - "Fast detection via monitoring alerts"
+#     - "Clear runbook helped guide response"
+#   what_went_wrong:
+#     - "Null check missing in payment validation"
+#     - "Alert threshold could be more sensitive"
+#   where_we_got_lucky:
+#     - "Issue only affected payment API, not entire platform"
+#   action_items:
+#     - action: "Add null checks to all payment validation functions"
+#       owner: "backend-team"
+#       due_date: "2025-11-22"
+#       status: "open"
+#     - action: "Lower error rate alert threshold to 1%"
+#       owner: "diana"
+#       due_date: "2025-11-18"
+#       status: "completed"
+#   prevention_measures:
+#     - "Add integration tests for payment edge cases"
+#     - "Implement stricter code review for payment code"

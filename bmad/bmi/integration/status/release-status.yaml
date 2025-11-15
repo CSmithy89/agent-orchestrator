@@ -1,0 +1,92 @@
+# Release Status Tracking
+# This file tracks all software releases
+# Updated automatically by BMI release workflow
+
+metadata:
+  version: "1.0.0"
+  last_updated: null
+  managed_by: "BMI release workflow"
+
+# Current release in production
+current_release:
+  version: null
+  type: null  # major, minor, patch, hotfix
+  released_at: null
+  deployed_to_production_at: null
+  release_manager: null
+
+# Release history (all releases)
+releases: []
+# Example entry:
+# - version: "1.3.0"
+#   type: "minor"
+#   status: "deployed"  # draft, published, deployed, rolled-back
+#   created_at: "2025-11-15T10:00:00Z"
+#   published_at: "2025-11-15T10:15:00Z"
+#   deployed_at: "2025-11-15T11:30:00Z"
+#   release_manager: "rita"
+#   quality_gates:
+#     load_testing: "passed"
+#     performance_profiling: "passed"
+#     container_build: "passed"
+#   changelog:
+#     features: 5
+#     bugfixes: 3
+#     breaking_changes: 0
+#   deployment:
+#     environment: "production"
+#     strategy: "blue-green"
+#     status: "success"
+#     rollback: false
+#   registries:
+#     - name: "npm"
+#       url: "https://npmjs.com/package/myapp/v/1.3.0"
+#       published: true
+#     - name: "docker"
+#       url: "https://hub.docker.com/r/myapp/tags/1.3.0"
+#       published: true
+#   github_release:
+#     url: "https://github.com/owner/repo/releases/tag/v1.3.0"
+#     assets: []
+
+# Hotfix history
+hotfixes: []
+# Example entry:
+# - version: "1.2.4"
+#   base_version: "1.2.3"
+#   hotfix_description: "Fix null pointer exception in payment API"
+#   incident_id: "INC-20251115-001"
+#   status: "deployed"
+#   created_at: "2025-11-15T09:00:00Z"
+#   deployed_at: "2025-11-15T09:45:00Z"
+#   fast_track: true
+#   auto_deploy: true
+#   tests_passed: true
+#   mttr: "45 minutes"  # Mean Time To Recovery
+
+# Release candidates (RC)
+release_candidates: []
+# Example entry:
+# - version: "2.0.0-rc.1"
+#   base_version: "2.0.0"
+#   status: "testing"  # testing, approved, rejected
+#   created_at: "2025-11-15T08:00:00Z"
+#   testing_complete: false
+#   issues_found: []
+#   approved_for_release: false
+
+# Release metrics
+release_metrics:
+  total_releases: 0
+  major_releases: 0
+  minor_releases: 0
+  patch_releases: 0
+  hotfixes: 0
+  failed_releases: 0
+  average_time_to_production: null  # from release creation to production deploy (seconds)
+  release_frequency:  # DORA metric
+    per_month: 0
+    per_quarter: 0
+    per_year: 0
+  change_failure_rate: 0  # DORA metric (% of releases causing incidents)
+  lead_time_for_changes: null  # DORA metric (commit to production)
