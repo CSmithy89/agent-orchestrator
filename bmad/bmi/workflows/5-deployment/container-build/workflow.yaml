@@ -1,0 +1,79 @@
+# Container Build - Container Image Build and Security Scan Workflow
+name: "container-build"
+description: "Build optimized container images with multi-platform support, vulnerability scanning, and registry push"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/container-build"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/container-build-log-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - image_name: "Container image name (e.g., myapp, company/myapp)"
+  - target_environment: "Target environment for tagging (dev/staging/production)"
+
+optional_inputs:
+  - dockerfile_path: "Path to Dockerfile (defaults to ./Dockerfile)"
+  - build_context: "Build context path (defaults to current directory)"
+  - platforms: "Target platforms (defaults to linux/amd64, supports linux/arm64)"
+  - registry: "Container registry (docker.io, ecr, gcr, acr, ghcr)"
+  - push_to_registry: "Push image to registry after build (default: true)"
+  - scan_vulnerabilities: "Scan for security vulnerabilities (default: true)"
+  - build_args: "Build arguments as key=value pairs"
+  - cache_from: "Cache source for layer caching"
+  - no_cache: "Disable build cache (force rebuild)"
+
+output_artifacts:
+  - build_log: "Complete container build log with timestamps"
+  - image_manifest: "Image manifest with tags, digest, size, layers"
+  - vulnerability_scan_report: "Security vulnerability scan results (if enabled)"
+  - sbom: "Software Bill of Materials (SBOM) for image"
+  - build_context_analysis: "Build context size and optimization recommendations"
+
+halt_conditions:
+  - "Dockerfile not found"
+  - "Container build tool not installed (docker/podman/buildah)"
+  - "Build fails (syntax errors, missing dependencies)"
+  - "Critical vulnerabilities found and scan policy enforced"
+  - "Registry credentials not available (if push_to_registry=true)"
+  - "Image size exceeds reasonable limit (>5GB warning)"
+
+execution_modes:
+  - build_only: "Build image without pushing to registry"
+  - build_and_push: "Build and push to container registry (default)"
+  - scan_only: "Scan existing image without building"
+
+standalone: true
+
+integration_points:
+  - deployment_workflow: "Builds container before deployment to container platforms"
+  - infrastructure_provision: "Can provision container registry as part of infrastructure"
+  - ci_cd_pipeline: "Integrates with CI/CD for automated builds"
+
+container_tools_supported:
+  - docker: "Docker (most common)"
+  - podman: "Podman (daemonless, rootless)"
+  - buildah: "Buildah (scriptable builds)"
+  - buildx: "Docker Buildx (multi-platform builds)"
+
+registries_supported:
+  - docker_hub: "Docker Hub (docker.io)"
+  - aws_ecr: "Amazon Elastic Container Registry"
+  - google_gcr: "Google Container Registry"
+  - azure_acr: "Azure Container Registry"
+  - github_ghcr: "GitHub Container Registry"
+  - gitlab_registry: "GitLab Container Registry"
+  - harbor: "Harbor (self-hosted)"
