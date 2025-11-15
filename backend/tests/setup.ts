@@ -26,6 +26,9 @@ beforeAll(() => {
   // Ensure we're in test mode
   process.env.NODE_ENV = 'test';
 
+  // Set mock API keys for health checks
+  process.env.ANTHROPIC_API_KEY = 'test-anthropic-key';
+
   // Disable color output in CI for cleaner logs
   if (process.env.CI) {
     process.env.FORCE_COLOR = '0';

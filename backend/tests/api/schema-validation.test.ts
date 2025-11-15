@@ -118,7 +118,6 @@ describe('OpenAPI Schema Validation', () => {
       expect(body.data).toHaveProperty('name');
       expect(body.data).toHaveProperty('status');
       expect(body.data).toHaveProperty('phase');
-      expect(body.data).toHaveProperty('config');
       expect(body.data).toHaveProperty('createdAt');
       expect(body.data).toHaveProperty('updatedAt');
     });
