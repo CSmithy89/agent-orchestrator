@@ -1,6 +1,6 @@
 # Story 6.9: API Integration Tests
 
-Status: review
+Status: done
 
 ## Story
 
