@@ -1,0 +1,127 @@
+[build]
+  # Build command
+  command = "npm run build"
+
+  # Directory with the build output
+  publish = "dist"
+
+  # Functions directory
+  functions = "netlify/functions"
+
+  # Base directory
+  base = "/"
+
+# Production context
+[context.production]
+  command = "npm run build:production"
+  environment = { NODE_ENV = "production" }
+
+# Deploy Preview context
+[context.deploy-preview]
+  command = "npm run build:preview"
+  environment = { NODE_ENV = "preview" }
+
+# Branch deploy context
+[context.branch-deploy]
+  command = "npm run build:staging"
+
+# Specific branch context
+[context.staging]
+  command = "npm run build:staging"
+  environment = { NODE_ENV = "staging" }
+
+# Redirects and rewrites
+[[redirects]]
+  from = "/old-path"
+  to = "/new-path"
+  status = 301
+  force = true
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# Headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Environment variables
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_VERSION = "9"
+  NODE_ENV = "production"
+
+# Plugin configuration
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+
+  [plugins.inputs]
+    output_path = "reports/lighthouse.html"
+
+[[plugins]]
+  package = "netlify-plugin-cache"
+
+  [plugins.inputs.paths]
+    node_modules = "node_modules"
+    .cache = ".cache"
+
+# Dev server configuration
+[dev]
+  command = "npm run dev"
+  port = 3000
+  targetPort = 3000
+  publish = "dist"
+  autoLaunch = true
+
+# Functions configuration
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+  # Individual function config
+  [functions."api-*"]
+    included_files = ["data/**/*.json"]
+
+# Split testing (A/B testing)
+[split]
+  homepage = ["main", "variant-a", "variant-b"]
+  homepage.main = 50
+  homepage.variant-a = 25
+  homepage.variant-b = 25
+
+# Edge functions
+[[edge_functions]]
+  function = "auth"
+  path = "/admin/*"
+
+[[edge_functions]]
+  function = "geo-redirect"
+  path = "/*"

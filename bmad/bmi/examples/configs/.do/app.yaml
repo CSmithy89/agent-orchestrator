@@ -1,0 +1,211 @@
+# DigitalOcean App Platform Configuration
+# Documentation: https://docs.digitalocean.com/products/app-platform/reference/app-spec/
+
+name: my-app
+region: nyc
+
+# Services
+services:
+  # Web service
+  - name: web
+    github:
+      repo: your-org/your-repo
+      branch: main
+      deploy_on_push: true
+
+    build_command: npm run build
+    run_command: npm start
+
+    environment_slug: node-js
+    instance_count: 3
+    instance_size_slug: basic-xs
+
+    http_port: 8080
+
+    routes:
+      - path: /
+
+    health_check:
+      http_path: /health
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 3
+
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "8080"
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: API_KEY
+        scope: RUN_TIME
+        type: SECRET
+
+    # CORS configuration
+    cors:
+      allow_origins:
+        - prefix: https://
+          exact: "my-app.com"
+        - prefix: https://
+          exact: "www.my-app.com"
+      allow_methods:
+        - GET
+        - POST
+        - PUT
+        - PATCH
+        - DELETE
+        - OPTIONS
+      allow_headers:
+        - Content-Type
+        - Authorization
+      expose_headers:
+        - X-Request-Id
+      max_age: 3600
+      allow_credentials: true
+
+  # Worker service
+  - name: worker
+    github:
+      repo: your-org/your-repo
+      branch: main
+      deploy_on_push: true
+
+    build_command: npm install
+    run_command: npm run worker
+
+    environment_slug: node-js
+    instance_count: 2
+    instance_size_slug: basic-xs
+
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+      - key: REDIS_URL
+        scope: RUN_TIME
+        type: SECRET
+
+# Static sites
+static_sites:
+  - name: frontend
+    github:
+      repo: your-org/your-frontend-repo
+      branch: main
+      deploy_on_push: true
+
+    build_command: npm run build
+    output_dir: dist
+
+    environment_slug: node-js
+
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: VITE_API_URL
+        value: https://api.my-app.com
+
+    routes:
+      - path: /
+
+    # Error document
+    error_document: /index.html
+
+    # CORS
+    cors:
+      allow_origins:
+        - prefix: https://
+          exact: "my-app.com"
+      allow_methods:
+        - GET
+      allow_headers:
+        - Content-Type
+      max_age: 3600
+
+# Jobs (cron jobs)
+jobs:
+  - name: daily-backup
+    github:
+      repo: your-org/your-repo
+      branch: main
+
+    kind: PRE_DEPLOY  # or POST_DEPLOY or CRON
+    run_command: npm run backup
+
+    environment_slug: node-js
+    instance_size_slug: basic-xs
+
+    envs:
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        type: SECRET
+
+  - name: cleanup-logs
+    github:
+      repo: your-org/your-repo
+      branch: main
+
+    kind: CRON
+    schedule: "0 3 * * 0"  # Weekly on Sunday at 3 AM UTC
+    run_command: npm run cleanup-logs
+
+    environment_slug: node-js
+    instance_size_slug: basic-xs
+
+# Databases
+databases:
+  - name: db
+    engine: PG
+    version: "14"
+    production: true
+    cluster_name: my-app-db
+    db_name: myapp
+    db_user: myapp_user
+
+# Functions (serverless)
+functions:
+  - name: api-function
+    github:
+      repo: your-org/your-functions
+      branch: main
+      deploy_on_push: true
+
+    source_dir: /functions/api
+
+    routes:
+      - path: /api
+
+    envs:
+      - key: NODE_ENV
+        value: production
+
+# Domains
+domains:
+  - domain: my-app.com
+    type: PRIMARY
+    zone: my-app.com
+  - domain: www.my-app.com
+    type: ALIAS
+    zone: my-app.com
+
+# Ingress rules
+ingress:
+  rules:
+    - component:
+        name: web
+      match:
+        path:
+          prefix: /api
+      cors:
+        allow_origins:
+          - exact: https://my-app.com
+        allow_methods:
+          - GET
+          - POST
+        allow_headers:
+          - Authorization
