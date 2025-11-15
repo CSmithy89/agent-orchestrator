@@ -340,4 +340,81 @@ export async function registerStateRoutes(server: FastifyInstance): Promise<void
       }
     }
   });
+
+  /**
+   * GET /api/projects/:id/dependency-graph - Get dependency graph
+   */
+  server.get('/api/projects/:id/dependency-graph', {
+    schema: {
+      description: 'Get dependency graph (nodes, edges, critical path) for a project',
+      tags: ['state'],
+      security: [{ bearerAuth: [] }],
+      params: {
+        type: 'object',
+        properties: {
+          id: { type: 'string', format: 'uuid' }
+        },
+        required: ['id']
+      },
+      querystring: {
+        type: 'object',
+        properties: {
+          epic: { type: 'string' },
+          status: { type: 'string' }
+        }
+      },
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            success: { type: 'boolean' },
+            data: {
+              type: 'object',
+              properties: {
+                nodes: { type: 'array' },
+                edges: { type: 'array' },
+                criticalPath: { type: 'array' }
+              }
+            },
+            timestamp: { type: 'string' }
+          }
+        }
+      }
+    },
+    preHandler: async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        await request.jwtVerify();
+      } catch (error) {
+        reply.code(401).send({
+          error: 'Unauthorized',
+          message: 'Invalid or missing authentication token',
+          requestId: request.id
+        } as APIError);
+      }
+    },
+    handler: async (request: FastifyRequest, reply: FastifyReply) => {
+      try {
+        // Validate path parameters
+        const params = ProjectIdParamsSchema.parse(request.params);
+        const query = request.query as { epic?: string; status?: string };
+
+        // Get dependency graph
+        const graph = await stateService.getDependencyGraph(params.id, query);
+
+        const response: APIResponse<typeof graph> = {
+          success: true,
+          data: graph,
+          timestamp: new Date().toISOString()
+        };
+
+        reply.code(200).send(response);
+      } catch (error) {
+        reply.code(400).send({
+          error: 'Bad Request',
+          message: (error as Error).message,
+          requestId: request.id
+        } as APIError);
+      }
+    }
+  });
 }

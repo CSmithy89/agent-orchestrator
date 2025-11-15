@@ -203,4 +203,77 @@ describe('State Routes', () => {
       expect(response.statusCode).toBe(404);
     });
   });
+
+  describe('GET /api/projects/:id/dependency-graph', () => {
+    it('should return 401 without authentication', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: `/api/projects/${testProjectId}/dependency-graph`
+      });
+
+      expect(response.statusCode).toBe(401);
+    });
+
+    it('should return dependency graph with nodes and edges', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: `/api/projects/${testProjectId}/dependency-graph`,
+        headers: {
+          authorization: `Bearer ${jwtToken}`
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(body.data).toHaveProperty('nodes');
+      expect(body.data).toHaveProperty('edges');
+      expect(body.data).toHaveProperty('criticalPath');
+      expect(Array.isArray(body.data.nodes)).toBe(true);
+      expect(Array.isArray(body.data.edges)).toBe(true);
+      expect(Array.isArray(body.data.criticalPath)).toBe(true);
+    });
+
+    it('should filter dependency graph by epic', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: `/api/projects/${testProjectId}/dependency-graph?epic=epic-6`,
+        headers: {
+          authorization: `Bearer ${jwtToken}`
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data.nodes)).toBe(true);
+    });
+
+    it('should filter dependency graph by status', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: `/api/projects/${testProjectId}/dependency-graph?status=done`,
+        headers: {
+          authorization: `Bearer ${jwtToken}`
+        }
+      });
+
+      expect(response.statusCode).toBe(200);
+      const body = JSON.parse(response.body);
+      expect(body.success).toBe(true);
+      expect(Array.isArray(body.data.nodes)).toBe(true);
+    });
+
+    it('should reject invalid project ID format', async () => {
+      const response = await server.inject({
+        method: 'GET',
+        url: '/api/projects/invalid-id/dependency-graph',
+        headers: {
+          authorization: `Bearer ${jwtToken}`
+        }
+      });
+
+      expect(response.statusCode).toBe(400);
+    });
+  });
 });
