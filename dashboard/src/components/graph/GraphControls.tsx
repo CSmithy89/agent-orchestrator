@@ -6,7 +6,7 @@
 
 import { ZoomIn, ZoomOut, Maximize2, Download, Link2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/useToast';
 import { toPng, toSvg } from 'html-to-image';
 
 interface GraphControlsProps {

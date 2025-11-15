@@ -18,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useDependencyGraph } from '@/hooks/useDependencyGraph';
 import { useDependencyWebSocket } from '@/hooks/useDependencyWebSocket';
+import { useProjectStories } from '@/hooks/useProjectStories';
 import type { GraphFilters as GraphFiltersType, DependencyNode, ViewMode } from '@/types/dependency-graph';
 
 export function DependencyGraphPage() {
@@ -37,6 +38,7 @@ export function DependencyGraphPage() {
 
   // Data fetching
   const { data: graph, isLoading, error } = useDependencyGraph(projectId);
+  const { data: stories = [] } = useProjectStories(projectId || '');
 
   // Real-time updates
   useDependencyWebSocket(projectId);
@@ -178,7 +180,7 @@ export function DependencyGraphPage() {
       {/* Story Detail Modal */}
       {selectedStory && (
         <StoryDetailModal
-          storyId={selectedStory.storyId}
+          story={stories.find(s => s.id === selectedStory.storyId) || null}
           isOpen={!!selectedStory}
           onClose={handleCloseStoryModal}
         />

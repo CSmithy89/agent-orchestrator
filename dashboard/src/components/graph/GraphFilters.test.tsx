@@ -5,7 +5,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
-import React from 'react';
 import { GraphFilters } from './GraphFilters';
 import type { GraphFilters as GraphFiltersType } from '@/types/dependency-graph';
 
@@ -46,7 +45,6 @@ describe('GraphFilters', () => {
   });
 
   it('should show active filter count badge', async () => {
-    const user = userEvent.setup();
     const onFiltersChange = vi.fn();
 
     const { rerender } = render(

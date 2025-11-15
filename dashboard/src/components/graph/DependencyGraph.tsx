@@ -178,7 +178,7 @@ export function DependencyGraph({ graph, onNodeClick, filters, className = '' }:
       }))).id((d: D3Node) => d.id).distance(150))
       .force('charge', d3.forceManyBody().strength(-500))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius((d: D3Node) => NODE_SIZES[d.complexity] + 10));
+      .force('collision', d3.forceCollide().radius((d) => NODE_SIZES[(d as D3Node).complexity] + 10));
 
     // Draw edges
     const edgesData = virtualizedEdges.map(e => ({
@@ -316,7 +316,7 @@ export function DependencyGraph({ graph, onNodeClick, filters, className = '' }:
         .attr('stroke', '#3B82F6');
     });
 
-    node.on('blur', function(event, d) {
+    node.on('blur', function(_event, d) {
       d3.select(this).select('circle')
         .attr('stroke-width', (d as D3Node).status === 'in-progress' ? 3 : 2)
         .attr('stroke', (d as D3Node).status === 'in-progress' ? '#3B82F6' : '#1F2937');

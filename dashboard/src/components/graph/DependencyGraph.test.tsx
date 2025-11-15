@@ -4,7 +4,6 @@
 
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
-import React from 'react';
 import { DependencyGraph } from './DependencyGraph';
 import type { DependencyGraph as DependencyGraphType } from '@/types/dependency-graph';
 

@@ -7,15 +7,16 @@ import { render, screen, waitFor } from '@testing-library/react';
 import { userEvent } from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import React from 'react';
 import { DependencyGraphPage } from './DependencyGraphPage';
 import * as useDependencyGraphModule from '@/hooks/useDependencyGraph';
 import * as useDependencyWebSocketModule from '@/hooks/useDependencyWebSocket';
+import * as useProjectStoriesModule from '@/hooks/useProjectStories';
 import type { DependencyGraph } from '@/types/dependency-graph';
 
 // Mock hooks
 vi.mock('@/hooks/useDependencyGraph');
 vi.mock('@/hooks/useDependencyWebSocket');
+vi.mock('@/hooks/useProjectStories');
 vi.mock('@/components/kanban/StoryDetailModal', () => ({
   StoryDetailModal: ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) =>
     isOpen ? <div data-testid="story-modal" onClick={onClose}>Modal</div> : null,
@@ -71,6 +72,15 @@ describe('DependencyGraphPage', () => {
     vi.mocked(useDependencyWebSocketModule.useDependencyWebSocket).mockReturnValue({
       events: [],
     });
+
+    vi.mocked(useProjectStoriesModule.useProjectStories).mockReturnValue({
+      data: [],
+      isLoading: false,
+      error: null,
+      isError: false,
+      isSuccess: true,
+      refetch: vi.fn(),
+    } as any);
   });
 
   const renderPage = (projectId = 'project-1') => {

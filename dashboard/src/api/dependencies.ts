@@ -4,7 +4,7 @@
  * API methods for fetching dependency graph data from the backend.
  */
 
-import { client } from './client';
+import { baseApi } from './client';
 import type { DependencyGraph } from '@/types/dependency-graph';
 
 /**
@@ -14,5 +14,5 @@ import type { DependencyGraph } from '@/types/dependency-graph';
  * @returns Promise resolving to the dependency graph data
  */
 export async function getDependencyGraph(projectId: string): Promise<DependencyGraph> {
-  return client.get<DependencyGraph>(`/api/projects/${projectId}/dependency-graph`);
+  return baseApi.get<DependencyGraph>(`/api/projects/${projectId}/dependency-graph`);
 }
