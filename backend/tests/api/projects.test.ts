@@ -16,9 +16,6 @@ describe('Project Routes', () => {
   let jwtToken: string;
 
   beforeEach(async () => {
-    // Clear project service cache
-    projectService.clearCache();
-
     // Clear event service
     eventService.clearAll();
 
@@ -29,6 +26,10 @@ describe('Project Routes', () => {
 
     // Generate test JWT token
     jwtToken = server.jwt.sign({ userId: 'test-user' });
+
+    // Clear project service cache AFTER server creation
+    // to ensure the service is properly initialized
+    projectService.clearCache();
   });
 
   afterEach(async () => {
@@ -114,11 +115,10 @@ describe('Project Routes', () => {
     });
 
     it('should apply offset query parameter', async () => {
-      await projectService.createProject({ name: 'Project 1' });
-      await new Promise(resolve => setTimeout(resolve, 10));
-      await projectService.createProject({ name: 'Project 2' });
-      await new Promise(resolve => setTimeout(resolve, 10));
-      await projectService.createProject({ name: 'Project 3' });
+      // Create projects in sequence
+      const proj1 = await projectService.createProject({ name: 'Project 1' });
+      const proj2 = await projectService.createProject({ name: 'Project 2' });
+      const proj3 = await projectService.createProject({ name: 'Project 3' });
 
       const response = await server.inject({
         method: 'GET',

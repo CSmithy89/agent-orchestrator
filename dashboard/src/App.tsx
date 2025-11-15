@@ -4,6 +4,8 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { Dashboard } from '@/pages/Dashboard';
 import { ProjectsListPage } from '@/pages/ProjectsListPage';
 import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
+import KanbanBoardPage from '@/pages/KanbanBoardPage';
+import { DependencyGraphPage } from '@/pages/DependencyGraphPage';
 import { EscalationsPage } from '@/pages/EscalationsPage';
 import { NotFound } from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
@@ -19,6 +21,8 @@ function App() {
             {/* Project routes */}
             <Route path="/projects" element={<ProjectsListPage />} />
             <Route path="/projects/:id" element={<ProjectDetailPage />} />
+            <Route path="/projects/:projectId/stories" element={<KanbanBoardPage />} />
+            <Route path="/projects/:projectId/dependencies" element={<DependencyGraphPage />} />
 
             {/* Escalations route */}
             <Route path="/escalations" element={<EscalationsPage />} />

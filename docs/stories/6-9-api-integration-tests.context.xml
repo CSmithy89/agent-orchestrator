@@ -1,0 +1,438 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>9</storyId>
+    <title>API Integration Tests</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-15</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-9-api-integration-tests.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a quality-focused developer</asA>
+    <iWant>comprehensive API integration tests</iWant>
+    <soThat>all endpoints are validated and regressions are prevented</soThat>
+    <tasks>
+      <task id="1" title="Setup test framework and infrastructure">
+        <subtask id="1.1">Install Vitest + Supertest dependencies for API testing</subtask>
+        <subtask id="1.2">Configure Vitest for API integration tests (separate config from unit tests)</subtask>
+        <subtask id="1.3">Create test utilities (mock JWT tokens, test database, test server setup)</subtask>
+        <subtask id="1.4">Setup test fixtures for common API payloads</subtask>
+      </task>
+      <task id="2" title="Test Project Management endpoints">
+        <subtask id="2.1">Test GET /api/projects (list with filtering and pagination)</subtask>
+        <subtask id="2.2">Test POST /api/projects (create with valid/invalid data)</subtask>
+        <subtask id="2.3">Test GET /api/projects/:id (retrieve single project)</subtask>
+        <subtask id="2.4">Test PATCH /api/projects/:id (update project fields)</subtask>
+        <subtask id="2.5">Test DELETE /api/projects/:id (remove project)</subtask>
+      </task>
+      <task id="3" title="Test Orchestrator Control endpoints">
+        <subtask id="3.1">Test POST /api/orchestrators/:projectId/start (workflow start)</subtask>
+        <subtask id="3.2">Test POST /api/orchestrators/:projectId/pause (workflow pause)</subtask>
+        <subtask id="3.3">Test POST /api/orchestrators/:projectId/resume (workflow resume)</subtask>
+        <subtask id="3.4">Test GET /api/orchestrators/:projectId/status (status queries)</subtask>
+      </task>
+      <task id="4" title="Test State Query endpoints">
+        <subtask id="4.1">Test GET /api/projects/:id/workflow-status (workflow state)</subtask>
+        <subtask id="4.2">Test GET /api/projects/:id/sprint-status (sprint state)</subtask>
+        <subtask id="4.3">Test GET /api/projects/:id/stories (list stories with filters)</subtask>
+        <subtask id="4.4">Test GET /api/projects/:id/stories/:storyId (single story)</subtask>
+        <subtask id="4.5">Test GET /api/projects/:id/dependency-graph (dependency graph)</subtask>
+        <subtask id="4.6">Test filtering and pagination for all list endpoints</subtask>
+      </task>
+      <task id="5" title="Test Escalation endpoints">
+        <subtask id="5.1">Test GET /api/escalations (list all escalations)</subtask>
+        <subtask id="5.2">Test GET /api/escalations/:id (get escalation details)</subtask>
+        <subtask id="5.3">Test POST /api/escalations/:id/respond (submit response)</subtask>
+        <subtask id="5.4">Test escalation status transitions (pending → resolved)</subtask>
+      </task>
+      <task id="6" title="Test WebSocket connections">
+        <subtask id="6.1">Test WebSocket authentication (JWT token validation)</subtask>
+        <subtask id="6.2">Test project subscription (join/leave rooms)</subtask>
+        <subtask id="6.3">Test event emissions (story.status.changed, workflow.step, etc.)</subtask>
+        <subtask id="6.4">Test reconnection logic (disconnect/reconnect handling)</subtask>
+        <subtask id="6.5">Test multiple concurrent client connections</subtask>
+      </task>
+      <task id="7" title="Test error handling and security">
+        <subtask id="7.1">Test invalid request payloads (400 errors)</subtask>
+        <subtask id="7.2">Test authentication failures (401 errors)</subtask>
+        <subtask id="7.3">Test authorization failures (403 errors)</subtask>
+        <subtask id="7.4">Test resource not found (404 errors)</subtask>
+        <subtask id="7.5">Test rate limiting enforcement (429 errors)</subtask>
+        <subtask id="7.6">Test validation error responses</subtask>
+      </task>
+      <task id="8" title="Test OpenAPI schema validation">
+        <subtask id="8.1">Validate all endpoint responses against OpenAPI schema</subtask>
+        <subtask id="8.2">Test schema validation for request payloads</subtask>
+        <subtask id="8.3">Ensure all documented endpoints are tested</subtask>
+      </task>
+      <task id="9" title="Achieve code coverage target">
+        <subtask id="9.1">Run coverage report for API layer</subtask>
+        <subtask id="9.2">Identify untested paths and add tests</subtask>
+        <subtask id="9.3">Achieve >80% code coverage for API routes</subtask>
+      </task>
+      <task id="10" title="CI/CD pipeline integration">
+        <subtask id="10.1">Add integration test script to package.json</subtask>
+        <subtask id="10.2">Configure CI pipeline to run API integration tests</subtask>
+        <subtask id="10.3">Setup test database/fixtures for CI environment</subtask>
+        <subtask id="10.4">Verify tests pass in CI environment</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Setup test framework (Vitest + Supertest)</criterion>
+    <criterion id="2">Test all Project Management endpoints (Story 6.2): GET /api/projects, POST /api/projects, PATCH /api/projects/:id, DELETE /api/projects/:id</criterion>
+    <criterion id="3">Test all Orchestrator Control endpoints (Story 6.3): Start, pause, resume workflows, Status queries return correct data</criterion>
+    <criterion id="4">Test all State Query endpoints (Story 6.3): Workflow status, sprint status, stories list, Filtering and pagination work correctly</criterion>
+    <criterion id="5">Test all Escalation endpoints (Story 6.3): List escalations, get details, submit responses</criterion>
+    <criterion id="6">Test WebSocket connections (Story 6.2): Authentication works, Events emit correctly, Reconnection handles failures</criterion>
+    <criterion id="7">Test error handling: Invalid requests return proper errors, Authentication failures blocked, Rate limiting enforced</criterion>
+    <criterion id="8">Test OpenAPI schema validation</criterion>
+    <criterion id="9">Achieve >80% code coverage for API layer</criterion>
+    <criterion id="10">Integration tests run in CI/CD pipeline</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access &amp; Monitoring</title>
+        <section>Epic 6 - Story 6.9: API Integration Tests</section>
+        <snippet>Comprehensive API integration tests for all endpoints implemented in Stories 6.1, 6.2, 6.3. Tests validate Project Management, Orchestrator Control, State Query, and Escalation endpoints plus WebSocket connections. Target: >80% code coverage for API layer.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>API Specifications (Section 4.1)</title>
+        <section>4.1 REST API Endpoints</section>
+        <snippet>Base URL: https://orchestrator.example.com/api. Authentication: JWT Bearer Token. Endpoints: Projects API (GET/POST/PATCH/DELETE /api/projects), Workflow Control API (GET/POST /api/orchestrators/:projectId/*), Escalation API (GET/POST /api/escalations/*), State Query API (GET /api/projects/:id/workflow-status, sprint-status, stories)</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>WebSocket API (Section 4.2)</title>
+        <section>4.2 WebSocket API</section>
+        <snippet>Endpoint: wss://orchestrator.example.com/ws/status-updates. Authentication: JWT token via query param. Event Types: project.phase.changed, story.status.changed, escalation.created, agent.started/completed, pr.created/merged, workflow.error. Reconnection: exponential backoff 1s-30s.</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Testing Strategy (Section 7)</title>
+        <section>7.3 Integration Testing (30%)</section>
+        <snippet>Integration tests validate component interactions, database/file I/O, external API mocking. Use Vitest + Supertest for API testing. Mock LLM APIs, use in-memory/test database, mock external services. Coverage target: >80% for API layer. Test real HTTP requests/responses, authentication/authorization flows, WebSocket connections.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-1-api-infrastructure-type-system.md</path>
+        <title>Story 6.1: API Infrastructure &amp; Type System (Complete)</title>
+        <section>Technical Implementation</section>
+        <snippet>Fastify server with TypeScript, JWT authentication via @fastify/jwt, Zod schemas for validation, OpenAPI 3.0 documentation, Winston logging, security via Helmet/CORS/rate limiting. TypeScript types: Project, ProjectStatus, OrchestratorStatus, WorkflowStatus, StoryStatus, EscalationStatus, APIResponse, APIError.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-2-core-api-endpoints-websocket.md</path>
+        <title>Story 6.2: Core API Endpoints &amp; WebSocket (Complete)</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Project Management: GET/POST/PATCH/DELETE /api/projects with pagination, validation, error handling. WebSocket: /ws/status-updates endpoint, JWT authentication, event emissions (project.phase.changed, story.status.changed, escalation.created, etc.), per-project subscriptions, reconnection handling.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-3-extended-api-endpoints.md</path>
+        <title>Story 6.3: Extended API Endpoints (Complete)</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Orchestrator Control: GET/POST /api/orchestrators/:projectId/status|start|pause|resume. State Query: GET /api/projects/:id/workflow-status|sprint-status|stories|stories/:storyId. Escalation: GET/POST /api/escalations|:id|:id/respond. All endpoints include filtering, pagination, validation, WebSocket event emission.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>backend/src/api/server.ts</path>
+        <kind>server-setup</kind>
+        <symbol>createServer</symbol>
+        <lines>complete file</lines>
+        <reason>Core Fastify server configuration used by all tests - provides test server setup pattern</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/projects.ts</path>
+        <kind>api-route</kind>
+        <symbol>registerProjectRoutes</symbol>
+        <lines>complete file</lines>
+        <reason>Project Management endpoints (Story 6.2) - primary test target for AC#2</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/orchestrators.ts</path>
+        <kind>api-route</kind>
+        <symbol>registerOrchestratorRoutes</symbol>
+        <lines>complete file</lines>
+        <reason>Orchestrator Control endpoints (Story 6.3) - primary test target for AC#3</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/state.ts</path>
+        <kind>api-route</kind>
+        <symbol>registerStateRoutes</symbol>
+        <lines>complete file</lines>
+        <reason>State Query endpoints (Story 6.3) - primary test target for AC#4</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/escalations.ts</path>
+        <kind>api-route</kind>
+        <symbol>registerEscalationRoutes</symbol>
+        <lines>complete file</lines>
+        <reason>Escalation endpoints (Story 6.3) - primary test target for AC#5</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/websocket.ts</path>
+        <kind>websocket-handler</kind>
+        <symbol>handleWebSocketConnection</symbol>
+        <lines>complete file</lines>
+        <reason>WebSocket handler (Story 6.2) - primary test target for AC#6</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/services/project.service.ts</path>
+        <kind>service</kind>
+        <symbol>ProjectService</symbol>
+        <lines>complete file</lines>
+        <reason>Project business logic - integration test target</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/services/event.service.ts</path>
+        <kind>service</kind>
+        <symbol>EventService</symbol>
+        <lines>complete file</lines>
+        <reason>Event publishing for WebSocket - integration test target</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/api/projects.test.ts</path>
+        <kind>test-example</kind>
+        <symbol>Project Routes tests</symbol>
+        <lines>1-99</lines>
+        <reason>Existing test pattern reference - shows beforeEach/afterEach setup, JWT token generation, Fastify inject pattern, cleanup</reason>
+      </artifact>
+      <artifact>
+        <path>backend/tests/api/websocket.test.ts</path>
+        <kind>test-example</kind>
+        <symbol>WebSocket tests</symbol>
+        <lines>complete file</lines>
+        <reason>Existing WebSocket test pattern - shows WebSocket client setup, authentication, event testing</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/types/api.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>APIResponse, APIError</symbol>
+        <lines>complete file</lines>
+        <reason>Core API response types used in all endpoints</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/types/events.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>WebSocketEvent types</symbol>
+        <lines>complete file</lines>
+        <reason>WebSocket event type definitions for testing</reason>
+      </artifact>
+      <artifact>
+        <path>backend/vitest.config.ts</path>
+        <kind>test-config</kind>
+        <symbol>Vitest configuration</symbol>
+        <lines>complete file</lines>
+        <reason>Existing Vitest configuration - may need extension for API integration tests</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="vitest" version="^1.0.0">Fast unit testing framework with TypeScript support</package>
+        <package name="supertest" version="^6.3.0">HTTP testing library for integration tests (ALREADY INSTALLED)</package>
+        <package name="@types/supertest" version="^6.0.2">TypeScript types for Supertest (ALREADY INSTALLED)</package>
+        <package name="fastify" version="^4.25.0">Web framework for API server</package>
+        <package name="@fastify/jwt" version="^7.2.0">JWT authentication plugin</package>
+        <package name="@fastify/cors" version="^9.0.0">CORS middleware</package>
+        <package name="@fastify/rate-limit" version="^9.1.0">Rate limiting middleware</package>
+        <package name="ws" version="^8.18.3">WebSocket library</package>
+        <package name="@types/ws" version="^8.18.1">TypeScript types for ws</package>
+        <package name="zod" version="^3.22.0">Schema validation</package>
+        <package name="jsonwebtoken" version="^9.0.2">JWT token generation/verification</package>
+        <package name="@vitest/coverage-v8" version="^1.0.0">Code coverage reporting</package>
+        <package name="nock" version="^14.0.10">HTTP mocking for external APIs (OPTIONAL)</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="testing-framework">Use Vitest (already configured) + Supertest (already installed) for all API integration tests</constraint>
+    <constraint type="test-organization">Co-locate tests with source files using *.test.ts pattern in backend/tests/api/ directory</constraint>
+    <constraint type="coverage-target">Achieve minimum 80% code coverage for API layer (routes, services, middleware)</constraint>
+    <constraint type="test-isolation">Each test must be isolated - no shared state between tests. Use beforeEach/afterEach for setup/cleanup</constraint>
+    <constraint type="authentication">All tests must use mock JWT tokens generated via server.jwt.sign() - DO NOT use real credentials</constraint>
+    <constraint type="test-data">Use in-memory data or test fixtures - clean up after each test to prevent side effects</constraint>
+    <constraint type="mocking">Mock external services (LLM APIs, GitHub) - avoid real API calls to prevent costs and flakiness</constraint>
+    <constraint type="test-speed">Integration tests should complete in under 30 seconds total - optimize for speed with parallel execution</constraint>
+    <constraint type="error-testing">Test all error cases: 400 (validation), 401 (unauthorized), 403 (forbidden), 404 (not found), 429 (rate limit), 500 (server error)</constraint>
+    <constraint type="websocket-testing">WebSocket tests must handle connection lifecycle: connect, authenticate, subscribe, receive events, unsubscribe, disconnect</constraint>
+    <constraint type="schema-validation">Validate all responses against Zod schemas and OpenAPI specifications</constraint>
+    <constraint type="ci-integration">Tests must run in CI/CD pipeline - ensure no dependencies on local filesystem or environment-specific configuration</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>GET /api/projects</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects?limit=20&amp;offset=0</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Project[]&gt; with pagination metadata</response>
+    </interface>
+    <interface>
+      <name>POST /api/projects</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/projects with body: {name: string, config?: object}</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Project&gt;</response>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id where :id is UUID</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Project&gt; or 404 APIError</response>
+    </interface>
+    <interface>
+      <name>PATCH /api/projects/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>PATCH /api/projects/:id with body: {name?, status?, phase?}</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Project&gt; or 404 APIError</response>
+    </interface>
+    <interface>
+      <name>DELETE /api/projects/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>DELETE /api/projects/:id</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;{success: boolean}&gt;</response>
+    </interface>
+    <interface>
+      <name>GET /api/orchestrators/:projectId/status</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/orchestrators/:projectId/status</signature>
+      <path>backend/src/api/routes/orchestrators.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;OrchestratorStatus&gt;</response>
+    </interface>
+    <interface>
+      <name>POST /api/orchestrators/:projectId/start</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/orchestrators/:projectId/start with body: {workflowName: string}</signature>
+      <path>backend/src/api/routes/orchestrators.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;{success: boolean, workflowId: string}&gt;</response>
+    </interface>
+    <interface>
+      <name>POST /api/orchestrators/:projectId/pause</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/orchestrators/:projectId/pause</signature>
+      <path>backend/src/api/routes/orchestrators.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;{success: boolean}&gt;</response>
+    </interface>
+    <interface>
+      <name>POST /api/orchestrators/:projectId/resume</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/orchestrators/:projectId/resume</signature>
+      <path>backend/src/api/routes/orchestrators.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;{success: boolean}&gt;</response>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/workflow-status</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/workflow-status</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;WorkflowStatus&gt;</response>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/sprint-status</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/sprint-status</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;SprintStatus&gt;</response>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/stories</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/stories?status=in_progress&amp;epic=Epic 5</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Story[]&gt; with filtering support</response>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/stories/:storyId</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/stories/:storyId</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Story&gt; or 404 APIError</response>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/dependency-graph</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/dependency-graph?epic=Epic 5&amp;status=in_progress</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;DependencyGraph&gt; with nodes, edges, criticalPath</response>
+    </interface>
+    <interface>
+      <name>GET /api/escalations</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/escalations?status=pending&amp;project=proj-001</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Escalation[]&gt; with filtering support</response>
+    </interface>
+    <interface>
+      <name>GET /api/escalations/:id</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/escalations/:id</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;Escalation&gt; or 404 APIError</response>
+    </interface>
+    <interface>
+      <name>POST /api/escalations/:id/respond</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/escalations/:id/respond with body: {response: string}</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <authentication>JWT Bearer token required</authentication>
+      <response>APIResponse&lt;{success: boolean, workflowResumed: boolean}&gt;</response>
+    </interface>
+    <interface>
+      <name>WebSocket /ws/status-updates</name>
+      <kind>WebSocket endpoint</kind>
+      <signature>wss://server/ws/status-updates?token=jwt_token</signature>
+      <path>backend/src/api/routes/websocket.ts</path>
+      <authentication>JWT token via query parameter or initial message</authentication>
+      <events>subscribe, unsubscribe, project.phase.changed, story.status.changed, escalation.created, agent.started, agent.completed, pr.created, pr.merged, workflow.error</events>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Vitest as the primary testing framework with Supertest for HTTP request/response testing. All tests must follow integration testing best practices: setup test server with createServer(), generate mock JWT tokens via server.jwt.sign(), use server.inject() for HTTP requests (Supertest alternative), validate response status codes and bodies, test both success and error cases, clean up test data in afterEach hooks. WebSocket tests require ws client library, connection authentication, subscription management, and event emission validation. Target >80% code coverage for backend/src/api/ directory. Tests must be isolated, fast (&lt;30s total), and runnable in CI/CD environment.
+    </standards>
+    <locations>
+      <location>backend/tests/api/*.test.ts - Co-located API integration tests</location>
+      <location>backend/tests/api/fixtures/ - Test data fixtures and mock responses</location>
+      <location>backend/vitest.config.ts - Vitest configuration (may need extension)</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Setup: Verify Supertest and Vitest are installed (already present in package.json). Create shared test utilities in backend/tests/api/test-utils.ts for JWT token generation, test server setup/teardown, common fixtures.</idea>
+      <idea ac="2">Project API Tests: Test GET /api/projects with/without auth (401), with pagination params, empty results. Test POST /api/projects with valid data (201), invalid data (400), missing auth (401). Test PATCH /api/projects/:id with valid updates, invalid UUID (400), not found (404). Test DELETE /api/projects/:id success (200), not found (404).</idea>
+      <idea ac="3">Orchestrator Tests: Test GET /api/orchestrators/:projectId/status for running/idle states. Test POST start/pause/resume with valid projectId, invalid projectId (404), concurrent requests (race conditions), workflow state transitions. Verify WebSocket events emitted on state changes.</idea>
+      <idea ac="4">State Query Tests: Test GET workflow-status, sprint-status with valid projectId, missing projectId (404). Test GET stories list with status filters (backlog, in_progress, done), epic filters, pagination. Test GET stories/:storyId with valid/invalid IDs. Test dependency-graph endpoint with/without filters.</idea>
+      <idea ac="5">Escalation Tests: Test GET /api/escalations with status/project filters, empty results. Test GET escalation details with valid/invalid ID. Test POST respond with valid response, invalid escalation ID (404), verify workflow resumes, verify status changes to resolved.</idea>
+      <idea ac="6">WebSocket Tests: Test connection with valid JWT token, invalid token (401). Test subscribe/unsubscribe to project. Test event emissions (mock server events, verify client receives). Test reconnection on disconnect. Test multiple concurrent clients. Test heartbeat/pong mechanism.</idea>
+      <idea ac="7">Error Handling Tests: Test 400 errors with invalid JSON, missing required fields, malformed UUIDs. Test 401 with missing token, expired token, invalid token. Test 404 with non-existent resources. Test 429 rate limiting (send many requests). Test 500 with simulated server errors.</idea>
+      <idea ac="8">Schema Validation: Load OpenAPI schema from @fastify/swagger. For each endpoint, validate response structure matches schema. Validate request body validation works (Zod schemas). Ensure all documented endpoints have tests.</idea>
+      <idea ac="9">Coverage: Run vitest --coverage, identify untested branches/paths, add tests for edge cases (empty arrays, null values, boundary conditions), achieve 80%+ coverage in backend/src/api/.</idea>
+      <idea ac="10">CI/CD: Add test:api script to backend/package.json. Update .github/workflows/ to run API tests. Ensure tests pass with CI environment variables. Add coverage reporting to CI output.</idea>
+    </ideas>
+  </tests>
+</story-context>

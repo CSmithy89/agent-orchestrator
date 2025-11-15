@@ -3,6 +3,12 @@ import path from 'path';
 import os from 'os';
 
 export default defineConfig({
+  server: {
+    deps: {
+      // Inline all dependencies for proper module resolution
+      inline: true
+    }
+  },
   test: {
     // Test environment
     environment: 'node',

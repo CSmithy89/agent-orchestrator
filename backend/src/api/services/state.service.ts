@@ -378,6 +378,122 @@ export class StateService {
   }
 
   /**
+   * Get dependency graph for a project
+   * @param projectId Project identifier
+   * @param filters Optional filters (epic, status)
+   * @returns Dependency graph with nodes and edges
+   */
+  async getDependencyGraph(projectId: string, filters?: { epic?: string; status?: string }): Promise<any> {
+    try {
+      // Get sprint status to access stories
+      const sprintStatus = await this.getSprintStatus(projectId);
+      let stories = sprintStatus.stories;
+
+      // Apply filters
+      if (filters?.epic) {
+        stories = stories.filter(s => s.epicId === filters.epic);
+      }
+      if (filters?.status) {
+        stories = stories.filter(s => s.status === filters.status);
+      }
+
+      // Build nodes from stories
+      const nodes = await Promise.all(stories.map(async (story) => {
+        const parts = story.id.split('-');
+        const epicNum = parseInt(parts[0], 10);
+        const storyNum = parseInt(parts[1], 10);
+
+        // Determine complexity based on story number (simple heuristic)
+        let complexity: 'small' | 'medium' | 'large' = 'medium';
+        if (storyNum <= 3) complexity = 'small';
+        else if (storyNum >= 7) complexity = 'large';
+
+        // Map story status to graph status
+        const graphStatus = this.mapToGraphStatus(story.status);
+
+        return {
+          id: story.id,
+          storyId: story.id,
+          epicNumber: epicNum,
+          storyNumber: storyNum,
+          title: story.title,
+          status: graphStatus,
+          complexity,
+          hasWorktree: story.status === 'in-progress' || story.status === 'review'
+        };
+      }));
+
+      // Build edges from dependencies
+      const edges: any[] = [];
+      for (const story of stories) {
+        try {
+          const detail = await this.getStoryDetail(projectId, story.id);
+          if (detail.dependencies && detail.dependencies.length > 0) {
+            for (const dep of detail.dependencies) {
+              // Extract story ID from dependency string
+              const match = dep.match(/Story (\d+-\d+)/);
+              if (match) {
+                const depStoryId = match[1].replace('.', '-');
+                const sourceNode = nodes.find(n => n.id === depStoryId);
+                if (sourceNode) {
+                  edges.push({
+                    source: depStoryId,
+                    target: story.id,
+                    type: 'hard',
+                    isBlocking: sourceNode.status !== 'merged' && sourceNode.status !== 'review'
+                  });
+                }
+              }
+            }
+          }
+        } catch (error) {
+          // Story file might not exist, skip dependencies
+          continue;
+        }
+      }
+
+      // Calculate critical path (simplified - stories with most dependents)
+      const dependentCounts = new Map<string, number>();
+      edges.forEach(edge => {
+        dependentCounts.set(edge.source, (dependentCounts.get(edge.source) || 0) + 1);
+      });
+
+      const criticalPath = Array.from(dependentCounts.entries())
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, Math.min(5, dependentCounts.size))
+        .map(([storyId]) => storyId);
+
+      return {
+        nodes,
+        edges,
+        criticalPath
+      };
+    } catch (error) {
+      throw new Error(`Failed to get dependency graph: ${(error as Error).message}`);
+    }
+  }
+
+  /**
+   * Map story status to graph status
+   */
+  private mapToGraphStatus(status: Story['status']): 'pending' | 'in-progress' | 'review' | 'merged' | 'blocked' {
+    switch (status) {
+      case 'backlog':
+      case 'drafted':
+      case 'ready-for-dev':
+        return 'pending';
+      case 'in-progress':
+        return 'in-progress';
+      case 'review':
+        return 'review';
+      case 'done':
+        return 'merged';
+      default:
+        return 'pending';
+    }
+  }
+
+  /**
    * Clear cache (for testing)
    */
   clearCache(): void {
