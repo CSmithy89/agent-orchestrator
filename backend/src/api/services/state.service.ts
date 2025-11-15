@@ -400,8 +400,8 @@ export class StateService {
       // Build nodes from stories
       const nodes = await Promise.all(stories.map(async (story) => {
         const parts = story.id.split('-');
-        const epicNum = parseInt(parts[0], 10);
-        const storyNum = parseInt(parts[1], 10);
+        const epicNum = parseInt(parts[0] || '0', 10);
+        const storyNum = parseInt(parts[1] || '0', 10);
 
         // Determine complexity based on story number (simple heuristic)
         let complexity: 'small' | 'medium' | 'large' = 'medium';
@@ -432,7 +432,7 @@ export class StateService {
             for (const dep of detail.dependencies) {
               // Extract story ID from dependency string
               const match = dep.match(/Story (\d+-\d+)/);
-              if (match) {
+              if (match && match[1]) {
                 const depStoryId = match[1].replace('.', '-');
                 const sourceNode = nodes.find(n => n.id === depStoryId);
                 if (sourceNode) {

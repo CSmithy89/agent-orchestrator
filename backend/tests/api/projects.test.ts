@@ -16,6 +16,19 @@ describe('Project Routes', () => {
   let jwtToken: string;
 
   beforeEach(async () => {
+    // Clean up test projects BEFORE each test
+    try {
+      const bmadDir = path.join(process.cwd(), 'bmad');
+      const entries = await fs.readdir(bmadDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          await fs.rm(path.join(bmadDir, entry.name), { recursive: true, force: true });
+        }
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+
     // Clear event service
     eventService.clearAll();
 
@@ -116,9 +129,9 @@ describe('Project Routes', () => {
 
     it('should apply offset query parameter', async () => {
       // Create projects in sequence
-      const proj1 = await projectService.createProject({ name: 'Project 1' });
-      const proj2 = await projectService.createProject({ name: 'Project 2' });
-      const proj3 = await projectService.createProject({ name: 'Project 3' });
+      const _proj1 = await projectService.createProject({ name: 'Project 1' });
+      const _proj2 = await projectService.createProject({ name: 'Project 2' });
+      const _proj3 = await projectService.createProject({ name: 'Project 3' });
 
       const response = await server.inject({
         method: 'GET',

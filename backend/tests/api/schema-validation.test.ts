@@ -4,6 +4,8 @@
  */
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import * as fs from 'fs/promises';
+import * as path from 'path';
 import { FastifyInstance } from 'fastify';
 import { createServer } from '../../src/api/server.js';
 import { projectService } from '../../src/api/services/project.service.js';
@@ -14,6 +16,41 @@ describe('OpenAPI Schema Validation', () => {
   let jwtToken: string;
 
   beforeEach(async () => {
+    // Clean up test projects BEFORE each test
+    try {
+      const bmadDir = path.join(process.cwd(), 'bmad');
+      const entries = await fs.readdir(bmadDir, { withFileTypes: true });
+      for (const entry of entries) {
+        if (entry.isDirectory()) {
+          await fs.rm(path.join(bmadDir, entry.name), { recursive: true, force: true });
+        }
+      }
+    } catch {
+      // Ignore cleanup errors
+    }
+
+    // Create global docs directory for API lookups
+    const docsDir = path.join(process.cwd(), 'docs');
+    try {
+      await fs.mkdir(docsDir, { recursive: true });
+      const sprintStatus = `# Sprint Status
+generated: 2025-11-15
+project: Test Project
+development_status:
+  epic-1: contexted
+  1-1-test-story: done
+`;
+      await fs.writeFile(path.join(docsDir, 'sprint-status.yaml'), sprintStatus);
+      const storiesDir = path.join(docsDir, 'stories');
+      await fs.mkdir(storiesDir, { recursive: true });
+      await fs.writeFile(path.join(storiesDir, '1-1-test-story.md'), `# Story 1.1: Test Story
+
+Status: done
+`);
+    } catch {
+      // Allow setup to proceed if docs already exist or cannot be written during tests
+    }
+
     // Clear services
     projectService.clearCache();
     eventService.clearAll();
@@ -148,7 +185,12 @@ describe('OpenAPI Schema Validation', () => {
   });
 
   describe('State Query Endpoints Schema', () => {
-    const testProjectId = '123e4567-e89b-12d3-a456-426614174000';
+    let testProjectId: string;
+
+    beforeEach(async () => {
+      const project = await projectService.createProject({ name: 'Test Project for State Queries' });
+      testProjectId = project.id;
+    });
 
     it('GET /api/projects/:id/workflow-status should match schema', async () => {
       const response = await server.inject({

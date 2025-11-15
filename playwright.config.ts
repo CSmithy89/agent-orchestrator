@@ -32,8 +32,8 @@ export default defineConfig({
   
   // Shared settings for all projects
   use: {
-    // Base URL for tests
-    baseURL: process.env.API_BASE_URL || 'http://localhost:3000',
+    // Base URL for tests (dashboard runs on 5173, backend on 3000)
+    baseURL: process.env.DASHBOARD_URL || 'http://localhost:5173',
     
     // Collect trace on first retry
     trace: 'on-first-retry',
@@ -76,10 +76,20 @@ export default defineConfig({
   ],
 
   // Run local dev server before starting tests
-  webServer: {
-    command: 'npm run dev',
-    url: 'http://localhost:3000',
-    reuseExistingServer: !process.env.CI,
-    timeout: 120 * 1000,
-  },
+  webServer: [
+    {
+      command: 'npm run dev --workspace=backend',
+      url: 'http://localhost:3000/health',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+      cwd: '.',
+    },
+    {
+      command: 'npm run dev --workspace=dashboard',
+      url: 'http://localhost:5173',
+      reuseExistingServer: !process.env.CI,
+      timeout: 120 * 1000,
+      cwd: '.',
+    },
+  ],
 });
