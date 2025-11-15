@@ -1,0 +1,144 @@
+# BMI Integration Configuration
+# This file configures how BMI (Infrastructure & DevOps) integrates with BMM (Core Method) workflows
+
+integration:
+  name: "BMI-BMM Integration Layer"
+  version: "1.0.0"
+  description: "Integration hooks between BMM development workflows and BMI deployment/release workflows"
+
+# Integration points where BMM workflows can invoke BMI workflows
+integration_points:
+
+  # Post-Development Integration
+  post_story_completion:
+    description: "After a story is marked DONE, optionally trigger deployment"
+    trigger: "bmm:dev-story workflow completion"
+    available_workflows:
+      - deploy: "Deploy the completed story to dev/staging environment"
+      - container-build: "Build container image for the story"
+    auto_trigger: false  # Manual trigger by default
+
+  post_epic_completion:
+    description: "After an epic is complete, optionally trigger deployment to staging"
+    trigger: "bmm:orchestrate-epic workflow completion"
+    available_workflows:
+      - deploy: "Deploy epic to staging environment"
+      - load-testing: "Run load tests on staging with new epic"
+      - monitoring-setup: "Setup monitoring for new features"
+    auto_trigger: false
+
+  # Pre-Release Integration
+  pre_release:
+    description: "Before creating a release, run quality gates"
+    trigger: "bmm:create-story workflow with release flag"
+    available_workflows:
+      - load-testing: "Run load tests before release"
+      - performance-profiling: "Profile application performance"
+      - container-build: "Build production container images"
+    auto_trigger: true  # Auto-trigger quality gates
+
+  # Release Integration
+  release:
+    description: "Create and publish software release"
+    trigger: "Manual or scheduled release workflow"
+    available_workflows:
+      - release: "Create semantic version release with changelog"
+      - changelog-generation: "Generate changelog from commits/PRs"
+      - deploy: "Deploy release to production"
+    auto_trigger: false
+
+  # Emergency Integration
+  incident_response:
+    description: "Respond to production incidents"
+    trigger: "Production incident detected (manual or alert)"
+    available_workflows:
+      - incident-response: "Follow incident response runbook"
+      - rollback: "Rollback to previous version"
+      - hotfix: "Create emergency hotfix release"
+      - monitoring-setup: "Enhance monitoring during incident"
+    auto_trigger: true  # Auto-trigger for P0/P1 incidents
+
+# Workflow invocation patterns
+invocation_patterns:
+
+  # Pattern 1: Post-merge deployment
+  post_merge_deploy:
+    bmm_trigger: "Story merged to main branch"
+    bmi_workflow: "deploy"
+    environment: "dev"
+    auto_approve: true
+
+  # Pattern 2: Epic completion staging deployment
+  epic_staging_deploy:
+    bmm_trigger: "Epic marked DONE"
+    bmi_workflow: "deploy"
+    environment: "staging"
+    auto_approve: false  # Require manual approval
+
+  # Pattern 3: Pre-release quality gates
+  pre_release_gates:
+    bmm_trigger: "Release workflow initiated"
+    bmi_workflows:
+      - load-testing
+      - performance-profiling
+    halt_on_failure: true
+
+  # Pattern 4: Production release
+  production_release:
+    bmm_trigger: "Release approved and ready"
+    bmi_workflows:
+      - release
+      - deploy
+    environment: "production"
+    auto_approve: false
+
+  # Pattern 5: Hotfix for incident
+  incident_hotfix:
+    bmm_trigger: "P0/P1 incident requiring code fix"
+    bmi_workflows:
+      - hotfix
+      - deploy
+    environment: "production"
+    auto_approve: true  # Fast-track for emergencies
+
+# Environment configuration
+environments:
+  dev:
+    auto_deploy: true
+    require_tests: true
+    require_approval: false
+
+  staging:
+    auto_deploy: false
+    require_tests: true
+    require_approval: true
+    smoke_tests: true
+
+  production:
+    auto_deploy: false
+    require_tests: true
+    require_approval: true
+    smoke_tests: true
+    load_testing: true  # Recommended before production deploy
+    rollback_ready: true
+
+# Status tracking
+status_tracking:
+  deployment_status_file: "bmad/bmi/integration/status/deployment-status.yaml"
+  release_status_file: "bmad/bmi/integration/status/release-status.yaml"
+  incident_status_file: "bmad/bmi/integration/status/incident-status.yaml"
+
+# Notification channels
+notifications:
+  slack:
+    enabled: true
+    channels:
+      deployments: "#deployments"
+      releases: "#releases"
+      incidents: "#incidents"
+  email:
+    enabled: false
+    recipients: []
+  status_page:
+    enabled: false
+    url: ""
