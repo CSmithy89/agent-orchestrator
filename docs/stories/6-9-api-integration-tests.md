@@ -276,6 +276,7 @@ so that all endpoints are validated and regressions are prevented.
 
 - **2025-11-15:** Story drafted by create-story workflow
 - **2025-11-15:** Story implementation completed by dev-story workflow
+- **2025-11-15:** Senior Developer Review notes appended
 
 ## Dev Agent Record
 
@@ -408,3 +409,241 @@ All 10 acceptance criteria have been successfully implemented:
 **Story Documentation:**
 - /home/user/agent-orchestrator/docs/stories/6-9-api-integration-tests.md (this file)
 - /home/user/agent-orchestrator/docs/stories/6-9-api-integration-tests.context.xml
+
+---
+
+# Senior Developer Review (AI)
+
+**Reviewer:** Chris
+**Date:** 2025-11-15
+**Outcome:** **CHANGES REQUESTED**
+
+## Summary
+
+Story 6.9 successfully implements comprehensive API integration tests covering all 10 acceptance criteria with solid test infrastructure and good coverage of endpoints. However, several quality issues prevent approval at this time:
+
+1. **Test Reliability Issues**: 11 API integration tests failing (93.4% pass rate) with specific failures in error-handling, schema-validation, and projects tests
+2. **WebSocket Test Technical Debt**: 14 uncaught exceptions from deprecated `done()` callback pattern requiring refactoring to async/await
+3. **Coverage Verification Incomplete**: AC #9 requires >80% coverage verification, but coverage report fails to generate due to test failures
+4. **Test Stability Concerns**: Worker exit errors and timeout issues suggest fragility in test execution
+
+The implementation demonstrates strong technical understanding with well-structured tests, proper use of Vitest/Fastify patterns, and comprehensive endpoint coverage. With the identified issues resolved, this will be production-ready.
+
+## Key Findings
+
+### MEDIUM Severity Issues
+
+**1. Test Failures in API Integration Tests (11 failures)**
+- Error-handling tests: Expired token test, requestId validation, 404 story test
+- Schema-validation tests: Multiple endpoint schema validation failures
+- Projects tests: List projects test failure
+- Impact: Unreliable test suite undermines confidence in API stability
+- Evidence: Test run shows "75 failed | 1772 passed | 86 skipped" (overall), API subset has 11 failures
+
+**2. WebSocket Tests Using Deprecated Pattern (14 uncaught exceptions)**
+- All WebSocket tests use deprecated `done()` callback instead of async/await
+- Vitest error: "done() callback is deprecated, use promise instead"
+- Causes worker exit errors and test fragility
+- Evidence: `backend/tests/api/websocket.test.ts:93, 400, 423, 466` (multiple instances)
+
+**3. Coverage Verification Incomplete (AC #9)**
+- Story claims >80% coverage target, but no verification provided
+- Coverage report generation fails due to test failures
+- Cannot verify actual API layer coverage
+- Evidence: `npm run test:coverage` exits with code 1
+
+**4. Test Output Suggests Timing Issues**
+- Worker exited unexpectedly errors
+- Some tests use setTimeout for timing (anti-pattern)
+- Potential race conditions in WebSocket and project tests
+- Evidence: `projects.test.ts:118-120` uses setTimeout(10ms) for ordering
+
+### LOW Severity Issues
+
+**5. Missing Test Fixtures**
+- State tests reference `tests/fixtures` directory but fixture files not in File List
+- Could cause test failures if fixtures missing
+- Evidence: `state.test.ts:24` sets fixturesDir path
+
+**6. Inconsistent Error Message Validation**
+- Some tests check exact error message text (brittle)
+- Better to check error codes/types rather than message strings
+- Evidence: `orchestrators.test.ts:141` checks "No workflow is currently running"
+
+## Acceptance Criteria Coverage
+
+| AC# | Description | Status | Evidence |
+|-----|-------------|--------|----------|
+| 1 | Setup test framework (Vitest + Supertest) | **IMPLEMENTED** | `backend/vitest.config.ts:1-106`, `backend/tests/setup.ts:1-103`, uses server.inject() (better than Supertest for Fastify) |
+| 2 | Test all Project Management endpoints | **PARTIAL** | `backend/tests/api/projects.test.ts:1-508` - 23 tests covering GET/POST/PATCH/DELETE, **BUT** list projects test failing |
+| 3 | Test all Orchestrator Control endpoints | **IMPLEMENTED** | `backend/tests/api/orchestrators.test.ts:1-170` - 8 tests covering start/pause/resume/status with validation |
+| 4 | Test all State Query endpoints | **PARTIAL** | `backend/tests/api/state.test.ts:1-280` - 15 tests covering workflow/sprint/stories/dependency-graph, **BUT** schema validation failures |
+| 5 | Test all Escalation endpoints | **IMPLEMENTED** | `backend/tests/api/escalations.test.ts:1-199` - 9 tests covering list/get/respond with filtering |
+| 6 | Test WebSocket connections | **PARTIAL** | `backend/tests/api/websocket.test.ts:1-471` - 15 tests covering auth/subscription/events, **BUT** using deprecated done() callback (14 exceptions) |
+| 7 | Test error handling | **PARTIAL** | `backend/tests/api/error-handling.test.ts:1-370` - 23 tests covering 400/401/404/security, **BUT** 3 tests failing |
+| 8 | Test OpenAPI schema validation | **PARTIAL** | `backend/tests/api/schema-validation.test.ts:1-398` - 17 tests validating schemas, **BUT** 5 tests failing |
+| 9 | Achieve >80% code coverage | **NOT VERIFIED** | Coverage report generation attempted (`vitest.config.ts:29-55`), **BUT** fails due to test failures - **NO EVIDENCE OF >80%** |
+| 10 | Integration tests run in CI/CD | **IMPLEMENTED** | Test scripts in `package.json:3-10`, Vitest CI config in `vitest.config.ts:46,61,67,89`, tests run (with failures) |
+
+**Summary:** 4 of 10 ACs fully implemented, 5 of 10 ACs partially implemented, 1 of 10 ACs not verified (AC #9)
+
+## Task Completion Validation
+
+All tasks in the story are marked as **incomplete** `[ ]`, which is **CORRECT** - no false completion claims detected. The Dev Agent Record → Completion Notes section claims all 10 ACs are complete (✅), but systematic validation shows 6 ACs have issues (partial or not verified).
+
+**Discrepancy:** Completion Notes claim "All 10 acceptance criteria have been successfully implemented" but evidence shows:
+- AC #2, #4, #6, #7, #8: Partial (have test failures)
+- AC #9: Not verified (coverage report fails)
+
+This is a **MEDIUM severity finding** - completion status overstated in notes but no falsely checked task boxes.
+
+| Task | Marked As | Verified As | Evidence |
+|------|-----------|-------------|----------|
+| Task 1 (Setup) | Incomplete | **COMPLETE** | `vitest.config.ts`, `setup.ts`, server.inject() pattern used |
+| Task 2 (Projects) | Incomplete | **MOSTLY COMPLETE** | `projects.test.ts:508 lines`, but 1 test failing |
+| Task 3 (Orchestrators) | Incomplete | **COMPLETE** | `orchestrators.test.ts:170 lines`, all tests valid |
+| Task 4 (State Query) | Incomplete | **MOSTLY COMPLETE** | `state.test.ts:280 lines`, but schema failures |
+| Task 5 (Escalations) | Incomplete | **COMPLETE** | `escalations.test.ts:199 lines`, all tests valid |
+| Task 6 (WebSocket) | Incomplete | **COMPLETE BUT NEEDS REFACTOR** | `websocket.test.ts:471 lines`, deprecated done() usage |
+| Task 7 (Error Handling) | Incomplete | **MOSTLY COMPLETE** | `error-handling.test.ts:370 lines`, but 3 tests failing |
+| Task 8 (Schema Validation) | Incomplete | **MOSTLY COMPLETE** | `schema-validation.test.ts:398 lines`, but 5 tests failing |
+| Task 9 (Coverage) | Incomplete | **INCOMPLETE** | Coverage config exists but report generation fails |
+| Task 10 (CI/CD) | Incomplete | **COMPLETE** | Scripts and CI config present, tests run in CI |
+
+**Summary:** 3 tasks fully verified, 5 tasks mostly complete (with failures), 1 task incomplete, 1 task needs refactoring
+
+## Test Coverage and Gaps
+
+### Coverage Status
+- **Target:** >80% coverage for API layer (AC #9)
+- **Actual:** **UNKNOWN** - coverage report fails to generate due to test failures
+- **Config:** Properly configured with v8 provider, thresholds set to 75% (vitest.config.ts:29-55)
+- **Gap:** Must fix test failures before coverage can be measured
+
+### Test Quality Assessment
+**Strengths:**
+- Comprehensive endpoint coverage across all API routes
+- Proper test isolation with beforeEach/afterEach cleanup
+- Good use of Fastify server.inject() for HTTP testing
+- Security testing included (CORS, headers, auth)
+- Schema validation tests ensure API contract compliance
+
+**Gaps & Issues:**
+1. **WebSocket Tests:** All use deprecated done() callback - need async/await refactor
+2. **Flaky Tests:** Some use setTimeout for ordering/timing (anti-pattern)
+3. **Test Failures:** 11 API tests failing suggests incomplete implementation or test issues
+4. **Error Handling:** Some tests check exact error messages (brittle)
+5. **Fixtures:** State tests reference fixtures but not in file list
+
+### Tests Without Proper Coverage
+- **Rate Limiting (AC #7):** Error-handling test exists but may not verify actual enforcement
+- **Reconnection Logic (AC #6):** WebSocket reconnection test needs verification
+- **Pagination Edge Cases:** Boundary testing for limit/offset incomplete
+
+## Architectural Alignment
+
+### Tech Spec Compliance
+**NOTE:** No Epic 6 tech spec found (`docs/tech-spec-epic-6*.md` missing) - this is a **WARNING**
+
+### Architecture Document Alignment
+Architecture validation limited due to file size constraints, but based on story context:
+
+**Compliant:**
+- ✅ REST API with Fastify framework
+- ✅ JWT Bearer token authentication
+- ✅ WebSocket for real-time updates
+- ✅ TypeScript with strict typing
+- ✅ Vitest test framework
+- ✅ Error handling standards (400/401/404 responses)
+
+**Architecture Patterns:**
+- Tests properly use `server.inject()` instead of external HTTP calls
+- Proper service layer mocking and cleanup
+- Event service integration tested
+- Test isolation via beforeEach/afterEach
+
+**Potential Violations:**
+- None detected in test implementation
+
+## Security Notes
+
+### Security Testing Coverage
+**Strengths:**
+- ✅ Authentication tests (401 errors, invalid tokens, expired tokens)
+- ✅ Authorization validation (missing Bearer tokens)
+- ✅ Input validation (400 errors, malformed data)
+- ✅ Security headers testing (Helmet integration verified)
+- ✅ CORS preflight request handling
+- ✅ Error message security (no sensitive info leakage)
+- ✅ Request ID tracking for audit trails
+
+**Concerns:**
+1. **Test Failure in Error Handling:** Expired token test failing (`error-handling.test.ts`) - security test not passing
+2. **Rate Limiting (AC #7):** No evidence of actual rate limiting enforcement tests (only schema validation)
+3. **WebSocket Authentication:** Tests exist but deprecated pattern may mask auth issues
+
+### Recommended Security Enhancements
+- Add tests for rate limiting with actual request flooding
+- Verify WebSocket token expiration handling
+- Add tests for SQL injection/XSS prevention in input validation
+- Consider adding security scan in CI (npm audit, Snyk)
+
+## Best-Practices and References
+
+### Tech Stack Detected
+- **Runtime:** Node.js (TypeScript)
+- **Framework:** Fastify 4.25.0
+- **Testing:** Vitest 1.6.1
+- **WebSocket:** ws 8.18.3
+- **Validation:** Zod 3.22.0
+- **Auth:** @fastify/jwt 7.2.0
+
+### Best Practices Applied
+✅ **Test Organization:** Co-located tests in `backend/tests/api/`
+✅ **Test Isolation:** Proper setup/teardown in each test file
+✅ **Mock Strategy:** Service-level mocking (projectService, eventService)
+✅ **Fastify Pattern:** Using server.inject() (optimal for Fastify)
+✅ **TypeScript:** Strict typing in all test files
+✅ **CI Configuration:** Proper Vitest CI mode with sequential execution
+
+### Best Practices Violated
+❌ **Async Testing:** WebSocket tests use deprecated done() callback (Vitest recommendation: use async/await)
+❌ **Test Reliability:** Using setTimeout for test ordering (anti-pattern)
+❌ **Test Flakiness:** Worker exit errors suggest race conditions
+❌ **Coverage Verification:** Story claims completion without verified metrics
+
+### References
+- [Fastify Testing Best Practices](https://www.fastify.io/docs/latest/Guides/Testing/)
+- [Vitest Async Testing](https://vitest.dev/guide/features.html#async-matchers)
+- [WebSocket Testing Patterns](https://github.com/websockets/ws#how-to-test)
+- [API Security Testing OWASP](https://owasp.org/www-project-web-security-testing-guide/)
+
+## Action Items
+
+### Code Changes Required
+
+#### High Priority
+- [ ] [Med] Fix 11 failing API integration tests to achieve stable test suite (AC #2, #4, #7, #8) [files: backend/tests/api/error-handling.test.ts, schema-validation.test.ts, projects.test.ts]
+- [ ] [Med] Refactor WebSocket tests from done() callback to async/await pattern to eliminate 14 uncaught exceptions (AC #6) [file: backend/tests/api/websocket.test.ts:43-468]
+- [ ] [Med] Verify >80% code coverage for API layer and provide evidence (AC #9) [action: fix tests, run coverage, update story notes with metrics]
+
+#### Medium Priority
+- [ ] [Low] Remove setTimeout usage from projects tests and use proper async patterns (AC #2) [file: backend/tests/api/projects.test.ts:118-120]
+- [ ] [Low] Verify test fixtures exist for state.test.ts (AC #4) [file: backend/tests/fixtures/]
+- [ ] [Low] Add actual rate limiting enforcement tests beyond schema validation (AC #7) [file: backend/tests/api/error-handling.test.ts:209+]
+- [ ] [Low] Replace brittle error message checks with error code/type validation (AC #3, #5) [files: backend/tests/api/orchestrators.test.ts:141,166, escalations.test.ts]
+
+#### Documentation Updates
+- [ ] [Low] Update story Completion Notes to reflect actual status: 4 ACs fully complete, 5 partial, 1 not verified
+- [ ] [Low] Add Epic 6 tech spec or update story to reference correct tech spec location
+
+### Advisory Notes
+- Note: Consider adding Prettier/ESLint auto-formatting to prevent style inconsistencies
+- Note: WebSocket test refactoring is an excellent opportunity to improve test reliability patterns across the project
+- Note: Once tests are stable, add coverage reporting to CI/CD pipeline for continuous monitoring
+- Note: Test execution time of 57-85 seconds is reasonable for 1950 tests (29-43 tests/second)
+- Note: The use of server.inject() instead of Supertest is actually a best practice for Fastify - well done!
+
+---
+
+**Review Rationale:** While the implementation demonstrates strong technical capability and comprehensive test coverage intent, the test failures and incomplete coverage verification prevent approval. These are quality issues that must be resolved to ensure production reliability. Once the identified issues are addressed and all tests pass with verified >80% coverage, this story will be ready for approval.
