@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { createServer } from '../../src/api/server.js';
+import { projectService } from '../../src/api/services/project.service.js';
 import { eventService } from '../../src/api/services/event.service.js';
 
 describe('API Error Handling & Security', () => {
@@ -20,6 +21,9 @@ describe('API Error Handling & Security', () => {
     server = await createServer({
       jwtSecret: 'test-secret'
     });
+
+    // Clear project service cache AFTER server creation
+    projectService.clearCache();
 
     // Generate test JWT token
     jwtToken = server.jwt.sign({ userId: 'test-user' });
