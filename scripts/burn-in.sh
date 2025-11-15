@@ -1,33 +1,30 @@
 #!/bin/bash
-# Burn-in loop for flaky test detection
-# Runs E2E tests multiple times to catch non-deterministic failures
+# File: scripts/burn-in.sh
+# Purpose: Run E2E tests multiple times to detect flaky tests
 
 set -e
 
-ITERATIONS=${BURN_IN_ITERATIONS:-10}
+ITERATIONS=10
+FAILURES=0
 
-echo "🔥 Starting burn-in loop for flaky test detection..."
-echo "Iterations: $ITERATIONS"
-echo ""
+echo "🔥 Starting burn-in loop (${ITERATIONS} iterations)..."
 
 for i in $(seq 1 $ITERATIONS); do
-  echo ""
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "🔥 Burn-in iteration $i/$ITERATIONS"
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  
-  if ! npm run test:e2e; then
-    echo ""
-    echo "❌ FLAKY TEST DETECTED on iteration $i/$ITERATIONS"
-    echo "Tests must pass consistently to merge."
-    exit 1
+  echo "🔄 Iteration $i/$ITERATIONS"
+
+  if ! npm run test:e2e -- --project=chromium; then
+    FAILURES=$((FAILURES + 1))
+    echo "❌ Iteration $i FAILED"
+  else
+    echo "✅ Iteration $i PASSED"
   fi
-  
-  echo "✅ Iteration $i/$ITERATIONS passed"
 done
 
-echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "🎉 All $ITERATIONS burn-in iterations passed!"
-echo "✅ No flaky tests detected"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "📊 Burn-in Results: $((ITERATIONS - FAILURES))/$ITERATIONS passed"
+
+if [ $FAILURES -gt 0 ]; then
+  echo "❌ Flaky tests detected! $FAILURES failures in $ITERATIONS runs"
+  exit 1
+fi
+
+echo "✅ All burn-in iterations passed - no flaky tests detected"

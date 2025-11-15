@@ -1,10 +1,13 @@
-name: Test Pipeline (Disabled - Epic 6)
+name: Test Pipeline
 
-# TEMPORARILY DISABLED: This workflow is for future E2E/Playwright testing (Epic 6)
-# Currently conflicts with ci.yml and references dashboard workspace that doesn't exist yet
-# Re-enable when implementing Epic 6 frontend and E2E tests
+# ENABLED: E2E/Playwright testing for Epic 6 Dashboard (Story 6.10)
+# Tests comprehensive dashboard functionality including all features
 on:
-  workflow_dispatch:  # Manual trigger only
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+  workflow_dispatch:  # Manual trigger
 
 jobs:
   lint:
@@ -104,7 +107,7 @@ jobs:
         run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
         env:
           NODE_ENV: test
-          API_BASE_URL: http://localhost:3000
+          DASHBOARD_URL: http://localhost:5173
 
       - name: Upload test results
         if: failure()
