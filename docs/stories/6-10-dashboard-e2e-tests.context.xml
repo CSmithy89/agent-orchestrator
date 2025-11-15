@@ -1,0 +1,484 @@
+<story-context id="bmad/bmm/workflows/4-implementation/story-context/template" v="1.0">
+  <metadata>
+    <epicId>6</epicId>
+    <storyId>10</storyId>
+    <title>Dashboard E2E Tests</title>
+    <status>drafted</status>
+    <generatedAt>2025-11-15</generatedAt>
+    <generator>BMAD Story Context Workflow</generator>
+    <sourceStoryPath>docs/stories/6-10-dashboard-e2e-tests.md</sourceStoryPath>
+  </metadata>
+
+  <story>
+    <asA>a quality-focused developer</asA>
+    <iWant>comprehensive end-to-end dashboard tests</iWant>
+    <soThat>user workflows are validated and UI regressions prevented</soThat>
+    <tasks>
+      <task id="1" title="Setup E2E test framework and infrastructure">
+        <subtask id="1.1">Install Playwright and configure for React/TypeScript</subtask>
+        <subtask id="1.2">Create Playwright configuration file (browser targets, test directory)</subtask>
+        <subtask id="1.3">Setup test utilities (fixtures, test data helpers, page objects)</subtask>
+        <subtask id="1.4">Configure mock backend server for E2E tests (or use test API instance)</subtask>
+        <subtask id="1.5">Create global test setup/teardown (start server, cleanup data)</subtask>
+      </task>
+      <task id="2" title="Test Project Management Views">
+        <subtask id="2.1">Test project list page loads and displays all projects</subtask>
+        <subtask id="2.2">Test project filtering by phase/status works correctly</subtask>
+        <subtask id="2.3">Test project search functionality</subtask>
+        <subtask id="2.4">Test project detail view shows all sections (phases, progress, tasks)</subtask>
+        <subtask id="2.5">Test navigation from list to detail and back</subtask>
+        <subtask id="2.6">Test "Create Project" button and modal workflow</subtask>
+        <subtask id="2.7">Test project update and delete operations</subtask>
+      </task>
+      <task id="3" title="Test Escalation Interface">
+        <subtask id="3.1">Test escalation list displays all escalations with filters</subtask>
+        <subtask id="3.2">Test escalation modal opens with full context (question, reasoning, AI analysis)</subtask>
+        <subtask id="3.3">Test response submission workflow (textarea, submit button)</subtask>
+        <subtask id="3.4">Test escalation status updates after response</subtask>
+        <subtask id="3.5">Test filtering escalations by status (pending, resolved)</subtask>
+        <subtask id="3.6">Test escalation detail view shows complete context</subtask>
+      </task>
+      <task id="4" title="Test Kanban Board">
+        <subtask id="4.1">Test board renders with correct columns (backlog, drafted, ready, in-progress, review, done)</subtask>
+        <subtask id="4.2">Test story cards display all required information (title, status, epic)</subtask>
+        <subtask id="4.3">Test drag-and-drop updates story status correctly</subtask>
+        <subtask id="4.4">Test status transitions are persisted to backend</subtask>
+        <subtask id="4.5">Test filtering stories by epic</subtask>
+        <subtask id="4.6">Test story detail modal opens on card click</subtask>
+      </task>
+      <task id="5" title="Test Dependency Graph">
+        <subtask id="5.1">Test graph renders all nodes (stories) and edges (dependencies)</subtask>
+        <subtask id="5.2">Test graph interactions: pan, zoom, drag nodes</subtask>
+        <subtask id="5.3">Test node click shows story details</subtask>
+        <subtask id="5.4">Test graph layout algorithms (force, hierarchical, circular)</subtask>
+        <subtask id="5.5">Test export functions (PNG, SVG, JSON)</subtask>
+        <subtask id="5.6">Test filtering nodes by epic or status</subtask>
+      </task>
+      <task id="6" title="Test real-time updates via WebSocket">
+        <subtask id="6.1">Test WebSocket connection establishment on dashboard load</subtask>
+        <subtask id="6.2">Test project status change events update UI automatically</subtask>
+        <subtask id="6.3">Test story status change events update Kanban board in real-time</subtask>
+        <subtask id="6.4">Test escalation creation events show new escalations immediately</subtask>
+        <subtask id="6.5">Test multiple browser tabs stay synchronized via WebSocket</subtask>
+        <subtask id="6.6">Test WebSocket reconnection after connection loss</subtask>
+      </task>
+      <task id="7" title="Test responsive design">
+        <subtask id="7.1">Test desktop layout (1920x1080, 1366x768)</subtask>
+        <subtask id="7.2">Test tablet layout (iPad, 768x1024)</subtask>
+        <subtask id="7.3">Test mobile layout (iPhone, 375x667)</subtask>
+        <subtask id="7.4">Test touch interactions on mobile (tap, swipe, drag)</subtask>
+        <subtask id="7.5">Test responsive navigation (hamburger menu on mobile)</subtask>
+        <subtask id="7.6">Test all critical workflows work on mobile</subtask>
+      </task>
+      <task id="8" title="Test accessibility">
+        <subtask id="8.1">Test keyboard navigation for all interactive elements</subtask>
+        <subtask id="8.2">Test focus indicators are visible throughout dashboard</subtask>
+        <subtask id="8.3">Test screen reader compatibility (ARIA labels, roles, descriptions)</subtask>
+        <subtask id="8.4">Test color contrast meets WCAG 2.1 AA standards</subtask>
+        <subtask id="8.5">Test form inputs have proper labels and error messages</subtask>
+        <subtask id="8.6">Test modal dialogs trap focus correctly</subtask>
+      </task>
+      <task id="9" title="Achieve code coverage target">
+        <subtask id="9.1">Run coverage report for dashboard components</subtask>
+        <subtask id="9.2">Identify untested UI paths and add E2E tests</subtask>
+        <subtask id="9.3">Achieve >70% UI code coverage for dashboard</subtask>
+        <subtask id="9.4">Document coverage metrics in story completion notes</subtask>
+      </task>
+      <task id="10" title="CI/CD pipeline integration">
+        <subtask id="10.1">Add E2E test script to package.json</subtask>
+        <subtask id="10.2">Configure CI pipeline to run Playwright tests</subtask>
+        <subtask id="10.3">Setup headless browser environment in CI</subtask>
+        <subtask id="10.4">Configure test artifacts (screenshots, videos) on failure</subtask>
+        <subtask id="10.5">Verify E2E tests pass in CI environment</subtask>
+      </task>
+    </tasks>
+  </story>
+
+  <acceptanceCriteria>
+    <criterion id="1">Setup E2E test framework (Playwright)</criterion>
+    <criterion id="2">Test Project Management Views (Story 6.5): Project list loads and displays correctly, Project detail view shows all sections, Navigation between views works</criterion>
+    <criterion id="3">Test Escalation Interface (Story 6.6): Escalation list displays correctly, Modal opens with full context, Response submission works</criterion>
+    <criterion id="4">Test Kanban Board (Story 6.7): Board renders with correct columns, Cards display story information, Drag-and-drop updates status</criterion>
+    <criterion id="5">Test Dependency Graph (Story 6.8): Graph renders nodes and edges, Interactions work (pan, zoom, click), Export functions generate files</criterion>
+    <criterion id="6">Test real-time updates: WebSocket events update UI, Multiple tabs stay synchronized</criterion>
+    <criterion id="7">Test responsive design: Desktop, tablet, mobile layouts, Touch interactions on mobile</criterion>
+    <criterion id="8">Test accessibility: Keyboard navigation works, Screen reader compatibility</criterion>
+    <criterion id="9">Achieve >70% UI coverage</criterion>
+    <criterion id="10">E2E tests run in CI/CD pipeline</criterion>
+  </acceptanceCriteria>
+
+  <artifacts>
+    <docs>
+      <doc>
+        <path>docs/epics.md</path>
+        <title>Epic 6: Remote Access &amp; Monitoring</title>
+        <section>Epic 6 - Story 6.10: Dashboard E2E Tests</section>
+        <snippet>Final testing story for Epic 6. Comprehensive E2E tests for all dashboard features implemented in Stories 6.4-6.8. Tests validate Project Management Views, Escalation Interface, Kanban Board, Dependency Graph, and real-time WebSocket updates. Target: >70% UI coverage, cross-browser testing (Chromium, Firefox, WebKit), responsive design validation, accessibility compliance (WCAG 2.1 AA).</snippet>
+      </doc>
+      <doc>
+        <path>docs/architecture.md</path>
+        <title>Testing Strategy (Section 7)</title>
+        <section>7.4 E2E Testing (10%)</section>
+        <snippet>Framework: Playwright for cross-browser E2E testing (dashboard). Test complete user workflows, not isolated components. Use page object model (POM) for maintainability. Mock backend API when appropriate. Test critical paths first (project creation, escalation response, story tracking). Coverage target: >70% UI coverage. Browser targets: Chromium, Firefox, WebKit. Visual testing with screenshot comparison for regression detection.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-4-react-dashboard-foundation-api-integration.md</path>
+        <title>Story 6.4: React Dashboard Foundation (Complete)</title>
+        <section>Technical Implementation</section>
+        <snippet>React 18 with TypeScript + Vite, TanStack Query for API state management, Zustand for global state, Tailwind CSS + shadcn/ui components, React Router v6 for navigation, Vitest + React Testing Library for component tests. Dashboard structure: src/pages/, src/components/, src/hooks/, src/api/. Authentication via JWT tokens in localStorage.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-5-project-management-views-combined.md</path>
+        <title>Story 6.5: Project Management Views (Complete)</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Project List View: Card grid showing all projects with status badges, filters by phase/status, search functionality, "Create Project" button. Project Detail View: Phase progress stepper, active agents list, event timeline, quick actions panel. All views integrated with TanStack Query for data fetching and caching.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-6-escalation-response-interface.md</path>
+        <title>Story 6.6: Escalation Response Interface (Complete)</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Escalation List: Cards with type badges, priority indicators, filters by status/priority. Escalation Detail Modal: Full context display (question, reasoning, AI analysis), response textarea, submit button. Real-time updates via WebSocket when new escalations created or status changes.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-7-story-tracking-kanban-board.md</path>
+        <title>Story 6.7: Story Tracking Kanban Board (Complete)</title>
+        <section>Acceptance Criteria</section>
+        <snippet>Kanban Board with 6 columns (backlog, drafted, ready, in-progress, review, done). Story cards display title, status, epic, assignee. Drag-and-drop powered by @dnd-kit with status updates persisted to backend. Epic filter dropdown. Story detail modal with full story content. Real-time updates via WebSocket.</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-8-dependency-graph-visualization-component.md</path>
+        <title>Story 6.8: Dependency Graph Visualization (Complete)</title>
+        <section>Acceptance Criteria</section>
+        <snippet>D3.js force-directed graph with nodes (stories) and edges (dependencies). Interactive: pan, zoom, drag nodes, click for details. Layout algorithms: force, hierarchical, circular. Export to PNG, SVG, JSON. Filters by epic/status. Accessibility: WCAG 2.1 AA compliance, keyboard navigation. Virtualization for large graphs (>100 nodes).</snippet>
+      </doc>
+      <doc>
+        <path>docs/stories/6-9-api-integration-tests.md</path>
+        <title>Story 6.9: API Integration Tests (Complete)</title>
+        <section>Testing Patterns</section>
+        <snippet>Vitest 1.6.1 with 167/167 tests passing (100% pass rate). Test patterns: co-located *.test.ts files, beforeEach/afterEach cleanup, mock JWT tokens via server.jwt.sign(), real HTTP testing with server.inject(), comprehensive error scenario testing (400/401/403/404). Coverage: 91.13% routes, 80.63% services. All tests refactored to async/await, no deprecated patterns.</snippet>
+      </doc>
+      <doc>
+        <path>playwright.config.ts</path>
+        <title>Playwright Configuration (Existing)</title>
+        <section>Configuration</section>
+        <snippet>Playwright already configured at project root. Test directory: tests/e2e/. Browser projects: Chromium, Firefox, WebKit, mobile-chrome, mobile-safari. Reporters: HTML, JSON, JUnit. Artifacts: screenshots on failure, video on retry, trace on first retry. Web server: npm run dev on localhost:3000. Parallel execution enabled, 2 retries in CI.</snippet>
+      </doc>
+    </docs>
+    <code>
+      <artifact>
+        <path>playwright.config.ts</path>
+        <kind>test-config</kind>
+        <symbol>Playwright configuration</symbol>
+        <lines>complete file</lines>
+        <reason>Existing Playwright configuration - already set up for E2E tests with browser targets, reporters, artifacts</reason>
+      </artifact>
+      <artifact>
+        <path>tests/e2e/example.spec.ts</path>
+        <kind>test-example</kind>
+        <symbol>Example E2E test suite</symbol>
+        <lines>complete file</lines>
+        <reason>Template for writing E2E tests - shows Playwright test patterns, beforeEach setup, API testing with request fixture</reason>
+      </artifact>
+      <artifact>
+        <path>tests/support/fixtures/base.ts</path>
+        <kind>test-fixture</kind>
+        <symbol>Base test fixture</symbol>
+        <lines>complete file</lines>
+        <reason>Custom Playwright fixtures foundation - can be extended with authenticated pages, mock data, etc.</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/pages/ProjectsListPage.tsx</path>
+        <kind>page-component</kind>
+        <symbol>ProjectsListPage</symbol>
+        <lines>complete file</lines>
+        <reason>Project Management Views page (Story 6.5) - primary test target for AC#2</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/pages/ProjectDetailPage.tsx</path>
+        <kind>page-component</kind>
+        <symbol>ProjectDetailPage</symbol>
+        <lines>complete file</lines>
+        <reason>Project detail view (Story 6.5) - test target for AC#2</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/pages/EscalationsPage.tsx</path>
+        <kind>page-component</kind>
+        <symbol>EscalationsPage</symbol>
+        <lines>complete file</lines>
+        <reason>Escalation Interface (Story 6.6) - primary test target for AC#3</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/pages/KanbanBoardPage.tsx</path>
+        <kind>page-component</kind>
+        <symbol>KanbanBoardPage</symbol>
+        <lines>complete file</lines>
+        <reason>Kanban Board (Story 6.7) - primary test target for AC#4 including drag-and-drop</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/pages/DependencyGraphPage.tsx</path>
+        <kind>page-component</kind>
+        <symbol>DependencyGraphPage</symbol>
+        <lines>complete file</lines>
+        <reason>Dependency Graph (Story 6.8) - primary test target for AC#5 including D3.js interactions</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/kanban/KanbanBoard.tsx</path>
+        <kind>component</kind>
+        <symbol>KanbanBoard</symbol>
+        <lines>complete file</lines>
+        <reason>Kanban board component with drag-and-drop - test drag interactions, column rendering, card display</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/graph/DependencyGraph.tsx</path>
+        <kind>component</kind>
+        <symbol>DependencyGraph</symbol>
+        <lines>complete file</lines>
+        <reason>D3.js dependency graph component - test pan/zoom, node interactions, layout algorithms, export functions</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/escalations/EscalationDetailModal.tsx</path>
+        <kind>component</kind>
+        <symbol>EscalationDetailModal</symbol>
+        <lines>complete file</lines>
+        <reason>Escalation modal with response form - test modal open/close, form submission, focus trap</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/components/projects/CreateProjectModal.tsx</path>
+        <kind>component</kind>
+        <symbol>CreateProjectModal</symbol>
+        <lines>complete file</lines>
+        <reason>Project creation modal - test form validation, submission, error handling</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useWebSocket</symbol>
+        <lines>complete file</lines>
+        <reason>WebSocket connection hook - test real-time updates, connection/disconnection, event handling</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useProjectWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useProjectWebSocket</symbol>
+        <lines>complete file</lines>
+        <reason>Project-specific WebSocket hook - test project event subscriptions and UI updates</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/hooks/useStoryWebSocket.ts</path>
+        <kind>hook</kind>
+        <symbol>useStoryWebSocket</symbol>
+        <lines>complete file</lines>
+        <reason>Story WebSocket hook - test story status updates in Kanban board</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/api/client.ts</path>
+        <kind>api-client</kind>
+        <symbol>API client</symbol>
+        <lines>complete file</lines>
+        <reason>API client configuration - may need to mock for E2E tests or use test backend</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/projects.ts</path>
+        <kind>api-route</kind>
+        <symbol>Project routes</symbol>
+        <lines>complete file</lines>
+        <reason>Backend API endpoints for projects - E2E tests will call these endpoints via dashboard UI</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/routes/websocket.ts</path>
+        <kind>websocket-handler</kind>
+        <symbol>WebSocket handler</symbol>
+        <lines>complete file</lines>
+        <reason>WebSocket server implementation - test real-time event emissions during E2E tests</reason>
+      </artifact>
+      <artifact>
+        <path>backend/src/api/types/api.types.ts</path>
+        <kind>type-definitions</kind>
+        <symbol>API types</symbol>
+        <lines>complete file</lines>
+        <reason>TypeScript API types used throughout dashboard - useful for type-safe test data</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/vitest.config.ts</path>
+        <kind>test-config</kind>
+        <symbol>Vitest configuration</symbol>
+        <lines>complete file</lines>
+        <reason>Existing Vitest config for unit/component tests - separate from Playwright E2E tests</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/src/test-utils/setup.ts</path>
+        <kind>test-setup</kind>
+        <symbol>Vitest test setup</symbol>
+        <lines>complete file</lines>
+        <reason>Test utilities for component tests - shows localStorage mock, cleanup patterns</reason>
+      </artifact>
+      <artifact>
+        <path>dashboard/package.json</path>
+        <kind>dependency-manifest</kind>
+        <symbol>Dashboard dependencies</symbol>
+        <lines>complete file</lines>
+        <reason>React dependencies and test libraries - note Playwright not yet installed</reason>
+      </artifact>
+      <artifact>
+        <path>backend/package.json</path>
+        <kind>dependency-manifest</kind>
+        <symbol>Backend dependencies</symbol>
+        <lines>complete file</lines>
+        <reason>Backend API dependencies - Fastify, WebSocket, JWT</reason>
+      </artifact>
+    </code>
+    <dependencies>
+      <node>
+        <package name="@playwright/test" version="^1.40.0">Cross-browser E2E testing framework (NOT YET INSTALLED - need to add)</package>
+        <package name="react" version="^18.3.1">UI framework for dashboard</package>
+        <package name="react-dom" version="^18.3.1">React DOM rendering</package>
+        <package name="typescript" version="^5.5.4">Type safety throughout dashboard</package>
+        <package name="vite" version="^5.4.3">Build tool and dev server</package>
+        <package name="@tanstack/react-query" version="^5.56.2">API state management and caching</package>
+        <package name="zustand" version="^4.5.5">Global state management</package>
+        <package name="react-router-dom" version="^6.26.1">Client-side routing</package>
+        <package name="@dnd-kit/core" version="^6.3.1">Drag-and-drop for Kanban board</package>
+        <package name="d3" version="^7.9.0">Graph visualization library</package>
+        <package name="@radix-ui/react-dialog" version="^1.0.5">Accessible modal dialogs</package>
+        <package name="tailwindcss" version="^3.4.10">CSS framework</package>
+        <package name="vitest" version="^1.0.4">Unit test framework (existing - separate from Playwright)</package>
+        <package name="@testing-library/react" version="^14.1.2">Component testing utilities</package>
+        <package name="@testing-library/jest-dom" version="^6.1.5">DOM matchers for tests</package>
+        <package name="fastify" version="^4.25.0">Backend API server</package>
+        <package name="ws" version="^8.18.3">WebSocket library for real-time updates</package>
+      </node>
+    </dependencies>
+  </artifacts>
+
+  <constraints>
+    <constraint type="testing-framework">Use Playwright for all E2E dashboard tests. Playwright is already configured at project root (playwright.config.ts) with browser targets and reporters. Install @playwright/test as devDependency.</constraint>
+    <constraint type="test-organization">Place E2E tests in tests/e2e/ directory following page object model (POM) pattern. Organize by feature: tests/e2e/project-management.spec.ts, tests/e2e/escalation-interface.spec.ts, etc.</constraint>
+    <constraint type="coverage-target">Achieve minimum 70% UI code coverage for dashboard components (src/pages/, src/components/). Measure coverage with Playwright's built-in coverage tools or Istanbul.</constraint>
+    <constraint type="test-isolation">Each test must be isolated - use beforeEach/afterEach for setup/cleanup. Reset database/state between tests. Use test fixtures for common setup (authenticated user, test data).</constraint>
+    <constraint type="page-objects">Use page object model (POM) to encapsulate page interactions. Create page objects in tests/support/pages/ (e.g., ProjectsPage, KanbanPage, GraphPage). This improves maintainability and reduces duplication.</constraint>
+    <constraint type="data-testid">Use data-testid attributes for reliable element selection. Avoid brittle selectors like CSS classes or text content. Example: &lt;button data-testid="create-project-button"&gt;</constraint>
+    <constraint type="cross-browser">Test on all configured browsers: Chromium (Chrome), Firefox, WebKit (Safari), mobile-chrome (Pixel 5), mobile-safari (iPhone 12). Ensure all tests pass on all browsers.</constraint>
+    <constraint type="responsive-design">Test responsive layouts at multiple viewports: Desktop (1920x1080, 1366x768), Tablet (768x1024), Mobile (375x667). Verify UI adapts correctly and all features work on each size.</constraint>
+    <constraint type="accessibility">Follow WCAG 2.1 Level AA standards. Test keyboard navigation (Tab, Enter, Escape), focus indicators, ARIA labels/roles, color contrast. Use Playwright's accessibility testing capabilities or axe-core integration.</constraint>
+    <constraint type="real-time-testing">Test WebSocket real-time updates by triggering backend events (project status change, story update, escalation creation) and verifying UI updates automatically without refresh.</constraint>
+    <constraint type="drag-and-drop">Test Kanban drag-and-drop using Playwright's drag-and-drop API. Verify story cards move between columns, status updates persist to backend, and UI reflects changes immediately.</constraint>
+    <constraint type="d3-interactions">Test D3.js graph interactions: pan (mouse drag), zoom (wheel/pinch), node drag, node click. Use Playwright's mouse and touch APIs. Verify graph updates correctly.</constraint>
+    <constraint type="mock-vs-real">Prefer using real backend API (npm run dev) for E2E tests to ensure end-to-end integration. Mock only external services (LLM APIs, GitHub) to avoid costs and flakiness. Use Playwright's request interception for mocking when needed.</constraint>
+    <constraint type="test-speed">E2E tests should complete in under 5 minutes total across all browsers. Optimize by running tests in parallel (configured in playwright.config.ts), using test fixtures for setup, and avoiding unnecessary waits.</constraint>
+    <constraint type="visual-regression">Consider visual regression testing with Playwright's screenshot comparison. Capture screenshots of key pages/components and compare against baselines to detect UI regressions.</constraint>
+    <constraint type="ci-integration">Tests must run in CI/CD pipeline. Ensure headless browsers work in CI, artifacts (screenshots, videos, traces) are saved on failure, and tests don't depend on local filesystem or environment-specific configuration.</constraint>
+  </constraints>
+
+  <interfaces>
+    <interface>
+      <name>ProjectsListPage</name>
+      <kind>React page component</kind>
+      <signature>Route: /projects - Shows grid of project cards with filters</signature>
+      <path>dashboard/src/pages/ProjectsListPage.tsx</path>
+      <interactions>Search input, phase filter dropdown, status filter dropdown, project cards (click to detail), create project button</interactions>
+    </interface>
+    <interface>
+      <name>ProjectDetailPage</name>
+      <kind>React page component</kind>
+      <signature>Route: /projects/:id - Shows detailed project view</signature>
+      <path>dashboard/src/pages/ProjectDetailPage.tsx</path>
+      <interactions>Phase progress stepper, active agents list, event timeline, quick actions panel (start/pause/resume)</interactions>
+    </interface>
+    <interface>
+      <name>EscalationsPage</name>
+      <kind>React page component</kind>
+      <signature>Route: /escalations - Shows escalation cards with filters</signature>
+      <path>dashboard/src/pages/EscalationsPage.tsx</path>
+      <interactions>Status filter dropdown, priority filter dropdown, escalation cards (click to open modal), detail modal with response form</interactions>
+    </interface>
+    <interface>
+      <name>KanbanBoardPage</name>
+      <kind>React page component</kind>
+      <signature>Route: /kanban - Shows story tracking board with drag-and-drop</signature>
+      <path>dashboard/src/pages/KanbanBoardPage.tsx</path>
+      <interactions>Epic filter dropdown, 6 columns (backlog to done), story cards (drag between columns, click for details), story detail modal</interactions>
+    </interface>
+    <interface>
+      <name>DependencyGraphPage</name>
+      <kind>React page component</kind>
+      <signature>Route: /dependencies - Shows D3.js dependency graph</signature>
+      <path>dashboard/src/pages/DependencyGraphPage.tsx</path>
+      <interactions>Layout algorithm selector, epic/status filters, pan/zoom/drag controls, node click (story details), export buttons (PNG/SVG/JSON)</interactions>
+    </interface>
+    <interface>
+      <name>WebSocket Connection</name>
+      <kind>Real-time communication</kind>
+      <signature>wss://server/ws/status-updates?token=jwt_token</signature>
+      <path>backend/src/api/routes/websocket.ts (server) + dashboard/src/hooks/useWebSocket.ts (client)</path>
+      <events>project.phase.changed, story.status.changed, escalation.created, agent.started, agent.completed, pr.created, pr.merged, workflow.error</events>
+    </interface>
+    <interface>
+      <name>GET /api/projects</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects?limit=20&amp;offset=0</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <description>List all projects - used by ProjectsListPage</description>
+    </interface>
+    <interface>
+      <name>POST /api/projects</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/projects with body: {name: string, config?: object}</signature>
+      <path>backend/src/api/routes/projects.ts</path>
+      <description>Create new project - used by CreateProjectModal</description>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/stories</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/stories?status=in_progress&amp;epic=Epic 5</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <description>List stories with filters - used by KanbanBoard</description>
+    </interface>
+    <interface>
+      <name>GET /api/escalations</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/escalations?status=pending&amp;priority=high</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>List escalations with filters - used by EscalationsPage</description>
+    </interface>
+    <interface>
+      <name>POST /api/escalations/:id/respond</name>
+      <kind>REST endpoint</kind>
+      <signature>POST /api/escalations/:id/respond with body: {response: string}</signature>
+      <path>backend/src/api/routes/escalations.ts</path>
+      <description>Submit escalation response - used by EscalationDetailModal</description>
+    </interface>
+    <interface>
+      <name>GET /api/projects/:id/dependency-graph</name>
+      <kind>REST endpoint</kind>
+      <signature>GET /api/projects/:id/dependency-graph?epic=Epic 5</signature>
+      <path>backend/src/api/routes/state.ts</path>
+      <description>Get dependency graph data - used by DependencyGraph component</description>
+    </interface>
+  </interfaces>
+
+  <tests>
+    <standards>
+      Use Playwright as the primary E2E testing framework for cross-browser dashboard testing. All tests must follow E2E testing best practices: use page object model (POM) to encapsulate page interactions, test complete user workflows (not isolated components), use data-testid attributes for reliable element selection, test both happy path and error scenarios. WebSocket real-time updates require triggering backend events and verifying UI updates automatically. Drag-and-drop testing uses Playwright's drag API. D3.js graph interactions test pan/zoom/drag with mouse/touch APIs. Accessibility testing follows WCAG 2.1 AA with keyboard navigation, ARIA validation, and axe-core integration. Target >70% UI code coverage for dashboard/src/. Tests must be fast (&lt;5 min total), parallel-safe, and runnable in CI/CD environment with headless browsers.
+    </standards>
+    <locations>
+      <location>tests/e2e/*.spec.ts - E2E test suites organized by feature</location>
+      <location>tests/support/pages/*.ts - Page object models for maintainability</location>
+      <location>tests/support/fixtures/*.ts - Test data fixtures and custom Playwright fixtures</location>
+      <location>tests/support/helpers/*.ts - Test helper functions (auth, data setup, API calls)</location>
+      <location>playwright.config.ts - Playwright configuration (already exists)</location>
+      <location>tests/reports/ - Test reports, screenshots, videos, traces</location>
+    </locations>
+    <ideas>
+      <idea ac="1">Setup: Install @playwright/test as devDependency (npm install -D @playwright/test). Verify playwright.config.ts is correct. Create page objects in tests/support/pages/. Create test fixtures for authenticated user, test data. Setup test helpers for API interactions.</idea>
+      <idea ac="2">Project Management Tests (tests/e2e/project-management.spec.ts): Test GET /projects displays project cards, filters by phase/status work, search finds projects, click card navigates to detail view, detail view shows all sections (stepper, agents, timeline), "Create Project" opens modal, form validation works, project creation succeeds, navigation back to list works.</idea>
+      <idea ac="3">Escalation Tests (tests/e2e/escalation-interface.spec.ts): Test GET /escalations displays cards with badges, status/priority filters work, click card opens modal with full context, modal shows question/reasoning/AI analysis, response textarea accepts input, submit button sends POST /escalations/:id/respond, escalation status updates to resolved, modal closes, list refreshes.</idea>
+      <idea ac="4">Kanban Tests (tests/e2e/kanban-board.spec.ts): Test board renders 6 columns correctly, story cards display title/status/epic, epic filter dropdown filters stories, drag story card from "ready" to "in-progress", verify PATCH /stories/:id called, verify card moves to new column, verify status persists on page refresh, click card opens detail modal, modal shows full story content.</idea>
+      <idea ac="5">Dependency Graph Tests (tests/e2e/dependency-graph.spec.ts): Test GET /dependency-graph loads nodes and edges, graph renders with D3.js force layout, pan works (mouse drag), zoom works (wheel event), drag node updates position, click node shows story details tooltip, layout algorithm selector changes layout (hierarchical, circular), epic/status filters update graph, export PNG downloads file, export SVG downloads file, export JSON downloads file.</idea>
+      <idea ac="6">Real-Time Tests (tests/e2e/realtime-updates.spec.ts): Test WebSocket connection established on page load, trigger project status change via API, verify UI updates without refresh, trigger story status change, verify Kanban board updates automatically, trigger escalation creation, verify escalation appears in list, open two browser tabs, change data in one tab, verify other tab updates via WebSocket, test reconnection after disconnect.</idea>
+      <idea ac="7">Responsive Tests (tests/e2e/responsive-design.spec.ts): Test desktop viewport (1920x1080) shows full layout, test tablet viewport (768x1024) shows adapted layout, test mobile viewport (375x667) shows hamburger menu, test touch interactions work on mobile (tap, swipe), test all critical workflows work on mobile (project creation, escalation response), verify no horizontal scroll, verify text is readable.</idea>
+      <idea ac="8">Accessibility Tests (tests/e2e/accessibility.spec.ts): Test Tab key navigates through interactive elements in correct order, test Enter/Space activate buttons, test Escape closes modals, test focus indicators visible on all elements, test ARIA labels present (use axe-core), test screen reader compatibility (role attributes), test color contrast meets WCAG 2.1 AA, test form labels and error messages are accessible, test modals trap focus correctly.</idea>
+      <idea ac="9">Coverage: Run Playwright with coverage collection (--coverage flag or Istanbul integration), identify untested UI paths in dashboard/src/, add E2E tests for edge cases (empty states, loading states, error states), achieve 70%+ coverage for pages and components, document coverage metrics in story completion notes.</idea>
+      <idea ac="10">CI/CD: Add test:e2e script to package.json (npx playwright test), update .github/workflows/ to run Playwright tests, install Playwright browsers in CI (npx playwright install --with-deps), ensure tests run in headless mode, configure test artifacts upload (screenshots, videos, HTML report), verify tests pass in CI environment, add coverage reporting to CI output.</idea>
+    </ideas>
+  </tests>
+</story-context>
