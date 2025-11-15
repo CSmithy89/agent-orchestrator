@@ -1,0 +1,137 @@
+# Performance Profiling - Application Performance Analysis Workflow
+name: "performance-profiling"
+description: "Profile application performance, identify bottlenecks, and generate optimization recommendations"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/performance-profiling"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/performance-profile-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - profiling_target: "Target to profile (API endpoint, web page, function, full application)"
+  - environment: "Environment to profile (dev/staging/production)"
+
+optional_inputs:
+  - profiling_tool: "Profiling tool to use (auto-detect if not specified)"
+  - profiling_duration: "Duration of profiling session in seconds (default: 60s)"
+  - load_pattern: "Load pattern during profiling (idle, normal, peak, synthetic)"
+  - profiling_type: "Type of profiling (cpu, memory, io, network, all)"
+  - baseline_comparison: "Compare to baseline metrics from monitoring system (default: true)"
+  - optimization_focus: "Primary optimization goal (latency, throughput, memory, cost)"
+  - flamegraph_enabled: "Generate flamegraph visualization (default: true)"
+  - profiling_frequency: "Sampling frequency in Hz (default: 99 Hz)"
+
+output_artifacts:
+  - performance_profile: "Complete performance profile with metrics and analysis"
+  - bottleneck_report: "Identified performance bottlenecks with severity ranking"
+  - optimization_recommendations: "Prioritized optimization recommendations"
+  - flamegraph: "Flamegraph visualization of CPU/memory usage (if enabled)"
+  - baseline_comparison_report: "Comparison to baseline performance metrics"
+  - profiling_data: "Raw profiling data for further analysis"
+
+halt_conditions:
+  - "Profiling target not accessible or invalid"
+  - "Profiling tool not installed or unavailable"
+  - "Insufficient permissions to profile target application"
+  - "Production profiling requested without safety approval"
+  - "Profiling causing performance degradation > 10%"
+
+execution_modes:
+  - interactive: "Step-by-step profiling with user confirmation (default)"
+  - automated: "Automated profiling triggered by performance degradation alerts"
+  - continuous: "Continuous profiling with periodic sampling"
+
+standalone: true
+
+integration_points:
+  - monitoring_setup: "Retrieve baseline metrics for comparison"
+  - incident_response: "Can be triggered during performance incident investigation"
+  - deployment_workflow: "Post-deployment performance validation"
+  - load_testing: "Profiling during load tests for comprehensive analysis"
+
+profiling_tools_supported:
+  - chrome_devtools: "Chrome DevTools Performance Profiler (web frontend)"
+  - firefox_profiler: "Firefox Profiler (web frontend)"
+  - nodejs_profiler: "Node.js built-in profiler + clinic.js (Node.js)"
+  - py_spy: "py-spy (Python - sampling profiler, low overhead)"
+  - cprofile: "cProfile (Python - deterministic profiler)"
+  - pprof: "pprof (Go - CPU and memory profiling)"
+  - visualvm: "VisualVM (Java - CPU, memory, threads)"
+  - dotnet_trace: "dotnet-trace (.NET - CPU and memory)"
+  - perf: "Linux perf (system-wide profiling)"
+  - xhprof: "XHProf (PHP profiler)"
+  - ruby_prof: "ruby-prof (Ruby profiler)"
+  - flamescope: "Flamescope (differential flame graphs)"
+
+profiling_types:
+  - cpu_profiling:
+      description: "Identify CPU-intensive functions and call paths"
+      metrics: ["CPU time by function", "Call stacks", "Hot paths"]
+      output: "Flamegraph, call tree, top functions"
+  - memory_profiling:
+      description: "Track memory allocation and identify leaks"
+      metrics: ["Heap allocations", "Memory growth", "Object count"]
+      output: "Memory timeline, allocation flamegraph, leak suspects"
+  - io_profiling:
+      description: "Analyze I/O operations (disk, network)"
+      metrics: ["I/O wait time", "Read/write throughput", "I/O operations per second"]
+      output: "I/O timeline, slow I/O operations"
+  - network_profiling:
+      description: "Profile network requests and latency"
+      metrics: ["Request count", "Request latency", "Bandwidth usage"]
+      output: "Network waterfall, slow requests"
+  - database_profiling:
+      description: "Profile database queries and connection usage"
+      metrics: ["Query execution time", "Query count", "Connection pool usage"]
+      output: "Slow query report, query frequency analysis"
+  - thread_profiling:
+      description: "Analyze thread activity and contention"
+      metrics: ["Thread count", "Lock contention", "Context switches"]
+      output: "Thread timeline, lock contention report"
+
+performance_metrics:
+  - latency_metrics:
+      - p50: "Median latency"
+      - p95: "95th percentile latency"
+      - p99: "99th percentile latency"
+      - p999: "99.9th percentile latency"
+      - max: "Maximum latency"
+  - throughput_metrics:
+      - requests_per_second: "Request rate"
+      - transactions_per_second: "Transaction rate"
+      - data_processed_per_second: "Data throughput"
+  - resource_metrics:
+      - cpu_usage_percent: "CPU utilization"
+      - memory_usage_mb: "Memory consumption"
+      - disk_io_mbps: "Disk I/O throughput"
+      - network_io_mbps: "Network I/O throughput"
+
+bottleneck_detection:
+  - hot_functions: "Functions consuming >5% CPU time"
+  - memory_leaks: "Memory growth >10% over profiling duration"
+  - slow_queries: "Database queries >100ms"
+  - slow_api_calls: "External API calls >500ms"
+  - lock_contention: "Lock wait time >10% of execution time"
+  - gc_pressure: "Garbage collection time >5% of CPU time"
+
+optimization_recommendations:
+  - algorithmic: "Algorithm optimization (e.g., O(n²) → O(n log n))"
+  - caching: "Add caching layer (Redis, in-memory)"
+  - database: "Database query optimization, indexing"
+  - concurrency: "Improve parallelization, reduce contention"
+  - resource_scaling: "Vertical or horizontal scaling recommendations"
+  - code_refactoring: "Code-level optimizations (loop unrolling, inlining)"
