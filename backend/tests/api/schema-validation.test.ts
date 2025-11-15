@@ -47,7 +47,9 @@ development_status:
 
 Status: done
 `);
-    } catch {}
+    } catch {
+      // Allow setup to proceed if docs already exist or cannot be written during tests
+    }
 
     // Clear services
     projectService.clearCache();

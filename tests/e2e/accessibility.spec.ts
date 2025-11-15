@@ -20,14 +20,12 @@ test.describe('Accessibility', () => {
       await page.keyboard.press('Tab');
 
       // Should focus first interactive element
-      const focused = page.locator(':focus');
-      await expect(focused).toBeTruthy();
+      await expect(page.locator(':focus')).toHaveCount(1);
 
       // Continue tabbing through elements
       for (let i = 0; i < 5; i++) {
         await page.keyboard.press('Tab');
-        const currentFocus = page.locator(':focus');
-        await expect(currentFocus).toBeTruthy();
+        await expect(page.locator(':focus')).toHaveCount(1);
       }
     });
 
@@ -45,8 +43,7 @@ test.describe('Accessibility', () => {
       await page.keyboard.press('Shift+Tab');
 
       // Should still have focus
-      const focused = page.locator(':focus');
-      await expect(focused).toBeTruthy();
+      await expect(page.locator(':focus')).toHaveCount(1);
     });
 
     test('should activate buttons with Enter key', async ({ page }) => {
@@ -119,8 +116,7 @@ test.describe('Accessibility', () => {
       await page.keyboard.press('ArrowDown');
 
       // Should still have focus
-      const focused = page.locator(':focus');
-      await expect(focused).toBeTruthy();
+      await expect(page.locator(':focus')).toHaveCount(1);
     });
 
     test('should support keyboard shortcuts', async ({ page }) => {
@@ -133,8 +129,7 @@ test.describe('Accessibility', () => {
 
       // For now, verify page is keyboard accessible
       await page.keyboard.press('Tab');
-      const focused = page.locator(':focus');
-      await expect(focused).toBeTruthy();
+      await expect(page.locator(':focus')).toHaveCount(1);
     });
   });
 
@@ -164,7 +159,7 @@ test.describe('Accessibility', () => {
         outline.outline !== 'none' ||
         outline.boxShadow !== 'none';
 
-      expect(typeof hasFocusIndicator).toBe('boolean');
+      expect(hasFocusIndicator).toBe(true);
     });
 
     test('should show focus on form inputs', async ({ page }) => {
@@ -197,8 +192,7 @@ test.describe('Accessibility', () => {
       await page.keyboard.press('Tab');
 
       // Check if any link is focused
-      const focused = page.locator(':focus');
-      await expect(focused).toBeTruthy();
+      await expect(page.locator(':focus')).toHaveCount(1);
     });
   });
 
@@ -214,7 +208,7 @@ test.describe('Accessibility', () => {
       // Check for navigation
       const nav = page.locator('nav').or(page.locator('[role="navigation"]'));
       const navCount = await nav.count();
-      expect(navCount).toBeGreaterThanOrEqual(0);
+      expect(navCount).toBeGreaterThanOrEqual(1);
     });
 
     test('should have ARIA labels on buttons', async ({ page }) => {
@@ -273,11 +267,11 @@ test.describe('Accessibility', () => {
       const h1Count = await h1.count();
 
       // Should have at least one h1
-      expect(h1Count).toBeGreaterThanOrEqual(0);
+      expect(h1Count).toBeGreaterThanOrEqual(1);
 
       // If there are headings, they should be in order
       const headings = await page.locator('h1, h2, h3, h4, h5, h6').all();
-      expect(headings.length).toBeGreaterThanOrEqual(0);
+      expect(headings.length).toBeGreaterThanOrEqual(1);
     });
 
     test('should have alt text on images', async ({ page }) => {
@@ -323,7 +317,8 @@ test.describe('Accessibility', () => {
         const liveRegion = page.locator('[aria-live]');
         const liveCount = await liveRegion.count();
 
-        // Live regions might be present for announcements
+        // Live regions are optional but recommended for dynamic content
+        // >= 0 is acceptable here (not all pages require live regions)
         expect(liveCount).toBeGreaterThanOrEqual(0);
       }
     });
@@ -337,7 +332,8 @@ test.describe('Accessibility', () => {
         page.locator('a', { hasText: /skip to main content/i })
       );
 
-      // Skip link might be present (best practice but not always implemented)
+      // Skip link is optional but recommended for keyboard navigation
+      // >= 0 is acceptable here (WCAG recommends but doesn't require)
       const skipCount = await skipLink.count();
       expect(skipCount).toBeGreaterThanOrEqual(0);
     });
@@ -507,7 +503,7 @@ test.describe('Accessibility', () => {
       );
 
       const errorCount = await errorMessages.count();
-      // Errors might or might not appear depending on implementation
+      // Error validation is optional - >= 0 acceptable (errors only shown when validation implemented)
       expect(errorCount).toBeGreaterThanOrEqual(0);
     });
 
@@ -537,11 +533,11 @@ test.describe('Accessibility', () => {
 
       // Check for navigation
       const nav = page.locator('nav, [role="navigation"]');
-      expect(await nav.count()).toBeGreaterThanOrEqual(0);
+      expect(await nav.count()).toBeGreaterThanOrEqual(1);
 
       // Check for banner (header)
       const banner = page.locator('header, [role="banner"]');
-      expect(await banner.count()).toBeGreaterThanOrEqual(0);
+      expect(await banner.count()).toBeGreaterThanOrEqual(1);
     });
   });
 

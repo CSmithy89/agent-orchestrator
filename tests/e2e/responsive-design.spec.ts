@@ -198,9 +198,9 @@ test.describe('Responsive Design', () => {
         page.locator('button[aria-label*="menu"]')
       );
 
-      // Mobile menu might be present
+      // Mobile menu implementation is optional - smoke test to ensure page loads
       const isVisible = await mobileMenu.isVisible().catch(() => false);
-      expect(typeof isVisible).toBe('boolean');
+      expect(typeof isVisible).toBe('boolean'); // Smoke test - just verify page renders
 
       await context.close();
     });
@@ -373,8 +373,9 @@ test.describe('Responsive Design', () => {
       await kanbanPage.waitForLoadingToComplete();
 
       // On mobile, columns might stack or be horizontally scrollable
+      // Smoke test - responsive behavior implementation is UI-dependent
       const allColumnsVisible = await kanbanPage.areAllColumnsVisible();
-      expect(typeof allColumnsVisible).toBe('boolean');
+      expect(typeof allColumnsVisible).toBe('boolean'); // Smoke test - just verify page renders
 
       await context.close();
     });
@@ -400,7 +401,7 @@ test.describe('Responsive Design', () => {
 
         // Font size should be at least 14px for readability
         const size = parseInt(fontSize);
-        expect(size).toBeGreaterThanOrEqual(12);
+        expect(size).toBeGreaterThanOrEqual(14);
       }
 
       await context.close();
@@ -428,7 +429,7 @@ test.describe('Responsive Design', () => {
 
         // Body should not have horizontal scroll
         // (individual components like kanban might scroll horizontally)
-        expect(typeof bodyHasHorizontalScroll).toBe('boolean');
+        expect(bodyHasHorizontalScroll).toBe(false);
 
         await context.close();
       }
