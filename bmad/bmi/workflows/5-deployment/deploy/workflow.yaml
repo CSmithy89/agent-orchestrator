@@ -1,0 +1,70 @@
+# Deploy - Application Deployment Workflow
+name: "deploy"
+description: "Deploy application to target environment (dev/staging/prod) with automated smoke tests and rollback capability"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+# Deployment configuration from BMI config
+auto_deploy_on_merge: "{config_source}:deployment.auto_deploy_on_merge"
+auto_deploy_environments: "{config_source}:deployment.auto_deploy_environments"
+default_platform: "{config_source}:deployment.default_platform"
+run_smoke_tests: "{config_source}:deployment.run_smoke_tests"
+require_approval_for: "{config_source}:deployment.require_approval_for"
+auto_run_migrations: "{config_source}:deployment.auto_run_migrations"
+secrets_provider: "{config_source}:deployment.secrets_provider"
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/deploy"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/deployment-log-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - target_environment: "Environment to deploy to (dev/staging/production)"
+  - deployment_trigger: "What triggered this deployment (merge to main, manual, hotfix)"
+  - story_id: "Story or epic ID being deployed (if applicable)"
+
+optional_inputs:
+  - platform_override: "Override auto-detected platform (vercel, railway, aws, gcp, etc.)"
+  - skip_smoke_tests: "Skip smoke tests (not recommended for production)"
+  - skip_migrations: "Skip database migrations (dangerous)"
+  - custom_env_vars: "Additional environment variables for this deployment"
+
+output_artifacts:
+  - deployment_log: "Complete deployment log with timestamps and status"
+  - deployment_status_update: "Updated deployment-status.yaml file"
+  - smoke_test_results: "Results of post-deployment smoke tests"
+  - rollback_plan: "Automated rollback plan if deployment fails"
+
+halt_conditions:
+  - "Target environment not specified or invalid"
+  - "Platform detection fails and no override provided"
+  - "Required secrets/credentials not available"
+  - "Pre-deployment checks fail (tests, build, security scan)"
+  - "User approval not obtained for production deployments"
+  - "Database migration failures (unless skip_migrations=true)"
+  - "Smoke tests fail critical endpoints"
+
+execution_modes:
+  - automated: "Fully automated deployment with minimal user interaction"
+  - interactive: "Step-by-step deployment with user confirmation at each stage"
+  - dry_run: "Simulate deployment without actually deploying"
+
+standalone: true
+
+integration_points:
+  - orchestrate_story: "Invoked automatically after git push in orchestrate-story workflow"
+  - orchestrate_epic: "Invoked after all stories in epic are merged"
+  - hotfix_workflow: "Invoked for emergency hotfix deployments"
+  - rollback_workflow: "Can trigger rollback if deployment fails"
