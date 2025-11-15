@@ -1,0 +1,126 @@
+# Load Testing - Application Load and Performance Testing Workflow
+name: "load-testing"
+description: "Execute load tests to validate application performance under expected and peak loads before releases"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/6-release/load-testing"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/load-test-{date}.md"
+
+mode: interactive
+
+required_inputs:
+  - target_url: "Target URL or endpoint to load test"
+  - load_profile: "Load profile (baseline/peak/stress/spike/soak)"
+
+optional_inputs:
+  - virtual_users: "Number of concurrent virtual users (default: 50)"
+  - duration: "Test duration in seconds (default: 300s / 5 min)"
+  - ramp_up_time: "Ramp-up time in seconds (default: 30s)"
+  - load_testing_tool: "Tool to use (artillery/k6/locust/jmeter/gatling, auto-detect if not specified)"
+  - success_criteria: "Performance SLA thresholds (p95 < 500ms, error rate < 1%, etc.)"
+  - baseline_comparison: "Compare to baseline metrics (default: true)"
+  - test_scenario: "Path to test scenario file (for complex tests)"
+
+output_artifacts:
+  - load_test_report: "Complete load test report with metrics and analysis"
+  - performance_metrics: "Key performance metrics (latency, throughput, error rate)"
+  - baseline_comparison_report: "Comparison to baseline performance"
+  - bottleneck_analysis: "Identified performance bottlenecks (if any)"
+  - sla_compliance_report: "SLA compliance report (pass/fail for each threshold)"
+
+halt_conditions:
+  - "Target URL not accessible (connection refused)"
+  - "Load testing tool not installed"
+  - "Test scenario file not found (if test_scenario specified)"
+  - "SLA thresholds not met (if success_criteria enforced)"
+
+execution_modes:
+  - interactive: "Step-by-step load testing with real-time monitoring (default)"
+  - automated: "Automated load testing (CI/CD triggered)"
+  - continuous: "Continuous load testing with periodic execution"
+
+standalone: true
+
+integration_points:
+  - release_workflow: "Run load tests before major releases"
+  - performance_profiling: "Profile application during load tests for bottleneck identification"
+  - monitoring_setup: "Monitor system metrics during load tests"
+
+load_profiles:
+  - baseline:
+      description: "Normal production load (50% of peak capacity)"
+      virtual_users: 50
+      duration: "5 minutes"
+      expected_use: "Pre-release validation"
+  - peak:
+      description: "Peak production load (100% of expected peak capacity)"
+      virtual_users: 200
+      duration: "10 minutes"
+      expected_use: "Capacity planning and pre-release validation"
+  - stress:
+      description: "Beyond peak load (150-200% capacity) to find breaking point"
+      virtual_users: 400
+      duration: "15 minutes"
+      expected_use: "Find system limits and failure modes"
+  - spike:
+      description: "Sudden traffic spike (0 → peak → 0)"
+      pattern: "0 users → 500 users (instant) → hold 2 min → 0 users"
+      duration: "5 minutes"
+      expected_use: "Test autoscaling and burst capacity"
+  - soak:
+      description: "Sustained load over long period (detect memory leaks)"
+      virtual_users: 100
+      duration: "1-4 hours"
+      expected_use: "Detect memory leaks and long-term stability issues"
+
+load_testing_tools:
+  - artillery:
+      language: "JavaScript/Node.js"
+      install: "npm install -g artillery"
+      run: "artillery run scenario.yml"
+      features: ["HTTP/WebSocket", "scenarios", "real-time monitoring"]
+  - k6:
+      language: "JavaScript (Go runtime)"
+      install: "brew install k6 OR download from k6.io"
+      run: "k6 run script.js"
+      features: ["Cloud execution", "Grafana integration", "thresholds"]
+  - locust:
+      language: "Python"
+      install: "pip install locust"
+      run: "locust -f locustfile.py"
+      features: ["Web UI", "distributed load generation", "Python scripting"]
+  - jmeter:
+      language: "Java"
+      install: "Download from jmeter.apache.org"
+      run: "jmeter -n -t test-plan.jmx"
+      features: ["GUI", "extensive protocols", "enterprise features"]
+  - gatling:
+      language: "Scala/Java"
+      install: "Download from gatling.io"
+      run: "gatling.sh -s SimulationClass"
+      features: ["Beautiful reports", "Scala DSL", "high performance"]
+
+success_criteria_defaults:
+  - p95_latency: "< 500ms"
+  - p99_latency: "< 1000ms"
+  - error_rate: "< 1%"
+  - throughput: "> 100 req/s"
+  - availability: "> 99.9%"
+
+metrics_collected:
+  - latency_percentiles: ["p50", "p75", "p90", "p95", "p99", "p999", "max"]
+  - throughput: ["requests_per_second", "data_throughput_mbps"]
+  - errors: ["http_errors", "timeouts", "connection_errors"]
+  - resource_usage: ["cpu_percent", "memory_mb", "network_mbps"]
