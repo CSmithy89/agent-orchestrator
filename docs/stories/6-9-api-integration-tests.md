@@ -647,3 +647,259 @@ Architecture validation limited due to file size constraints, but based on story
 ---
 
 **Review Rationale:** While the implementation demonstrates strong technical capability and comprehensive test coverage intent, the test failures and incomplete coverage verification prevent approval. These are quality issues that must be resolved to ensure production reliability. Once the identified issues are addressed and all tests pass with verified >80% coverage, this story will be ready for approval.
+
+---
+
+# Senior Developer Review (AI) - RE-REVIEW
+
+**Reviewer:** Chris
+**Date:** 2025-11-15
+**Outcome:** **CHANGES REQUESTED**
+
+## Summary
+
+Re-review of Story 6.9 after initial fixes shows **partial progress** but **critical issues remain unresolved**. While one failing test was successfully fixed (expired token test), the majority of quality issues from the original review persist:
+
+1. **Partial Test Fixes**: Only 1 of 11 originally failing tests was addressed - 3 tests still failing (down from 11)
+2. **WebSocket Technical Debt NOT Addressed**: All 14 WebSocket tests still use deprecated `done()` callback pattern - 14 uncaught exceptions remain
+3. **Coverage Verification Still Incomplete**: Cannot verify AC #9 (>80% coverage) due to test failures
+4. **Test Pass Rate**: Improved from 93.4% (156/167) to 98.2% (164/167), but still not 100%
+
+**What Was Fixed:**
+- ✅ Expired token test in error-handling.test.ts (commit: 439365c)
+- ✅ 8 other tests that were previously failing now pass
+
+**What Was NOT Fixed:**
+- ❌ WebSocket done() callback deprecation (HIGH PRIORITY issue)
+- ❌ 3 schema-validation tests still failing (sprint-status, stories, dependency-graph endpoints)
+- ❌ Coverage report generation still blocked
+
+The story **cannot be approved** until all tests pass (100% pass rate) and the WebSocket refactoring is completed. The remaining issues are straightforward to fix and should not require significant effort.
+
+## Key Findings
+
+### HIGH Severity Issues (NOT FIXED from original review)
+
+**1. WebSocket Tests Using Deprecated Pattern - 14 Uncaught Exceptions (UNCHANGED)**
+- **Status:** NOT FIXED
+- All 14 WebSocket tests still use deprecated `done()` callback instead of async/await
+- Vitest error: "done() callback is deprecated, use promise instead"
+- Causes 14 unhandled errors during test run, undermining test reliability
+- **Evidence:** `backend/tests/api/websocket.test.ts:43, 57, 75, 97, 116, 149, 185, 212, 238, 278, 319, 360, 406, 429`
+- **Original Action Item:** "Refactor WebSocket tests from done() callback to async/await pattern (AC #6)"
+- **Impact:** High - Test suite fragility, false positives possible, CI/CD reliability concerns
+
+### MEDIUM Severity Issues
+
+**2. Schema Validation Tests Still Failing - 3 Tests (IMPROVED but not resolved)**
+- **Status:** PARTIALLY FIXED (down from 5 failures to 3 failures)
+- Three tests failing with 400 Bad Request instead of expected 200 OK:
+  - `GET /api/projects/:id/sprint-status should match schema` (line 186)
+  - `GET /api/projects/:id/stories should match schema` (line 230)
+  - `GET /api/projects/:id/dependency-graph should match schema` (line 255)
+- **Root Cause:** Tests use hardcoded `testProjectId = '123e4567-e89b-12d3-a456-426614174000'` without creating the project first
+- **Evidence:** `backend/tests/api/schema-validation.test.ts:151, 180, 224, 249`
+- **Fix Required:** Either create the test project in beforeEach, or mock the service responses for these endpoints
+
+**3. Coverage Verification Still Incomplete (AC #9) (UNCHANGED)**
+- **Status:** NOT VERIFIED
+- Story requires >80% coverage verification, but coverage report generation fails due to test failures
+- Cannot measure actual API layer coverage until all tests pass
+- **Evidence:** Test run exits with code 1, preventing coverage metrics
+
+### LOW Severity Issues (UNCHANGED)
+
+**4. Test Output Quality Issues**
+- MaxListenersExceededWarning appearing in test output (11 SIGINT/SIGTERM listeners)
+- Suggests potential EventEmitter memory leak in test infrastructure
+- Does not block functionality but indicates technical debt
+
+## What Changed Since Original Review
+
+### Commit Analysis
+**Commit:** 439365c - "Fix Story 6.9: Fix expired token test to use valid expiresIn value"
+
+**Files Changed:**
+- `backend/tests/api/error-handling.test.ts` (7 lines: +5, -2)
+
+**Changes Made:**
+```typescript
+// BEFORE (invalid):
+const expiredToken = server.jwt.sign(
+  { userId: 'test-user' },
+  { expiresIn: '-1h' } // INVALID: negative expiresIn not supported
+);
+
+// AFTER (valid):
+const expiredToken = server.jwt.sign(
+  { userId: 'test-user' },
+  { expiresIn: '1ms' } // Create token that expires in 1ms
+);
+await new Promise(resolve => setTimeout(resolve, 10)); // Wait for expiration
+```
+
+**Impact:** Fixed 1 test failure, improved understanding of JWT token expiration testing
+
+### Test Results Comparison
+
+| Metric | Original Review | Current Re-Review | Change |
+|--------|----------------|------------------|--------|
+| **Total Tests** | 167 | 167 | No change |
+| **Passing Tests** | 156 (93.4%) | 164 (98.2%) | **+8 tests** ✅ |
+| **Failing Tests** | 11 (6.6%) | 3 (1.8%) | **-8 failures** ✅ |
+| **Uncaught Exceptions** | 14 | 14 | **No change** ❌ |
+| **Test Files Passing** | 6/10 | 9/10 | **+3 files** ✅ |
+| **Test Files Failing** | 4 | 1 | **-3 files** ✅ |
+| **Test Duration** | ~5-6s | ~7.8s | +2s (acceptable) |
+
+**Analysis:** Significant improvement in test pass rate (+8 tests, +3 files), but critical WebSocket issue and 3 schema validation tests remain unresolved.
+
+## Acceptance Criteria Coverage (Updated)
+
+| AC# | Description | Status | Change from Original | Evidence |
+|-----|-------------|--------|---------------------|----------|
+| 1 | Setup test framework (Vitest + Supertest) | **IMPLEMENTED** | No change | `backend/vitest.config.ts`, `backend/tests/setup.ts` |
+| 2 | Test all Project Management endpoints | **IMPLEMENTED** | ✅ IMPROVED | `backend/tests/api/projects.test.ts` - All 23 tests passing |
+| 3 | Test all Orchestrator Control endpoints | **IMPLEMENTED** | No change | `backend/tests/api/orchestrators.test.ts` - All 8 tests passing |
+| 4 | Test all State Query endpoints | **PARTIAL** | ⚠️ IMPROVED (5→3 failures) | `backend/tests/api/state.test.ts` - 3 schema validation tests still failing |
+| 5 | Test all Escalation endpoints | **IMPLEMENTED** | ✅ FIXED | `backend/tests/api/escalations.test.ts` - All 9 tests passing |
+| 6 | Test WebSocket connections | **PARTIAL** | ❌ NO CHANGE | `backend/tests/api/websocket.test.ts` - All tests pass BUT still using deprecated done() (14 exceptions) |
+| 7 | Test error handling | **IMPLEMENTED** | ✅ FIXED | `backend/tests/api/error-handling.test.ts` - All 23 tests passing (expired token fix) |
+| 8 | Test OpenAPI schema validation | **PARTIAL** | ⚠️ IMPROVED (5→3 failures) | `backend/tests/api/schema-validation.test.ts` - 10/13 passing, 3 failing |
+| 9 | Achieve >80% code coverage | **NOT VERIFIED** | ❌ NO CHANGE | Coverage report still fails due to test failures |
+| 10 | Integration tests run in CI/CD | **IMPLEMENTED** | No change | Test scripts configured, tests run in CI (with failures) |
+
+**Summary:**
+- **Fully Implemented:** 5 of 10 ACs (up from 4 of 10) ✅
+- **Partially Implemented:** 3 of 10 ACs (down from 5 of 10) ⚠️
+- **Not Verified:** 1 of 10 ACs (unchanged) ❌
+- **Blocked:** 1 of 10 ACs (unchanged) ❌
+
+## Task Completion Validation
+
+All tasks remain marked as incomplete `[ ]` in the story file, which is **CORRECT** - the story is not complete. The fix commit addressed only one specific test failure out of the broader quality issues.
+
+| Task | Original Status | Current Status | Evidence |
+|------|----------------|---------------|----------|
+| Task 1 (Setup) | COMPLETE | COMPLETE | No change |
+| Task 2 (Projects) | MOSTLY COMPLETE | **COMPLETE** | All tests now passing ✅ |
+| Task 3 (Orchestrators) | COMPLETE | COMPLETE | No change |
+| Task 4 (State Query) | MOSTLY COMPLETE | MOSTLY COMPLETE | 3 schema validation tests still failing |
+| Task 5 (Escalations) | COMPLETE | COMPLETE | No change |
+| Task 6 (WebSocket) | COMPLETE BUT NEEDS REFACTOR | **NEEDS REFACTOR** | Still using done() callback ❌ |
+| Task 7 (Error Handling) | MOSTLY COMPLETE | **COMPLETE** | All tests now passing ✅ |
+| Task 8 (Schema Validation) | MOSTLY COMPLETE | MOSTLY COMPLETE | 3 tests still failing |
+| Task 9 (Coverage) | INCOMPLETE | INCOMPLETE | Still blocked by test failures |
+| Task 10 (CI/CD) | COMPLETE | COMPLETE | No change |
+
+**Progress:** 2 tasks moved from "MOSTLY COMPLETE" to "COMPLETE" (Tasks 2 and 7) ✅
+
+## Action Items for Approval
+
+### CRITICAL (Must Fix for Approval)
+
+**Priority 1: WebSocket Test Refactoring (HIGH IMPACT)**
+- [ ] [High] Refactor all 14 WebSocket tests from `done()` callback to async/await pattern
+  - **File:** `backend/tests/api/websocket.test.ts:43-468`
+  - **Lines:** 43, 57, 75, 97, 116, 149, 185, 212, 238, 278, 319, 360, 406, 429
+  - **Pattern:**
+    ```typescript
+    // BEFORE (deprecated):
+    it('should test something', (done) => {
+      ws.on('message', (data) => {
+        expect(data).toBe('expected');
+        done();
+      });
+    });
+
+    // AFTER (recommended):
+    it('should test something', async () => {
+      const messagePromise = new Promise((resolve) => {
+        ws.on('message', (data) => {
+          resolve(data);
+        });
+      });
+      const data = await messagePromise;
+      expect(data).toBe('expected');
+    });
+    ```
+  - **Justification:** Eliminates 14 uncaught exceptions, improves test reliability, follows Vitest best practices
+
+**Priority 2: Fix Schema Validation Tests (MEDIUM IMPACT)**
+- [ ] [Med] Fix 3 failing schema validation tests by properly setting up test project
+  - **File:** `backend/tests/api/schema-validation.test.ts:151-266`
+  - **Option A:** Create test project in beforeEach for State Query Endpoints Schema describe block
+  - **Option B:** Mock projectService responses for these endpoints
+  - **Affected Tests:**
+    - GET /api/projects/:id/sprint-status (line 177)
+    - GET /api/projects/:id/stories (line 221)
+    - GET /api/projects/:id/dependency-graph (line 246)
+  - **Root Cause:** Tests use hardcoded `testProjectId` without creating the project
+
+**Priority 3: Verify Coverage Requirement (MEDIUM IMPACT)**
+- [ ] [Med] Once all tests pass, run coverage report and verify >80% API layer coverage (AC #9)
+  - **Action:** `npm run test:coverage -- tests/api/`
+  - **Update:** Append coverage metrics to story Completion Notes
+
+### OPTIONAL (Quality Improvements)
+
+- [ ] [Low] Fix MaxListenersExceededWarning in test infrastructure
+  - Add `process.setMaxListeners(20)` in test setup or investigate listener cleanup
+- [ ] [Low] Update story Completion Notes to accurately reflect current status
+  - Document: 5 ACs fully complete, 3 partial, 1 not verified, 1 blocked
+- [ ] [Low] Add test fixture documentation for state.test.ts if fixtures exist
+
+## Security Notes
+
+No new security concerns identified. The expired token test fix actually **improves** security test coverage by properly validating token expiration behavior.
+
+**Security Test Status:**
+- ✅ All authentication tests passing (401 errors, invalid/expired tokens)
+- ✅ All authorization tests passing (Bearer token validation)
+- ✅ All input validation tests passing (400 errors, malformed data)
+- ✅ Security headers testing passing
+- ✅ CORS handling passing
+- ✅ Error message security passing (no sensitive info leakage)
+
+## Best Practices Assessment
+
+### Practices Applied Well
+✅ **Proper JWT Token Expiration Testing:** The fix demonstrates understanding that `expiresIn: '-1h'` is invalid; using `expiresIn: '1ms'` + wait is correct approach
+✅ **Test Isolation:** Each test properly cleans up resources
+✅ **Error-First Testing:** Comprehensive validation of error scenarios
+✅ **Incremental Fixes:** Focused commit fixing one specific issue
+
+### Practices Violated (UNCHANGED)
+❌ **Async Testing Best Practices:** WebSocket tests still using deprecated done() callback (Vitest recommends async/await)
+❌ **Test Setup:** Schema validation tests not creating required test data
+❌ **Test Reliability:** EventEmitter warnings suggest resource leak
+
+## Architectural Alignment
+
+No architectural changes detected. Fix commit maintains existing patterns and improves test correctness without altering architecture.
+
+## Recommendations for Next Steps
+
+### Immediate Actions (Required for Approval)
+1. **Refactor WebSocket tests** to async/await pattern (estimate: 30-45 minutes)
+   - Convert all 14 tests from done() callbacks to Promise-based async/await
+   - Test locally to ensure all WebSocket tests still pass
+   - Verify 14 uncaught exceptions are eliminated
+
+2. **Fix schema validation test setup** (estimate: 15-20 minutes)
+   - Add project creation in beforeEach for State Query Endpoints Schema tests
+   - OR mock projectService to return expected data for test project ID
+   - Verify all 3 failing tests now pass
+
+3. **Verify coverage** (estimate: 5 minutes)
+   - Run `npm run test:coverage -- tests/api/`
+   - Confirm >80% coverage for API layer
+   - Document metrics in story Completion Notes
+
+### Expected Timeline
+**Total Effort:** 1-1.5 hours to address all remaining issues
+**Outcome:** Story ready for APPROVE status
+
+---
+
+**Re-Review Rationale:** The partial fix demonstrates understanding and capability, but the story cannot be approved with failing tests and known technical debt. The WebSocket done() callback issue was clearly identified in the original review as a MEDIUM severity issue requiring refactoring, yet it was not addressed. The 3 remaining schema validation test failures are straightforward to fix. Once these items are completed, the story will meet all acceptance criteria and be production-ready.
