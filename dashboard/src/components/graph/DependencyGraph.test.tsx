@@ -8,69 +8,62 @@ import { DependencyGraph } from './DependencyGraph';
 import type { DependencyGraph as DependencyGraphType } from '@/types/dependency-graph';
 
 // Mock D3 to avoid issues with jsdom
-vi.mock('d3', () => ({
-  select: vi.fn(() => ({
-    selectAll: vi.fn(() => ({
-      remove: vi.fn(),
-    })),
-    append: vi.fn(() => ({
-      selectAll: vi.fn(() => ({
-        data: vi.fn(() => ({
-          join: vi.fn(() => ({
-            attr: vi.fn(() => ({ attr: vi.fn() })),
-            append: vi.fn(() => ({ attr: vi.fn() })),
-            on: vi.fn(),
-            call: vi.fn(),
-          })),
-        })),
-      })),
-      attr: vi.fn(function (this: any) { return this; }),
-    })),
-    call: vi.fn(),
-    on: vi.fn(),
-    transition: vi.fn(() => ({
-      duration: vi.fn(() => ({
-        call: vi.fn(),
-      })),
-    })),
-  })),
-  zoom: vi.fn(() => ({
-    scaleExtent: vi.fn(() => ({
-      on: vi.fn(() => ({})),
-    })),
-  })),
-  forceSimulation: vi.fn(() => ({
-    force: vi.fn(() => ({
-      force: vi.fn(() => ({
-        force: vi.fn(() => ({
-          force: vi.fn(() => ({})),
-        })),
-      })),
-    })),
-    on: vi.fn(),
-    stop: vi.fn(),
-  })),
-  forceLink: vi.fn(() => ({
-    id: vi.fn(() => ({
-      distance: vi.fn(() => ({})),
-    })),
-  })),
-  forceManyBody: vi.fn(() => ({
-    strength: vi.fn(() => ({})),
-  })),
-  forceCenter: vi.fn(() => ({})),
-  forceCollide: vi.fn(() => ({
-    radius: vi.fn(() => ({})),
-  })),
-  drag: vi.fn(() => ({
-    on: vi.fn(() => ({
-      on: vi.fn(() => ({
+vi.mock('d3', () => {
+  // Create a fully chainable mock for D3 selection operations
+  const createChainableMock = (): any => {
+    const mock: any = {
+      select: vi.fn(function(this: any) { return mock; }),
+      selectAll: vi.fn(function(this: any) { return mock; }),
+      remove: vi.fn(function(this: any) { return mock; }),
+      append: vi.fn(function(this: any) { return mock; }),
+      data: vi.fn(function(this: any) { return mock; }),
+      join: vi.fn(function(this: any) { return mock; }),
+      attr: vi.fn(function(this: any) { return mock; }),
+      style: vi.fn(function(this: any) { return mock; }),
+      text: vi.fn(function(this: any) { return mock; }),
+      on: vi.fn(function(this: any) { return mock; }),
+      call: vi.fn(function(this: any) { return mock; }),
+      transition: vi.fn(function(this: any) { return mock; }),
+      duration: vi.fn(function(this: any) { return mock; }),
+    };
+    return mock;
+  };
+
+  const chainable = createChainableMock();
+
+  return {
+    select: vi.fn(() => chainable),
+    zoom: vi.fn(() => ({
+      scaleExtent: vi.fn(() => ({
         on: vi.fn(() => ({})),
       })),
     })),
-  })),
-  zoomIdentity: {},
-}));
+    forceSimulation: vi.fn(() => ({
+      force: vi.fn(function(this: any) { return this; }),
+      on: vi.fn(function(this: any) { return this; }),
+      stop: vi.fn(function(this: any) { return this; }),
+    })),
+    forceLink: vi.fn(() => ({
+      id: vi.fn(function(this: any) { return this; }),
+      distance: vi.fn(function(this: any) { return this; }),
+    })),
+    forceManyBody: vi.fn(() => ({
+      strength: vi.fn(function(this: any) { return this; }),
+    })),
+    forceCenter: vi.fn(() => ({})),
+    forceCollide: vi.fn(() => ({
+      radius: vi.fn(function(this: any) { return this; }),
+    })),
+    drag: vi.fn(() => ({
+      on: vi.fn(() => ({
+        on: vi.fn(() => ({
+          on: vi.fn(() => ({})),
+        })),
+      })),
+    })),
+    zoomIdentity: {},
+  };
+});
 
 describe('DependencyGraph', () => {
   const mockGraph: DependencyGraphType = {
