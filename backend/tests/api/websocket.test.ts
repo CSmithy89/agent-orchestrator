@@ -40,202 +40,279 @@ describe('WebSocket Handler', () => {
   });
 
   describe('Connection', () => {
-    it('should reject connection without authentication', (done) => {
+    it('should reject connection without authentication', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`);
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
-        expect(message.error).toBe('Authentication failed');
-      });
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
+            expect(message.error).toBe('Authentication failed');
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
 
-      ws.on('close', (code) => {
-        expect(code).toBe(1008);
-        done();
+        ws.on('close', (code) => {
+          try {
+            expect(code).toBe(1008);
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+
+        ws.on('error', reject);
       });
     });
 
-    it('should reject connection with invalid token', (done) => {
+    it('should reject connection with invalid token', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: 'Bearer invalid-token'
         }
       });
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
-        expect(message.error).toBe('Authentication failed');
-      });
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
+            expect(message.error).toBe('Authentication failed');
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
 
-      ws.on('close', (code) => {
-        expect(code).toBe(1008);
-        done();
+        ws.on('close', (code) => {
+          try {
+            expect(code).toBe(1008);
+            resolve();
+          } catch (error) {
+            reject(error);
+          }
+        });
+
+        ws.on('error', reject);
       });
     });
 
-    it('should accept connection with valid JWT token', (done) => {
+    it('should accept connection with valid JWT token', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
-        if (message.type === 'connected') {
-          expect(message.clientId).toBeDefined();
-          expect(message.timestamp).toBeDefined();
-          ws.close();
-          done();
-        }
-      });
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
+            if (message.type === 'connected') {
+              expect(message.clientId).toBeDefined();
+              expect(message.timestamp).toBeDefined();
+              ws.close();
+              resolve();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
 
-      ws.on('error', (error) => {
-        done(error);
+        ws.on('error', (error) => {
+          ws.close();
+          reject(error);
+        });
       });
     });
 
-    it('should track connected clients', (done) => {
+    it('should track connected clients', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      ws.on('open', () => {
-        setTimeout(() => {
-          const wsHandler = getWebSocketHandler();
-          expect(wsHandler?.getClientCount()).toBe(1);
+      await new Promise<void>((resolve, reject) => {
+        ws.on('open', () => {
+          setTimeout(() => {
+            try {
+              const wsHandler = getWebSocketHandler();
+              expect(wsHandler?.getClientCount()).toBe(1);
+              ws.close();
+              resolve();
+            } catch (error) {
+              ws.close();
+              reject(error);
+            }
+          }, 100);
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-          done();
-        }, 100);
+          reject(error);
+        });
       });
     });
   });
 
   describe('Subscription', () => {
-    it('should handle project subscription', (done) => {
+    it('should handle project subscription', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      let receivedConnected = false;
+      await new Promise<void>((resolve, reject) => {
+        let receivedConnected = false;
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          receivedConnected = true;
-          // Send subscription message
-          ws.send(JSON.stringify({
-            action: 'subscribe',
-            projectId: 'test-project-123'
-          }));
-        } else if (message.type === 'subscribed') {
-          expect(receivedConnected).toBe(true);
-          expect(message.projectId).toBe('test-project-123');
-          expect(message.timestamp).toBeDefined();
+            if (message.type === 'connected') {
+              receivedConnected = true;
+              ws.send(JSON.stringify({
+                action: 'subscribe',
+                projectId: 'test-project-123'
+              }));
+            } else if (message.type === 'subscribed') {
+              expect(receivedConnected).toBe(true);
+              expect(message.projectId).toBe('test-project-123');
+              expect(message.timestamp).toBeDefined();
+              ws.close();
+              resolve();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-          done();
-        }
-      });
-
-      ws.on('error', (error) => {
-        done(error);
+          reject(error);
+        });
       });
     });
 
-    it('should handle project unsubscription', (done) => {
+    it('should handle project unsubscription', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      let subscribed = false;
+      await new Promise<void>((resolve, reject) => {
+        let subscribed = false;
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({
-            action: 'subscribe',
-            projectId: 'test-project-123'
-          }));
-        } else if (message.type === 'subscribed') {
-          subscribed = true;
-          ws.send(JSON.stringify({
-            action: 'unsubscribe',
-            projectId: 'test-project-123'
-          }));
-        } else if (message.type === 'unsubscribed') {
-          expect(subscribed).toBe(true);
-          expect(message.projectId).toBe('test-project-123');
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({
+                action: 'subscribe',
+                projectId: 'test-project-123'
+              }));
+            } else if (message.type === 'subscribed') {
+              subscribed = true;
+              ws.send(JSON.stringify({
+                action: 'unsubscribe',
+                projectId: 'test-project-123'
+              }));
+            } else if (message.type === 'unsubscribed') {
+              expect(subscribed).toBe(true);
+              expect(message.projectId).toBe('test-project-123');
+              ws.close();
+              resolve();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-          done();
-        }
-      });
-
-      ws.on('error', (error) => {
-        done(error);
+          reject(error);
+        });
       });
     });
 
-    it('should reject invalid action', (done) => {
+    it('should reject invalid action', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({
-            action: 'invalid-action',
-            projectId: 'test-project-123'
-          }));
-        } else if (message.error === 'Invalid action') {
-          expect(message.message).toBe('Action must be "subscribe" or "unsubscribe"');
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({
+                action: 'invalid-action',
+                projectId: 'test-project-123'
+              }));
+            } else if (message.error === 'Invalid action') {
+              expect(message.message).toBe('Action must be "subscribe" or "unsubscribe"');
+              ws.close();
+              resolve();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-          done();
-        }
-      });
-
-      ws.on('error', (error) => {
-        done(error);
+          reject(error);
+        });
       });
     });
 
-    it('should reject invalid JSON message', (done) => {
+    it('should reject invalid JSON message', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send('invalid-json');
-        } else if (message.error === 'Invalid message') {
-          expect(message.message).toBe('Failed to parse message as JSON');
+            if (message.type === 'connected') {
+              ws.send('invalid-json');
+            } else if (message.error === 'Invalid message') {
+              expect(message.message).toBe('Failed to parse message as JSON');
+              ws.close();
+              resolve();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-          done();
-        }
-      });
-
-      ws.on('error', (error) => {
-        done(error);
+          reject(error);
+        });
       });
     });
   });
 
   describe('Event Broadcasting', () => {
-    it('should receive events for subscribed project', (done) => {
+    it('should receive events for subscribed project', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
@@ -244,38 +321,45 @@ describe('WebSocket Handler', () => {
 
       const projectId = 'test-project-123';
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({
-            action: 'subscribe',
-            projectId
-          }));
-        } else if (message.type === 'subscribed') {
-          // Emit test event
-          eventService.emitEvent(projectId, 'project.created', {
-            id: projectId,
-            name: 'Test Project'
-          });
-        } else if (message.eventType === 'project.created') {
-          expect(message.projectId).toBe(projectId);
-          expect(message.data).toEqual({
-            id: projectId,
-            name: 'Test Project'
-          });
-          expect(message.timestamp).toBeDefined();
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({
+                action: 'subscribe',
+                projectId
+              }));
+            } else if (message.type === 'subscribed') {
+              eventService.emitEvent(projectId, 'project.created', {
+                id: projectId,
+                name: 'Test Project'
+              });
+            } else if (message.eventType === 'project.created') {
+              expect(message.projectId).toBe(projectId);
+              expect(message.data).toEqual({
+                id: projectId,
+                name: 'Test Project'
+              });
+              expect(message.timestamp).toBeDefined();
+              ws.close();
+              resolve();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-          done();
-        }
-      });
-
-      ws.on('error', (error) => {
-        done(error);
+          reject(error);
+        });
       });
     });
 
-    it('should not receive events for unsubscribed project', (done) => {
+    it('should not receive events for unsubscribed project', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
@@ -285,38 +369,44 @@ describe('WebSocket Handler', () => {
       const subscribedProjectId = 'project-1';
       const otherProjectId = 'project-2';
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({
-            action: 'subscribe',
-            projectId: subscribedProjectId
-          }));
-        } else if (message.type === 'subscribed') {
-          // Emit event for different project
-          eventService.emitEvent(otherProjectId, 'project.created', {
-            id: otherProjectId,
-            name: 'Other Project'
-          });
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({
+                action: 'subscribe',
+                projectId: subscribedProjectId
+              }));
+            } else if (message.type === 'subscribed') {
+              eventService.emitEvent(otherProjectId, 'project.created', {
+                id: otherProjectId,
+                name: 'Other Project'
+              });
 
-          // Wait a bit to ensure no event is received
-          setTimeout(() => {
+              setTimeout(() => {
+                ws.close();
+                resolve();
+              }, 100);
+            } else if (message.eventType) {
+              ws.close();
+              reject(new Error('Received event for unsubscribed project'));
+            }
+          } catch (error) {
             ws.close();
-            done();
-          }, 100);
-        } else if (message.eventType) {
-          // Should not receive events for unsubscribed project
-          done(new Error('Received event for unsubscribed project'));
-        }
-      });
+            reject(error);
+          }
+        });
 
-      ws.on('error', (error) => {
-        done(error);
+        ws.on('error', (error) => {
+          ws.close();
+          reject(error);
+        });
       });
     });
 
-    it('should receive multiple event types', (done) => {
+    it('should receive multiple event types', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
@@ -326,38 +416,45 @@ describe('WebSocket Handler', () => {
       const projectId = 'test-project-123';
       const receivedEvents: string[] = [];
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({
-            action: 'subscribe',
-            projectId
-          }));
-        } else if (message.type === 'subscribed') {
-          // Emit multiple event types
-          eventService.emitEvent(projectId, 'project.created', { id: projectId });
-          eventService.emitEvent(projectId, 'project.phase.changed', { oldPhase: 'analysis', newPhase: 'planning' });
-          eventService.emitEvent(projectId, 'story.status.changed', { storyId: 'story-1' });
-        } else if (message.eventType) {
-          receivedEvents.push(message.eventType);
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({
+                action: 'subscribe',
+                projectId
+              }));
+            } else if (message.type === 'subscribed') {
+              eventService.emitEvent(projectId, 'project.created', { id: projectId });
+              eventService.emitEvent(projectId, 'project.phase.changed', { oldPhase: 'analysis', newPhase: 'planning' });
+              eventService.emitEvent(projectId, 'story.status.changed', { storyId: 'story-1' });
+            } else if (message.eventType) {
+              receivedEvents.push(message.eventType);
 
-          if (receivedEvents.length === 3) {
-            expect(receivedEvents).toContain('project.created');
-            expect(receivedEvents).toContain('project.phase.changed');
-            expect(receivedEvents).toContain('story.status.changed');
+              if (receivedEvents.length === 3) {
+                expect(receivedEvents).toContain('project.created');
+                expect(receivedEvents).toContain('project.phase.changed');
+                expect(receivedEvents).toContain('story.status.changed');
+                ws.close();
+                resolve();
+              }
+            }
+          } catch (error) {
             ws.close();
-            done();
+            reject(error);
           }
-        }
-      });
+        });
 
-      ws.on('error', (error) => {
-        done(error);
+        ws.on('error', (error) => {
+          ws.close();
+          reject(error);
+        });
       });
     });
 
-    it('should handle multiple subscriptions from same client', (done) => {
+    it('should handle multiple subscriptions from same client', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
@@ -369,64 +466,74 @@ describe('WebSocket Handler', () => {
       const subscriptions: string[] = [];
       const receivedEvents: string[] = [];
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({ action: 'subscribe', projectId: project1 }));
-        } else if (message.type === 'subscribed') {
-          subscriptions.push(message.projectId);
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({ action: 'subscribe', projectId: project1 }));
+            } else if (message.type === 'subscribed') {
+              subscriptions.push(message.projectId);
 
-          if (subscriptions.length === 1) {
-            ws.send(JSON.stringify({ action: 'subscribe', projectId: project2 }));
-          } else if (subscriptions.length === 2) {
-            // Emit events for both projects
-            eventService.emitEvent(project1, 'project.created', { id: project1 });
-            eventService.emitEvent(project2, 'project.created', { id: project2 });
-          }
-        } else if (message.eventType === 'project.created') {
-          receivedEvents.push(message.projectId);
+              if (subscriptions.length === 1) {
+                ws.send(JSON.stringify({ action: 'subscribe', projectId: project2 }));
+              } else if (subscriptions.length === 2) {
+                eventService.emitEvent(project1, 'project.created', { id: project1 });
+                eventService.emitEvent(project2, 'project.created', { id: project2 });
+              }
+            } else if (message.eventType === 'project.created') {
+              receivedEvents.push(message.projectId);
 
-          if (receivedEvents.length === 2) {
-            expect(receivedEvents).toContain(project1);
-            expect(receivedEvents).toContain(project2);
+              if (receivedEvents.length === 2) {
+                expect(receivedEvents).toContain(project1);
+                expect(receivedEvents).toContain(project2);
+                ws.close();
+                resolve();
+              }
+            }
+          } catch (error) {
             ws.close();
-            done();
+            reject(error);
           }
-        }
-      });
+        });
 
-      ws.on('error', (error) => {
-        done(error);
+        ws.on('error', (error) => {
+          ws.close();
+          reject(error);
+        });
       });
     });
   });
 
   describe('Heartbeat', () => {
-    it('should respond to ping with pong', (done) => {
+    it('should respond to ping with pong', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
         }
       });
 
-      ws.on('open', () => {
-        ws.ping();
-      });
+      await new Promise<void>((resolve, reject) => {
+        ws.on('open', () => {
+          ws.ping();
+        });
 
-      ws.on('pong', () => {
-        ws.close();
-        done();
-      });
+        ws.on('pong', () => {
+          ws.close();
+          resolve();
+        });
 
-      ws.on('error', (error) => {
-        done(error);
+        ws.on('error', (error) => {
+          ws.close();
+          reject(error);
+        });
       });
     });
   });
 
   describe('Connection Cleanup', () => {
-    it('should clean up subscriptions on disconnect', (done) => {
+    it('should clean up subscriptions on disconnect', async () => {
       const ws = new WebSocket(`${baseUrl}/ws/status-updates`, {
         headers: {
           Authorization: `Bearer ${jwtToken}`
@@ -435,35 +542,44 @@ describe('WebSocket Handler', () => {
 
       const projectId = 'test-project-123';
 
-      ws.on('message', (data) => {
-        const message = JSON.parse(data.toString());
+      await new Promise<void>((resolve, reject) => {
+        ws.on('message', (data) => {
+          try {
+            const message = JSON.parse(data.toString());
 
-        if (message.type === 'connected') {
-          ws.send(JSON.stringify({
-            action: 'subscribe',
-            projectId
-          }));
-        } else if (message.type === 'subscribed') {
-          const wsHandler = getWebSocketHandler();
-          expect(wsHandler?.getSubscriptionCount(projectId)).toBe(1);
+            if (message.type === 'connected') {
+              ws.send(JSON.stringify({
+                action: 'subscribe',
+                projectId
+              }));
+            } else if (message.type === 'subscribed') {
+              const wsHandler = getWebSocketHandler();
+              expect(wsHandler?.getSubscriptionCount(projectId)).toBe(1);
+              ws.close();
+            }
+          } catch (error) {
+            ws.close();
+            reject(error);
+          }
+        });
 
-          // Close connection
+        ws.on('close', () => {
+          setTimeout(() => {
+            try {
+              const wsHandler = getWebSocketHandler();
+              expect(wsHandler?.getSubscriptionCount(projectId)).toBe(0);
+              expect(wsHandler?.getClientCount()).toBe(0);
+              resolve();
+            } catch (error) {
+              reject(error);
+            }
+          }, 100);
+        });
+
+        ws.on('error', (error) => {
           ws.close();
-        }
-      });
-
-      ws.on('close', () => {
-        // Wait for cleanup
-        setTimeout(() => {
-          const wsHandler = getWebSocketHandler();
-          expect(wsHandler?.getSubscriptionCount(projectId)).toBe(0);
-          expect(wsHandler?.getClientCount()).toBe(0);
-          done();
-        }, 100);
-      });
-
-      ws.on('error', (error) => {
-        done(error);
+          reject(error);
+        });
       });
     });
   });

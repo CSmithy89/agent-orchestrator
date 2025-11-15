@@ -6,6 +6,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { FastifyInstance } from 'fastify';
 import { createServer } from '../../src/api/server.js';
+import { projectService } from '../../src/api/services/project.service.js';
 import { eventService } from '../../src/api/services/event.service.js';
 
 describe('API Error Handling & Security', () => {
@@ -20,6 +21,9 @@ describe('API Error Handling & Security', () => {
     server = await createServer({
       jwtSecret: 'test-secret'
     });
+
+    // Clear project service cache AFTER server creation
+    projectService.clearCache();
 
     // Generate test JWT token
     jwtToken = server.jwt.sign({ userId: 'test-user' });
@@ -133,11 +137,14 @@ describe('API Error Handling & Security', () => {
     });
 
     it('should return 401 with expired token', async () => {
-      // Create a token that expired 1 hour ago
+      // Create a token that expires in 1ms
       const expiredToken = server.jwt.sign(
         { userId: 'test-user' },
-        { expiresIn: '-1h' }
+        { expiresIn: '1ms' }
       );
+
+      // Wait 10ms for token to expire
+      await new Promise(resolve => setTimeout(resolve, 10));
 
       const response = await server.inject({
         method: 'GET',
