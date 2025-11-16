@@ -3696,3 +3696,987 @@ Each module:
 
 ---
 
+
+# 6. API Specifications
+
+## 6.1 API Architecture
+
+### REST API Design
+
+**Base URL:** `https://api.businesshub.ai/v1`
+
+**Authentication:** JWT Bearer tokens
+
+**Request/Response Format:** JSON
+
+**HTTP Methods:**
+- `GET` - Retrieve resources
+- `POST` - Create new resources
+- `PUT` - Update entire resources
+- `PATCH` - Partial updates
+- `DELETE` - Delete resources
+
+### API Design Principles
+
+1. **RESTful** - Resource-oriented design
+2. **Versioned** - API version in URL path
+3. **Stateless** - No server-side session state
+4. **Idempotent** - Safe to retry operations
+5. **Paginated** - Large result sets use cursor pagination
+6. **Rate Limited** - Prevent abuse
+7. **Well-Documented** - OpenAPI 3.0 specification
+
+### Response Format
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "data": {
+    // Resource data
+  },
+  "meta": {
+    "timestamp": "2025-11-16T10:00:00Z",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+**Error Response:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid input parameters",
+    "details": [
+      {
+        "field": "email",
+        "message": "Invalid email format"
+      }
+    ]
+  },
+  "meta": {
+    "timestamp": "2025-11-16T10:00:00Z",
+    "requestId": "req_abc123"
+  }
+}
+```
+
+## 6.2 Authentication & Authorization
+
+### Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant API
+    participant Auth
+    participant DB
+
+    Client->>API: POST /auth/login<br/>{email, password}
+    API->>Auth: Validate credentials
+    Auth->>DB: Query user
+    DB-->>Auth: User data
+    Auth->>Auth: Generate JWT
+    Auth-->>API: JWT token
+    API-->>Client: {accessToken, refreshToken}
+    
+    Note over Client: Store tokens
+    
+    Client->>API: GET /projects<br/>Authorization: Bearer {token}
+    API->>Auth: Validate JWT
+    Auth-->>API: User ID + permissions
+    API->>DB: Query projects
+    DB-->>API: Projects data
+    API-->>Client: Projects list
+```
+
+### Endpoints
+
+**POST /auth/register**
+```json
+Request:
+{
+  "email": "user@example.com",
+  "password": "securePassword123",
+  "fullName": "John Doe"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "user": {
+      "id": "usr_123",
+      "email": "user@example.com",
+      "fullName": "John Doe"
+    },
+    "tokens": {
+      "accessToken": "eyJhbGc...",
+      "refreshToken": "eyJhbGc...",
+      "expiresIn": 3600
+    }
+  }
+}
+```
+
+**POST /auth/login**
+```json
+Request:
+{
+  "email": "user@example.com",
+  "password": "securePassword123"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "user": { /* user object */ },
+    "tokens": { /* tokens */ }
+  }
+}
+```
+
+**POST /auth/refresh**
+```json
+Request:
+{
+  "refreshToken": "eyJhbGc..."
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "accessToken": "eyJhbGc...",
+    "expiresIn": 3600
+  }
+}
+```
+
+**POST /auth/logout**
+```json
+Request:
+{
+  "refreshToken": "eyJhbGc..."
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "message": "Logged out successfully"
+  }
+}
+```
+
+## 6.3 Project Management Endpoints
+
+**GET /projects**
+
+List all projects for the authenticated user.
+
+```
+GET /projects?page=1&limit=20&status=active&stage=operating
+
+Response:
+{
+  "success": true,
+  "data": {
+    "projects": [
+      {
+        "id": "proj_123",
+        "name": "Sustainable Gardening Course",
+        "description": "Online course about urban gardening",
+        "productType": "course",
+        "stage": "operating",
+        "status": "active",
+        "createdAt": "2025-10-01T00:00:00Z",
+        "launchedAt": "2025-10-15T00:00:00Z",
+        "metrics": {
+          "revenue": 2450.00,
+          "users": 1247,
+          "contentItems": 45
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 5,
+      "hasMore": false
+    }
+  }
+}
+```
+
+**POST /projects**
+
+Create a new project.
+
+```json
+Request:
+{
+  "concept": {
+    "description": "I want to create an online course about sustainable gardening for urban dwellers",
+    "targetMarket": "Urban millennials interested in sustainability",
+    "industry": "Education / Sustainability"
+  }
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "project": {
+      "id": "proj_456",
+      "name": "Untitled Project",
+      "stage": "discovery",
+      "status": "active",
+      "context": {
+        "concept": { /* concept data */ }
+      },
+      "createdAt": "2025-11-16T10:00:00Z"
+    },
+    "nextStep": {
+      "workflow": "bmv.validate-idea",
+      "estimatedDuration": 300
+    }
+  }
+}
+```
+
+**GET /projects/:projectId**
+
+Get detailed project information.
+
+```
+GET /projects/proj_123
+
+Response:
+{
+  "success": true,
+  "data": {
+    "project": {
+      "id": "proj_123",
+      "name": "Sustainable Gardening Course",
+      "stage": "operating",
+      "status": "active",
+      "context": {
+        "concept": { /* ... */ },
+        "validation": { /* ... */ },
+        "planning": { /* ... */ },
+        "branding": { /* ... */ },
+        "product": { /* ... */ },
+        "operations": { /* ... */ }
+      },
+      "createdAt": "2025-10-01T00:00:00Z",
+      "updatedAt": "2025-11-16T09:00:00Z"
+    }
+  }
+}
+```
+
+**PATCH /projects/:projectId**
+
+Update project details.
+
+```json
+Request:
+{
+  "name": "Urban Gardening Mastery",
+  "description": "Complete course on sustainable urban gardening",
+  "tags": ["gardening", "sustainability", "urban-living"]
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "project": { /* updated project */ }
+  }
+}
+```
+
+**DELETE /projects/:projectId**
+
+Archive a project.
+
+```json
+Response:
+{
+  "success": true,
+  "data": {
+    "message": "Project archived successfully"
+  }
+}
+```
+
+## 6.4 Workflow Execution Endpoints
+
+**POST /projects/:projectId/workflows**
+
+Execute a workflow.
+
+```json
+Request:
+{
+  "workflow": "bmv.validate-idea",
+  "params": {
+    "business_concept": "Online course about sustainable urban gardening",
+    "target_market": "Urban millennials aged 25-40"
+  }
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "execution": {
+      "id": "exec_789",
+      "projectId": "proj_123",
+      "workflow": "bmv.validate-idea",
+      "status": "running",
+      "estimatedCompletion": "2025-11-16T10:05:00Z",
+      "createdAt": "2025-11-16T10:00:00Z"
+    }
+  }
+}
+```
+
+**GET /projects/:projectId/workflows/:executionId**
+
+Get workflow execution status.
+
+```
+GET /projects/proj_123/workflows/exec_789
+
+Response:
+{
+  "success": true,
+  "data": {
+    "execution": {
+      "id": "exec_789",
+      "workflow": "bmv.validate-idea",
+      "status": "completed",
+      "result": {
+        "validationReport": "# Market Validation Report\n...",
+        "feasibilityScore": 8.5,
+        "marketData": { /* ... */ }
+      },
+      "startedAt": "2025-11-16T10:00:00Z",
+      "completedAt": "2025-11-16T10:04:32Z",
+      "duration": 272000
+    }
+  }
+}
+```
+
+**GET /projects/:projectId/workflows**
+
+List all workflow executions for a project.
+
+```
+GET /projects/proj_123/workflows?status=completed&limit=10
+
+Response:
+{
+  "success": true,
+  "data": {
+    "executions": [
+      {
+        "id": "exec_789",
+        "workflow": "bmv.validate-idea",
+        "status": "completed",
+        "completedAt": "2025-11-16T10:04:32Z"
+      }
+      // ... more executions
+    ],
+    "pagination": { /* ... */ }
+  }
+}
+```
+
+## 6.5 Approval Queue Endpoints
+
+**GET /approvals**
+
+Get pending approvals for the user.
+
+```
+GET /approvals?status=pending&priority=high
+
+Response:
+{
+  "success": true,
+  "data": {
+    "approvals": [
+      {
+        "id": "appr_123",
+        "projectId": "proj_456",
+        "projectName": "Sustainable Gardening Course",
+        "approvalType": "validation_results",
+        "title": "Market Validation Complete",
+        "description": "Review the market validation results for your gardening course",
+        "content": {
+          "validationReport": "# Market Validation Report...",
+          "feasibilityScore": 8.5,
+          "marketSize": {
+            "tam": 5000000000,
+            "sam": 500000000,
+            "som": 50000000
+          }
+        },
+        "aiRecommendation": "approve",
+        "aiConfidenceScore": 0.92,
+        "aiReasoning": "Strong market opportunity with high feasibility score. Target audience is well-defined and market size is substantial.",
+        "status": "pending",
+        "priority": 5,
+        "createdAt": "2025-11-16T10:05:00Z",
+        "expiresAt": "2025-11-18T10:05:00Z"
+      }
+    ],
+    "counts": {
+      "pending": 5,
+      "expiringSoon": 2
+    }
+  }
+}
+```
+
+**POST /approvals/:approvalId/decision**
+
+Make a decision on an approval.
+
+```json
+Request:
+{
+  "decision": "approved",
+  "notes": "Looks great! Let's proceed with planning."
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "approval": {
+      "id": "appr_123",
+      "status": "approved",
+      "decision": "approved",
+      "decisionNotes": "Looks great! Let's proceed with planning.",
+      "decidedAt": "2025-11-16T10:10:00Z"
+    },
+    "nextStep": {
+      "workflow": "bmp.create-business-plan",
+      "autoExecute": true
+    }
+  }
+}
+```
+
+**POST /approvals/batch**
+
+Batch approve multiple items.
+
+```json
+Request:
+{
+  "approvals": [
+    {
+      "id": "appr_124",
+      "decision": "approved"
+    },
+    {
+      "id": "appr_125",
+      "decision": "approved"
+    },
+    {
+      "id": "appr_126",
+      "decision": "modified",
+      "notes": "Please make the intro shorter"
+    }
+  ]
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "processed": 3,
+    "results": [
+      {
+        "id": "appr_124",
+        "status": "approved"
+      },
+      {
+        "id": "appr_125",
+        "status": "approved"
+      },
+      {
+        "id": "appr_126",
+        "status": "modified"
+      }
+    ]
+  }
+}
+```
+
+## 6.6 Content Management Endpoints
+
+**GET /projects/:projectId/content**
+
+Get content calendar/items.
+
+```
+GET /projects/proj_123/content?type=blog_post&status=scheduled&startDate=2025-11-16&endDate=2025-12-16
+
+Response:
+{
+  "success": true,
+  "data": {
+    "content": [
+      {
+        "id": "content_456",
+        "projectId": "proj_123",
+        "type": "blog_post",
+        "title": "10 Vertical Gardening Ideas for Small Spaces",
+        "status": "scheduled",
+        "scheduledFor": "2025-11-18T09:00:00Z",
+        "metadata": {
+          "keywords": ["vertical gardening", "small spaces", "urban gardening"],
+          "estimatedReadTime": 8
+        },
+        "performance": {
+          "views": 0,
+          "engagement": 0
+        },
+        "createdAt": "2025-11-16T10:00:00Z"
+      }
+    ],
+    "stats": {
+      "totalItems": 45,
+      "byStatus": {
+        "draft": 10,
+        "pending_approval": 5,
+        "approved": 8,
+        "scheduled": 12,
+        "published": 10
+      },
+      "byType": {
+        "blog_post": 25,
+        "social_post": 15,
+        "email": 5
+      }
+    }
+  }
+}
+```
+
+**POST /projects/:projectId/content**
+
+Create new content item.
+
+```json
+Request:
+{
+  "type": "blog_post",
+  "title": "Composting 101: A Beginner's Guide",
+  "body": "# Composting 101\n\n...",
+  "metadata": {
+    "keywords": ["composting", "sustainability", "beginner"],
+    "seoDescription": "Learn the basics of composting..."
+  },
+  "scheduledFor": "2025-11-20T09:00:00Z"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "content": {
+      "id": "content_789",
+      "status": "pending_approval",
+      "createdAt": "2025-11-16T10:15:00Z"
+    },
+    "approval": {
+      "id": "appr_127",
+      "message": "Content created and queued for approval"
+    }
+  }
+}
+```
+
+**PATCH /projects/:projectId/content/:contentId**
+
+Update content item.
+
+```json
+Request:
+{
+  "title": "Composting 101: The Complete Beginner's Guide",
+  "scheduledFor": "2025-11-21T09:00:00Z"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "content": { /* updated content */ }
+  }
+}
+```
+
+**POST /projects/:projectId/content/:contentId/publish**
+
+Publish content immediately.
+
+```json
+Response:
+{
+  "success": true,
+  "data": {
+    "content": {
+      "id": "content_789",
+      "status": "published",
+      "publishedAt": "2025-11-16T10:20:00Z",
+      "publishedUrl": "https://example.com/blog/composting-101"
+    }
+  }
+}
+```
+
+## 6.7 Intelligence & Analytics Endpoints
+
+**GET /projects/:projectId/intelligence**
+
+Get intelligence feeds.
+
+```
+GET /projects/proj_123/intelligence?type=trend&status=new&limit=20
+
+Response:
+{
+  "success": true,
+  "data": {
+    "feeds": [
+      {
+        "id": "intel_123",
+        "type": "trend",
+        "title": "Vertical Gardening Searches Up 150%",
+        "summary": "Google Trends shows increasing interest...",
+        "relevanceScore": 0.87,
+        "aiAnalysis": {
+          "sentiment": "positive",
+          "impact": "high",
+          "urgency": "immediate",
+          "actionItems": [
+            "Create blog post about vertical gardening",
+            "Update course module"
+          ]
+        },
+        "status": "new",
+        "discoveredAt": "2025-11-16T08:00:00Z"
+      }
+    ]
+  }
+}
+```
+
+**POST /projects/:projectId/intelligence/:feedId/action**
+
+Take action on intelligence feed.
+
+```json
+Request:
+{
+  "action": "create_content",
+  "contentType": "blog_post"
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "content": {
+      "id": "content_890",
+      "title": "10 Vertical Gardening Ideas for Small Spaces",
+      "status": "draft"
+    },
+    "intelligence": {
+      "id": "intel_123",
+      "status": "content_created"
+    }
+  }
+}
+```
+
+**GET /projects/:projectId/analytics**
+
+Get project analytics.
+
+```
+GET /projects/proj_123/analytics?startDate=2025-11-01&endDate=2025-11-16&metrics=revenue,users,engagement
+
+Response:
+{
+  "success": true,
+  "data": {
+    "metrics": {
+      "revenue": {
+        "current": 2450.00,
+        "previous": 2180.00,
+        "change": 12.4,
+        "trend": "up"
+      },
+      "users": {
+        "current": 1247,
+        "previous": 1091,
+        "change": 14.3,
+        "trend": "up"
+      },
+      "engagement": {
+        "rate": 4.2,
+        "previous": 3.8,
+        "change": 10.5,
+        "trend": "up"
+      }
+    },
+    "timeSeries": [
+      {
+        "date": "2025-11-01",
+        "revenue": 150.00,
+        "users": 1091,
+        "engagement": 3.8
+      }
+      // ... more data points
+    ],
+    "insights": [
+      {
+        "type": "positive",
+        "message": "Revenue up 12% vs. previous period",
+        "recommendation": "Continue current content strategy"
+      }
+    ]
+  }
+}
+```
+
+## 6.8 Settings Management Endpoints
+
+**GET /settings**
+
+Get user settings.
+
+```
+GET /settings
+
+Response:
+{
+  "success": true,
+  "data": {
+    "apiKeys": {
+      "claude": "configured",
+      "codex": "not_configured",
+      "gemini": "configured",
+      "zai": "configured"
+    },
+    "agentPreferences": {
+      "preferredStrategyAgent": "claude",
+      "preferredCodeAgent": "codex",
+      "preferredResearchAgent": "gemini"
+    },
+    "notifications": {
+      "emailApprovals": true,
+      "emailInsights": true,
+      "slackWebhook": null
+    }
+  }
+}
+```
+
+**PATCH /settings/api-keys**
+
+Update API keys.
+
+```json
+Request:
+{
+  "claude": "sk-ant-api03-...",
+  "gemini": "AIza..."
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "message": "API keys updated successfully",
+    "validated": {
+      "claude": true,
+      "gemini": true
+    }
+  }
+}
+```
+
+**POST /settings/api-keys/validate**
+
+Validate API keys.
+
+```json
+Request:
+{
+  "provider": "claude",
+  "apiKey": "sk-ant-api03-..."
+}
+
+Response:
+{
+  "success": true,
+  "data": {
+    "valid": true,
+    "provider": "claude",
+    "model": "claude-sonnet-4-5",
+    "quotaRemaining": 950000
+  }
+}
+```
+
+## 6.9 WebSocket Events
+
+**Connection:**
+```
+ws://api.businesshub.ai/v1/ws?token={JWT_TOKEN}
+```
+
+**Event Types:**
+
+**workflow.started**
+```json
+{
+  "event": "workflow.started",
+  "data": {
+    "executionId": "exec_123",
+    "workflow": "bmv.validate-idea",
+    "projectId": "proj_456"
+  },
+  "timestamp": "2025-11-16T10:00:00Z"
+}
+```
+
+**workflow.progress**
+```json
+{
+  "event": "workflow.progress",
+  "data": {
+    "executionId": "exec_123",
+    "progress": 0.45,
+    "currentStep": "Analyzing competitors",
+    "estimatedCompletion": "2025-11-16T10:05:00Z"
+  },
+  "timestamp": "2025-11-16T10:02:00Z"
+}
+```
+
+**workflow.completed**
+```json
+{
+  "event": "workflow.completed",
+  "data": {
+    "executionId": "exec_123",
+    "status": "success",
+    "result": { /* workflow output */ }
+  },
+  "timestamp": "2025-11-16T10:04:32Z"
+}
+```
+
+**approval.created**
+```json
+{
+  "event": "approval.created",
+  "data": {
+    "approvalId": "appr_123",
+    "projectId": "proj_456",
+    "type": "validation_results",
+    "priority": 5
+  },
+  "timestamp": "2025-11-16T10:05:00Z"
+}
+```
+
+**content.published**
+```json
+{
+  "event": "content.published",
+  "data": {
+    "contentId": "content_789",
+    "projectId": "proj_123",
+    "title": "Composting 101",
+    "url": "https://example.com/blog/composting-101"
+  },
+  "timestamp": "2025-11-16T10:20:00Z"
+}
+```
+
+**intelligence.discovered**
+```json
+{
+  "event": "intelligence.discovered",
+  "data": {
+    "feedId": "intel_123",
+    "type": "trend",
+    "relevanceScore": 0.87,
+    "title": "Vertical Gardening Trending"
+  },
+  "timestamp": "2025-11-16T08:00:00Z"
+}
+```
+
+## 6.10 Error Handling & Rate Limiting
+
+### Error Codes
+
+| Code | HTTP Status | Description |
+|------|-------------|-------------|
+| `VALIDATION_ERROR` | 400 | Invalid request parameters |
+| `UNAUTHORIZED` | 401 | Missing or invalid authentication |
+| `FORBIDDEN` | 403 | Insufficient permissions |
+| `NOT_FOUND` | 404 | Resource not found |
+| `CONFLICT` | 409 | Resource conflict (e.g., duplicate) |
+| `RATE_LIMIT_EXCEEDED` | 429 | Too many requests |
+| `INTERNAL_ERROR` | 500 | Server error |
+| `SERVICE_UNAVAILABLE` | 503 | Service temporarily unavailable |
+
+### Rate Limiting
+
+**Headers:**
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1700136000
+```
+
+**Rate Limits by Tier:**
+
+| Tier | Requests/minute | Requests/hour | Requests/day |
+|------|----------------|---------------|--------------|
+| Starter | 60 | 1000 | 10000 |
+| Professional | 120 | 5000 | 50000 |
+| Enterprise | 300 | 20000 | Unlimited |
+
+**Rate Limit Exceeded Response:**
+```json
+{
+  "success": false,
+  "error": {
+    "code": "RATE_LIMIT_EXCEEDED",
+    "message": "Rate limit exceeded. Try again in 45 seconds.",
+    "retryAfter": 45
+  }
+}
+```
+
+---
+
