@@ -39,7 +39,6 @@ import type {
   StoryStatus,
   EscalationStatus,
   OrchestratorStatus,
-  APIResponse,
   APIError
 } from '../api/types/api.types.js';
 import type {
@@ -189,7 +188,7 @@ export const EventTypeSchema = z.enum([
 export const EventSchema = z.object({
   projectId: z.string().uuid(),
   eventType: EventTypeSchema,
-  data: z.unknown(),
+  data: z.any(),
   timestamp: z.string().datetime()
 });
 
@@ -488,7 +487,7 @@ export function validateOrchestratorStatus(value: unknown): OrchestratorStatus {
  * Validate Event (throws ZodError on failure)
  */
 export function validateEvent(value: unknown): Event {
-  return EventSchema.parse(value);
+  return EventSchema.parse(value) as Event;
 }
 
 /**
@@ -555,7 +554,11 @@ export function parseOrchestratorStatusSafe(value: unknown): SafeParseResult<Orc
  * Safe parse Event
  */
 export function parseEventSafe(value: unknown): SafeParseResult<Event> {
-  return EventSchema.safeParse(value);
+  const result = EventSchema.safeParse(value);
+  if (result.success) {
+    return { success: true, data: result.data as Event };
+  }
+  return result;
 }
 
 /**
