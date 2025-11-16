@@ -5698,3 +5698,784 @@ $wide: 1280px;      // 1280px+
 
 ---
 
+
+# 8. Workflow Orchestration
+
+## 8.1 Build Phase Workflows (Sequential)
+
+### Overview
+
+The BUILD phase consists of **sequential workflows** where each step must complete before the next begins. These workflows are critical path items that require human approval at key decision points.
+
+### Build Phase Flow
+
+```mermaid
+stateDiagram-v2
+    [*] --> Discovery
+    Discovery --> Validation: User submits idea
+    
+    state Validation {
+        [*] --> ResearchMarket
+        ResearchMarket --> AnalyzeCompetitors
+        AnalyzeCompetitors --> GeneratePersonas
+        GeneratePersonas --> CalculateTAM
+        CalculateTAM --> AssessFeasibility
+        AssessFeasibility --> GenerateReport
+        GenerateReport --> [*]
+    }
+    
+    Validation --> ApprovalGate1: Validation complete
+    ApprovalGate1 --> Planning: Approved
+    ApprovalGate1 --> Discovery: Rejected/Pivot
+    
+    state Planning {
+        [*] --> DesignBusinessModel
+        DesignBusinessModel --> CreateFinancials
+        CreateFinancials --> DefineGTM
+        DefineGTM --> SetKPIs
+        SetKPIs --> GeneratePlan
+        GeneratePlan --> [*]
+    }
+    
+    Planning --> ApprovalGate2: Plan complete
+    ApprovalGate2 --> Branding: Approved
+    ApprovalGate2 --> Planning: Modify
+    
+    state Branding {
+        [*] --> DevelopIdentity
+        DevelopIdentity --> CreateGuidelines
+        CreateGuidelines --> WriteStory
+        WriteStory --> [*]
+    }
+    
+    Branding --> ApprovalGate3: Brand complete
+    ApprovalGate3 --> ProductCreation: Approved
+    ApprovalGate3 --> Branding: Modify
+    
+    state ProductCreation {
+        [*] --> SelectProductType
+        SelectProductType --> DesignStructure
+        DesignStructure --> CreateContent
+        CreateContent --> Review
+        Review --> [*]
+    }
+    
+    ProductCreation --> ApprovalGate4: Product complete
+    ApprovalGate4 --> Launching: Approved
+    ApprovalGate4 --> ProductCreation: Modify
+    
+    Launching --> Operating: Launch successful
+    Operating --> [*]
+```
+
+### Workflow Execution Engine
+
+```typescript
+// orchestrator/workflow-engine.ts
+import { Agent } from 'agno';
+import { WorkflowExecution } from '../models/workflow-execution';
+import { ApprovalQueue } from '../services/approval-queue';
+
+export class WorkflowEngine {
+  async executeSequentialWorkflow(
+    projectId: string,
+    workflowName: string,
+    params: any,
+    agent: Agent
+  ): Promise<WorkflowResult> {
+    
+    // Create execution record
+    const execution = await WorkflowExecution.create({
+      projectId,
+      workflowName,
+      status: 'running',
+      inputParams: params
+    });
+    
+    try {
+      // Load workflow definition
+      const workflow = await this.loadWorkflow(workflowName);
+      
+      // Execute workflow steps
+      let context = { ...params, projectId };
+      
+      for (const step of workflow.steps) {
+        // Update execution progress
+        await execution.update({
+          currentStep: step.name,
+          progress: step.index / workflow.steps.length
+        });
+        
+        // Execute step using assigned agent
+        const stepResult = await agent.execute(step.instruction, context);
+        
+        // Merge result into context
+        context = { ...context, ...stepResult };
+        
+        // Emit progress event
+        this.emitEvent('workflow.progress', {
+          executionId: execution.id,
+          step: step.name,
+          progress: step.index / workflow.steps.length
+        });
+      }
+      
+      // Workflow complete
+      const result = await execution.complete({
+        outputResult: context,
+        duration: Date.now() - execution.startedAt
+      });
+      
+      // Check if approval required
+      if (workflow.requiresApproval) {
+        await ApprovalQueue.create({
+          projectId,
+          workflowExecutionId: execution.id,
+          approvalType: workflow.approvalType,
+          content: result.outputResult,
+          aiRecommendation: this.generateRecommendation(result)
+        });
+        
+        this.emitEvent('workflow.waiting_approval', {
+          executionId: execution.id,
+          approvalType: workflow.approvalType
+        });
+      } else {
+        // Trigger next workflow
+        if (workflow.nextWorkflow) {
+          await this.executeNextWorkflow(projectId, workflow.nextWorkflow, context);
+        }
+      }
+      
+      return result;
+      
+    } catch (error) {
+      await execution.fail({ error: error.message });
+      throw error;
+    }
+  }
+  
+  async handleApprovalDecision(
+    approvalId: string,
+    decision: 'approved' | 'rejected' | 'modified',
+    notes?: string
+  ): Promise<void> {
+    
+    const approval = await Approval.findById(approvalId);
+    const execution = await WorkflowExecution.findById(approval.workflowExecutionId);
+    const workflow = await this.loadWorkflow(execution.workflowName);
+    
+    await approval.update({
+      status: decision,
+      decision,
+      decisionNotes: notes,
+      decidedAt: new Date()
+    });
+    
+    if (decision === 'approved') {
+      // Update project context
+      await this.updateProjectContext(
+        execution.projectId,
+        execution.outputResult
+      );
+      
+      // Trigger next workflow in sequence
+      if (workflow.nextWorkflow) {
+        await this.executeSequentialWorkflow(
+          execution.projectId,
+          workflow.nextWorkflow,
+          execution.outputResult,
+          await this.getAgentForWorkflow(workflow.nextWorkflow)
+        );
+      }
+      
+    } else if (decision === 'rejected') {
+      // Handle rejection - may go back to previous step
+      if (workflow.onRejection === 'restart') {
+        await this.executeSequentialWorkflow(
+          execution.projectId,
+          execution.workflowName,
+          execution.inputParams,
+          await this.getAgentForWorkflow(execution.workflowName)
+        );
+      }
+    }
+  }
+}
+```
+
+## 8.2 Operate Phase Workflows (Parallel)
+
+### Overview
+
+The OPERATE phase consists of **parallel workflows** that run continuously and simultaneously. These workflows operate in the background, generating outputs that go to approval queues.
+
+### Parallel Execution Architecture
+
+```mermaid
+graph TB
+    subgraph "Agno Team Coordinator"
+        Scheduler[Task Scheduler]
+        Queue[Job Queue - BullMQ]
+    end
+    
+    subgraph "Intelligence Team"
+        Intel1[Trend Scanner<br/>Hourly]
+        Intel2[Competitor Monitor<br/>Daily]
+        Intel3[News Monitor<br/>Hourly]
+    end
+    
+    subgraph "Content Team"
+        Content1[Content Calendar<br/>Weekly]
+        Content2[Content Creator<br/>Daily]
+        Content3[SEO Optimizer<br/>On-demand]
+    end
+    
+    subgraph "Marketing Team"
+        Market1[Campaign Monitor<br/>Real-time]
+        Market2[Email Sequences<br/>Scheduled]
+        Market3[Ad Optimizer<br/>Daily]
+    end
+    
+    subgraph "Analytics Team"
+        Analytics1[Metrics Update<br/>Hourly]
+        Analytics2[Insights Generator<br/>Daily]
+        Analytics3[Report Generator<br/>Weekly]
+    end
+    
+    Scheduler --> Queue
+    
+    Queue --> Intel1
+    Queue --> Intel2
+    Queue --> Intel3
+    
+    Queue --> Content1
+    Queue --> Content2
+    Queue --> Content3
+    
+    Queue --> Market1
+    Queue --> Market2
+    Queue --> Market3
+    
+    Queue --> Analytics1
+    Queue --> Analytics2
+    Queue --> Analytics3
+    
+    Intel1 --> DB[(Database)]
+    Intel2 --> DB
+    Content2 --> ApprovalQ[Approval Queue]
+    Market2 --> ApprovalQ
+    Analytics2 --> DB
+    
+    ApprovalQ --> User[User Reviews]
+    User --> Published[Published Content]
+```
+
+### Scheduled Task Implementation
+
+```typescript
+// orchestrator/scheduled-tasks.ts
+import { Queue, Worker } from 'bullmq';
+import { AgentFactory } from './agent-factory';
+
+export class ScheduledTasks {
+  private intelligenceQueue: Queue;
+  private contentQueue: Queue;
+  private marketingQueue: Queue;
+  private analyticsQueue: Queue;
+  
+  constructor() {
+    this.intelligenceQueue = new Queue('intelligence');
+    this.contentQueue = new Queue('content');
+    this.marketingQueue = new Queue('marketing');
+    this.analyticsQueue = new Queue('analytics');
+    
+    this.setupWorkers();
+    this.scheduleRecurringTasks();
+  }
+  
+  private setupWorkers() {
+    // Intelligence worker
+    new Worker('intelligence', async (job) => {
+      const agentFactory = new AgentFactory();
+      const agents = await agentFactory.createAgentsForUser(job.data.userId);
+      const geminiAgent = agents.find(a => a.name === 'gemini');
+      
+      switch (job.name) {
+        case 'scan-trends':
+          return await this.executeTrendScanning(geminiAgent, job.data);
+        case 'monitor-competitors':
+          return await this.executeCompetitorMonitoring(geminiAgent, job.data);
+        default:
+          throw new Error(`Unknown intelligence job: ${job.name}`);
+      }
+    });
+    
+    // Content worker
+    new Worker('content', async (job) => {
+      const agentFactory = new AgentFactory();
+      const agents = await agentFactory.createAgentsForUser(job.data.userId);
+      const claudeAgent = agents.find(a => a.name === 'claude');
+      
+      switch (job.name) {
+        case 'generate-calendar':
+          return await this.executeContentCalendarGeneration(claudeAgent, job.data);
+        case 'create-content':
+          return await this.executeContentCreation(claudeAgent, job.data);
+        default:
+          throw new Error(`Unknown content job: ${job.name}`);
+      }
+    });
+    
+    // Marketing worker
+    new Worker('marketing', async (job) => {
+      const agentFactory = new AgentFactory();
+      const agents = await agentFactory.createAgentsForUser(job.data.userId);
+      const claudeAgent = agents.find(a => a.name === 'claude');
+      
+      return await this.executeMarketingTask(claudeAgent, job.data);
+    });
+    
+    // Analytics worker
+    new Worker('analytics', async (job) => {
+      const agentFactory = new AgentFactory();
+      const agents = await agentFactory.createAgentsForUser(job.data.userId);
+      const zaiAgent = agents.find(a => a.name === 'zai');
+      
+      return await this.executeAnalyticsTask(zaiAgent, job.data);
+    });
+  }
+  
+  private async scheduleRecurringTasks() {
+    // Get all active projects
+    const projects = await Project.findAll({ where: { status: 'operating' } });
+    
+    for (const project of projects) {
+      // Intelligence tasks
+      await this.intelligenceQueue.add(
+        'scan-trends',
+        { projectId: project.id, userId: project.userId },
+        { repeat: { pattern: '0 * * * *' } } // Every hour
+      );
+      
+      await this.intelligenceQueue.add(
+        'monitor-competitors',
+        { projectId: project.id, userId: project.userId },
+        { repeat: { pattern: '0 8 * * *' } } // Daily at 8am
+      );
+      
+      // Content tasks
+      await this.contentQueue.add(
+        'generate-calendar',
+        { projectId: project.id, userId: project.userId },
+        { repeat: { pattern: '0 9 * * 1' } } // Weekly Monday 9am
+      );
+      
+      await this.contentQueue.add(
+        'create-content',
+        { projectId: project.id, userId: project.userId },
+        { repeat: { pattern: '0 10 * * *' } } // Daily at 10am
+      );
+      
+      // Analytics tasks
+      await this.analyticsQueue.add(
+        'update-metrics',
+        { projectId: project.id, userId: project.userId },
+        { repeat: { pattern: '*/15 * * * *' } } // Every 15 minutes
+      );
+      
+      await this.analyticsQueue.add(
+        'generate-insights',
+        { projectId: project.id, userId: project.userId },
+        { repeat: { pattern: '0 17 * * *' } } // Daily at 5pm
+      );
+    }
+  }
+  
+  private async executeTrendScanning(agent: Agent, data: any): Promise<any> {
+    // Execute BMI.scan-trends workflow
+    const result = await agent.execute(`
+      Execute the trend scanning workflow for project ${data.projectId}.
+      
+      Use the BMI.scan-trends workflow to:
+      1. Query Google Trends for relevant keywords
+      2. Scan news APIs for industry news
+      3. Monitor social media trends
+      4. Score relevance to the business
+      5. Flag content opportunities
+      
+      Return structured results.
+    `, { projectId: data.projectId });
+    
+    // Store in intelligence_feeds table
+    await IntelligenceFeed.bulkCreate(result.trends.map(trend => ({
+      projectId: data.projectId,
+      feedType: 'trend',
+      title: trend.title,
+      summary: trend.summary,
+      relevanceScore: trend.relevance,
+      aiAnalysis: trend.analysis,
+      discoveredAt: new Date()
+    })));
+    
+    return result;
+  }
+}
+```
+
+## 8.3 Approval Gate System
+
+### Approval Flow
+
+```mermaid
+sequenceDiagram
+    participant Workflow
+    participant ApprovalQueue
+    participant Database
+    participant WebSocket
+    participant User
+    participant NextWorkflow
+
+    Workflow->>Workflow: Execute workflow
+    Workflow->>Workflow: Generate output
+    Workflow->>ApprovalQueue: Create approval
+    ApprovalQueue->>Database: Store approval
+    ApprovalQueue->>WebSocket: Emit "approval.created"
+    WebSocket->>User: Notify user
+    
+    Note over User: Reviews in UI
+    
+    User->>ApprovalQueue: POST decision (approve/reject/modify)
+    ApprovalQueue->>Database: Update approval status
+    
+    alt Approved
+        ApprovalQueue->>Database: Update project context
+        ApprovalQueue->>NextWorkflow: Trigger next workflow
+        ApprovalQueue->>WebSocket: Emit "workflow.started"
+    else Rejected
+        ApprovalQueue->>Workflow: Restart workflow (if configured)
+        ApprovalQueue->>WebSocket: Emit "workflow.restarted"
+    else Modified
+        ApprovalQueue->>Database: Store modifications
+        ApprovalQueue->>Workflow: Re-run with modifications
+    end
+```
+
+### Approval Queue Manager
+
+```typescript
+// services/approval-queue.ts
+import { Approval } from '../models/approval';
+import { WebSocketServer } from './websocket';
+
+export class ApprovalQueueManager {
+  async createApproval(data: {
+    projectId: string;
+    userId: string;
+    workflowExecutionId?: string;
+    approvalType: string;
+    title: string;
+    description?: string;
+    content: any;
+    aiRecommendation?: 'approve' | 'reject' | 'modify';
+    aiConfidenceScore?: number;
+    aiReasoning?: string;
+    priority?: number;
+    expiresInHours?: number;
+  }): Promise<Approval> {
+    
+    const approval = await Approval.create({
+      ...data,
+      status: 'pending',
+      expiresAt: data.expiresInHours 
+        ? new Date(Date.now() + data.expiresInHours * 60 * 60 * 1000)
+        : null
+    });
+    
+    // Notify user via WebSocket
+    WebSocketServer.emitToUser(data.userId, 'approval.created', {
+      approvalId: approval.id,
+      projectId: data.projectId,
+      type: data.approvalType,
+      priority: data.priority || 5,
+      title: data.title
+    });
+    
+    // Send email notification if enabled
+    const userSettings = await UserSettings.findByUserId(data.userId);
+    if (userSettings.notifications.emailApprovals) {
+      await this.sendApprovalEmail(approval);
+    }
+    
+    return approval;
+  }
+  
+  async processDecision(
+    approvalId: string,
+    decision: 'approved' | 'rejected' | 'modified',
+    notes?: string,
+    modifications?: any
+  ): Promise<void> {
+    
+    const approval = await Approval.findById(approvalId);
+    
+    if (approval.status !== 'pending') {
+      throw new Error('Approval already processed');
+    }
+    
+    await approval.update({
+      status: decision,
+      decision,
+      decisionNotes: notes,
+      decidedAt: new Date()
+    });
+    
+    // Handle based on decision
+    if (decision === 'approved') {
+      await this.handleApproved(approval);
+    } else if (decision === 'rejected') {
+      await this.handleRejected(approval);
+    } else if (decision === 'modified') {
+      await this.handleModified(approval, modifications);
+    }
+    
+    // Notify via WebSocket
+    WebSocketServer.emitToUser(approval.userId, 'approval.decided', {
+      approvalId: approval.id,
+      decision
+    });
+  }
+  
+  async batchApprove(approvalIds: string[]): Promise<void> {
+    for (const approvalId of approvalIds) {
+      await this.processDecision(approvalId, 'approved');
+    }
+  }
+  
+  private async handleApproved(approval: Approval): Promise<void> {
+    // Different handling based on approval type
+    switch (approval.approvalType) {
+      case 'validation_results':
+        // Start planning workflow
+        await WorkflowEngine.executeSequentialWorkflow(
+          approval.projectId,
+          'bmp.create-business-plan',
+          approval.content,
+          await AgentFactory.getAgentForWorkflow('bmp.create-business-plan')
+        );
+        break;
+        
+      case 'business_plan':
+        // Start branding workflow
+        await WorkflowEngine.executeSequentialWorkflow(
+          approval.projectId,
+          'bmb.create-brand-identity',
+          approval.content,
+          await AgentFactory.getAgentForWorkflow('bmb.create-brand-identity')
+        );
+        break;
+        
+      case 'content_draft':
+        // Publish content
+        const contentItem = await ContentItem.findById(approval.content.contentId);
+        await contentItem.publish();
+        break;
+        
+      case 'marketing_campaign':
+        // Launch campaign
+        const campaign = await MarketingCampaign.findById(approval.content.campaignId);
+        await campaign.launch();
+        break;
+    }
+  }
+}
+```
+
+## 8.4 Event-Driven Triggers
+
+### Event Types
+
+```typescript
+type SystemEvent = 
+  | 'project.created'
+  | 'workflow.started'
+  | 'workflow.progress'
+  | 'workflow.completed'
+  | 'workflow.failed'
+  | 'approval.created'
+  | 'approval.decided'
+  | 'content.created'
+  | 'content.published'
+  | 'intelligence.discovered'
+  | 'campaign.launched'
+  | 'metrics.updated';
+```
+
+### Event Handlers
+
+```typescript
+// events/event-handlers.ts
+import { EventEmitter } from 'events';
+
+export class EventBus extends EventEmitter {
+  constructor() {
+    super();
+    this.setupHandlers();
+  }
+  
+  private setupHandlers() {
+    // When validation completes, create approval
+    this.on('workflow.completed:bmv.validate-idea', async (data) => {
+      await ApprovalQueue.createApproval({
+        projectId: data.projectId,
+        userId: data.userId,
+        approvalType: 'validation_results',
+        title: 'Market Validation Complete',
+        description: 'Review validation results',
+        content: data.result,
+        aiRecommendation: data.result.feasibilityScore > 7 ? 'approve' : 'reject',
+        aiConfidenceScore: data.result.feasibilityScore / 10
+      });
+    });
+    
+    // When intelligence discovers high-relevance trend
+    this.on('intelligence.discovered', async (data) => {
+      if (data.relevanceScore > 0.8) {
+        await ApprovalQueue.createApproval({
+          projectId: data.projectId,
+          userId: data.userId,
+          approvalType: 'content_opportunity',
+          title: `High-relevance trend: ${data.title}`,
+          content: data,
+          aiRecommendation: 'approve',
+          priority: 3
+        });
+      }
+    });
+    
+    // When content is approved, schedule or publish
+    this.on('approval.decided:content_draft', async (data) => {
+      if (data.decision === 'approved') {
+        const contentItem = await ContentItem.findById(data.content.contentId);
+        
+        if (contentItem.scheduledFor && contentItem.scheduledFor > new Date()) {
+          // Schedule for later
+          await ContentScheduler.schedule(contentItem);
+        } else {
+          // Publish immediately
+          await contentItem.publish();
+          this.emit('content.published', {
+            contentId: contentItem.id,
+            projectId: contentItem.projectId
+          });
+        }
+      }
+    });
+  }
+}
+
+export const eventBus = new EventBus();
+```
+
+## 8.5 Error Recovery & Retries
+
+### Retry Strategy
+
+```typescript
+// orchestrator/retry-handler.ts
+export class RetryHandler {
+  async executeWithRetry<T>(
+    operation: () => Promise<T>,
+    options: {
+      maxRetries?: number;
+      retryDelay?: number;
+      exponentialBackoff?: boolean;
+      onRetry?: (attempt: number, error: Error) => void;
+    } = {}
+  ): Promise<T> {
+    
+    const {
+      maxRetries = 3,
+      retryDelay = 1000,
+      exponentialBackoff = true,
+      onRetry
+    } = options;
+    
+    let lastError: Error;
+    
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error;
+        
+        if (attempt === maxRetries) {
+          break; // Final attempt failed
+        }
+        
+        // Determine if error is retryable
+        if (!this.isRetryable(error)) {
+          throw error;
+        }
+        
+        // Calculate delay
+        const delay = exponentialBackoff
+          ? retryDelay * Math.pow(2, attempt)
+          : retryDelay;
+        
+        // Notify retry callback
+        if (onRetry) {
+          onRetry(attempt + 1, error);
+        }
+        
+        // Wait before retry
+        await this.sleep(delay);
+      }
+    }
+    
+    throw lastError;
+  }
+  
+  private isRetryable(error: Error): boolean {
+    // Network errors - retryable
+    if (error.message.includes('ECONNREFUSED') ||
+        error.message.includes('ETIMEDOUT') ||
+        error.message.includes('ENOTFOUND')) {
+      return true;
+    }
+    
+    // Rate limit errors - retryable
+    if (error.message.includes('429') ||
+        error.message.includes('rate limit')) {
+      return true;
+    }
+    
+    // Server errors - retryable
+    if (error.message.includes('500') ||
+        error.message.includes('502') ||
+        error.message.includes('503')) {
+      return true;
+    }
+    
+    // Authentication errors - not retryable
+    if (error.message.includes('401') ||
+        error.message.includes('403')) {
+      return false;
+    }
+    
+    // Validation errors - not retryable
+    if (error.message.includes('400')) {
+      return false;
+    }
+    
+    return false;
+  }
+  
+  private sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+}
+```
+
+---
+
