@@ -4680,3 +4680,1021 @@ X-RateLimit-Reset: 1700136000
 
 ---
 
+
+# 7. UI/UX Specifications
+
+## 7.1 Design System
+
+### Design Principles
+
+1. **Clarity First** - Information is easy to understand and act upon
+2. **Progressive Disclosure** - Show complexity only when needed
+3. **Consistent** - Patterns repeat across the application
+4. **Responsive** - Works beautifully on all devices
+5. **Accessible** - WCAG 2.1 AA compliant
+6. **Fast** - Feels instant even with heavy operations
+
+### Color Palette
+
+**Primary Colors:**
+```
+Primary Blue:     #2563EB (rgb(37, 99, 235))
+Primary Dark:     #1E40AF (rgb(30, 64, 175))
+Primary Light:    #60A5FA (rgb(96, 165, 250))
+```
+
+**Secondary Colors:**
+```
+Success Green:    #10B981 (rgb(16, 185, 129))
+Warning Orange:   #F59E0B (rgb(245, 158, 11))
+Error Red:        #EF4444 (rgb(239, 68, 68))
+Info Cyan:        #06B6D4 (rgb(6, 182, 212))
+```
+
+**Neutral Colors:**
+```
+Gray 900 (Text):  #111827
+Gray 700:         #374151
+Gray 500:         #6B7280
+Gray 300:         #D1D5DB
+Gray 100:         #F3F4F6
+Gray 50:          #F9FAFB
+White:            #FFFFFF
+```
+
+### Typography
+
+**Font Stack:**
+```
+Primary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif
+Monospace: 'JetBrains Mono', 'Fira Code', monospace
+```
+
+**Type Scale:**
+```
+xs:   12px / 16px line height
+sm:   14px / 20px
+base: 16px / 24px
+lg:   18px / 28px
+xl:   20px / 28px
+2xl:  24px / 32px
+3xl:  30px / 36px
+4xl:  36px / 40px
+5xl:  48px / 1
+```
+
+### Spacing System
+
+```
+1:  4px
+2:  8px
+3:  12px
+4:  16px
+5:  20px
+6:  24px
+8:  32px
+10: 40px
+12: 48px
+16: 64px
+20: 80px
+```
+
+### Component Library
+
+**Buttons:**
+```
+Primary:     Blue background, white text, hover darkens
+Secondary:   Gray border, gray text, hover fills
+Destructive: Red background, white text
+Ghost:       Transparent, hover gray background
+```
+
+**Cards:**
+```
+Background: White
+Border: 1px solid Gray 200
+Shadow: 0 1px 3px rgba(0, 0, 0, 0.1)
+Radius: 8px
+Padding: 24px
+```
+
+**Inputs:**
+```
+Background: White
+Border: 1px solid Gray 300
+Focus Border: Primary Blue
+Radius: 6px
+Height: 40px (base)
+```
+
+## 7.2 User Flows
+
+### Complete User Journey Flow
+
+```mermaid
+graph TD
+    Start[User Arrives] --> SignUp{Has Account?}
+    SignUp -->|No| Register[Register]
+    SignUp -->|Yes| Login[Login]
+    
+    Register --> EmailVerify[Verify Email]
+    EmailVerify --> Onboard1[Onboarding: Welcome]
+    Login --> Onboard1
+    
+    Onboard1 --> Onboard2[Setup: Add API Keys]
+    Onboard2 --> Onboard3[Setup: Validate Keys]
+    Onboard3 --> Dashboard[Dashboard]
+    
+    Dashboard --> Action{User Action}
+    
+    Action -->|New Project| NewProj[Create Project Flow]
+    Action -->|View Projects| ViewProj[Projects List]
+    Action -->|Check Approvals| Approvals[Approval Center]
+    Action -->|View Content| Content[Content Calendar]
+    Action -->|View Analytics| Analytics[Analytics Dashboard]
+    Action -->|Settings| Settings[Settings Page]
+    
+    NewProj --> IdeaInput[Enter Business Idea]
+    IdeaInput --> Questions[Answer Clarifying Questions]
+    Questions --> StartVal[Start Validation]
+    StartVal --> WaitVal[Wait for Validation]
+    WaitVal --> ReviewVal[Review Validation Report]
+    ReviewVal --> ApproveVal{Approve?}
+    
+    ApproveVal -->|Yes| StartPlan[Start Planning]
+    ApproveVal -->|No| Pivot[Modify/Pivot]
+    Pivot --> IdeaInput
+    
+    StartPlan --> WaitPlan[Wait for Plan]
+    WaitPlan --> ReviewPlan[Review Business Plan]
+    ReviewPlan --> ApprovePlan{Approve?}
+    
+    ApprovePlan -->|Yes| StartBrand[Start Branding]
+    StartBrand --> WaitBrand[Wait for Brand]
+    WaitBrand --> ReviewBrand[Review Brand Identity]
+    ReviewBrand --> ApproveBrand{Approve?}
+    
+    ApproveBrand -->|Yes| SelectProduct[Select Product Type]
+    SelectProduct --> StartProduct[Create Product]
+    StartProduct --> WaitProduct[Wait for Product]
+    WaitProduct --> ReviewProduct[Review Product]
+    ReviewProduct --> ApproveProduct{Approve?}
+    
+    ApproveProduct -->|Yes| Launch[Launch!]
+    Launch --> Operations[Continuous Operations]
+    
+    Operations --> DailyApprovals[Daily: Check Approvals]
+    DailyApprovals --> ReviewContent[Review Content]
+    ReviewContent --> ApproveContent[Approve/Edit]
+    ApproveContent --> Published[Content Published]
+    
+    Operations --> MonitorMetrics[Monitor Analytics]
+    MonitorMetrics --> Insights[View Insights]
+    Insights --> Optimize[Optimize Strategy]
+    
+    Operations --> Dashboard
+```
+
+### Onboarding Flow Detail
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant UI
+    participant API
+    participant Agents
+
+    User->>UI: Arrive at platform
+    UI->>User: Show welcome screen
+    User->>UI: Click "Get Started"
+    UI->>User: Registration form
+    User->>UI: Enter email, password, name
+    UI->>API: POST /auth/register
+    API->>User: Send verification email
+    
+    Note over User: Checks email
+    
+    User->>UI: Click verification link
+    UI->>API: Verify email token
+    API->>UI: Email verified
+    UI->>User: Show "Setup API Keys" screen
+    
+    User->>UI: Enter Claude API key
+    UI->>API: POST /settings/api-keys/validate
+    API->>Agents: Test Claude connection
+    Agents-->>API: Valid
+    API-->>UI: Key validated
+    UI->>User: ✓ Claude connected
+    
+    User->>UI: Enter Gemini API key
+    Note over UI,API: Same validation flow
+    UI->>User: ✓ Gemini connected
+    
+    UI->>User: Show "Ready!" screen
+    User->>UI: Click "Go to Dashboard"
+    UI->>User: Show empty dashboard + tutorial
+```
+
+## 7.3 Screen Specifications
+
+### 7.3.1 Onboarding Flow Screens
+
+**Screen 1: Welcome**
+
+```
+┌────────────────────────────────────────────────────┐
+│                                                     │
+│                   [Logo]                            │
+│                                                     │
+│          Welcome to Business Hub                    │
+│                                                     │
+│    Turn your ideas into revenue-generating         │
+│    businesses with AI-powered automation            │
+│                                                     │
+│         🚀  Launch in weeks, not months             │
+│         🤖  AI agents do the heavy lifting          │
+│         ✅  You stay in control                     │
+│                                                     │
+│         ┌──────────────────────────┐               │
+│         │   Get Started Free       │               │
+│         └──────────────────────────┘               │
+│                                                     │
+│              Already have an account?               │
+│                    [Sign In]                        │
+│                                                     │
+└────────────────────────────────────────────────────┘
+
+Components:
+- Logo (centered, 48px height)
+- Headline (text-4xl, font-bold, gray-900)
+- Subtitle (text-lg, gray-600, max-w-2xl)
+- Feature bullets (text-base, gray-700, with icons)
+- CTA button (primary, large, w-64)
+- Sign in link (text-sm, blue-600, hover:underline)
+
+Interactions:
+- "Get Started Free" → Registration screen
+- "Sign In" → Login screen
+```
+
+**Screen 2: Registration**
+
+```
+┌────────────────────────────────────────────────────┐
+│  ← Back                              [Logo]         │
+├────────────────────────────────────────────────────┤
+│                                                     │
+│              Create Your Account                    │
+│                                                     │
+│  Full Name                                          │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  John Doe                                    │  │
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  Email Address                                      │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  john@example.com                            │  │
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  Password                                           │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  ••••••••••••                         👁     │  │
+│  └──────────────────────────────────────────────┘  │
+│  Must be at least 8 characters                      │
+│                                                     │
+│  ☐ I agree to the Terms and Privacy Policy         │
+│                                                     │
+│  ┌───────────────────────────────────────────────┐ │
+│  │           Create Account                      │ │
+│  └───────────────────────────────────────────────┘ │
+│                                                     │
+│       Already have an account? [Sign in]            │
+│                                                     │
+└────────────────────────────────────────────────────┘
+
+Components:
+- Back button (top-left)
+- Form with 3 inputs (full-width, focus states)
+- Password strength indicator
+- Checkbox with link
+- Primary button (full-width)
+- Sign in link
+
+Validations:
+- Name: Required, min 2 characters
+- Email: Required, valid email format
+- Password: Required, min 8 characters, 1 uppercase, 1 number
+- Terms: Must be checked
+
+Interactions:
+- "Create Account" → Email verification screen
+- Form auto-validates on blur
+- Show inline errors
+```
+
+**Screen 3: Email Verification**
+
+```
+┌────────────────────────────────────────────────────┐
+│                                                     │
+│                      📧                             │
+│                                                     │
+│              Check Your Email                       │
+│                                                     │
+│  We sent a verification link to:                    │
+│          john@example.com                           │
+│                                                     │
+│  Click the link in the email to verify your         │
+│  account and continue.                              │
+│                                                     │
+│  ┌───────────────────────────────────────────────┐ │
+│  │           Open Email App                      │ │
+│  └───────────────────────────────────────────────┘ │
+│                                                     │
+│        Didn't receive it? [Resend email]            │
+│                                                     │
+│                                                     │
+│  ✅ Email verified!                                 │
+│                                                     │
+│  ┌───────────────────────────────────────────────┐ │
+│  │           Continue to Setup                   │ │
+│  └───────────────────────────────────────────────┘ │
+│                                                     │
+└────────────────────────────────────────────────────┘
+
+States:
+- Initial: Shows "Open Email App" and resend link
+- Verified: Shows checkmark and "Continue" button
+
+Interactions:
+- "Resend email" → Send new verification email
+- "Continue to Setup" → API Keys setup screen
+- Auto-detects verification (WebSocket or polling)
+```
+
+**Screen 4: API Keys Setup**
+
+```
+┌────────────────────────────────────────────────────┐
+│  Steps: 1. Account ✓  2. Setup ●  3. Ready         │
+├────────────────────────────────────────────────────┤
+│                                                     │
+│           Connect Your AI Subscriptions             │
+│                                                     │
+│  Add the AI subscriptions you have. You can add     │
+│  more later.                                        │
+│                                                     │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  🤖 Claude                          Optional │  │
+│  │                                              │  │
+│  │  Claude powers strategic planning and        │  │
+│  │  high-quality content creation.              │  │
+│  │                                              │  │
+│  │  API Key                                     │  │
+│  │  ┌────────────────────────────────────────┐ │  │
+│  │  │ sk-ant-api03-...                ✓      │ │  │
+│  │  └────────────────────────────────────────┘ │  │
+│  │                                              │  │
+│  │  [Get Claude API Key →]                      │  │
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  💻 OpenAI Codex                    Optional │  │
+│  │                                              │  │
+│  │  Codex excels at code generation and         │  │
+│  │  technical implementations.                  │  │
+│  │                                              │  │
+│  │  API Key                                     │  │
+│  │  ┌────────────────────────────────────────┐ │  │
+│  │  │ sk-...                          [+Add] │ │  │
+│  │  └────────────────────────────────────────┘ │  │
+│  │                                              │  │
+│  │  [Get OpenAI API Key →]                      │  │
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  🔍 Google Gemini                   Optional │  │
+│  │  [Add API Key]                               │  │
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│  ┌──────────────────────────────────────────────┐  │
+│  │  ⚡ ZAI                             Optional │  │
+│  │  [Add API Key]                               │  │
+│  └──────────────────────────────────────────────┘  │
+│                                                     │
+│             ┌────────────────┐                      │
+│             │   Continue     │  (disabled)          │
+│             └────────────────┘                      │
+│                                                     │
+│  Note: Add at least one AI subscription to continue │
+│                                                     │
+└────────────────────────────────────────────────────┘
+
+Components:
+- Progress steps (top)
+- Collapsible API key cards
+- Input fields with validation states
+- External links to get API keys
+- Disabled/enabled continue button
+
+States per API:
+- Not added (collapsed, gray)
+- Adding (expanded, input visible)
+- Validating (loading spinner)
+- Valid (green checkmark)
+- Invalid (red X, error message)
+
+Validations:
+- API key format check
+- Live validation on blur
+- Test API connection
+
+Interactions:
+- Click card → Expand
+- Enter key → Validate
+- "Continue" enabled when ≥1 valid key
+- "Continue" → Ready screen
+```
+
+**Screen 5: Ready to Go**
+
+```
+┌────────────────────────────────────────────────────┐
+│  Steps: 1. Account ✓  2. Setup ✓  3. Ready ●       │
+├────────────────────────────────────────────────────┤
+│                                                     │
+│                      🎉                             │
+│                                                     │
+│              You're All Set!                        │
+│                                                     │
+│  Your AI team is ready:                             │
+│                                                     │
+│  ✓ Claude Code Specialist                           │
+│  ✓ Gemini Researcher                                │
+│                                                     │
+│  You can now:                                       │
+│  • Create and launch businesses                     │
+│  • Generate content automatically                   │
+│  • Monitor trends and opportunities                 │
+│  • Track analytics and insights                     │
+│                                                     │
+│  ┌───────────────────────────────────────────────┐ │
+│  │      Start Your First Project                 │ │
+│  └───────────────────────────────────────────────┘ │
+│                                                     │
+│         Or [skip and explore dashboard]             │
+│                                                     │
+└────────────────────────────────────────────────────┘
+
+Interactions:
+- "Start Your First Project" → New project flow
+- "skip and explore" → Empty dashboard with tutorial overlay
+```
+
+---
+
+### 7.3.2 Dashboard (Mission Control)
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  [Logo]  Business Hub                            🔔(3)  [Profile ▼]    │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Sustainable Gardening Course                    [▼ Switch Project]    │
+│  ════════════════════════════════════════════════════                  │
+│  Discovery → Validation → Planning → Building → Launch → Operating     │
+│  [━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━●]                      │
+│                                                                         │
+├─────────────────┬──────────────────────────────────────────────────────┤
+│                 │                                                       │
+│  📊 Dashboard   │  KEY METRICS (This Week)                             │
+│  ✅ Approvals(5)│  ┌──────────┐ ┌──────────┐ ┌──────────┐ ┌────────┐ │
+│  📅 Content     │  │ Revenue  │ │ Audience │ │ Engage   │ │ Content│ │
+│  📈 Analytics   │  │ $2,450   │ │ 1,247    │ │ 4.2%     │ │ 8 items│ │
+│  💡 Intelligence│  │ ↑ 12%    │ │ ↑ 156    │ │ ↑ 0.4pp  │ │ Ready  │ │
+│  🎯 Marketing   │  └──────────┘ └──────────┘ └──────────┘ └────────┘ │
+│  👥 Audience    │                                                       │
+│  ⚙️  Settings   │  ───────────────────────────────────────────────── │
+│                 │                                                       │
+│                 │  NEEDS YOUR ATTENTION                                │
+│                 │  ┌──────────────────────────────────────────────┐  │
+│                 │  │ 🔔 5 Approvals Waiting      [Review All →]   │  │
+│                 │  │                                              │  │
+│                 │  │ 1. Course Module 3 Content ✏️               │  │
+│                 │  │    Draft completed • 2 hours ago             │  │
+│                 │  │    [Preview] [Approve] [Edit]                │  │
+│                 │  │                                              │  │
+│                 │  │ 2. Marketing Campaign: Spring Launch 🎯     │  │
+│                 │  │    Budget: $500 • Duration: 2 weeks          │  │
+│                 │  │    [View Details] [Approve] [Modify]         │  │
+│                 │  │                                              │  │
+│                 │  │ 3. Batch: 4 Social Posts for Next Week 📱   │  │
+│                 │  │    [Preview All] [Approve All]               │  │
+│                 │  │                                              │  │
+│                 │  │ [+ 2 more]                                   │  │
+│                 │  └──────────────────────────────────────────────┘  │
+│                 │                                                       │
+│                 │  ───────────────────────────────────────────────── │
+│                 │                                                       │
+│                 │  INTELLIGENCE FEED (2 new)                           │
+│                 │  ┌──────────────────────────────────────────────┐  │
+│                 │  │ 💡 Trend Alert: "Vertical gardening" ↑150%  │  │
+│                 │  │    High relevance • Discovered 2h ago        │  │
+│                 │  │                                              │  │
+│                 │  │    Your audience is searching for this topic │  │
+│                 │  │    Recommend creating content series.        │  │
+│                 │  │                                              │  │
+│                 │  │    [Create Content] [Ignore] [Save Later]    │  │
+│                 │  └──────────────────────────────────────────────┘  │
+│                 │                                                       │
+│                 │  ┌──────────────────────────────────────────────┐  │
+│                 │  │ 📰 Competitor: "GreenThumb Co" launched      │  │
+│                 │  │    video series on composting                │  │
+│                 │  │    Medium impact • Discovered 5h ago         │  │
+│                 │  │                                              │  │
+│                 │  │    [Analyze] [Create Response]               │  │
+│                 │  └──────────────────────────────────────────────┘  │
+│                 │                                                       │
+│                 │  ───────────────────────────────────────────────── │
+│                 │                                                       │
+│                 │  UPCOMING (Next 7 Days)                              │
+│                 │  ┌──────────────────────────────────────────────┐  │
+│                 │  │ Mon 11/18: Blog "10 Tips..." publishes 9am   │  │
+│                 │  │ Wed 11/20: Newsletter sends (1,247 subs)     │  │
+│                 │  │ Fri 11/22: Course Module 4 deadline          │  │
+│                 │  │ [View Full Calendar →]                       │  │
+│                 │  └──────────────────────────────────────────────┘  │
+│                 │                                                       │
+└─────────────────┴──────────────────────────────────────────────────────┘
+
+Layout:
+- Top nav: Logo, project switcher, notifications, profile
+- Progress bar: Visual journey through stages
+- Left sidebar: 200px, navigation
+- Main content: Fluid width, min 800px
+- Widgets: Cards with shadows, 24px padding
+
+Interactions:
+- Click metrics → Detailed analytics
+- Click approval → Approval detail modal
+- Click intelligence → Intelligence detail + actions
+- Hover cards → Subtle lift animation
+- Real-time updates via WebSocket
+```
+
+---
+
+### 7.3.3 Approval Center
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  [←] Back to Dashboard                        [Filter ▼] [Sort ▼]      │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Approval Center                                                        │
+│  5 items need your approval                                            │
+│                                                                         │
+│  [Batch Actions: ✓ Approve All | ✗ Reject All]                        │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  CONTENT APPROVAL (3)                                                   │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 📝 Blog Post: "10 Vertical Gardening Tips"                     │   │
+│  │                                                                 │   │
+│  │ Status: AI Draft Complete                                       │   │
+│  │ Confidence: High (9.2/10) ⭐                                    │   │
+│  │ Scheduled: Monday Nov 18, 9:00 AM                              │   │
+│  │ Created: 2 hours ago                                            │   │
+│  │                                                                 │   │
+│  │ ┌─────────────────────────────────────────────────────────┐   │   │
+│  │ │ [Preview Content ▼]                                     │   │   │
+│  │ │                                                         │   │   │
+│  │ │ # 10 Vertical Gardening Tips for Small Spaces          │   │   │
+│  │ │                                                         │   │   │
+│  │ │ Discover how to transform even the smallest urban      │   │   │
+│  │ │ space into a thriving vertical garden...               │   │   │
+│  │ │                                                         │   │   │
+│  │ │ ## 1. Choose the Right Structure                       │   │   │
+│  │ │ {Content preview continues...}                          │   │   │
+│  │ │                                                         │   │   │
+│  │ │ [Show Full Content ↓]                                  │   │   │
+│  │ └─────────────────────────────────────────────────────────┘   │   │
+│  │                                                                 │   │
+│  │ AI Recommendation: ✅ Approve                                   │   │
+│  │ "This aligns perfectly with brand voice, addresses trending    │   │
+│  │  topic, SEO optimized. Ready to publish."                      │   │
+│  │                                                                 │   │
+│  │ SEO Score: 92/100                                              │   │
+│  │ Readability: Grade 8 (Good) ✓                                  │   │
+│  │ Keywords: vertical gardening (12), small spaces (8) ✓          │   │
+│  │                                                                 │   │
+│  │ [✓ Approve] [✏ Edit in Editor] [✗ Reject] [⏰ Reschedule]    │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 🎬 Video: Module 3 - "Soil Basics"                             │   │
+│  │                                                                 │   │
+│  │ [▶ Thumbnail Preview]                   Duration: 8:42         │   │
+│  │                                                                 │   │
+│  │ Quality Check: ✅ All Passed                                    │   │
+│  │ • Audio levels: Good ✓                                         │   │
+│  │ • Branding applied ✓                                           │   │
+│  │ • Captions generated ✓                                         │   │
+│  │                                                                 │   │
+│  │ [▶ Play Full Preview] [✓ Approve] [✏ Request Changes]         │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  MARKETING APPROVAL (2)                                                 │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 🎯 Campaign: "Spring Launch Promo"                             │   │
+│  │                                                                 │   │
+│  │ Channel: Instagram Ads 📱                                       │   │
+│  │ Budget: $500                                                    │   │
+│  │ Duration: Nov 20 - Dec 4 (2 weeks)                             │   │
+│  │                                                                 │   │
+│  │ Targeting:                                                      │   │
+│  │ • Women 25-45                                                   │   │
+│  │ • Interest: Gardening, Sustainability                          │   │
+│  │ • Location: Urban areas (US)                                   │   │
+│  │                                                                 │   │
+│  │ Projections:                                                    │   │
+│  │ • Reach: 15,000-20,000                                         │   │
+│  │ • Conversions: 50-75                                           │   │
+│  │ • Expected ROI: 3.2x 📈                                        │   │
+│  │                                                                 │   │
+│  │ [View Ad Creative] [View Full Campaign Plan]                   │   │
+│  │                                                                 │   │
+│  │ AI Recommendation: ✅ Approve                                   │   │
+│  │ "Strong targeting, reasonable budget, high ROI potential"      │   │
+│  │                                                                 │   │
+│  │ [✓ Approve & Launch] [✏ Modify Budget] [✗ Reject]             │   │
+│  │ [💬 Ask AI Questions]                                          │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+
+Components:
+- Back navigation
+- Filter/sort dropdowns
+- Batch action buttons
+- Approval cards (expandable)
+- AI recommendation badges
+- Action buttons (primary, secondary, destructive)
+
+Interactions:
+- Click card → Expand details
+- Click "Preview" → Show content inline
+- Click "Approve" → Confirm modal → Execute
+- Click "Edit" → Open editor
+- WebSocket updates for new approvals
+- Keyboard shortcuts (J/K to navigate, A to approve)
+```
+
+
+### 7.3.4 Content Calendar
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  Content Calendar                                   [+ Create Content] │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  [← Oct 2024]       November 2024           [Dec 2024 →]              │
+│                                                                         │
+│  Filter: [All ▼] [Blog] [Video] [Social] [Email] [Podcast]            │
+│  Status: [All ▼] [Draft] [Approved] [Scheduled] [Published]           │
+│                                                                         │
+│  View: [📅 Calendar] [📋 List] [📊 Analytics]                         │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  MONDAY 11/18                                                           │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 9:00 AM  📝 Blog Post                                  [Edit] │   │
+│  │          "10 Vertical Gardening Tips"                          │   │
+│  │          Status: ✅ Scheduled                                  │   │
+│  │          Est. Traffic: 2,500 views                             │   │
+│  │          [Preview] [Reschedule] [Cancel]                       │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 3:00 PM  📱 Instagram Post                         [Edit]     │   │
+│  │          Quote graphic about sustainability                    │   │
+│  │          Status: ⏰ Awaiting Approval                          │   │
+│  │          [Review Now]                                          │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  TUESDAY 11/19                                                          │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ (No scheduled content)                                         │   │
+│  │ [+ Add Content for This Day]                                   │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  WEDNESDAY 11/20                                                        │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 10:00 AM 📧 Newsletter                                 [Edit] │   │
+│  │          "Weekly Gardening Tips"                               │   │
+│  │          Recipients: 1,247 subscribers                         │   │
+│  │          Status: ✅ Approved                                   │   │
+│  │          [Preview] [Send Test] [Edit]                          │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ 2:00 PM  🎬 YouTube Video                          [Edit]     │   │
+│  │          "Soil Basics Tutorial"                                │   │
+│  │          Status: ✏ Draft                                       │   │
+│  │          [Continue Editing]                                    │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  [Load More Days ↓]                                                    │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  QUICK STATS                                                            │
+│  This Week: 8 items | 5 approved | 2 pending | 1 draft                │
+│  This Month: 45 items | 32 published | 8 scheduled | 5 drafts         │
+│                                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+
+Features:
+- Drag-and-drop rescheduling
+- Color-coded by content type
+- Status indicators
+- Quick actions on each item
+- Calendar/list toggle view
+- Filters and search
+- Bulk operations
+```
+
+---
+
+### 7.3.5 Analytics Dashboard
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  Analytics & Insights                                                   │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  Date Range: [Last 30 Days ▼]   Compare: [Previous Period ▼]          │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  BUSINESS HEALTH SCORE                                                  │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │                        8.7/10 ⭐                                 │   │
+│  │                      (↑ 0.3 vs previous)                       │   │
+│  │                                                                 │   │
+│  │  ████████████████████████████████████░░░░                      │   │
+│  │                                                                 │   │
+│  │  Based on: Revenue growth • Audience engagement •              │   │
+│  │           Content performance • Market presence                │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  KEY METRICS                                                            │
+│  ┌────────────────┐ ┌────────────────┐ ┌────────────────┐           │
+│  │ Total Revenue  │ │ Active Users   │ │ Conversion     │           │
+│  │ $7,340         │ │ 1,247          │ │ Rate 3.2%      │           │
+│  │                │ │                │ │                │           │
+│  │ ↑ 23%          │ │ ↑ 156 (14%)    │ │ ↑ 0.4pp        │           │
+│  │ +$1,372        │ │                │ │                │           │
+│  │                │ │                │ │                │           │
+│  │ ▁▂▃▅▆▇█        │ │ ▁▂▃▄▅▆▇        │ │ ▂▃▄▄▅▆▇        │           │
+│  └────────────────┘ └────────────────┘ └────────────────┘           │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  REVENUE TREND                                                          │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ $300 ┤                                               ╭─       │   │
+│  │      │                                         ╭─────╯        │   │
+│  │ $250 ┤                                   ╭─────╯              │   │
+│  │      │                             ╭─────╯                    │   │
+│  │ $200 ┤                       ╭─────╯                          │   │
+│  │      │                 ╭─────╯                                │   │
+│  │ $150 ┤           ╭─────╯                                      │   │
+│  │      │     ╭─────╯                                            │   │
+│  │ $100 ┤─────╯                                                  │   │
+│  │      └─────┬─────┬─────┬─────┬─────┬─────┬─────┬─────┬────  │   │
+│  │           W1    W2    W3    W4    W5    W6    W7    W8       │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  CONTENT PERFORMANCE                                                    │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ Top Performing Content (Last 30 Days)                          │   │
+│  │                                                                 │   │
+│  │ 1. 📝 "Vertical Gardening Guide"                               │   │
+│  │    3,245 views • 8.7% engagement • 15 conversions              │   │
+│  │    [View Details]                                              │   │
+│  │                                                                 │   │
+│  │ 2. 🎬 "Composting 101 Video"                                   │   │
+│  │    2,890 views • 12.3% engagement • 22 conversions             │   │
+│  │    [View Details]                                              │   │
+│  │                                                                 │   │
+│  │ 3. 📧 "Spring Planting Newsletter"                             │   │
+│  │    42% open rate • 8.9% click rate • 8 conversions             │   │
+│  │    [View Details]                                              │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  AI INSIGHTS 💡                                                         │
+│  ┌───────────────────────────────────────────────────────────────┐   │
+│  │ • Your video content drives 3x more conversions than blog      │   │
+│  │   posts. Consider increasing video production frequency.       │   │
+│  │   [Create Video Plan]                                          │   │
+│  │                                                                 │   │
+│  │ • Audience engagement peaks on Wednesdays at 10am. This is     │   │
+│  │   your optimal posting window.                                 │   │
+│  │   [Update Schedule]                                            │   │
+│  │                                                                 │   │
+│  │ • Topic "vertical gardening" showing sustained interest.       │   │
+│  │   Suggest creating comprehensive content series.               │   │
+│  │   [Create Series Plan]                                         │   │
+│  └───────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  ─────────────────────────────────────────────────────────────────── │
+│                                                                         │
+│  AUDIENCE INSIGHTS                                                      │
+│  [Demographics] [Behavior] [Growth Trends]                             │
+│                                                                         │
+│  {Interactive charts and data visualizations}                          │
+│                                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+
+Components:
+- Health score meter
+- Metric cards with sparklines
+- Line/area charts for trends
+- Content performance list
+- AI insights with actionable recommendations
+- Tabbed audience section
+```
+
+---
+
+### 7.3.6 Settings Page
+
+```
+┌────────────────────────────────────────────────────────────────────────┐
+│  Settings                                                               │
+├────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ┌────────────────┬──────────────────────────────────────────────────┐│
+│  │                │                                                   ││
+│  │ Profile        │  API KEYS & SUBSCRIPTIONS                        ││
+│  │ API Keys ●     │                                                   ││
+│  │ Notifications  │  Manage your AI subscriptions                    ││
+│  │ Billing        │                                                   ││
+│  │ Team           │  ──────────────────────────────────────────────  ││
+│  │ Preferences    │                                                   ││
+│  │                │  CLAUDE SUBSCRIPTION                              ││
+│  │                │  ┌────────────────────────────────────────────┐  ││
+│  │                │  │ 🤖 Claude                          ✅ Active │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ Powers: Strategic planning, content        │  ││
+│  │                │  │ creation, brand development                │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ API Key: sk-ant-api03-***************      │  ││
+│  │                │  │ Model: claude-sonnet-4-5                   │  ││
+│  │                │  │ Status: ✓ Connected                        │  ││
+│  │                │  │ Last tested: 2 hours ago                   │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ Usage (This Month):                        │  ││
+│  │                │  │ 847,392 tokens / 1,000,000 quota (85%)    │  ││
+│  │                │  │ ████████████████████░                      │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ [Update Key] [Test Connection] [Remove]    │  ││
+│  │                │  └────────────────────────────────────────────┘  ││
+│  │                │                                                   ││
+│  │                │  OPENAI CODEX                                     ││
+│  │                │  ┌────────────────────────────────────────────┐  ││
+│  │                │  │ 💻 OpenAI Codex                    ⚠ Setup │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ Powers: Code generation, technical docs    │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ ┌────────────────────────────────────────┐│  ││
+│  │                │  │ │ API Key                                ││  ││
+│  │                │  │ │ sk-...                                 ││  ││
+│  │                │  │ └────────────────────────────────────────┘│  ││
+│  │                │  │                                            │  ││
+│  │                │  │ [Get API Key →] [Add & Validate]           │  ││
+│  │                │  └────────────────────────────────────────────┘  ││
+│  │                │                                                   ││
+│  │                │  GOOGLE GEMINI                                    ││
+│  │                │  ┌────────────────────────────────────────────┐  ││
+│  │                │  │ 🔍 Google Gemini                   ✅ Active │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ Powers: Research, trends, intelligence     │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ API Key: AIza***************               │  ││
+│  │                │  │ Model: gemini-pro                          │  ││
+│  │                │  │ Status: ✓ Connected                        │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ [Update Key] [Test Connection] [Remove]    │  ││
+│  │                │  └────────────────────────────────────────────┘  ││
+│  │                │                                                   ││
+│  │                │  ZAI INTEGRATION                                  ││
+│  │                │  ┌────────────────────────────────────────────┐  ││
+│  │                │  │ ⚡ ZAI                             ✅ Active │  ││
+│  │                │  │                                            │  ││
+│  │                │  │ Status: ✓ Connected                        │  ││
+│  │                │  │ [Manage]                                   │  ││
+│  │                │  └────────────────────────────────────────────┘  ││
+│  │                │                                                   ││
+│  │                │  ──────────────────────────────────────────────  ││
+│  │                │                                                   ││
+│  │                │  AVAILABLE AGENTS                                 ││
+│  │                │                                                   ││
+│  │                │  Based on your configured API keys:               ││
+│  │                │  ✓ Claude Code Specialist (Strategic, Content)   ││
+│  │                │  ⚠ Codex Engineer (Not configured)                ││
+│  │                │  ✓ Gemini Researcher (Intelligence, Trends)       ││
+│  │                │  ✓ ZAI Specialist (Analytics)                     ││
+│  │                │                                                   ││
+│  └────────────────┴──────────────────────────────────────────────────┘│
+│                                                                         │
+└────────────────────────────────────────────────────────────────────────┘
+
+Interactions:
+- Click "Test Connection" → Validate API key
+- Click "Update Key" → Show input, save encrypted
+- Real-time usage meters
+- Add new API keys inline
+- Remove with confirmation
+```
+
+---
+
+## 7.4 Responsive Design
+
+### Breakpoints
+
+```scss
+// Mobile First
+$mobile: 0px;       // 0-767px
+$tablet: 768px;     // 768-1023px
+$desktop: 1024px;   // 1024-1279px
+$wide: 1280px;      // 1280px+
+```
+
+### Mobile Adaptations
+
+**Dashboard (Mobile):**
+- Single column layout
+- Collapsible sidebar (hamburger menu)
+- Stacked metric cards
+- Simplified navigation (bottom tab bar)
+- Touch-optimized buttons (min 44px height)
+
+**Approval Center (Mobile):**
+- Full-screen cards
+- Swipe gestures (swipe left = reject, swipe right = approve)
+- Bottom sheet for details
+- Sticky action buttons
+
+**Content Calendar (Mobile):**
+- List view default
+- Date picker for navigation
+- Pull-to-refresh
+- Bottom sheet for content details
+
+## 7.5 Accessibility Standards
+
+### WCAG 2.1 AA Compliance
+
+**Color Contrast:**
+- Text: Minimum 4.5:1 ratio
+- Large text (18pt+): Minimum 3:1 ratio
+- UI components: Minimum 3:1 ratio
+
+**Keyboard Navigation:**
+- All interactive elements keyboard accessible
+- Logical tab order
+- Focus indicators (2px blue outline)
+- Keyboard shortcuts documented
+
+**Screen Readers:**
+- Semantic HTML
+- ARIA labels for icon buttons
+- ARIA live regions for dynamic content
+- Skip navigation links
+
+**Motion:**
+- Respect `prefers-reduced-motion`
+- Option to disable animations
+- No auto-playing videos
+
+**Forms:**
+- Label association
+- Error messages with suggestions
+- Inline validation
+- Required field indicators
+
+---
+
