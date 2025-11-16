@@ -17,7 +17,8 @@
       "Bash(npm test:*)",
       "mcp__serena__find_symbol",
       "mcp__serena__search_for_pattern",
-      "Bash(cd:*)"
+      "Bash(cd:*)",
+      "Bash(gh pr view:*)"
     ],
     "deny": [],
     "ask": []
