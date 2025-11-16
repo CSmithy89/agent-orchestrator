@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json.schemastore.org/bundlesize.json",
+  "files": [
+    {
+      "path": "dist/assets/index-*.js",
+      "maxSize": "250 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/index-*.css",
+      "maxSize": "30 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/assets/vendor-*.js",
+      "maxSize": "200 kB",
+      "compression": "gzip"
+    },
+    {
+      "path": "dist/index.html",
+      "maxSize": "5 kB",
+      "compression": "none"
+    }
+  ],
+  "ci": {
+    "trackBranches": ["main", "develop"],
+    "repoBranchBase": "main"
+  }
+}
