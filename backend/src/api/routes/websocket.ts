@@ -85,16 +85,26 @@ export class WebSocketHandler {
    */
   private async authenticate(request: IncomingMessage): Promise<AuthResult> {
     try {
-      // Extract token from Authorization header
+      let token: string | undefined;
+
+      // Try to extract token from Authorization header first
       const authHeader = request.headers.authorization;
-      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.substring(7); // Remove 'Bearer ' prefix
+      }
+
+      // If not in header, try query parameter (for browser WebSocket connections)
+      if (!token && request.url) {
+        const url = new URL(request.url, `http://${request.headers.host}`);
+        token = url.searchParams.get('token') || undefined;
+      }
+
+      if (!token) {
         return {
           authenticated: false,
           error: 'Missing or invalid authorization header'
         };
       }
-
-      const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
       // Verify JWT token
       const decoded = await verifyJWT(token, this.config.jwtSecret);

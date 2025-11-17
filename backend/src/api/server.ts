@@ -16,6 +16,7 @@ import { registerProjectRoutes } from './routes/projects.js';
 import { registerOrchestratorRoutes } from './routes/orchestrators.js';
 import { registerStateRoutes } from './routes/state.js';
 import { registerEscalationRoutes } from './routes/escalations.js';
+import { authRoutes } from './routes/auth.js';
 import { WebSocketHandler } from './routes/websocket.js';
 
 export interface ServerConfig {
@@ -180,6 +181,7 @@ export async function createServer(config: ServerConfig = {}): Promise<FastifyIn
   });
 
   // Register routes
+  await authRoutes(server);
   await registerProjectRoutes(server);
   await registerOrchestratorRoutes(server);
   await registerStateRoutes(server);

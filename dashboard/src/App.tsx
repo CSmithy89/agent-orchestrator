@@ -7,6 +7,7 @@ import { ProjectDetailPage } from '@/pages/ProjectDetailPage';
 import KanbanBoardPage from '@/pages/KanbanBoardPage';
 import { DependencyGraphPage } from '@/pages/DependencyGraphPage';
 import { EscalationsPage } from '@/pages/EscalationsPage';
+import { Login } from '@/pages/Login';
 import { NotFound } from '@/pages/NotFound';
 import { Toaster } from '@/components/ui/toaster';
 
@@ -14,26 +15,20 @@ function App() {
   return (
     <ErrorBoundary>
       <BrowserRouter>
-        <MainLayout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
+        <Routes>
+          {/* Login route without MainLayout */}
+          <Route path="/login" element={<Login />} />
 
-            {/* Project routes */}
-            <Route path="/projects" element={<ProjectsListPage />} />
-            <Route path="/projects/:id" element={<ProjectDetailPage />} />
-            <Route path="/projects/:projectId/stories" element={<KanbanBoardPage />} />
-            <Route path="/projects/:projectId/dependencies" element={<DependencyGraphPage />} />
-
-            {/* Escalations route */}
-            <Route path="/escalations" element={<EscalationsPage />} />
-
-            {/* Placeholder routes for future stories */}
-            <Route path="/stories" element={<PlaceholderPage title="Stories" />} />
-
-            {/* 404 route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </MainLayout>
+          {/* All other routes with MainLayout */}
+          <Route path="/" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/projects" element={<MainLayout><ProjectsListPage /></MainLayout>} />
+          <Route path="/projects/:id" element={<MainLayout><ProjectDetailPage /></MainLayout>} />
+          <Route path="/projects/:projectId/stories" element={<MainLayout><KanbanBoardPage /></MainLayout>} />
+          <Route path="/projects/:projectId/dependencies" element={<MainLayout><DependencyGraphPage /></MainLayout>} />
+          <Route path="/escalations" element={<MainLayout><EscalationsPage /></MainLayout>} />
+          <Route path="/stories" element={<MainLayout><PlaceholderPage title="Stories" /></MainLayout>} />
+          <Route path="*" element={<MainLayout><NotFound /></MainLayout>} />
+        </Routes>
         <Toaster />
       </BrowserRouter>
     </ErrorBoundary>
