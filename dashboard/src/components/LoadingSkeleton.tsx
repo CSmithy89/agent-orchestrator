@@ -2,6 +2,19 @@ import { Skeleton } from './ui/skeleton';
 import { Card, CardHeader, CardContent } from './ui/card';
 
 /**
+ * Generic loading skeleton
+ */
+export function LoadingSkeleton({ count = 1, height = 60 }: { count?: number; height?: number }) {
+  return (
+    <div className="space-y-3">
+      {Array.from({ length: count }).map((_, i) => (
+        <Skeleton key={i} className="w-full" style={{ height: `${height}px` }} />
+      ))}
+    </div>
+  );
+}
+
+/**
  * Loading skeleton for cards
  */
 export function CardSkeleton() {
