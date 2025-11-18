@@ -150,7 +150,8 @@ describe('LLMFactory', () => {
       expect(providers).toContain('anthropic');
       expect(providers).toContain('openai');
       expect(providers).toContain('zhipu');
-      expect(providers).toHaveLength(3);
+      expect(providers).toContain('claude-code');
+      expect(providers).toHaveLength(4);
     });
 
     it('should validate models for all registered providers', () => {
@@ -159,6 +160,7 @@ describe('LLMFactory', () => {
       expect(factory.validateModel('claude-sonnet-4-5', 'anthropic')).toBe(true);
       expect(factory.validateModel('gpt-4-turbo', 'openai')).toBe(true);
       expect(factory.validateModel('GLM-4', 'zhipu')).toBe(true);
+      expect(factory.validateModel('claude-sonnet-4-5', 'claude-code')).toBe(true);
     });
   });
 

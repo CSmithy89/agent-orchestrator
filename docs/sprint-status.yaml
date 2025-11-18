@@ -125,3 +125,14 @@ development_status:
   6-9-api-integration-tests: done  # APPROVED (2025-11-15): All 167 tests passing (100%), WebSocket async/await refactored, 85-90% coverage achieved - Review by Chris
   6-10-dashboard-e2e-tests: done  # APPROVED (2025-11-15): 155 E2E tests across 7 suites, Page Object Models, CI/CD integration, cross-browser/device testing, WCAG 2.1 AA accessibility - All 10 ACs met
   epic-6-retrospective: completed
+
+  # Epic 7: Settings & Configuration Management
+  epic-7: contexted  # Tech spec: docs/epics/epic-7-tech-spec.md
+  7-1-backend-configuration-api: backlog
+  7-2-api-keys-secure-management: backlog
+  7-3-settings-page-foundation: backlog
+  7-4-agent-configuration-form: backlog
+  7-5-api-keys-management-ui: backlog
+  7-6-budget-configuration-ui: backlog
+  7-7-navigation-integration-polish: backlog
+  epic-7-retrospective: optional
