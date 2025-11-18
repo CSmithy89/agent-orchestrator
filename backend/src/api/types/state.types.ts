@@ -15,13 +15,25 @@ export interface WorkflowPhase {
 }
 
 /**
+ * Phase progress information (for UI progress display)
+ */
+export interface PhaseProgress {
+  phase: string;
+  progress: number;
+  completedTasks: number;
+  totalTasks: number;
+}
+
+/**
  * Workflow status (current phase and steps)
  */
 export interface WorkflowStatusDetail {
   projectId: string;
   currentPhase: string;
   phases: WorkflowPhase[];
+  phaseProgress: PhaseProgress[];
   status: 'idle' | 'running' | 'paused' | 'completed' | 'error';
+  currentStory?: string;
 }
 
 /**
@@ -93,13 +105,25 @@ export const WorkflowPhaseSchema = z.object({
 });
 
 /**
+ * Phase progress schema
+ */
+export const PhaseProgressSchema = z.object({
+  phase: z.string(),
+  progress: z.number(),
+  completedTasks: z.number(),
+  totalTasks: z.number()
+});
+
+/**
  * Workflow status detail schema
  */
 export const WorkflowStatusDetailSchema = z.object({
   projectId: z.string().uuid(),
   currentPhase: z.string(),
   phases: z.array(WorkflowPhaseSchema),
-  status: z.enum(['idle', 'running', 'paused', 'completed', 'error'])
+  phaseProgress: z.array(PhaseProgressSchema),
+  status: z.enum(['idle', 'running', 'paused', 'completed', 'error']),
+  currentStory: z.string().optional()
 });
 
 /**

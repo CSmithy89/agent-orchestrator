@@ -54,6 +54,18 @@ export async function registerStateRoutes(server: FastifyInstance): Promise<void
                 projectId: { type: 'string' },
                 currentPhase: { type: 'string' },
                 phases: { type: 'array' },
+                phaseProgress: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      phase: { type: 'string' },
+                      progress: { type: 'number' },
+                      completedTasks: { type: 'number' },
+                      totalTasks: { type: 'number' }
+                    }
+                  }
+                },
                 status: { type: 'string' }
               }
             },

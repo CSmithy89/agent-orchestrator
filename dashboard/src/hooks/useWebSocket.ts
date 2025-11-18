@@ -47,7 +47,8 @@ export function useWebSocket(url: string, options: UseWebSocketOptions = {}) {
     try {
       // Get auth token from localStorage
       const token = localStorage.getItem('auth_token');
-      const wsUrl = token ? `${url}?token=${token}` : url;
+      const separator = url.includes('?') ? '&' : '?';
+      const wsUrl = token ? `${url}${separator}token=${token}` : url;
 
       const ws = new WebSocket(wsUrl);
       wsRef.current = ws;

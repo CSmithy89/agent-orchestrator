@@ -1,11 +1,14 @@
 import { useState, useMemo } from 'react';
 import { Plus } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '../components/ui/button';
 import { ProjectFilters, type ProjectFilterState } from '../components/projects/ProjectFilters';
 import { ProjectsGrid } from '../components/projects/ProjectsGrid';
 import { CreateProjectModal } from '../components/projects/CreateProjectModal';
 import { useProjects } from '../hooks/useProjects';
 import { useProjectWebSocket } from '../hooks/useProjectWebSocket';
+import { projectsApi } from '../api/projects';
+import { useToast } from '@/hooks/useToast';
 
 export function ProjectsListPage() {
   const { data: projects, isLoading, error } = useProjects();
@@ -16,9 +19,32 @@ export function ProjectsListPage() {
     search: '',
     sortBy: 'lastUpdated',
   });
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
 
   // Subscribe to WebSocket updates for all projects
   useProjectWebSocket();
+
+  // Project creation mutation
+  const createProjectMutation = useMutation({
+    mutationFn: (data: { name: string; repository: string }) =>
+      projectsApi.createProject(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['projects'] });
+      setCreateModalOpen(false);
+      toast({
+        title: 'Success',
+        description: 'Project created successfully',
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to create project',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Filter and sort projects
   const filteredProjects = useMemo(() => {
@@ -59,9 +85,7 @@ export function ProjectsListPage() {
   }, [projects, filters]);
 
   const handleCreateProject = (name: string, repository: string) => {
-    // TODO: Implement project creation API call
-    console.log('Create project:', { name, repository });
-    // This will be implemented in a future story
+    createProjectMutation.mutate({ name, repository });
   };
 
   if (error) {

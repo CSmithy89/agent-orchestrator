@@ -9,6 +9,7 @@ import * as yaml from 'js-yaml';
 import { StateManager } from '../../core/StateManager.js';
 import {
   WorkflowStatusDetail,
+  PhaseProgress,
   SprintStatus,
   Story,
   StoryDetail,
@@ -71,21 +72,24 @@ export class StateService {
       const state = await this.stateManager.loadState(projectId);
 
       if (!state) {
-        // No workflow state - return idle
+        // No workflow state - return idle with default phase progress
         const status: WorkflowStatusDetail = {
           projectId,
           currentPhase: 'none',
           phases: [],
+          phaseProgress: this.getDefaultPhaseProgress(),
           status: 'idle'
         };
         return status;
       }
 
       // Build workflow status from state
+      const currentPhase = this.inferPhaseFromWorkflow(state.currentWorkflow);
       const status: WorkflowStatusDetail = {
         projectId,
-        currentPhase: this.inferPhaseFromWorkflow(state.currentWorkflow),
+        currentPhase,
         phases: [], // Would need to parse workflow to get all phases
+        phaseProgress: this.getPhaseProgressFromState(currentPhase, state),
         status: state.status === 'running' ? 'running' :
                 state.status === 'paused' ? 'paused' :
                 state.status === 'completed' ? 'completed' : 'error'
@@ -281,6 +285,59 @@ export class StateService {
     if (workflowPath.includes('implementation')) return 'implementation';
     if (workflowPath.includes('review')) return 'review';
     return 'unknown';
+  }
+
+  /**
+   * Get default phase progress (for new projects without workflow state)
+   */
+  private getDefaultPhaseProgress(): PhaseProgress[] {
+    const phases = ['analysis', 'planning', 'solutioning', 'implementation'];
+    return phases.map(phase => ({
+      phase,
+      progress: 0,
+      completedTasks: 0,
+      totalTasks: 0
+    }));
+  }
+
+  /**
+   * Get phase progress from workflow state
+   */
+  private getPhaseProgressFromState(currentPhase: string, _state: any): PhaseProgress[] {
+    const phases = ['analysis', 'planning', 'solutioning', 'implementation'];
+    const currentIndex = phases.indexOf(currentPhase);
+
+    return phases.map((phase, index) => {
+      // Completed phases: 100% progress
+      if (index < currentIndex) {
+        return {
+          phase,
+          progress: 100,
+          completedTasks: 1,
+          totalTasks: 1
+        };
+      }
+
+      // Current phase: derive progress from state if available
+      if (index === currentIndex) {
+        // TODO: Extract actual progress from workflow state
+        // For now, return a default progress value
+        return {
+          phase,
+          progress: 25, // Default progress for current phase
+          completedTasks: 0,
+          totalTasks: 4 // Placeholder
+        };
+      }
+
+      // Future phases: 0% progress
+      return {
+        phase,
+        progress: 0,
+        completedTasks: 0,
+        totalTasks: 0
+      };
+    });
   }
 
   /**
