@@ -38,51 +38,45 @@ onboarding:
 agent_assignments:
   # Mary - Business Analyst (requires strong reasoning)
   mary:
-    model: "claude-sonnet-4-5"
-    provider: "anthropic"
-    # Optional: override API key (defaults to ANTHROPIC_API_KEY env var)
-    # api_key: "${ANTHROPIC_API_KEY}"
-    reasoning: "Claude Sonnet 4.5 excels at business analysis and requirements gathering"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
   # John - Product Manager (requires strategic product thinking)
   john:
-    model: "claude-sonnet-4-5"
-    provider: "anthropic"
-    reasoning: "Claude Sonnet 4.5 provides strategic product vision and business viability assessment"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
   # Winston - System Architect (requires deep technical reasoning)
   winston:
-    model: "claude-sonnet-4-5"
-    provider: "anthropic"
-    reasoning: "Claude Sonnet 4.5 best for system design and architectural decisions"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
   # Murat - Test Architect (requires test strategy expertise)
   murat:
-    model: "claude-sonnet-4-5"
-    provider: "anthropic"
-    reasoning: "Claude Sonnet 4.5 provides comprehensive test coverage strategies"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
   # Amelia - Developer (requires code generation quality)
   amelia:
-    model: "gpt-4o"
-    provider: "openai"
-    # api_key: "${OPENAI_API_KEY}"
-    reasoning: "GPT-4o offers fast, high-quality code generation for implementation"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
   # Bob - Scrum Master (cost-optimized for story management)
   bob:
-    model: "glm-4-plus"
-    provider: "zhipu"
-    # For using z.ai wrapper:
-    # base_url: "https://api.z.ai/v1"
-    # api_key: "${Z_AI_API_KEY}"
-    reasoning: "GLM-4-Plus via z.ai provides cost-effective story decomposition"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
   # Alex - Code Reviewer (requires critical analysis)
   alex:
-    model: "claude-sonnet-4-5"
-    provider: "anthropic"
-    reasoning: "Claude Sonnet 4.5 provides thorough code review with security focus"
+    model: "claude-haiku"
+    provider: "claude-code"
+    reasoning: "Claude Haiku via Claude Code SDK for autonomous operation"
 
 # =============================================================================
 # Cost Management Configuration

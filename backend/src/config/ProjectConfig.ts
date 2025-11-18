@@ -190,7 +190,7 @@ export class ProjectConfig {
    * Validate agent assignments section
    */
   private static validateAgentAssignments(assignments: any): void {
-    const validProviders: LLMProvider[] = ['anthropic', 'openai', 'zhipu', 'google'];
+    const validProviders: LLMProvider[] = ['anthropic', 'openai', 'zhipu', 'google', 'claude-code'];
 
     for (const agentName in assignments) {
       const agent = assignments[agentName];
@@ -211,9 +211,9 @@ export class ProjectConfig {
 
       if (!validProviders.includes(agent.provider)) {
         throw new ConfigValidationError(
-          `Invalid agent_assignments.${agentName}.provider: expected one of [anthropic, openai, zhipu, google], got '${agent.provider}'`,
+          `Invalid agent_assignments.${agentName}.provider: expected one of [anthropic, openai, zhipu, google, claude-code], got '${agent.provider}'`,
           `agent_assignments.${agentName}.provider`,
-          'anthropic, openai, zhipu, google'
+          'anthropic, openai, zhipu, google, claude-code'
         );
       }
 

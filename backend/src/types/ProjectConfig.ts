@@ -6,7 +6,7 @@
 /**
  * Supported LLM providers
  */
-export type LLMProvider = 'anthropic' | 'openai' | 'zhipu' | 'google';
+export type LLMProvider = 'anthropic' | 'openai' | 'zhipu' | 'google' | 'claude-code';
 
 /**
  * Per-agent LLM configuration
