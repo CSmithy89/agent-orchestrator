@@ -51,10 +51,13 @@ export class OrchestratorService {
   private workflowEngines: Map<string, WorkflowEngine>;
   private stateManager: StateManager;
   private projectRoot: string;
+  private workspaceRoot: string;
   private mutex: Mutex;
 
   constructor(baseDir: string = process.cwd()) {
     this.projectRoot = baseDir;
+    // Assuming baseDir is backend directory, workspace root is one level up
+    this.workspaceRoot = path.resolve(baseDir, '..');
     this.workflowEngines = new Map();
     this.stateManager = new StateManager(baseDir);
     this.mutex = new Mutex();
@@ -140,12 +143,21 @@ export class OrchestratorService {
         }
 
         // Validate workflow path
-        const workflowPath = path.resolve(this.projectRoot, request.workflowPath);
+        // Resolve workflow path relative to workspace root
+        let resolvedPath = path.resolve(this.workspaceRoot, request.workflowPath);
+
+        // Append workflow.yaml if path is a directory or missing extension
+        if (!resolvedPath.endsWith('.yaml') && !resolvedPath.endsWith('.yml')) {
+          resolvedPath = path.join(resolvedPath, 'workflow.yaml');
+        }
 
         // Create workflow engine
-        const engine = new WorkflowEngine(workflowPath, {
-          projectRoot: this.projectRoot,
-          yoloMode: request.yoloMode || false
+        const engine = new WorkflowEngine(resolvedPath, {
+          projectRoot: this.workspaceRoot,
+          yoloMode: request.yoloMode || false,
+          onEvent: (eventType, payload) => {
+            eventService.emitEvent(projectId, eventType, payload);
+          }
         });
 
         // Store engine reference

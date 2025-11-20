@@ -28,6 +28,7 @@ export type EventType =
   | 'orchestrator.started'
   | 'orchestrator.paused'
   | 'orchestrator.resumed'
+  | 'orchestrator.ask'
   | 'pr.created'
   | 'pr.merged'
   | 'workflow.error';

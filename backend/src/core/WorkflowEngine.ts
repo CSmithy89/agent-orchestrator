@@ -15,6 +15,7 @@ import {
   ProjectInfo
 } from '../types/workflow.types.js';
 import { WorkflowExecutionError } from '../types/errors.types.js';
+import { EventType } from '../api/types/events.types.js';
 import { WorkflowParser } from './WorkflowParser.js';
 import { StateManager } from './StateManager.js';
 import { ProjectConfig } from '../config/ProjectConfig.js';
@@ -36,9 +37,10 @@ export class WorkflowEngine {
   private currentStepIndex: number = 0;
   private variables: Record<string, any> = {};
   private projectInfo?: ProjectInfo;
+  private onEvent?: (eventType: EventType, payload: any) => void;
 
   // Pre-compiled regex patterns for better performance
-  private static readonly STEP_REGEX = /<step\s+n="(\d+)"\s+goal="([^"]+)"(?:\s+optional="(true|false)")?(?:\s+if="([^"]+)")?>(.*?)<\/step>/gs;
+  private static readonly STEP_REGEX = /<step\s+n="(\d+)"\s+goal="([^"]+)"(?:\s+optional="(true|false)")?(?:\s+if="([^"]+)")?(?:\s+[^>]+)?>(.*?)<\/step>/gs;
   private static readonly ACTION_REGEX = /<action(?:\s+if="([^"]+)")?>(.*?)<\/action>/gs;
   private static readonly ASK_REGEX = /<ask>(.*?)<\/ask>/gs;
   private static readonly OUTPUT_REGEX = /<output>(.*?)<\/output>/gs;
@@ -65,6 +67,7 @@ export class WorkflowEngine {
     this.yoloMode = options.yoloMode || false;
     this.workflowParser = options.workflowParser || new WorkflowParser(this.projectRoot);
     this.stateManager = options.stateManager || new StateManager(this.projectRoot);
+    this.onEvent = options.onEvent;
     this.templateProcessor = new TemplateProcessor({
       basePath: this.projectRoot,
       strictMode: true,
@@ -89,7 +92,8 @@ export class WorkflowEngine {
       const projectConfig = await ProjectConfig.loadConfig(configPath);
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
-        projectConfig
+        projectConfig,
+        this.workflowPath
       );
 
       // Validate workflow
@@ -199,7 +203,8 @@ export class WorkflowEngine {
       const projectConfig = await ProjectConfig.loadConfig(configPath);
       this.workflowConfig = await this.workflowParser.resolveVariables(
         this.workflowConfig,
-        projectConfig
+        projectConfig,
+        this.workflowPath
       );
       this.steps = await this.parseInstructions(this.workflowConfig.instructions);
 
@@ -321,8 +326,12 @@ export class WorkflowEngine {
       case 'ask':
         if (!this.yoloMode) {
           console.log(`[WorkflowEngine] Prompt: ${resolvedContent}`);
-          // In a real implementation, this would prompt the user
-          // For now, we'll just log it
+          if (this.onEvent) {
+            this.onEvent('orchestrator.ask', {
+              message: resolvedContent,
+              step: this.currentStepIndex
+            });
+          }
         } else {
           console.log(`[WorkflowEngine] Skipping prompt in YOLO mode: ${resolvedContent}`);
         }
@@ -445,6 +454,7 @@ export class WorkflowEngine {
       }
 
       // Validate step numbers are sequential
+      const startStep = steps.length > 0 && steps[0] ? steps[0].number : 1;
       for (let i = 0; i < steps.length; i++) {
         const step = steps[i];
         if (!step) {
@@ -453,9 +463,9 @@ export class WorkflowEngine {
             i + 1
           );
         }
-        if (step.number !== i + 1) {
+        if (step.number !== startStep + i) {
           throw new WorkflowExecutionError(
-            `Step numbers must be sequential. Expected step ${i + 1}, found step ${step.number}`,
+            `Step numbers must be sequential. Expected step ${startStep + i}, found step ${step.number}`,
             step.number
           );
         }

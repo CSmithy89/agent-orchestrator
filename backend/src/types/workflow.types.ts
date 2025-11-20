@@ -3,6 +3,7 @@
  * Defines the schema for workflow.yaml, workflow state persistence, and related structures
  */
 
+import { EventType } from '../api/types/events.types.js';
 /**
  * Workflow configuration schema
  * Parsed from workflow.yaml files
@@ -252,4 +253,7 @@ export interface EngineOptions {
 
   /** Project root directory (defaults to process.cwd()) */
   projectRoot?: string;
+
+  /** Callback for emitting events */
+  onEvent?: (eventType: EventType, payload: any) => void;
 }
