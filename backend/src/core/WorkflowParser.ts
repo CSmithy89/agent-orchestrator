@@ -127,10 +127,11 @@ export class WorkflowParser {
    */
   async resolveVariables(
     config: WorkflowConfig,
-    _projectConfig: ProjectConfig
+    _projectConfig: ProjectConfig,
+    workflowPath?: string
   ): Promise<WorkflowConfig> {
     // First, resolve {project-root} and {installed_path}
-    let resolved = this.resolvePathVariables(config);
+    let resolved = this.resolvePathVariables(config, workflowPath);
 
     // Load and cache config_source file
     if (!this.configCache.has(resolved.config_source)) {
@@ -146,6 +147,9 @@ export class WorkflowParser {
     // Resolve system-generated variables
     resolved = this.resolveSystemVariables(resolved);
 
+    // Final pass to resolve any variables introduced by config references (e.g. {project-root} in config.yaml)
+    resolved = this.resolvePathVariables(resolved, workflowPath);
+
     return resolved;
   }
 
@@ -154,24 +158,32 @@ export class WorkflowParser {
    * @param config Workflow config
    * @returns Config with path variables resolved
    */
-  private resolvePathVariables(config: WorkflowConfig): WorkflowConfig {
-    // First expand {project-root} in the instructions path
-    const rawInstructions = typeof config.instructions === 'string' ? config.instructions : '';
-    const expandedInstructions = rawInstructions.includes('{project-root}')
-      ? rawInstructions.split('{project-root}').join(this.projectRoot)
-      : rawInstructions;
+  private resolvePathVariables(config: WorkflowConfig, workflowPath?: string): WorkflowConfig {
+    let installedPath: string;
 
-    // Make the expanded path absolute if needed
-    const absoluteInstructions = expandedInstructions
-      ? path.isAbsolute(expandedInstructions)
-        ? expandedInstructions
-        : path.join(this.projectRoot, expandedInstructions)
-      : '';
+    if (workflowPath) {
+      // If workflow path is provided, installed_path is the directory containing the workflow file
+      installedPath = path.dirname(workflowPath);
+    } else {
+      // Fallback: try to derive from instructions path (legacy behavior)
+      // First expand {project-root} in the instructions path
+      const rawInstructions = typeof config.instructions === 'string' ? config.instructions : '';
+      const expandedInstructions = rawInstructions.includes('{project-root}')
+        ? rawInstructions.split('{project-root}').join(this.projectRoot)
+        : rawInstructions;
 
-    // Now calculate installed_path from the resolved instructions path
-    const installedPath = absoluteInstructions
-      ? path.dirname(absoluteInstructions)
-      : this.projectRoot;
+      // Make the expanded path absolute if needed
+      const absoluteInstructions = expandedInstructions
+        ? path.isAbsolute(expandedInstructions)
+          ? expandedInstructions
+          : path.join(this.projectRoot, expandedInstructions)
+        : '';
+
+      // Now calculate installed_path from the resolved instructions path
+      installedPath = absoluteInstructions
+        ? path.dirname(absoluteInstructions)
+        : this.projectRoot;
+    }
 
     return this.replaceVariables(config, {
       '{project-root}': this.projectRoot,
