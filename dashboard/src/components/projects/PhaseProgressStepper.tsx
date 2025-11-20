@@ -32,7 +32,7 @@ export function PhaseProgressStepper({ phaseProgress, currentPhase }: PhaseProgr
   };
 
   const getPhaseData = (phaseName: string): PhaseProgress | undefined => {
-    return phaseProgress.find((p) => p.phase === phaseName);
+    return phaseProgress?.find((p) => p.phase === phaseName);
   };
 
   return (

@@ -30,8 +30,7 @@ export type EventType =
   | 'orchestrator.resumed'
   | 'pr.created'
   | 'pr.merged'
-  | 'workflow.error'
-  | 'workflow.start.failed';
+  | 'workflow.error';
 
 /**
  * Project created event data

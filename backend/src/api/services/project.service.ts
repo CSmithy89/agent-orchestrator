@@ -8,7 +8,6 @@ import * as fs from 'fs/promises';
 import * as path from 'path';
 import { Project, ProjectStatus, ProjectPhase } from '../types/api.types.js';
 import { eventService } from './event.service.js';
-import { orchestratorService } from './orchestrator.service.js';
 
 /**
  * Project creation input
@@ -177,30 +176,6 @@ export class ProjectService {
       status: project.status,
       phase: project.phase
     });
-
-    // Auto-start the default workflow (product-brief)
-    // Note: This is fire-and-forget - workflow start failures won't fail project creation
-    try {
-      const defaultWorkflowPath = 'bmad/bmm/workflows/1-analysis/product-brief/workflow.yaml';
-
-      // Start workflow asynchronously (don't await)
-      orchestratorService.start(project.id, {
-        workflowPath: defaultWorkflowPath,
-        yoloMode: false
-      }).then(() => {
-        console.log(`[ProjectService] Auto-started workflow for project ${project.id}`);
-      }).catch((error) => {
-        console.error(`[ProjectService] Failed to auto-start workflow for project ${project.id}:`, error);
-        // Emit error event but don't fail project creation
-        eventService.emitEvent(project.id, 'workflow.start.failed', {
-          error: (error as Error).message,
-          workflowPath: defaultWorkflowPath
-        });
-      });
-    } catch (error) {
-      // Log error but don't fail project creation
-      console.error(`[ProjectService] Error initiating workflow start:`, error);
-    }
 
     return project;
   }
