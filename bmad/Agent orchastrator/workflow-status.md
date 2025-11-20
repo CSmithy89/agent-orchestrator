@@ -1,14 +1,14 @@
-# research - Workflow Status
+# product-brief - Workflow Status
 
-**Project:** research (Level 0)
+**Project:** product-brief (Level 0)
 **Phase:** Phase 1: Analysis
 **Status:** Error
-**Last Updated:** 11/20/2025, 8:06:29 PM
+**Last Updated:** 11/20/2025, 8:15:41 PM
 
 ## Current Workflow
 
-- **Workflow:** /home/chris/projects/work/Agent orchastrator/bmad/bmm/workflows/1-analysis/research/workflow.yaml
-- **Step:** 1
+- **Workflow:** /home/chris/projects/work/Agent orchastrator/bmad/bmm/workflows/1-analysis/product-brief/workflow.yaml
+- **Step:** 2
 
 ## Agent Activity
 

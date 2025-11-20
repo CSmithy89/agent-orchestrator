@@ -1,13 +1,13 @@
 project:
   id: Agent orchastrator
-  name: research
+  name: product-brief
   level: 0
-currentWorkflow: /home/chris/projects/work/Agent orchastrator/bmad/bmm/workflows/1-analysis/research/workflow.yaml
-currentStep: 1
+currentWorkflow: /home/chris/projects/work/Agent orchastrator/bmad/bmm/workflows/1-analysis/product-brief/workflow.yaml
+currentStep: 2
 status: error
 variables:
   project-root: /home/chris/projects/work/Agent orchastrator
   date: '2025-11-20'
 agentActivity: []
-startTime: '2025-11-20T10:06:29.896Z'
-lastUpdate: '2025-11-20T10:06:29.896Z'
+startTime: '2025-11-20T10:15:41.559Z'
+lastUpdate: '2025-11-20T10:15:41.559Z'
