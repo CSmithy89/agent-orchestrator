@@ -155,12 +155,12 @@ export class ProjectService {
       throw new Error('Project name must be less than 255 characters');
     }
 
-    // Create project
+    // Create project with pending status until workflow is started
     const now = new Date().toISOString();
     const project: Project = {
       id: uuidv4(),
       name: input.name.trim(),
-      status: 'active',
+      status: 'pending',
       phase: 'analysis',
       createdAt: now,
       updatedAt: now

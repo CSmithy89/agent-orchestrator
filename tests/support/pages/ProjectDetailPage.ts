@@ -323,4 +323,89 @@ export class ProjectDetailPage extends BasePage {
 
     return workflows;
   }
+
+  /**
+   * Get project status badge text
+   */
+  async getProjectStatus(): Promise<string> {
+    const statusBadge = this.page.locator('[data-testid="project-status"]').or(
+      this.page.locator('text=/pending|active|completed|paused/i').first()
+    );
+    return await this.getTextContent(statusBadge);
+  }
+
+  /**
+   * Click View Docs dropdown
+   */
+  async openViewDocsDropdown() {
+    const viewDocsButton = this.page.locator('button', { hasText: 'View Docs' });
+    await this.clickElement(viewDocsButton);
+    await this.page.waitForTimeout(300); // Wait for dropdown animation
+  }
+
+  /**
+   * Get available documents from View Docs dropdown
+   */
+  async getAvailableDocuments(): Promise<string[]> {
+    await this.openViewDocsDropdown();
+
+    const docItems = this.page.locator('[role="menuitem"]').or(
+      this.page.locator('[data-testid^="doc-"]')
+    );
+
+    const count = await docItems.count();
+    const documents: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const text = await docItems.nth(i).textContent();
+      if (text) documents.push(text.trim());
+    }
+
+    // Close dropdown by pressing Escape
+    await this.page.keyboard.press('Escape');
+
+    return documents;
+  }
+
+  /**
+   * Check if a document is available in View Docs
+   */
+  async hasDocument(documentName: string): Promise<boolean> {
+    const docs = await this.getAvailableDocuments();
+    return docs.some(doc => doc.toLowerCase().includes(documentName.toLowerCase()));
+  }
+
+  /**
+   * Wait for workflow to complete
+   * Polls the project status until it changes from 'active' to something else
+   */
+  async waitForWorkflowCompletion(timeoutMs: number = 60000) {
+    const startTime = Date.now();
+
+    while (Date.now() - startTime < timeoutMs) {
+      const status = await this.getProjectStatus();
+
+      if (status.toLowerCase() !== 'active') {
+        return; // Workflow completed
+      }
+
+      await this.page.waitForTimeout(2000); // Poll every 2 seconds
+    }
+
+    throw new Error(`Workflow did not complete within ${timeoutMs}ms`);
+  }
+
+  /**
+   * Get completed task count from phase stepper
+   */
+  async getCompletedTaskCount(): Promise<number> {
+    // Look for completed checkmarks in the phase stepper
+    const completedTasks = this.phaseProgressStepper.locator('[data-completed="true"]').or(
+      this.phaseProgressStepper.locator('.completed').or(
+        this.phaseProgressStepper.locator('svg').filter({ hasText: 'check' })
+      )
+    );
+
+    return await completedTasks.count();
+  }
 }

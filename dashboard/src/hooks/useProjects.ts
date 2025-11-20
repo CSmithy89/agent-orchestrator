@@ -4,7 +4,7 @@ import { projectsApi } from '../api/projects';
 /**
  * Hook to fetch all projects
  * - Stale time: 5 minutes
- * - Refetch interval: 30 seconds (background refetch)
+ * - Updates via WebSocket (useProjectWebSocket)
  */
 export function useProjects() {
   return useQuery({
@@ -14,7 +14,7 @@ export function useProjects() {
       return response.data;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 30 * 1000, // Background refetch every 30 seconds
+    // No polling - WebSocket handles real-time updates
   });
 }
 
@@ -36,8 +36,8 @@ export function useProject(id: string) {
 
 /**
  * Hook to fetch workflow status for a project
- * - Stale time: 1 minute (frequent for active workflows)
- * - Refetch interval: 10 seconds
+ * - Stale time: 1 minute
+ * - Updates via WebSocket on agent/workflow events
  */
 export function useProjectWorkflowStatus(projectId: string) {
   return useQuery({
@@ -47,7 +47,7 @@ export function useProjectWorkflowStatus(projectId: string) {
       return response.data;
     },
     staleTime: 1 * 60 * 1000, // 1 minute
-    refetchInterval: 10 * 1000, // Every 10 seconds
+    // No polling - WebSocket handles real-time updates
     enabled: !!projectId,
   });
 }

@@ -50,6 +50,8 @@ export function DependencyListView({ graph, onStoryClick }: DependencyListViewPr
 
   // Get dependencies for a node
   const getDependencies = (nodeId: string) => {
+    if (!graph.edges || !graph.nodes) return [];
+
     const dependencyIds = graph.edges
       .filter(edge => edge.target === nodeId)
       .map(edge => edge.source);
@@ -59,6 +61,8 @@ export function DependencyListView({ graph, onStoryClick }: DependencyListViewPr
 
   // Get dependent stories (stories that depend on this one)
   const getDependents = (nodeId: string) => {
+    if (!graph.edges || !graph.nodes) return [];
+
     const dependentIds = graph.edges
       .filter(edge => edge.source === nodeId)
       .map(edge => edge.target);
@@ -67,10 +71,11 @@ export function DependencyListView({ graph, onStoryClick }: DependencyListViewPr
   };
 
   const getEdgeInfo = (sourceId: string, targetId: string) => {
+    if (!graph.edges) return undefined;
     return graph.edges.find(edge => edge.source === sourceId && edge.target === targetId);
   };
 
-  if (graph.nodes.length === 0) {
+  if (!graph.nodes || graph.nodes.length === 0) {
     return (
       <div className="text-center text-muted-foreground py-8">
         No stories to display
