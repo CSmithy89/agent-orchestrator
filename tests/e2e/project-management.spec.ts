@@ -315,4 +315,128 @@ test.describe('Project Management Views', () => {
       expect(title).toContain(projectName);
     });
   });
+
+  test.describe('Workflow Management Features', () => {
+    test.beforeEach(async () => {
+      // Ensure we have a project to work with
+      await projectsPage.navigate();
+      await projectsPage.waitForLoadingToComplete();
+
+      let projectCount = await projectsPage.getProjectCount();
+      if (projectCount === 0) {
+        await projectsPage.createProject(`E2E Workflow Test ${Date.now()}`);
+        await projectsPage.waitForLoadingToComplete();
+      }
+
+      // Navigate to first project
+      const firstCard = projectsPage.getProjectCards().first();
+      await firstCard.click();
+      await projectDetailPage.waitForPageLoad();
+    });
+
+    test('should display Start Workflow button', async () => {
+      // Verify Start Workflow button is visible
+      const isVisible = await projectDetailPage.startWorkflowButton.isVisible();
+      expect(isVisible).toBe(true);
+    });
+
+    test('should open Start Workflow dialog', async () => {
+      // Open dialog
+      await projectDetailPage.openStartWorkflowDialog();
+
+      // Verify dialog is visible
+      const isVisible = await projectDetailPage.isStartWorkflowDialogVisible();
+      expect(isVisible).toBe(true);
+
+      // Verify dialog has title
+      await expect(projectDetailPage.startWorkflowDialog).toContainText('Start Workflow');
+
+      // Close dialog
+      const cancelButton = projectDetailPage.startWorkflowDialog.locator('button', { hasText: 'Cancel' });
+      await cancelButton.click();
+    });
+
+    test('should display available workflows for current phase', async () => {
+      // Open dialog
+      await projectDetailPage.openStartWorkflowDialog();
+
+      // Get available workflows
+      const workflows = await projectDetailPage.getAvailableWorkflows();
+
+      // Should have at least one workflow
+      expect(workflows.length).toBeGreaterThan(0);
+
+      // Close dialog
+      const cancelButton = projectDetailPage.startWorkflowDialog.locator('button', { hasText: 'Cancel' });
+      await cancelButton.click();
+    });
+
+    test('should enable Start button when workflow is selected', async () => {
+      // Open dialog
+      await projectDetailPage.openStartWorkflowDialog();
+
+      // Get available workflows
+      const workflows = await projectDetailPage.getAvailableWorkflows();
+
+      if (workflows.length > 0) {
+        // Select first workflow
+        await projectDetailPage.selectWorkflow(workflows[0]);
+
+        // Verify Start button is enabled
+        const startButton = projectDetailPage.startWorkflowDialog.locator('button', { hasText: 'Start Workflow' }).last();
+        await expect(startButton).toBeEnabled();
+      }
+
+      // Close dialog
+      const cancelButton = projectDetailPage.startWorkflowDialog.locator('button', { hasText: 'Cancel' });
+      await cancelButton.click();
+    });
+
+    test('should display workflow description when selected', async () => {
+      // Open dialog
+      await projectDetailPage.openStartWorkflowDialog();
+
+      // Get available workflows
+      const workflows = await projectDetailPage.getAvailableWorkflows();
+
+      if (workflows.length > 0) {
+        // Select first workflow
+        await projectDetailPage.selectWorkflow(workflows[0]);
+
+        // Wait for description to appear
+        await projectDetailPage.page.waitForTimeout(500);
+
+        // Verify dialog content has updated
+        const dialogText = await projectDetailPage.startWorkflowDialog.textContent();
+        expect(dialogText).toBeTruthy();
+      }
+
+      // Close dialog
+      const cancelButton = projectDetailPage.startWorkflowDialog.locator('button', { hasText: 'Cancel' });
+      await cancelButton.click();
+    });
+
+    test('should expand/collapse phase workflows', async () => {
+      // Try to toggle Analysis phase
+      await projectDetailPage.togglePhaseWorkflows('Analysis');
+
+      // Wait for animation
+      await projectDetailPage.page.waitForTimeout(500);
+
+      // Check if workflows are visible
+      const isExpanded = await projectDetailPage.arePhaseWorkflowsExpanded('Analysis');
+
+      // Toggle again
+      await projectDetailPage.togglePhaseWorkflows('Analysis');
+
+      // Wait for animation
+      await projectDetailPage.page.waitForTimeout(500);
+
+      // Should be opposite state
+      const isNowExpanded = await projectDetailPage.arePhaseWorkflowsExpanded('Analysis');
+
+      // States should be different
+      expect(isExpanded).not.toBe(isNowExpanded);
+    });
+  });
 });

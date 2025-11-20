@@ -8,6 +8,7 @@ import { PhaseProgressStepper } from '../components/projects/PhaseProgressSteppe
 import { ActiveAgentsList } from '../components/projects/ActiveAgentsList';
 import { EventTimeline } from '../components/projects/EventTimeline';
 import { QuickActions } from '../components/projects/QuickActions';
+import { StartWorkflowDialog } from '../components/projects/StartWorkflowDialog';
 import { useProject, useProjectWorkflowStatus } from '../hooks/useProjects';
 import { useProjectWebSocket } from '../hooks/useProjectWebSocket';
 import type { EventLog, AgentActivity } from '../api/types';
@@ -72,41 +73,10 @@ export function ProjectDetailPage() {
     );
   }
 
-  // Mock data for active agents and events (will be replaced with real data when backend is ready)
-  const mockAgents: AgentActivity[] = [
-    {
-      agentId: 'agent-dev-1',
-      agentName: 'Dev Agent',
-      currentTask: 'Implementing story 6-5: Project Management Views',
-      startTime: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      status: 'active',
-      projectId: project.id,
-    },
-  ];
-
-  const mockEvents: EventLog[] = [
-    {
-      id: 'event-1',
-      projectId: project.id,
-      eventType: 'agent.started',
-      description: 'Dev Agent started working on story 6-5',
-      timestamp: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 'event-2',
-      projectId: project.id,
-      eventType: 'story.status.changed',
-      description: 'Story 6-5 status changed to in-progress',
-      timestamp: new Date(Date.now() - 35 * 60 * 1000).toISOString(),
-    },
-    {
-      id: 'event-3',
-      projectId: project.id,
-      eventType: 'project.phase.changed',
-      description: `Project phase changed to ${project.phase}`,
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    },
-  ];
+  // TODO: Replace with real data from backend when WebSocket events are available
+  // For now, showing empty state until workflows actually start
+  const agents: AgentActivity[] = [];
+  const events: EventLog[] = [];
 
   // Map phase to badge variant
   const phaseVariantMap: Record<
@@ -150,6 +120,11 @@ export function ProjectDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <StartWorkflowDialog
+            projectId={project.id}
+            currentPhase={project.phase}
+            onWorkflowStarted={() => refetch()}
+          />
           <Button variant="outline" onClick={() => navigate(`/projects/${id}/stories`)}>
             <Kanban className="h-4 w-4 mr-2" />
             View Stories
@@ -201,7 +176,7 @@ export function ProjectDetailPage() {
             <CardDescription>Agents currently working on this project</CardDescription>
           </CardHeader>
           <CardContent>
-            <ActiveAgentsList agents={project.status === 'active' ? mockAgents : []} />
+            <ActiveAgentsList agents={agents} />
           </CardContent>
         </Card>
 
@@ -212,7 +187,7 @@ export function ProjectDetailPage() {
             <CardDescription>Latest project activity</CardDescription>
           </CardHeader>
           <CardContent>
-            <EventTimeline events={mockEvents} maxHeight="500px" />
+            <EventTimeline events={events} maxHeight="500px" />
           </CardContent>
         </Card>
       </div>

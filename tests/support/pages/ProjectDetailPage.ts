@@ -21,6 +21,9 @@ export class ProjectDetailPage extends BasePage {
   readonly pauseProjectButton: Locator;
   readonly resumeProjectButton: Locator;
   readonly deleteProjectButton: Locator;
+  readonly startWorkflowButton: Locator;
+  readonly startWorkflowDialog: Locator;
+  readonly workflowSelectCombobox: Locator;
 
   constructor(page: Page) {
     super(page);
@@ -55,6 +58,11 @@ export class ProjectDetailPage extends BasePage {
     this.deleteProjectButton = page.locator('[data-testid="delete-project"]').or(
       page.locator('button', { hasText: 'Delete' })
     );
+
+    // Start Workflow Dialog
+    this.startWorkflowButton = page.locator('button', { hasText: 'Start Workflow' });
+    this.startWorkflowDialog = page.locator('[role="dialog"]', { hasText: 'Start Workflow' });
+    this.workflowSelectCombobox = this.startWorkflowDialog.locator('[role="combobox"]');
   }
 
   /**
@@ -215,5 +223,104 @@ export class ProjectDetailPage extends BasePage {
   async getProjectTitle(): Promise<string> {
     const title = this.page.locator('h1').first();
     return await this.getTextContent(title);
+  }
+
+  /**
+   * Open Start Workflow dialog
+   */
+  async openStartWorkflowDialog() {
+    await this.clickElement(this.startWorkflowButton);
+    await this.startWorkflowDialog.waitFor({ state: 'visible' });
+  }
+
+  /**
+   * Select workflow from dialog
+   */
+  async selectWorkflow(workflowName: string) {
+    await this.workflowSelectCombobox.click();
+    await this.page.locator('[role="option"]', { hasText: workflowName }).click();
+  }
+
+  /**
+   * Start selected workflow
+   */
+  async startWorkflow(workflowName: string) {
+    await this.openStartWorkflowDialog();
+    await this.selectWorkflow(workflowName);
+
+    const startButton = this.startWorkflowDialog.locator('button', { hasText: 'Start Workflow' }).last();
+    await startButton.click();
+
+    // Wait for dialog to close
+    await this.startWorkflowDialog.waitFor({ state: 'hidden', timeout: 5000 });
+  }
+
+  /**
+   * Check if Start Workflow dialog is visible
+   */
+  async isStartWorkflowDialogVisible(): Promise<boolean> {
+    return await this.isVisible(this.startWorkflowDialog);
+  }
+
+  /**
+   * Get available workflows in dialog
+   */
+  async getAvailableWorkflows(): Promise<string[]> {
+    await this.workflowSelectCombobox.click();
+    const options = this.page.locator('[role="option"]');
+    const count = await options.count();
+    const workflows: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const text = await options.nth(i).textContent();
+      if (text) workflows.push(text.trim());
+    }
+
+    // Close dropdown
+    await this.workflowSelectCombobox.click();
+
+    return workflows;
+  }
+
+  /**
+   * Click phase button to expand/collapse workflows
+   */
+  async togglePhaseWorkflows(phaseName: string) {
+    const phaseButton = this.page.locator('button', { hasText: phaseName }).first();
+    await phaseButton.click();
+  }
+
+  /**
+   * Check if phase workflows are expanded
+   */
+  async arePhaseWorkflowsExpanded(phaseName: string): Promise<boolean> {
+    // Look for the workflows list under the phase
+    const workflowsList = this.page.locator(`text=${phaseName}`).locator('..').locator('text=Workflows:');
+    return await this.isVisible(workflowsList);
+  }
+
+  /**
+   * Get workflows for a phase
+   */
+  async getPhaseWorkflows(phaseName: string): Promise<string[]> {
+    // Make sure phase is expanded
+    const isExpanded = await this.arePhaseWorkflowsExpanded(phaseName);
+    if (!isExpanded) {
+      await this.togglePhaseWorkflows(phaseName);
+    }
+
+    // Get all workflow items after "Workflows:" text
+    const workflowItems = this.page.locator(`text=${phaseName}`).locator('..').locator('text=/^[A-Z]/').filter({ has: this.page.locator('text=/^[A-Z]/')});
+    const count = await workflowItems.count();
+    const workflows: string[] = [];
+
+    for (let i = 0; i < count; i++) {
+      const text = await workflowItems.nth(i).textContent();
+      if (text && text !== phaseName && text !== 'Workflows:') {
+        workflows.push(text.trim());
+      }
+    }
+
+    return workflows;
   }
 }
