@@ -28,7 +28,7 @@ export interface Project {
   updatedAt: string;
 }
 
-export type ProjectStatus = 'active' | 'paused' | 'completed' | 'error';
+export type ProjectStatus = 'pending' | 'active' | 'paused' | 'completed' | 'error';
 export type ProjectPhase = 'analysis' | 'planning' | 'solutioning' | 'implementation' | 'review';
 
 // Workflow Types

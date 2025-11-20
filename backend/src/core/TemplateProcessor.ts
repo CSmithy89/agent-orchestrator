@@ -19,7 +19,7 @@
 
 import * as fs from 'fs/promises';
 import * as path from 'path';
-import * as Handlebars from 'handlebars';
+import Handlebars from 'handlebars';
 import {
   TemplateOptions,
   TemplateError,
@@ -66,7 +66,7 @@ export class TemplateProcessor {
    */
   constructor(options?: TemplateOptions) {
     this.options = { ...DEFAULT_OPTIONS, ...options };
-    this.handlebars = Handlebars.create();
+    this.handlebars = Handlebars;
     this.templateCache = new Map();
 
     // Register built-in helpers
