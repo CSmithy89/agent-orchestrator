@@ -99,8 +99,8 @@ export function DependencyGraph({ graph, onNodeClick, filters, className = '' }:
   const filteredGraph = useCallback(() => {
     if (!filters) return graph;
 
-    let filteredNodes = graph.nodes;
-    let filteredEdges = graph.edges;
+    let filteredNodes = graph.nodes || [];
+    let filteredEdges = graph.edges || [];
 
     // Filter by epic
     if (filters.epic !== undefined) {
@@ -144,14 +144,14 @@ export function DependencyGraph({ graph, onNodeClick, filters, className = '' }:
 
     // AC 10: Virtualization for graphs >100 stories
     // When graph has >100 nodes, use simplified rendering for performance
-    const useVirtualization = filtered.nodes.length > 100;
+    const useVirtualization = (filtered.nodes?.length || 0) > 100;
     const virtualizedNodes = useVirtualization
-      ? filtered.nodes.slice(0, 100) // Show first 100 nodes for initial render
-      : filtered.nodes;
+      ? (filtered.nodes || []).slice(0, 100) // Show first 100 nodes for initial render
+      : (filtered.nodes || []);
 
     // Filter edges to only include those connected to virtualized nodes
     const virtualizedNodeIds = new Set(virtualizedNodes.map(n => n.id));
-    const virtualizedEdges = filtered.edges.filter(
+    const virtualizedEdges = (filtered.edges || []).filter(
       e => virtualizedNodeIds.has(e.source) && virtualizedNodeIds.has(e.target)
     );
 
@@ -195,8 +195,8 @@ export function DependencyGraph({ graph, onNodeClick, filters, className = '' }:
       .join('line')
       .attr('class', 'edge')
       .attr('stroke', d => d.isBlocking ? '#EF4444' : '#9CA3AF')
-      .attr('stroke-width', d => filtered.criticalPath.includes((d.source as D3Node).id) &&
-                                   filtered.criticalPath.includes((d.target as D3Node).id) ? 3 : 1)
+      .attr('stroke-width', d => (filtered.criticalPath || []).includes((d.source as D3Node).id) &&
+                                   (filtered.criticalPath || []).includes((d.target as D3Node).id) ? 3 : 1)
       .attr('stroke-dasharray', d => d.type === 'soft' ? '5,5' : '0')
       .attr('opacity', 0.6)
       .attr('cursor', 'pointer')

@@ -36,7 +36,7 @@ export function StoryFilters({
       {/* Epic Filter */}
       <div className="flex-1 max-w-xs">
         <Select
-          value={epicFilter?.toString() || 'all'}
+          value={epicFilter !== null ? epicFilter.toString() : 'all'}
           onValueChange={(value) => {
             if (value === 'all') {
               onEpicFilterChange(null);
@@ -50,7 +50,7 @@ export function StoryFilters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Epics</SelectItem>
-            {availableEpics.map((epic) => (
+            {availableEpics?.filter(epic => epic !== undefined && epic !== null).map((epic) => (
               <SelectItem key={epic} value={epic.toString()}>
                 Epic {epic}
               </SelectItem>

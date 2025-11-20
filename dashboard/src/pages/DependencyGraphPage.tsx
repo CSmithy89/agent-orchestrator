@@ -49,7 +49,7 @@ export function DependencyGraphPage() {
   }, [viewMode]);
 
   // Get unique epic numbers from graph data
-  const availableEpics = graph ? [...new Set(graph.nodes.map(n => n.epicNumber))].sort() : [];
+  const availableEpics = graph?.nodes ? [...new Set(graph.nodes.map(n => n.epicNumber))].sort() : [];
 
   // Handle node click
   const handleNodeClick = (node: DependencyNode) => {
@@ -191,10 +191,10 @@ export function DependencyGraphPage() {
         <h2>Story Dependencies</h2>
         <p>This graph shows the dependencies between stories in the project.</p>
         <ul>
-          {graph.nodes.map(node => {
+          {graph.nodes?.map(node => {
             const deps = graph.edges
-              .filter(e => e.target === node.id)
-              .map(e => graph.nodes.find(n => n.id === e.source))
+              ?.filter(e => e.target === node.id)
+              .map(e => graph.nodes?.find(n => n.id === e.source))
               .filter(Boolean);
 
             return (
@@ -208,7 +208,7 @@ export function DependencyGraphPage() {
                 )}
               </li>
             );
-          })}
+          }) || []}
         </ul>
       </div>
     </div>
