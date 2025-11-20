@@ -11,8 +11,8 @@ import { useWebSocket } from './useWebSocket';
 export function useProjectWebSocket(projectId?: string) {
   const queryClient = useQueryClient();
   const wsUrl = projectId
-    ? `${import.meta.env.VITE_WS_URL || 'ws://localhost:3001'}/ws/status-updates?projectId=${projectId}`
-    : `${import.meta.env.VITE_WS_URL || 'ws://localhost:3001'}/ws/status-updates`;
+    ? `${import.meta.env.VITE_WS_URL || 'ws://localhost:3002/ws/status-updates'}?projectId=${projectId}`
+    : `${import.meta.env.VITE_WS_URL || 'ws://localhost:3002/ws/status-updates'}`;
 
   const { events, connectionStatus, isConnected } = useWebSocket(wsUrl);
 

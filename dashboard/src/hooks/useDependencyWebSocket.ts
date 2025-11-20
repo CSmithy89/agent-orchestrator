@@ -21,7 +21,7 @@ import { useWebSocket } from './useWebSocket';
  */
 export function useDependencyWebSocket(projectId: string | undefined) {
   const queryClient = useQueryClient();
-  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3000/ws/status-updates';
+  const wsUrl = import.meta.env.VITE_WS_URL || 'ws://localhost:3002/ws/status-updates';
   const { events } = useWebSocket(wsUrl);
 
   useEffect(() => {

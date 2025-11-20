@@ -21,7 +21,7 @@ interface StoryStatusChangedEvent {
 export function useStoryWebSocket(projectId: string) {
   const queryClient = useQueryClient();
   const { events, connectionStatus } = useWebSocket(
-    `${import.meta.env.VITE_WS_URL || 'ws://localhost:3000'}/ws/status-updates`
+    import.meta.env.VITE_WS_URL || 'ws://localhost:3002/ws/status-updates'
   );
 
   useEffect(() => {

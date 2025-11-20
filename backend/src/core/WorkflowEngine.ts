@@ -12,7 +12,8 @@ import {
   Action,
   Check,
   EngineOptions,
-  ProjectInfo
+  ProjectInfo,
+  AgentActivity
 } from '../types/workflow.types.js';
 import { WorkflowExecutionError } from '../types/errors.types.js';
 import { EventType } from '../api/types/events.types.js';
@@ -37,6 +38,7 @@ export class WorkflowEngine {
   private currentStepIndex: number = 0;
   private variables: Record<string, any> = {};
   private projectInfo?: ProjectInfo;
+  private agentActivity: AgentActivity[] = [];
   private onEvent?: (eventType: EventType, payload: any) => void;
 
   // Pre-compiled regex patterns for better performance
@@ -111,10 +113,12 @@ export class WorkflowEngine {
       console.log(`[WorkflowEngine] Loaded ${this.steps.length} steps`);
 
       // Initialize workflow variables
+      const now = new Date();
       this.variables = {
         ...this.workflowConfig.variables,
         'project-root': this.projectRoot,
-        date: new Date().toISOString().split('T')[0]
+        date: now.toISOString().split('T')[0],
+        current_year: now.getFullYear().toString()
       };
 
       // Initialize project info
@@ -261,6 +265,29 @@ export class WorkflowEngine {
    * @param step Step to execute
    */
   async executeStep(step: Step): Promise<void> {
+    const startTime = new Date();
+    const agentId = `step-${step.number}`;
+    const agentName = step.goal;
+
+    // Emit agent.started event
+    if (this.onEvent) {
+      this.onEvent('agent.started', {
+        agentId,
+        agentName,
+        action: step.goal
+      });
+    }
+
+    // Track agent activity
+    const activity: AgentActivity = {
+      agentId,
+      agentName,
+      action: step.goal,
+      timestamp: startTime,
+      status: 'started'
+    };
+    this.agentActivity.push(activity);
+
     try {
       // Parse actions from step content if not already parsed
       if (!step.actions) {
@@ -297,7 +324,50 @@ export class WorkflowEngine {
           }
         }
       }
+
+      // Mark as completed
+      const duration = Date.now() - startTime.getTime();
+      activity.status = 'completed';
+      activity.duration = duration;
+
+      // Emit agent.completed event
+      if (this.onEvent) {
+        this.onEvent('agent.completed', {
+          agentId,
+          agentName,
+          action: step.goal,
+          duration,
+          status: 'success'
+        });
+      }
     } catch (error) {
+      // Mark as failed
+      const duration = Date.now() - startTime.getTime();
+      activity.status = 'failed';
+      activity.duration = duration;
+      activity.output = (error as Error).message;
+
+      // Emit workflow.error event
+      if (this.onEvent) {
+        this.onEvent('workflow.error', {
+          workflowId: this.workflowPath,
+          step: step.goal,
+          error: (error as Error).message,
+          details: error
+        });
+      }
+
+      // Emit agent.completed event with failed status
+      if (this.onEvent) {
+        this.onEvent('agent.completed', {
+          agentId,
+          agentName,
+          action: step.goal,
+          duration,
+          status: 'failed'
+        });
+      }
+
       throw new WorkflowExecutionError(
         `Step ${step.number} ("${step.goal}") execution failed: ${(error as Error).message}`,
         step.number,
@@ -1052,7 +1122,7 @@ export class WorkflowEngine {
       currentStep,
       status,
       variables: this.variables,
-      agentActivity: [],
+      agentActivity: this.agentActivity,
       startTime: new Date(),
       lastUpdate: new Date()
     };
