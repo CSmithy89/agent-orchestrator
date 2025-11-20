@@ -49,7 +49,6 @@ export class WorkflowEngine {
   private static readonly GOTO_REGEX = /<goto\s+step="(\d+)"\s*\/?>/g;
   private static readonly INVOKE_WORKFLOW_REGEX = /<invoke-workflow\s+path="([^"]+)"\s*\/?>/g;
   private static readonly INVOKE_TASK_REGEX = /<invoke-task\s+path="([^"]+)"\s*\/?>/g;
-  private static readonly CHECK_REGEX = /<check\s+if="([^"]+)">(.*?)<\/check>/gs;
   private static readonly VARIABLE_REGEX = /\{\{([a-zA-Z0-9_.-]+)(?:\|([^}]+))?\}\}/g;
 
   /**
@@ -493,7 +492,7 @@ export class WorkflowEngine {
 
     // Remove <check> blocks from content before parsing actions
     // This prevents actions inside check blocks from being executed unconditionally
-    const contentWithoutChecks = content.replace(WorkflowEngine.CHECK_REGEX, '');
+    const contentWithoutChecks = this.removeCheckBlocks(content);
 
     // Parse <action> tags - reset lastIndex for reuse
     WorkflowEngine.ACTION_REGEX.lastIndex = 0;
@@ -593,34 +592,148 @@ export class WorkflowEngine {
   }
 
   /**
-   * Parse check blocks from step content
+   * Parse check blocks from step content using stack-based parser
+   * Handles nested <check> blocks properly without regex backtracking
    * @param content Step content
    * @returns Array of checks
    */
   private parseChecks(content: string): Check[] {
     const checks: Check[] = [];
 
-    // Parse <check> tags - reset lastIndex for reuse
-    WorkflowEngine.CHECK_REGEX.lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = WorkflowEngine.CHECK_REGEX.exec(content)) !== null) {
-      const condition = match[1];
-      const checkContent = match[2];
+    // Use stack-based parsing to handle nested check blocks
+    let pos = 0;
+    while (pos < content.length) {
+      // Find next opening check tag
+      const openMatch = content.slice(pos).match(/<check\s+if="([^"]+)">/);
+      if (!openMatch || openMatch.index === undefined) {
+        break;
+      }
 
-      if (!condition || !checkContent) {
+      // Move position to after opening tag
+      const startPos = pos + openMatch.index + openMatch[0].length;
+      const condition = openMatch[1];
+      if (!condition) {
+        // Skip malformed check block without condition
+        pos = startPos;
         continue;
       }
 
-      // Parse actions within the check block
-      const checkActions = this.parseActions(checkContent.trim());
+      // Find matching closing tag using stack-based approach
+      let depth = 1;
+      let endPos = startPos;
 
-      checks.push({
-        condition,
-        actions: checkActions
-      });
+      while (depth > 0 && endPos < content.length) {
+        // Look for next opening or closing check tag
+        const remaining = content.slice(endPos);
+        const nextOpen = remaining.match(/<check\s+if="[^"]+">/)?.index ?? Infinity;
+        const nextClose = remaining.indexOf('</check>');
+
+        if (nextClose === -1) {
+          // No closing tag found
+          break;
+        }
+
+        if (nextOpen < nextClose) {
+          // Found nested opening tag first
+          depth++;
+          endPos += nextOpen + remaining.slice(nextOpen).match(/<check\s+if="[^"]+">/)![0].length;
+        } else {
+          // Found closing tag
+          depth--;
+          if (depth === 0) {
+            // This is our matching closing tag
+            const checkContent = content.slice(startPos, endPos + nextClose);
+
+            // Parse actions within the check block
+            const checkActions = this.parseActions(checkContent.trim());
+
+            checks.push({
+              condition,
+              actions: checkActions
+            });
+
+            // Move past this check block
+            pos = endPos + nextClose + '</check>'.length;
+          } else {
+            // Still inside nested check, move past this closing tag
+            endPos += nextClose + '</check>'.length;
+          }
+        }
+      }
+
+      // Safety: if we didn't find a match, move past the opening tag to avoid infinite loop
+      if (depth > 0) {
+        pos = startPos;
+      }
     }
 
     return checks;
+  }
+
+  /**
+   * Remove all check blocks from content (including nested blocks)
+   * Uses stack-based parsing to handle nested structures properly
+   * @param content Content to process
+   * @returns Content with all check blocks removed
+   */
+  private removeCheckBlocks(content: string): string {
+    let result = '';
+    let pos = 0;
+
+    while (pos < content.length) {
+      // Find next opening check tag
+      const openMatch = content.slice(pos).match(/<check\s+if="[^"]+">/);
+      if (!openMatch || openMatch.index === undefined) {
+        // No more check blocks, append remaining content
+        result += content.slice(pos);
+        break;
+      }
+
+      // Append content before check block
+      result += content.slice(pos, pos + openMatch.index);
+
+      // Move position to after opening tag
+      const startPos = pos + openMatch.index + openMatch[0].length;
+
+      // Find matching closing tag using stack-based approach
+      let depth = 1;
+      let endPos = startPos;
+
+      while (depth > 0 && endPos < content.length) {
+        const remaining = content.slice(endPos);
+        const nextOpen = remaining.match(/<check\s+if="[^"]+">/)?.index ?? Infinity;
+        const nextClose = remaining.indexOf('</check>');
+
+        if (nextClose === -1) {
+          // No closing tag found, skip this malformed block
+          pos = startPos;
+          break;
+        }
+
+        if (nextOpen < nextClose) {
+          // Found nested opening tag first
+          depth++;
+          endPos += nextOpen + remaining.slice(nextOpen).match(/<check\s+if="[^"]+">/)![0].length;
+        } else {
+          // Found closing tag
+          depth--;
+          if (depth === 0) {
+            // Move past this entire check block
+            pos = endPos + nextClose + '</check>'.length;
+          } else {
+            // Still inside nested check, move past this closing tag
+            endPos += nextClose + '</check>'.length;
+          }
+        }
+      }
+
+      // Safety: if we didn't find a match, move past the opening tag
+      if (depth > 0) {
+        pos = startPos;
+      }
+    }
+
+    return result;
   }
 
   /**
