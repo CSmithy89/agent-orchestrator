@@ -8,29 +8,31 @@ status: error
 variables:
   project-root: /home/chris/projects/work/Agent orchastrator
   date: '2025-11-20'
+  current_year: '2025'
 agentActivity:
   - agentId: step-1
     agentName: Validate workflow readiness
     action: Validate workflow readiness
-    timestamp: '2025-11-20T10:28:39.125Z'
+    timestamp: '2025-11-20T10:43:20.654Z'
     duration: 2
     status: completed
   - agentId: step-2
     agentName: Discover research needs through conversation
     action: Discover research needs through conversation
-    timestamp: '2025-11-20T10:28:39.129Z'
+    timestamp: '2025-11-20T10:43:20.660Z'
     duration: 1
     status: failed
     output: |-
-      Undefined variable: {{current_year}}
+      Undefined variable: {{research_type}}
 
       Available variables:
       - project-root
       - date
+      - current_year
 
       Resolution:
-      1. Add current_year to workflow variables in workflow.yaml
-      2. Use default value: {{current_year|default_value}}
+      1. Add research_type to workflow variables in workflow.yaml
+      2. Use default value: {{research_type|default_value}}
       3. Skip this step if not critical
-startTime: '2025-11-20T10:28:39.136Z'
-lastUpdate: '2025-11-20T10:28:39.136Z'
+startTime: '2025-11-20T10:43:20.668Z'
+lastUpdate: '2025-11-20T10:43:20.668Z'
