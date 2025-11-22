@@ -1,0 +1,128 @@
+# BMI Platform Configuration - .gitignore Template
+# Copy this to your project root to prevent committing secrets
+
+# ===================================
+# CRITICAL: Never commit these files
+# ===================================
+
+# Mobile Secrets (iOS)
+*.p8
+*.mobileprovision
+*.cer
+*.certSigningRequest
+AuthKey_*.p8
+fastlane/preview.html
+fastlane/report.xml
+fastlane/test_output
+fastlane/.env
+fastlane/.env.*
+
+# Mobile Secrets (Android)
+google-play-key.json
+*.keystore
+*.jks
+key.properties
+gradle.properties
+
+# Cloud Provider Credentials
+.aws/credentials
+.aws/config
+.gcloud/
+.azure/credentials
+digitalocean-token.txt
+
+# Environment Files
+.env
+.env.local
+.env.development
+.env.test
+.env.production
+.env.*.local
+
+# Secrets
+secrets.yaml
+secrets.json
+*-secrets.yaml
+*-secrets.json
+*.secret
+
+# Infrastructure State (Terraform, Pulumi)
+*.tfstate
+*.tfstate.backup
+.terraform/
+.pulumi/
+*.tfvars
+terraform.tfvars
+
+# ===================================
+# Build & Deployment Artifacts
+# ===================================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Build output
+dist/
+build/
+out/
+.next/
+.vercel/
+.netlify/
+.output/
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# IDEs
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# ===================================
+# Platform-Specific
+# ===================================
+
+# Vercel
+.vercel
+
+# Railway
+.railway
+
+# Netlify
+.netlify
+
+# Fly.io
+.fly/
+
+# Docker
+docker-compose.override.yml
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# ===================================
+# Recommended: Add these to your project .gitignore
+# ===================================
+
+# Copy the relevant sections above to your project's .gitignore
+# Especially the "CRITICAL" section to prevent leaking secrets

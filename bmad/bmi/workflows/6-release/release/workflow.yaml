@@ -1,0 +1,164 @@
+# Release - Create and Publish Software Release Workflow
+name: "release"
+description: "Create and publish software releases with semantic versioning, changelog generation, and multi-registry support"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/6-release/release"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/release-{version}-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - version_bump: "Version bump type (major/minor/patch) or explicit version (e.g., 2.1.0)"
+  - release_branch: "Branch to release from (main/master/release/*)"
+
+optional_inputs:
+  - release_type: "Release type (stable, beta, alpha, rc, pre-release)"
+  - release_notes: "Custom release notes (auto-generated if not provided)"
+  - changelog_format: "Changelog format (keep-a-changelog, conventional-commits, auto)"
+  - publish_registries: "Registries to publish to (npm, pypi, docker, github, gitlab, nuget, crates)"
+  - skip_tests: "Skip test suite before release (default: false, NOT RECOMMENDED)"
+  - skip_build: "Skip build before release (default: false, NOT RECOMMENDED)"
+  - pre_release: "Mark as pre-release (default: false)"
+  - draft_release: "Create draft release for review before publishing (default: false)"
+  - tag_prefix: "Git tag prefix (default: 'v' → v1.2.3)"
+  - release_assets: "Additional assets to attach to release (binaries, docs, etc.)"
+
+output_artifacts:
+  - release_tag: "Git tag for the release (e.g., v1.2.3)"
+  - release_notes: "Generated or custom release notes"
+  - changelog: "Updated CHANGELOG.md file"
+  - version_file: "Updated version file (package.json, pyproject.toml, etc.)"
+  - release_commit: "Git commit with version bump and changelog"
+  - registry_urls: "URLs to published packages on registries"
+  - github_release_url: "URL to GitHub/GitLab release page"
+  - release_report: "Complete release report with metrics and URLs"
+
+halt_conditions:
+  - "Working directory not clean (uncommitted changes)"
+  - "Not on correct release branch"
+  - "Tests failing (if skip_tests = false)"
+  - "Build failing (if skip_build = false)"
+  - "Version already exists (tag conflict)"
+  - "Registry credentials not configured"
+  - "Insufficient permissions to push tags or publish"
+
+execution_modes:
+  - interactive: "Step-by-step release with user confirmation (default)"
+  - automated: "Fully automated release (CI/CD triggered)"
+  - draft: "Create draft release for review without publishing"
+
+standalone: true
+
+integration_points:
+  - changelog_generation: "Invoked to generate changelog for release"
+  - deployment_workflow: "Can trigger deployment after release"
+  - load_testing: "Can run load tests before major releases"
+  - container_build: "Builds and tags container images for release"
+
+version_bump_types:
+  - major: "Breaking changes (1.0.0 → 2.0.0)"
+  - minor: "New features, backwards compatible (1.0.0 → 1.1.0)"
+  - patch: "Bug fixes, backwards compatible (1.0.0 → 1.0.1)"
+  - premajor: "Pre-release major (1.0.0 → 2.0.0-beta.0)"
+  - preminor: "Pre-release minor (1.0.0 → 1.1.0-beta.0)"
+  - prepatch: "Pre-release patch (1.0.0 → 1.0.1-beta.0)"
+  - prerelease: "Increment pre-release version (1.0.0-beta.0 → 1.0.0-beta.1)"
+  - explicit: "Explicit version string (e.g., 2.1.0)"
+
+release_types:
+  - stable: "Stable production release (default)"
+  - beta: "Beta release for testing (x.x.x-beta.x)"
+  - alpha: "Alpha release for early testing (x.x.x-alpha.x)"
+  - rc: "Release candidate (x.x.x-rc.x)"
+  - pre_release: "Generic pre-release (x.x.x-pre.x)"
+
+package_ecosystems:
+  - nodejs_npm:
+      version_file: "package.json"
+      registry: "npm (npmjs.org)"
+      publish_command: "npm publish"
+      versioning_tool: "npm version"
+  - python_pypi:
+      version_file: "pyproject.toml or setup.py"
+      registry: "PyPI (pypi.org)"
+      publish_command: "poetry publish or twine upload"
+      versioning_tool: "poetry version or bumpversion"
+  - rust_crates:
+      version_file: "Cargo.toml"
+      registry: "crates.io"
+      publish_command: "cargo publish"
+      versioning_tool: "cargo set-version"
+  - dotnet_nuget:
+      version_file: "*.csproj"
+      registry: "NuGet (nuget.org)"
+      publish_command: "dotnet nuget push"
+      versioning_tool: "dotnet version"
+  - ruby_gems:
+      version_file: "*.gemspec or version.rb"
+      registry: "RubyGems (rubygems.org)"
+      publish_command: "gem push"
+      versioning_tool: "gem bump"
+  - go_modules:
+      version_file: "version.go or git tags"
+      registry: "Go proxy (proxy.golang.org)"
+      publish_command: "git tag (no explicit publish)"
+      versioning_tool: "git tag"
+  - java_maven:
+      version_file: "pom.xml"
+      registry: "Maven Central"
+      publish_command: "mvn deploy"
+      versioning_tool: "mvn versions:set"
+  - php_packagist:
+      version_file: "composer.json"
+      registry: "Packagist (packagist.org)"
+      publish_command: "git tag (auto-indexed)"
+      versioning_tool: "composer bump"
+
+git_hosting_platforms:
+  - github: "GitHub Releases"
+  - gitlab: "GitLab Releases"
+  - bitbucket: "Bitbucket Tags"
+  - gitea: "Gitea Releases"
+
+pre_release_checks:
+  - working_directory_clean: "No uncommitted changes"
+  - on_release_branch: "On correct release branch (main/master/release/*)"
+  - tests_passing: "All tests passing (unless skip_tests = true)"
+  - build_successful: "Build successful (unless skip_build = true)"
+  - changelog_updated: "CHANGELOG.md updated for release"
+  - version_unique: "Version tag doesn't already exist"
+  - dependencies_updated: "Dependencies up to date (security patches)"
+  - documentation_current: "README and docs reflect new version"
+
+release_process_steps:
+  - version_calculation: "Calculate new version number"
+  - changelog_generation: "Generate changelog from commits/PRs"
+  - version_file_update: "Update version in package files"
+  - git_commit: "Commit version bump and changelog"
+  - git_tag: "Create annotated git tag"
+  - build_artifacts: "Build release artifacts (binaries, packages)"
+  - run_tests: "Run full test suite"
+  - publish_registries: "Publish to package registries"
+  - create_release: "Create GitHub/GitLab release"
+  - push_changes: "Push commits and tags to remote"
+  - deploy_release: "Optional: trigger deployment"
+
+changelog_formats:
+  - keep_a_changelog: "Keep a Changelog format (https://keepachangelog.com)"
+  - conventional_commits: "Conventional Commits based changelog"
+  - github_releases: "GitHub Releases format"
+  - custom: "Custom changelog template"

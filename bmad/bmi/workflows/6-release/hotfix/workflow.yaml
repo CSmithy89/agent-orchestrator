@@ -1,0 +1,89 @@
+# Hotfix - Emergency Hotfix Release Workflow
+name: "hotfix"
+description: "Create emergency hotfix releases for critical production issues with fast-track approval and deployment"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/6-release/hotfix"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/hotfix-{version}-{date}.md"
+
+mode: interactive
+
+required_inputs:
+  - hotfix_description: "Description of the critical issue being fixed"
+  - base_version: "Production version to hotfix from (e.g., 1.2.3)"
+
+optional_inputs:
+  - incident_id: "Related incident ID (if triggered by incident-response workflow)"
+  - hotfix_branch: "Hotfix branch name (auto-generated if not provided: hotfix/{version})"
+  - skip_tests: "Skip tests (default: false, HIGHLY NOT RECOMMENDED for hotfixes)"
+  - fast_track: "Enable fast-track mode with minimal approvals (default: true)"
+  - auto_deploy: "Auto-deploy after release (default: true for hotfixes)"
+  - notification_channels: "Channels to notify (Slack, email, status page)"
+
+output_artifacts:
+  - hotfix_version: "New hotfix version (e.g., 1.2.4)"
+  - hotfix_branch: "Git branch for hotfix"
+  - hotfix_changelog: "Changelog for hotfix release"
+  - hotfix_tag: "Git tag for hotfix release"
+  - deployment_status: "Hotfix deployment status"
+  - incident_resolution: "Incident resolution summary (if incident_id provided)"
+
+halt_conditions:
+  - "Base version does not exist"
+  - "Hotfix branch already exists"
+  - "Tests failing (if skip_tests = false)"
+  - "No changes to hotfix (empty diff)"
+  - "Deployment fails (if auto_deploy = true)"
+
+execution_modes:
+  - fast_track: "Fast-track with minimal approvals for critical issues (default)"
+  - standard: "Standard hotfix process with full approvals"
+  - emergency: "Emergency mode for P0 incidents (auto-deploy, skip some validations)"
+
+standalone: true
+
+integration_points:
+  - incident_response: "Can be triggered by P0/P1 incidents requiring immediate fix"
+  - release_workflow: "Uses release workflow for version bump and publishing"
+  - rollback_workflow: "Rollback available if hotfix causes issues"
+  - deployment_workflow: "Auto-deploys hotfix to production"
+
+hotfix_process_overview:
+  - create_hotfix_branch: "Branch from production tag (base_version)"
+  - apply_fix: "Apply emergency fix to hotfix branch"
+  - test_fix: "Run tests (NEVER skip for production hotfixes)"
+  - bump_patch_version: "Auto-increment patch version (1.2.3 → 1.2.4)"
+  - generate_hotfix_changelog: "Generate changelog for hotfix"
+  - create_hotfix_release: "Create hotfix release"
+  - deploy_hotfix: "Deploy to production (if auto_deploy = true)"
+  - notify_stakeholders: "Notify team and customers"
+  - merge_to_main: "Merge hotfix back to main branch"
+
+version_strategy:
+  - patch_increment: "Auto-increment patch version (1.2.3 → 1.2.4)"
+  - preserves_major_minor: "Preserves major.minor versions"
+
+fast_track_features:
+  - minimal_approvals: "Reduced approval gates for speed"
+  - auto_tests_required: "Tests ALWAYS run (never skip)"
+  - auto_deploy: "Automatic deployment after release"
+  - priority_notifications: "High-priority notifications to all channels"
+  - incident_tracking: "Automatic incident resolution tracking"
+
+safety_features:
+  - tests_always_run: "Tests NEVER skipped in fast-track mode"
+  - rollback_ready: "Rollback workflow available if issues detected"
+  - monitoring_alerts: "Enhanced monitoring during hotfix deployment"
+  - gradual_rollout: "Optional canary deployment for hotfixes"

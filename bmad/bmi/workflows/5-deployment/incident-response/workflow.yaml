@@ -1,0 +1,127 @@
+# Incident Response - Production Incident Management Workflow
+name: "incident-response"
+description: "Respond to production incidents with structured runbooks, MTTR tracking, and post-incident reviews"
+author: "BMad Infrastructure & DevOps Module"
+
+config_source: "{project-root}/bmad/bmi/config.yaml"
+output_folder: "{config_source}:output_folder"
+user_name: "{config_source}:user_name"
+communication_language: "{config_source}:communication_language"
+user_skill_level: "{config_source}:user_skill_level"
+document_output_language: "{config_source}:document_output_language"
+date: system-generated
+
+installed_path: "{project-root}/bmad/bmi/workflows/5-deployment/incident-response"
+template: false
+instructions: "{installed_path}/instructions.md"
+validation: "{installed_path}/checklist.md"
+checklist: "{installed_path}/checklist.md"
+default_output_file: "{output_folder}/incident-{incident_id}-{date}.md"
+
+# Workflow execution mode
+mode: interactive
+
+required_inputs:
+  - incident_description: "Brief description of the incident"
+  - severity: "Incident severity (P0-P4): P0=Critical, P1=High, P2=Medium, P3=Low, P4=Informational"
+
+optional_inputs:
+  - incident_id: "Incident ID (auto-generated if not provided)"
+  - affected_service: "Service(s) affected by the incident"
+  - environment: "Environment affected (production/staging/dev)"
+  - alert_source: "Source of alert (monitoring platform or manual report)"
+  - customer_impact: "Description of customer impact"
+  - incident_type: "Type of incident (outage, degradation, security, data)"
+  - responder_team: "Team responsible for response"
+  - escalation_required: "Whether escalation is required (default: auto-determined by severity)"
+  - communication_channels: "Channels for incident communication (Slack, email, status page)"
+
+output_artifacts:
+  - incident_report: "Complete incident report with timeline and resolution"
+  - mttr_metrics: "MTTR (Mean Time To Recovery) and incident metrics"
+  - communication_log: "Log of all incident communications"
+  - post_incident_review: "Post-incident review document (PIR) for P0-P2 incidents"
+  - action_items: "Action items to prevent recurrence"
+  - runbook_used: "Record of which runbook was followed"
+
+halt_conditions:
+  - "No incident description provided"
+  - "Invalid severity level (must be P0-P4)"
+  - "Required monitoring/alerting system unavailable for validation"
+  - "Incident already resolved (duplicate incident ID)"
+
+execution_modes:
+  - automated: "Triggered automatically by monitoring alerts (severity auto-detected)"
+  - interactive: "Manual incident response with step-by-step guidance (default)"
+  - emergency: "Fast-track response for P0 incidents with minimal confirmations"
+
+standalone: true
+
+integration_points:
+  - monitoring_setup: "Alerts from monitoring platforms trigger incident workflow"
+  - rollback_workflow: "Can invoke rollback during incident resolution"
+  - deployment_workflow: "Post-resolution hotfix deployment may be required"
+  - on_call_schedule: "Auto-notifies on-call engineer based on severity"
+
+incident_severity_levels:
+  - p0_critical:
+      description: "Complete service outage affecting all customers"
+      response_time: "Immediate (< 5 minutes)"
+      escalation: "Auto-escalate to senior engineering and management"
+      communication: "Public status page update required every 30 minutes"
+      post_incident_review: "Required within 48 hours"
+  - p1_high:
+      description: "Major feature degradation or partial outage"
+      response_time: "< 15 minutes"
+      escalation: "Notify engineering lead"
+      communication: "Status page update within 1 hour"
+      post_incident_review: "Required within 1 week"
+  - p2_medium:
+      description: "Minor feature degradation, workaround available"
+      response_time: "< 1 hour"
+      escalation: "Optional, based on duration"
+      communication: "Internal notification"
+      post_incident_review: "Recommended"
+  - p3_low:
+      description: "Small issue, minimal customer impact"
+      response_time: "< 4 hours (business hours)"
+      escalation: "Not required"
+      communication: "Internal only"
+      post_incident_review: "Optional"
+  - p4_informational:
+      description: "Monitoring alert, no customer impact"
+      response_time: "Best effort"
+      escalation: "Not required"
+      communication: "Internal ticket only"
+      post_incident_review: "Not required"
+
+incident_types:
+  - service_outage: "Complete service unavailable"
+  - performance_degradation: "Service slow or unresponsive"
+  - security_incident: "Security breach or vulnerability exploit"
+  - data_loss: "Data corruption or loss"
+  - third_party_dependency: "External service failure affecting our service"
+  - infrastructure_failure: "Cloud provider or infrastructure issue"
+  - deployment_failure: "Failed deployment causing issues"
+
+runbooks_available:
+  - high_error_rate: "Troubleshoot sudden spike in application errors"
+  - service_down: "Restore service availability"
+  - high_latency: "Investigate and resolve performance degradation"
+  - database_issues: "Handle database connection/query issues"
+  - memory_leak: "Diagnose and mitigate memory leak"
+  - security_breach: "Contain and remediate security incident"
+  - third_party_outage: "Mitigate impact of external service failure"
+
+communication_templates:
+  - initial_notification: "Incident detected, investigation in progress"
+  - update_in_progress: "Update on ongoing investigation and remediation"
+  - resolution_notification: "Incident resolved, root cause identified"
+  - post_mortem: "Detailed post-incident review with action items"
+
+mttr_tracking:
+  - detection_time: "Time from incident start to detection"
+  - response_time: "Time from detection to first response"
+  - mitigation_time: "Time from response to initial mitigation"
+  - resolution_time: "Time from mitigation to full resolution"
+  - total_mttr: "Total time from incident start to resolution"
