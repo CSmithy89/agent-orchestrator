@@ -37,7 +37,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 - DEV (Developer)
 - TEA (Test Architect)
 - UX Designer
-- Paige (Documentation Guide)
+- Technical Writer
 
 **Game Development (3 agents):**
 
@@ -63,7 +63,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 
 - Creating Product Requirements Documents (PRD) for Level 2-4 projects
 - Creating technical specifications for small projects (Level 0-1)
-- Breaking down requirements into epics and stories
+- Breaking down requirements into epics and stories (after architecture)
 - Validating planning documents
 - Course correction during implementation
 
@@ -72,10 +72,10 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 **Workflows:**
 
 - `workflow-status` - Check what to do next
-- `create-prd` - Create PRD for Level 2-4 projects
+- `create-prd` - Create PRD for Level 2-4 projects (creates FRs/NFRs only)
 - `tech-spec` - Quick spec for Level 0-1 projects
-- `create-epics-and-stories` - Break PRD into implementable pieces
-- `validate-prd` - Validate PRD + Epics completeness
+- `create-epics-and-stories` - Break PRD into implementable pieces (runs AFTER architecture)
+- `validate-prd` - Validate PRD completeness
 - `validate-tech-spec` - Validate Technical Specification
 - `correct-course` - Handle mid-project changes
 - `workflow-init` - Initialize workflow tracking
@@ -136,7 +136,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 - Creating system architecture for Level 2-4 projects
 - Making technical design decisions
 - Validating architecture documents
-- Solutioning gate checks (Phase 3→4 transition)
+- Validating readiness for implementation phase (Phase 3→4 transition)
 - Course correction during implementation
 
 **Primary Phase:** Phase 3 (Solutioning)
@@ -144,14 +144,9 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 **Workflows:**
 
 - `workflow-status` - Check what to do next
-- `create-architecture` - Decision-focused architecture with:
-  - Starter template intelligence
-  - Novel pattern design
-  - Implementation patterns for agent consistency
-  - Adaptive facilitation (beginner/expert)
+- `create-architecture` - Produce a Scale Adaptive Architecture
 - `validate-architecture` - Validate architecture document
-- `solutioning-gate-check` - Validate readiness for Phase 4
-- `correct-course` - Handle technical changes
+- `implementation-readiness` - Validate readiness for Phase 4
 
 **Communication Style:** Comprehensive yet pragmatic. Uses architectural metaphors. Balances technical depth with accessibility. Connects decisions to business value.
 
@@ -177,7 +172,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 - Sprint planning and tracking initialization
 - Creating user stories
 - Assembling dynamic story context
-- Epic-level technical specifications (optional)
+- Epic-level technical context (optional)
 - Marking stories ready for development
 - Sprint retrospectives
 
@@ -187,8 +182,8 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 
 - `workflow-status` - Check what to do next
 - `sprint-planning` - Initialize `sprint-status.yaml` tracking
-- `epic-tech-context` - Optional epic-specific tech specs
-- `validate-epic-tech-context` - Validate epic tech spec
+- `epic-tech-context` - Optional epic-specific technical context
+- `validate-epic-tech-context` - Validate epic technical context
 - `create-story` - Draft next story from epic
 - `validate-create-story` - Independent story validation
 - `story-context` - Assemble dynamic technical context XML
@@ -231,7 +226,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
   - Strict file boundary enforcement
 - `code-review` - Senior developer-level review with:
   - Story context awareness
-  - Epic tech-spec alignment
+  - Epic-tech-context alignment
   - Repository docs reference
   - MCP server best practices
   - Web search fallback
@@ -300,12 +295,13 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 - Testing is feature work, not overhead
 - Prioritize unit/integration over E2E
 - Flakiness is critical technical debt
+- ATDD tests first, AI implements, suite validates
 
 **Special Capabilities:**
 
-- **Test Healing:** Pattern-based + MCP-enhanced test fixing
-- **Dual Mode:** BMad-integrated (uses epic/story context) or standalone
-- **Knowledge Base:** Comprehensive testing best practices
+- **Knowledge Base Access:** Consults comprehensive testing best practices from `testarch/knowledge/` directory
+- **Framework Selection:** Smart framework selection (Playwright vs Cypress) with fixture architecture
+- **Cross-Platform Testing:** Supports testing across web, mobile, and API layers
 
 ---
 
@@ -345,7 +341,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 
 ---
 
-### Paige (Documentation Guide) - Paige 📚
+### Technical Writer - Paige 📚
 
 **Role:** Technical Documentation Specialist + Knowledge Curator
 
@@ -461,10 +457,9 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 **Workflows:**
 
 - `workflow-status` - Check what to do next
-- `create-story` - Create development story
-- `dev-story` - Implement story with tests
-- `code-review` - Review game implementation
-- `retro` - Sprint retrospective
+- `develop-story` - Execute Dev Story workflow, implementing tasks and tests
+- `story-done` - Mark story done after DoD complete
+- `code-review` - Perform thorough clean context QA code review on a story
 
 **Communication Style:** Direct and energetic. Execution-focused. Breaks down complex game challenges into actionable steps. Celebrates performance wins.
 
@@ -487,7 +482,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 
 - Game system architecture
 - Technical foundation design for games
-- Solutioning gate checks for game projects
+- Validating readiness for implementation phase (game projects)
 - Course correction during game development
 
 **Primary Phase:** Phase 3 (Solutioning - Games)
@@ -496,7 +491,7 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 
 - `workflow-status` - Check what to do next
 - `create-architecture` - Game systems architecture
-- `solutioning-gate-check` - Validate Phase 3→4 transition
+- `implementation-readiness` - Validate Phase 3→4 transition
 - `correct-course` - Handle technical changes
 
 **Communication Style:** Calm and measured. Systematic thinking about complex systems. Uses chess metaphors and military strategy. Emphasizes balance and elegance.
@@ -555,71 +550,24 @@ The BMad Method Module (BMM) provides a comprehensive team of specialized AI age
 
 ## Party Mode: Multi-Agent Collaboration
 
-Party mode brings **all your installed agents together** for group discussions. Instead of working with one agent at a time, you engage with a dynamic team (19+ agents from BMM, CIS, BMB, and custom modules) that collaborates in real-time.
+Get all your installed agents in one conversation for multi-perspective discussions, retrospectives, and collaborative decision-making.
 
-### Quick Overview
+**Quick Start:**
 
-**How to Start:**
+```bash
+/bmad:core:workflows:party-mode
+# OR from any agent: *party-mode
+```
 
-1. Load BMad Master
-2. Run `*party-mode`
-3. Introduce your topic
+**What happens:** BMad Master orchestrates 2-3 relevant agents per message. They discuss, debate, and collaborate in real-time.
 
-**What Happens:**
+**Best for:** Strategic decisions, creative brainstorming, post-mortems, sprint retrospectives, complex problem-solving.
 
-- BMad Master loads ALL agents (with customizations)
-- For each message, 2-3 most relevant agents respond
-- Agents cross-talk, debate, and build on each other's ideas
-- BMad Master moderates and keeps discussion productive
+**Current BMM uses:** Powers `epic-retrospective` workflow, sprint planning discussions.
 
-**Best For:**
+**Future:** Advanced elicitation workflows will officially leverage party mode.
 
-- Strategic decisions with trade-offs
-- Creative brainstorming sessions
-- Cross-functional alignment meetings
-- Complex problem-solving
-- Epic kickoff discussions
-
-**Example Parties:**
-
-- **Product Strategy:** PM + Innovation Strategist + Analyst
-- **Technical Design:** Architect + Game Architect + Creative Problem Solver
-- **User Experience:** UX Designer + Design Thinking Coach + Storyteller
-- **Quality & Testing:** TEA + Architect + DEV
-- **Full Team:** PM + Architect + SM + DEV
-
-### Why Party Mode is Powerful
-
-**Diverse Perspectives:**
-
-- Technical agents ground ideas in reality
-- Creative agents (CIS) push for innovation
-- Strategic agents ensure market fit
-
-**Emergent Insights:**
-
-- Cross-pollination across domains
-- Novel solutions from unexpected combinations
-- Deeper exploration through debate
-
-**Natural Collaboration:**
-
-- Agents can agree, disagree, or build on each other
-- Healthy debate leads to better decisions
-- Multiple expert perspectives in one session
-
-**For complete party mode documentation, see:**
-
-👉 **[Party Mode Guide](./party-mode.md)** - Comprehensive 20-minute guide covering:
-
-- How party mode works (step-by-step process)
-- When to use party mode (strategic, creative, cross-functional, complex)
-- Getting started (quick start guide)
-- Agent selection dynamics
-- Multi-module integration (19+ agents)
-- 8+ example party compositions
-- Agent customization in party mode
-- Best practices and troubleshooting
+👉 **[Party Mode Guide](./party-mode.md)** - Complete guide with fun examples, tips, and troubleshooting
 
 ---
 
@@ -650,21 +598,21 @@ Some workflows are available to multiple agents:
 | `workflow-status`  | ALL agents                        | Check current state and get recommendations |
 | `workflow-init`    | PM, Analyst, Game Designer        | Initialize workflow tracking                |
 | `correct-course`   | PM, Architect, SM, Game Architect | Change management during implementation     |
-| `document-project` | Analyst, Paige                    | Brownfield documentation                    |
+| `document-project` | Analyst, Technical Writer         | Brownfield documentation                    |
 
 ### Validation Actions
 
 Many workflows have optional validation workflows that perform independent review:
 
-| Validation                   | Agent       | Validates                          |
-| ---------------------------- | ----------- | ---------------------------------- |
-| `validate-prd`               | PM          | PRD + Epics + Stories completeness |
-| `validate-tech-spec`         | PM          | Technical specification quality    |
-| `validate-architecture`      | Architect   | Architecture document              |
-| `validate-design`            | UX Designer | UX specification and artifacts     |
-| `validate-epic-tech-context` | SM          | Epic technical specification       |
-| `validate-create-story`      | SM          | Story draft                        |
-| `validate-story-context`     | SM          | Story context XML                  |
+| Validation                   | Agent       | Validates                        |
+| ---------------------------- | ----------- | -------------------------------- |
+| `validate-prd`               | PM          | PRD completeness (FRs/NFRs only) |
+| `validate-tech-spec`         | PM          | Technical specification quality  |
+| `validate-architecture`      | Architect   | Architecture document            |
+| `validate-design`            | UX Designer | UX specification and artifacts   |
+| `validate-epic-tech-context` | SM          | Epic technical context           |
+| `validate-create-story`      | SM          | Story draft                      |
+| `validate-story-context`     | SM          | Story context XML                |
 
 **When to use validation:**
 
@@ -846,12 +794,12 @@ Load the customized agent and verify the changes are reflected in its behavior a
 - **Phase 3 (Solutioning):** Architect, Game Architect
 - **Phase 4 (Implementation):** SM, DEV, Game Developer
 - **Testing:** TEA (all phases)
-- **Documentation:** Paige (all phases)
+- **Documentation:** Technical Writer (all phases)
 
 **3. Use specialists**
 
 - **Testing:** TEA for comprehensive quality strategy
-- **Documentation:** Paige for technical writing
+- **Documentation:** Technical Writer for technical writing
 - **Games:** Game Designer/Developer/Architect for game-specific needs
 - **UX:** UX Designer for user-centered design
 
@@ -901,17 +849,19 @@ Load the customized agent and verify the changes are reflected in its behavior a
 2. Analyst: *brainstorm-project or *product-brief (optional)
 3. PM: *create-prd (Level 2-4) or *tech-spec (Level 0-1)
 4. Architect: *create-architecture (Level 3-4 only)
-5. SM: *sprint-planning
+5. PM: *create-epics-and-stories (after architecture)
+6. SM: *sprint-planning
 ```
 
 **Starting with Existing Code (Brownfield):**
 
 ```
-1. Analyst or Paige: *document-project
+1. Analyst or Technical Writer: *document-project
 2. PM or Analyst: *workflow-init
 3. PM: *create-prd or *tech-spec
 4. Architect: *create-architecture (if needed)
-5. SM: *sprint-planning
+5. PM: *create-epics-and-stories (after architecture)
+6. SM: *sprint-planning
 ```
 
 **Story Development Cycle:**
@@ -963,7 +913,7 @@ Agent analyzes project state → recommends next workflow
 ```
 Each phase has validation gates:
 - Phase 2→3: validate-prd, validate-tech-spec
-- Phase 3→4: solutioning-gate-check
+- Phase 3→4: implementation-readiness
 Run validation before advancing
 ```
 
@@ -990,20 +940,20 @@ TEA can be invoked at any phase:
 
 Quick reference for agent selection:
 
-| Agent              | Icon | Primary Phase      | Key Workflows                                 | Best For                              |
-| ------------------ | ---- | ------------------ | --------------------------------------------- | ------------------------------------- |
-| **Analyst**        | 📊   | 1 (Analysis)       | brainstorm, brief, research, document-project | Discovery, requirements, brownfield   |
-| **PM**             | 📋   | 2 (Planning)       | prd, tech-spec, epics-stories                 | Planning, requirements docs           |
-| **UX Designer**    | 🎨   | 2 (Planning)       | create-design, validate-design                | UX-heavy projects, design             |
-| **Architect**      | 🏗️   | 3 (Solutioning)    | architecture, gate-check                      | Technical design, architecture        |
-| **SM**             | 🏃   | 4 (Implementation) | sprint-planning, create-story, story-context  | Story management, sprint coordination |
-| **DEV**            | 💻   | 4 (Implementation) | develop-story, code-review, story-done        | Implementation, coding                |
-| **TEA**            | 🧪   | All Phases         | framework, atdd, automate, trace, ci          | Testing, quality assurance            |
-| **Paige**          | 📚   | All Phases         | document-project, diagrams, validation        | Documentation, diagrams               |
-| **Game Designer**  | 🎲   | 1-2 (Games)        | brainstorm-game, gdd, narrative               | Game design, creative vision          |
-| **Game Developer** | 🕹️   | 4 (Games)          | dev-story, code-review                        | Game implementation                   |
-| **Game Architect** | 🏛️   | 3 (Games)          | architecture, gate-check                      | Game systems architecture             |
-| **BMad Master**    | 🧙   | Meta               | party-mode, list tasks/workflows              | Orchestration, multi-agent            |
+| Agent                   | Icon | Primary Phase      | Key Workflows                                 | Best For                              |
+| ----------------------- | ---- | ------------------ | --------------------------------------------- | ------------------------------------- |
+| **Analyst**             | 📊   | 1 (Analysis)       | brainstorm, brief, research, document-project | Discovery, requirements, brownfield   |
+| **PM**                  | 📋   | 2 (Planning)       | prd, tech-spec, epics-stories                 | Planning, requirements docs           |
+| **UX Designer**         | 🎨   | 2 (Planning)       | create-design, validate-design                | UX-heavy projects, design             |
+| **Architect**           | 🏗️   | 3 (Solutioning)    | architecture, implementation-readiness        | Technical design, architecture        |
+| **SM**                  | 🏃   | 4 (Implementation) | sprint-planning, create-story, story-context  | Story management, sprint coordination |
+| **DEV**                 | 💻   | 4 (Implementation) | develop-story, code-review, story-done        | Implementation, coding                |
+| **TEA**                 | 🧪   | All Phases         | framework, atdd, automate, trace, ci          | Testing, quality assurance            |
+| **Paige (Tech Writer)** | 📚   | All Phases         | document-project, diagrams, validation        | Documentation, diagrams               |
+| **Game Designer**       | 🎲   | 1-2 (Games)        | brainstorm-game, gdd, narrative               | Game design, creative vision          |
+| **Game Developer**      | 🕹️   | 4 (Games)          | develop-story, story-done, code-review        | Game implementation                   |
+| **Game Architect**      | 🏛️   | 3 (Games)          | architecture, implementation-readiness        | Game systems architecture             |
+| **BMad Master**         | 🧙   | Meta               | party-mode, list tasks/workflows              | Orchestration, multi-agent            |
 
 ### Agent Capabilities Summary
 
@@ -1032,7 +982,7 @@ Quick reference for agent selection:
 **Support Agents (2):**
 
 - Analyst: Research and discovery
-- Paige: Documentation and diagrams
+- Technical Writer: Documentation and diagrams
 
 **Meta Agent (1):**
 
@@ -1048,7 +998,7 @@ Quick reference for agent selection:
 - [Phase 2: Planning Workflows](./workflows-planning.md)
 - [Phase 3: Solutioning Workflows](./workflows-solutioning.md)
 - [Phase 4: Implementation Workflows](./workflows-implementation.md)
-- [Testing & QA Workflows](./workflows-testing.md)
+<!-- Testing & QA Workflows documentation to be added -->
 
 **Advanced References:**
 
@@ -1065,7 +1015,6 @@ Quick reference for agent selection:
 
 - [Enterprise Agentic Development](./enterprise-agentic-development.md) - Team collaboration
 - [FAQ](./faq.md) - Common questions
-- [Troubleshooting](./troubleshooting.md) - Problem resolution
 - [Glossary](./glossary.md) - Terminology reference
 
 ---
@@ -1083,7 +1032,7 @@ Quick reference for agent selection:
 **Starting a Project:**
 
 - [ ] Determine project type (greenfield vs brownfield)
-- [ ] If brownfield: Run `*document-project` (Analyst or Paige)
+- [ ] If brownfield: Run `*document-project` (Analyst or Technical Writer)
 - [ ] Load PM or Analyst → `*workflow-init`
 - [ ] Follow phase-appropriate workflows
 - [ ] Try `*party-mode` for strategic decisions

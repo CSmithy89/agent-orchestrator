@@ -18,7 +18,9 @@
       "mcp__serena__find_symbol",
       "mcp__serena__search_for_pattern",
       "Bash(cd:*)",
-      "Bash(gh pr view:*)"
+      "Bash(gh pr view:*)",
+      "mcp__playwright__browser_click",
+      "mcp__playwright__browser_navigate"
     ],
     "deny": [],
     "ask": []

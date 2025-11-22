@@ -9,26 +9,10 @@
 <critical>Communicate all responses in {communication_language} and tailor to {user_skill_level}</critical>
 <critical>Generate all documents in {document_output_language}</critical>
 <critical>SAVE PROGRESS after each major step - use <template-output> tags throughout</critical>
-
 <critical>DOCUMENT OUTPUT: Professional, specific, actionable UX design decisions WITH RATIONALE. User skill level ({user_skill_level}) affects conversation style ONLY, not document content.</critical>
-
-## 📚 Input Document Discovery
-
-This workflow requires: PRD or product brief, and may reference epics/stories, brainstorming documents, or brownfield project documentation.
-
-**Discovery Process** (execute for each referenced document):
-
-1. **Search for whole document first** - Use fuzzy file matching to find the complete document
-2. **Check for sharded version** - If whole document not found, look for `{doc-name}/index.md`
-3. **If sharded version found**:
-   - Read `index.md` to understand the document structure
-   - Read ALL section files listed in the index
-   - Treat the combined content as if it were a single document
-4. **Brownfield projects**: The `document-project` workflow always creates `{output_folder}/docs/index.md`
-
-**Priority**: If both whole and sharded versions exist, use the whole document.
-
-**Fuzzy matching**: Be flexible with document names - users may use variations in naming conventions.
+<critical>Input documents specified in workflow.yaml input_file_patterns - workflow engine handles fuzzy matching, whole vs sharded document discovery automatically</critical>
+<critical>⚠️ ABSOLUTELY NO TIME ESTIMATES - NEVER mention hours, days, weeks, months, or ANY time-based predictions. AI has fundamentally changed development speed - what once took teams weeks/months can now be done by one person in hours. DO NOT give ANY time estimates whatsoever.</critical>
+<critical>⚠️ CHECKPOINT PROTOCOL: After EVERY <template-output> tag, you MUST follow workflow.xml substep 2c: SAVE content to file immediately → SHOW checkpoint separator (━━━━━━━━━━━━━━━━━━━━━━━) → DISPLAY generated content → PRESENT options [a]Advanced Elicitation/[c]Continue/[p]Party-Mode/[y]YOLO → WAIT for user response. Never batch saves or skip checkpoints.</critical>
 
 <step n="0" goal="Validate workflow readiness" tag="workflow-status">
 <action>Check if {output_folder}/bmm-workflow-status.yaml exists</action>
@@ -69,10 +53,15 @@ This workflow requires: PRD or product brief, and may reference epics/stories, b
 </check>
 </step>
 
+<step n="0.5" goal="Discover and load input documents">
+<invoke-protocol name="discover_inputs" />
+<note>After discovery, these content variables are available: {prd_content}, {product_brief_content}, {epics_content}, {brainstorming_content}, {document_project_content}</note>
+</step>
+
 <step n="1a" goal="Confirm project understanding or gather basic context">
   <critical>A UX designer must understand the WHY before designing the HOW</critical>
 
-<action>Attempt to load context documents using fuzzy matching: - PRD: {prd_file} - Product Brief: {brief_file} - Brainstorming: {brainstorm_file}
+<action>Review loaded context from Step 0.5: {prd_content}, {product_brief_content}, {epics_content}, {brainstorming_content}
 </action>
 
   <check if="documents_found">

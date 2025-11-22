@@ -136,9 +136,43 @@ Tasks should be used for:
 - Declare dependencies in config.yaml
 - Version compatibility notes
 
+### Workflow Vendoring (Advanced)
+
+For modules that need workflows from other modules but want to remain standalone, use **workflow vendoring**:
+
+**In Agent YAML:**
+
+```yaml
+menu:
+  - trigger: command-name
+    workflow: '{project-root}/bmad/SOURCE_MODULE/workflows/path/workflow.yaml'
+    workflow-install: '{project-root}/bmad/THIS_MODULE/workflows/vendored/workflow.yaml'
+    description: 'Command description'
+```
+
+**What Happens:**
+
+- During installation, workflows are copied from `workflow` to `workflow-install` location
+- Vendored workflows get `config_source` updated to reference this module's config
+- Compiled agent only references the `workflow-install` path
+- Module becomes fully standalone - no source module dependency required
+
+**Use Cases:**
+
+- Specialized modules that reuse common workflows with different configs
+- Domain-specific adaptations (e.g., game dev using standard dev workflows)
+- Testing workflows in isolation
+
+**Benefits:**
+
+- Module independence (no forced dependencies)
+- Clean namespace (workflows in your module)
+- Config isolation (use your module's settings)
+- Customization ready (modify vendored workflows freely)
+
 ## Installation Infrastructure
 
-### Required: \_module-installer/install-config.yaml
+### Required: module-installer/install-config.yaml
 
 This file defines both installation questions AND static configuration values:
 
@@ -192,7 +226,7 @@ data_path:
 - `result` field uses placeholders: `{value}`, `{project-root}`, `{directory_name}`
 - Installer generates final `config.yaml` from this template
 
-### Optional: \_module-installer/installer.js
+### Optional: module-installer/installer.js
 
 For complex installations requiring custom logic:
 
@@ -218,7 +252,7 @@ async function install(options) {
 module.exports = { install };
 ```
 
-### Optional: \_module-installer/assets/
+### Optional: module-installer/assets/
 
 Files to copy during installation:
 
